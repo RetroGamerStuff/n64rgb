@@ -143,6 +143,7 @@ A complete installation and setup guide to this modding kit is provided in the m
 - Assemble your PCB (**N64RGBv1**):
   * If you use a MaxII CPLD, you have to assemble FB2 and must not use U3, C31 and C32.
   * If you use a MaxV CPLD, you need U3 (a 1.8V voltage regulator), C31 and C32. Don't touch FB2 in this case!
+  * Formerly FB2 was J1 at versions 5M_20171211 and earlier 
 - Assemble your PCB (**N64RGBv2**):
   * If you use a MaxII CPLD, you have to assemble FB3 and must not use U4, C41 and C42.
   * If you use a MaxV CPLD, you need U4 (a 1.8V voltage regulator), C41 and C42. Don't touch FB3 in this case!
