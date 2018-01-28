@@ -113,22 +113,6 @@
          type = "String";
       }
    }
-   element nvsync_in
-   {
-      datum _sortIndex
-      {
-         value = "11";
-         type = "int";
-      }
-   }
-   element nvsync_in.s1
-   {
-      datum baseAddress
-      {
-         value = "69632";
-         type = "String";
-      }
-   }
    element onchip_memory2_0
    {
       datum _sortIndex
@@ -142,6 +126,22 @@
       datum baseAddress
       {
          value = "32768";
+         type = "String";
+      }
+   }
+   element sync_in
+   {
+      datum _sortIndex
+      {
+         value = "11";
+         type = "int";
+      }
+   }
+   element sync_in.s1
+   {
+      datum baseAddress
+      {
+         value = "69632";
          type = "String";
       }
    }
@@ -235,12 +235,12 @@
    internal="info_set_in.external_connection"
    type="conduit"
    dir="end" />
+ <interface name="reset" internal="clk_0.clk_in_reset" type="reset" dir="end" />
  <interface
-   name="nvsync_in"
-   internal="nvsync_in.external_connection"
+   name="sync_in"
+   internal="sync_in.external_connection"
    type="conduit"
    dir="end" />
- <interface name="reset" internal="clk_0.clk_in_reset" type="reset" dir="end" />
  <interface
    name="vd_wraddr"
    internal="vd_wraddr.external_connection"
@@ -377,7 +377,7 @@
   <parameter name="dataAddrWidth" value="17" />
   <parameter name="dataMasterHighPerformanceAddrWidth" value="1" />
   <parameter name="dataMasterHighPerformanceMapParam" value="" />
-  <parameter name="dataSlaveMapParam"><![CDATA[<address-map><slave name='onchip_memory2_0.s1' start='0x8000' end='0xF800' type='altera_avalon_onchip_memory2.s1' /><slave name='nios2_gen2_0.debug_mem_slave' start='0x10800' end='0x11000' type='altera_nios2_gen2.debug_mem_slave' /><slave name='nvsync_in.s1' start='0x11000' end='0x11010' type='altera_avalon_pio.s1' /><slave name='default_cfg_set_in.s1' start='0x11010' end='0x11020' type='altera_avalon_pio.s1' /><slave name='info_set_in.s1' start='0x11020' end='0x11030' type='altera_avalon_pio.s1' /><slave name='cfg_set_out.s1' start='0x11030' end='0x11040' type='altera_avalon_pio.s1' /><slave name='ctrl_data_in.s1' start='0x11040' end='0x11050' type='altera_avalon_pio.s1' /><slave name='vd_wrctrl.s1' start='0x11050' end='0x11060' type='altera_avalon_pio.s1' /><slave name='vd_wraddr.s1' start='0x11060' end='0x11070' type='altera_avalon_pio.s1' /><slave name='vd_wrdata.s1' start='0x11070' end='0x11080' type='altera_avalon_pio.s1' /><slave name='jtag_uart_0.avalon_jtag_slave' start='0x11080' end='0x11088' type='altera_avalon_jtag_uart.avalon_jtag_slave' /></address-map>]]></parameter>
+  <parameter name="dataSlaveMapParam"><![CDATA[<address-map><slave name='onchip_memory2_0.s1' start='0x8000' end='0xF800' type='altera_avalon_onchip_memory2.s1' /><slave name='nios2_gen2_0.debug_mem_slave' start='0x10800' end='0x11000' type='altera_nios2_gen2.debug_mem_slave' /><slave name='sync_in.s1' start='0x11000' end='0x11010' type='altera_avalon_pio.s1' /><slave name='default_cfg_set_in.s1' start='0x11010' end='0x11020' type='altera_avalon_pio.s1' /><slave name='info_set_in.s1' start='0x11020' end='0x11030' type='altera_avalon_pio.s1' /><slave name='cfg_set_out.s1' start='0x11030' end='0x11040' type='altera_avalon_pio.s1' /><slave name='ctrl_data_in.s1' start='0x11040' end='0x11050' type='altera_avalon_pio.s1' /><slave name='vd_wrctrl.s1' start='0x11050' end='0x11060' type='altera_avalon_pio.s1' /><slave name='vd_wraddr.s1' start='0x11060' end='0x11070' type='altera_avalon_pio.s1' /><slave name='vd_wrdata.s1' start='0x11070' end='0x11080' type='altera_avalon_pio.s1' /><slave name='jtag_uart_0.avalon_jtag_slave' start='0x11080' end='0x11088' type='altera_avalon_jtag_uart.avalon_jtag_slave' /></address-map>]]></parameter>
   <parameter name="data_master_high_performance_paddr_base" value="0" />
   <parameter name="data_master_high_performance_paddr_size" value="0" />
   <parameter name="data_master_paddr_base" value="0" />
@@ -535,20 +535,6 @@
   <parameter name="tracefilename" value="" />
   <parameter name="userDefinedSettings" value="" />
  </module>
- <module name="nvsync_in" kind="altera_avalon_pio" version="17.1" enabled="1">
-  <parameter name="bitClearingEdgeCapReg" value="false" />
-  <parameter name="bitModifyingOutReg" value="false" />
-  <parameter name="captureEdge" value="true" />
-  <parameter name="clockRate" value="100000000" />
-  <parameter name="direction" value="Input" />
-  <parameter name="edgeType" value="FALLING" />
-  <parameter name="generateIRQ" value="true" />
-  <parameter name="irqType" value="EDGE" />
-  <parameter name="resetValue" value="0" />
-  <parameter name="simDoTestBenchWiring" value="false" />
-  <parameter name="simDrivenValue" value="0" />
-  <parameter name="width" value="1" />
- </module>
  <module
    name="onchip_memory2_0"
    kind="altera_avalon_onchip_memory2"
@@ -580,6 +566,20 @@
   <parameter name="useNonDefaultInitFile" value="true" />
   <parameter name="useShallowMemBlocks" value="false" />
   <parameter name="writable" value="true" />
+ </module>
+ <module name="sync_in" kind="altera_avalon_pio" version="17.1" enabled="1">
+  <parameter name="bitClearingEdgeCapReg" value="false" />
+  <parameter name="bitModifyingOutReg" value="false" />
+  <parameter name="captureEdge" value="true" />
+  <parameter name="clockRate" value="100000000" />
+  <parameter name="direction" value="Input" />
+  <parameter name="edgeType" value="RISING" />
+  <parameter name="generateIRQ" value="true" />
+  <parameter name="irqType" value="EDGE" />
+  <parameter name="resetValue" value="0" />
+  <parameter name="simDoTestBenchWiring" value="false" />
+  <parameter name="simDrivenValue" value="0" />
+  <parameter name="width" value="2" />
  </module>
  <module name="vd_wraddr" kind="altera_avalon_pio" version="17.1" enabled="1">
   <parameter name="bitClearingEdgeCapReg" value="false" />
@@ -717,7 +717,7 @@
    kind="avalon"
    version="17.1"
    start="nios2_gen2_0.data_master"
-   end="nvsync_in.s1">
+   end="sync_in.s1">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x00011000" />
   <parameter name="defaultConnection" value="false" />
@@ -753,7 +753,7 @@
    version="17.1"
    start="clk_0.clk"
    end="default_cfg_set_in.clk" />
- <connection kind="clock" version="17.1" start="clk_0.clk" end="nvsync_in.clk" />
+ <connection kind="clock" version="17.1" start="clk_0.clk" end="sync_in.clk" />
  <connection
    kind="clock"
    version="17.1"
@@ -770,7 +770,7 @@
    kind="interrupt"
    version="17.1"
    start="nios2_gen2_0.irq"
-   end="nvsync_in.irq">
+   end="sync_in.irq">
   <parameter name="irqNumber" value="1" />
  </connection>
  <connection
@@ -822,7 +822,7 @@
    kind="reset"
    version="17.1"
    start="clk_0.clk_reset"
-   end="nvsync_in.reset" />
+   end="sync_in.reset" />
  <connection
    kind="reset"
    version="17.1"

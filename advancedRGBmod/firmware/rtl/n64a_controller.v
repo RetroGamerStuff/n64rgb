@@ -136,7 +136,7 @@ system system_u(
   .default_cfg_set_in_export(DefaultConfigSet),
   .cfg_set_out_export(SysConfigSet),
   .info_set_in_export({InfoSet,FallbackMode}),
-  .nvsync_in_export(nVSYNC_cur)
+  .sync_in_export({new_ctrl_data[1],nVSYNC_cur})
 );
 
 wire show_osd = SysConfigSet[14];

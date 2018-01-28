@@ -158,8 +158,9 @@ int main()
     cfg_io_word_pre = cfg_io->cfg_word_val;
 
     /* ToDo: use external interrupt to go on on nVSYNC */
-    while(!get_nvsync()) {};  /* wait for nVSYNC goes high */
-    while( get_nvsync()) {};  /* wait for nVSYNC goes low  */
+    while(!get_nvsync())                         {};  /* wait for nVSYNC goes high */
+    while( get_nvsync() && new_ctrl_available()) {};  /* wait for nVSYNC goes low and
+                                                         wait for new controller available */
   }
 
   return 0;

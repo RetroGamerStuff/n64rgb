@@ -125,7 +125,8 @@
 //#define INFO_FALLBACKMODE_SETMASK   (1<<INFO_FALLBACKMODE)
 //#define INFO_FALLBACKMODE_CLRMASK   (INFO_GETALL_MASK & ~INFO_FALLBACKMODE_SETMASK)
 
-#define NVSYNC_IN_MASK 0x01
+#define NVSYNC_IN_MASK        0x01
+#define NEW_CTRL_DATA_IN_MASK 0x02
 
 typedef enum {
   CMD_NON = 0,
@@ -153,6 +154,8 @@ inline alt_u32 get_ctrl_data()
 inline alt_u8 get_info_data()
   {  return (IORD_ALTERA_AVALON_PIO_DATA(INFO_SET_IN_BASE) & INFO_GETALL_MASK);  };
 inline alt_u8 get_nvsync()
-  {  return (IORD_ALTERA_AVALON_PIO_DATA(NVSYNC_IN_BASE) & NVSYNC_IN_MASK);  };
+  {  return (IORD_ALTERA_AVALON_PIO_DATA(SYNC_IN_BASE) & NVSYNC_IN_MASK);  };
+inline alt_u8 new_ctrl_available()
+  {  return (IORD_ALTERA_AVALON_PIO_DATA(SYNC_IN_BASE) & NEW_CTRL_DATA_IN_MASK);  };
 
 #endif /* N64_H_ */
