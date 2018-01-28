@@ -132,7 +132,7 @@ system system_u(
   .vd_wraddr_export(vd_wraddr),
   .vd_wrctrl_export(vd_wrctrl),
   .vd_wrdata_export(vd_wrdata),
-  .ctrl_data_in_export({ctrl_analog_data,ctrl_digital_data[1]}),
+  .ctrl_data_in_export(serial_data[1]),
   .default_cfg_set_in_export(DefaultConfigSet),
   .cfg_set_out_export(SysConfigSet),
   .info_set_in_export({InfoSet,FallbackMode}),
@@ -159,27 +159,26 @@ parameter ST_WAIT4N64 = 2'b00; // wait for N64 sending request to controller
 parameter ST_N64_RD   = 2'b01; // N64 request sniffing
 parameter ST_CTRL_RD  = 2'b10; // controller response
 
-reg [9:0] sampl_p_cnt  = 10'h0; // used to estimated new threshold point
-reg [3:0] sampl_p_n64  =  4'h8; // wait_cnt increased a few times since neg. edge -> sample data
-reg [3:0] sampl_p_ctrl =  4'h8; // (9 by default -> delay somewhere around 2.25us)
+reg [11:0] wait_cnt  = 12'b0; // counter for wait state (needs appr. 1.0ms at CLK_4M clock to fill up from 0 to 4095)
 
-reg        prev_ctrl    =  1'b1;
-reg [11:0] wait_cnt     = 12'b0; // counter for wait state (needs appr. 1.0ms at CLK_4M clock to fill up from 0 to 4095)
+reg [ 9:0] sampl_p_cnt  = 10'h0; // used to estimated new threshold point
+reg [ 3:0] sampl_p_n64  =  4'h8; // wait_cnt increased a few times since neg. edge -> sample data
+reg [ 3:0] sampl_p_ctrl =  4'h8; // (9 by default -> delay somewhere around 2.25us)
 
-reg [31:0] serial_data      = 32'h0;
-reg [ 5:0] ctrl_data_cnt    =  6'h0;
-reg        new_ctrl_data    =  1'b0;
-reg [15:0] ctrl_analog_data = 16'h0;
-reg [15:0] ctrl_digital_data[0:1];
+reg [ 2:0] ctrl_hist =  3'h7;
+
+wire ctrl_negedge = ctrl_hist[2] & ~ctrl_hist[1];
+wire ctrl_bit     = ctrl_hist[1];
+
+reg [31:0] serial_data[0:1];
+reg [ 5:0] ctrl_data_cnt    = 6'h0;
+reg [ 1:0] new_ctrl_data    = 2'b00;
 
 initial begin
-  ctrl_digital_data[0] = 16'h0;
-  ctrl_digital_data[1] = 16'h0;
+  serial_data[1] <= 32'h0;
+  serial_data[0] <= 32'h0;
 end
 
-wire [15:0] ctrl_digital_data_deglitched = ((ctrl_digital_data[1] & ctrl_digital_data[0]) |
-                                            (ctrl_digital_data[1] & serial_data[15:0]   ) |
-                                            (ctrl_digital_data[0] & serial_data[15:0]   ));
 
 reg initiate_nrst = 1'b0;
 
@@ -191,31 +190,31 @@ reg initiate_nrst = 1'b0;
 // 24:31 - Y axis
 // 32    - Stop bit
 
-wire [4:0] sampl_p_new = (rd_state == ST_N64_RD) ? sampl_p_cnt[7:4] + sampl_p_cnt[3] :
-                                                   sampl_p_cnt[9:6] + sampl_p_cnt[5] ;
+wire [4:0] sampl_p_new = (rd_state == ST_N64_RD) ? (sampl_p_cnt[7:4] + sampl_p_cnt[3] - 1'b1) :
+                                                   (sampl_p_cnt[9:6] + sampl_p_cnt[5] - 1'b1) ;
 
 always @(posedge CLK_4M) begin
   case (rd_state)
     ST_WAIT4N64:
       if (&wait_cnt) begin // waiting duration ends (exit wait state only if CTRL was high for a certain duration)
-        next_rd_state <= ST_N64_RD;
-        serial_data   <= 32'h0;
-        ctrl_data_cnt <=  6'h0;
+        next_rd_state  <= ST_N64_RD;
+        serial_data[0] <= 32'h0;
+        ctrl_data_cnt  <=  6'h0;
       end
     ST_N64_RD: begin
       if (wait_cnt[7:0] == {4'h0,sampl_p_n64}) begin // sample data
         if (ctrl_data_cnt[3]) // eight bits read
-          if (CTRL & (serial_data[29:22] == 8'b10000000)) begin // check command and stop bit
+          if (ctrl_bit & (serial_data[0][29:22] == 8'b10000000)) begin // check command and stop bit
           // trick: the 2 LSB command bits lies where controller produces unused constant values
           //         -> (hopefully) no exchange with controller response
-            next_rd_state <= ST_CTRL_RD;
-            serial_data   <= 32'h0;
-            ctrl_data_cnt <=  6'h0;
+            next_rd_state  <= ST_CTRL_RD;
+            serial_data[0] <= 32'h0;
+            ctrl_data_cnt  <=  6'h0;
           end else
             next_rd_state <= ST_WAIT4N64;
         else begin
-          serial_data[29:22] <= {CTRL,serial_data[29:23]};
-          ctrl_data_cnt      <= ctrl_data_cnt + 1'b1;
+          serial_data[0][29:22] <= {ctrl_bit,serial_data[0][29:23]};
+          ctrl_data_cnt         <=  ctrl_data_cnt + 1'b1;
         end
       end
     end
@@ -223,10 +222,11 @@ always @(posedge CLK_4M) begin
       if (wait_cnt[7:0] == {4'h0,sampl_p_ctrl}) begin // sample data
         if (ctrl_data_cnt[5]) begin // thirtytwo bits read
           next_rd_state <= ST_WAIT4N64;
-          new_ctrl_data <= CTRL; // stop bit must be '1'
+//          new_ctrl_data <= CTRL; // stop bit must be '1' (wrong: last posedge is at 50/50 duty)
+          new_ctrl_data[0] <= 1'b1;
         end else begin
-          serial_data   <= {CTRL,serial_data[31:1]};
-          ctrl_data_cnt <= ctrl_data_cnt + 1'b1;
+          serial_data[0] <= {ctrl_bit,serial_data[0][31:1]};
+          ctrl_data_cnt  <=  ctrl_data_cnt + 1'b1;
         end
       end
     end
@@ -236,7 +236,7 @@ always @(posedge CLK_4M) begin
   if (~&sampl_p_cnt)
     sampl_p_cnt <= sampl_p_cnt + 1'b1;
 
-  if (prev_ctrl & ~CTRL) begin    // counter resets on neg. edge
+  if (ctrl_negedge) begin    // counter resets on neg. edge
     rd_state <= next_rd_state;
     wait_cnt <= 12'h000;
     if (|next_rd_state) begin     // following statements not applied to ST_WAIT4N64
@@ -256,30 +256,29 @@ always @(posedge CLK_4M) begin
     end
   end
 
-  prev_ctrl <= CTRL;
+  ctrl_hist <= {ctrl_hist[1:0],CTRL};
 
-  if (new_ctrl_data) begin
-    new_ctrl_data <= 1'b0;
-
-    ctrl_analog_data     <= serial_data[31:16];
-    ctrl_digital_data[1] <= ctrl_digital_data_deglitched;
-    ctrl_digital_data[0] <= serial_data[15: 0];
+  if (new_ctrl_data[0]) begin
+    new_ctrl_data  <= 2'b10;
+    serial_data[1] <= serial_data[0];
     
-    if (use_igr & (ctrl_digital_data[1][15:0] == `IGR_RESET))
+    if (use_igr & (serial_data[0][15:0] == `IGR_RESET))
       initiate_nrst <= 1'b1;
   end
+
+  if (!nVSYNC_pre & nVSYNC_cur)
+    new_ctrl_data[1] <= 1'b0;
 
   if (!nRST) begin
     rd_state      <= ST_WAIT4N64;
     wait_cnt      <= 12'h000;
-    prev_ctrl     <=  1'b1;
+    ctrl_hist     <=  3'h7;
     initiate_nrst <=  1'b0;
 
-    new_ctrl_data <=  1'b0;
+    new_ctrl_data <=  2'b0;
 
-    ctrl_analog_data     <= 16'h0;
-    ctrl_digital_data[0] <= 16'h0;
-    ctrl_digital_data[1] <= 16'h0;
+    serial_data[1] <= 32'h0;
+    serial_data[0] <= 32'h0;
   end
 end
 
