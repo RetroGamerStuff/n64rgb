@@ -155,9 +155,9 @@ end
 reg [1:0]      rd_state  = 2'b0; // state machine
 reg [1:0] next_rd_state  = 2'b0; // next state
 
-parameter ST_WAIT4N64 = 2'b00; // wait for N64 sending request to controller
-parameter ST_N64_RD   = 2'b01; // N64 request sniffing
-parameter ST_CTRL_RD  = 2'b10; // controller response
+localparam ST_WAIT4N64 = 2'b00; // wait for N64 sending request to controller
+localparam ST_N64_RD   = 2'b01; // N64 request sniffing
+localparam ST_CTRL_RD  = 2'b10; // controller response
 
 reg [11:0] wait_cnt  = 12'b0; // counter for wait state (needs appr. 1.0ms at CLK_4M clock to fill up from 0 to 4095)
 
@@ -230,7 +230,10 @@ always @(posedge CLK_4M) begin
         end
       end
     end
-    default: next_rd_state <= ST_WAIT4N64;
+    default: begin
+           rd_state <= ST_WAIT4N64;
+      next_rd_state <= ST_WAIT4N64;
+    end
   endcase
 
   if (~&sampl_p_cnt)
@@ -248,12 +251,10 @@ always @(posedge CLK_4M) begin
         sampl_p_ctrl <= sampl_p_new[3:0];
     end
   end else begin
-    if (~&wait_cnt) begin  // saturate counter if needed
+    if (~&wait_cnt) // saturate counter if needed
       wait_cnt <= wait_cnt + 1'b1;
-    end else begin                  // counter saturated
+    else            // counter saturated
       rd_state <= ST_WAIT4N64;
-      wait_cnt <= 12'h000;
-    end
   end
 
   ctrl_hist <= {ctrl_hist[1:0],CTRL};
@@ -270,7 +271,8 @@ always @(posedge CLK_4M) begin
     new_ctrl_data[1] <= 1'b0;
 
   if (!nRST) begin
-    rd_state      <= ST_WAIT4N64;
+         rd_state <= ST_WAIT4N64;
+    next_rd_state <= ST_WAIT4N64;
     wait_cnt      <= 12'h000;
     ctrl_hist     <=  3'h7;
     initiate_nrst <=  1'b0;
