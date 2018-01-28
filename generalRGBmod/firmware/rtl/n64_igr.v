@@ -69,43 +69,47 @@ module n64_igr (
 `endif
 
 
-  // nCLK frequency (NTSC and PAL related to console type; not to video type)
-  //   - NTSC: ~48.68MHz
-  //   -  PAL: ~49.66MHz
-  // nCLK2 is nCLK divided by 2*6
-  //   - NTSC: ~4.06MHz (~0.247us period)
-  //   -  PAL: ~4.14MHz (~0.242us period)
+// nCLK frequency (NTSC and PAL related to console type; not to video type)
+//   - NTSC: ~48.68MHz
+//   -  PAL: ~49.66MHz
+// nCLK2 is nCLK divided by 2*6
+//   - NTSC: ~4.06MHz (~0.247us period)
+//   -  PAL: ~4.14MHz (~0.242us period)
 
-  reg nCLK2 = 1'b0;               // clock with period as described
-  reg [2:0] div_clk_cnt = 3'b000; // counter to generate a clock devider 2*6
+reg nCLK2 = 1'b0;               // clock with period as described
+reg [2:0] div_clk_cnt = 3'b000; // counter to generate a clock devider 2*6
 
-  always @(negedge nCLK) begin
-    if (div_clk_cnt == 3'b101) begin
-      nCLK2 <= ~nCLK2;
-      div_clk_cnt <= 3'b000;
-    end else
-      div_clk_cnt <= div_clk_cnt + 1'b1;
-  end
+always @(negedge nCLK) begin
+  if (div_clk_cnt == 3'b101) begin
+    nCLK2 <= ~nCLK2;
+    div_clk_cnt <= 3'b000;
+  end else
+    div_clk_cnt <= div_clk_cnt + 1'b1;
+end
 
 
-reg [1:0] read_state  = 2'b0; // state machine
+reg [1:0] rd_state  = 2'b0; // state machine
 
-parameter ST_WAIT4N64 = 2'b00; // wait for N64 sending request to controller
-parameter ST_N64_RD   = 2'b01; // N64 request sniffing
-parameter ST_CTRL_RD  = 2'b10; // controller response
+localparam ST_WAIT4N64 = 2'b00; // wait for N64 sending request to controller
+localparam ST_N64_RD   = 2'b01; // N64 request sniffing
+localparam ST_CTRL_RD  = 2'b10; // controller response
 
-reg [3:0] sampling_point_n64  = 4'h9; // wait_cnt increased a few times since neg. edge -> sample data
-reg [3:0] sampling_point_ctrl = 4'h9; // (10 by default -> delay somewhere around 2.4us)
+reg [11:0] wait_cnt  = 12'b0; // counter for wait state (needs appr. 1.0ms at CLK_4M clock to fill up from 0 to 4095)
 
-reg        prev_ctrl    =  1'b1;
-reg [11:0] wait_cnt     = 12'b0; // counter for wait state (needs appr. 1.0ms at nCLK2 clock to fill up from 0 to 4095)
+reg [ 3:0] sampl_p_n64  =  4'h8; // wait_cnt increased a few times since neg. edge -> sample data
+reg [ 3:0] sampl_p_ctrl =  4'h8; // (9 by default -> delay somewhere around 2.25us)
 
-reg [15:0] data_stream      = 16'b0;
-reg  [3:0] data_cnt         =  4'h0;
+reg [ 2:0] ctrl_hist =  3'h7;
+
+wire ctrl_negedge = ctrl_hist[2] & ~ctrl_hist[1];
+wire ctrl_bit     = ctrl_hist[1];
+
+reg [15:0] serial_data = 16'h0;
+reg  [3:0] data_cnt    =  3'b000;
 
 `ifdef OPTION_INVLPF
   reg [ 3:0] remember_data    =  4'h0;
-  reg [15:0] prev_data_stream = 16'h0;
+  reg [15:0] prev_serial_data = 16'h0;
 `endif
 
 reg initiate_nrst = 1'b0;
@@ -122,107 +126,105 @@ reg nfirstboot = 1'b0;
 // (bits[0:15] used here)
 
 always @(negedge nCLK2) begin
-  case (read_state)
+  case (rd_state)
     ST_WAIT4N64:
       if (&wait_cnt) begin // waiting duration ends (exit wait state only if CTRL was high for a certain duration)
-        read_state    <= ST_N64_RD;
-        data_stream   <= 16'h0000;
-        data_cnt      <=  4'h0;
-        initiate_nrst <=  1'b0;
+        rd_state <= ST_N64_RD;
+        data_cnt <= 3'b000;
       end
     ST_N64_RD: begin
-      if (wait_cnt[7:0] == {4'h0,sampling_point_n64}) begin // sample data
+      if (wait_cnt[7:0] == {4'h0,sampl_p_n64}) begin // sample data
         if (data_cnt[3]) // eight bits read
-          if (data_stream[13:6] == 8'b00000001 & CTRL) begin // check command and stop bit
+          if (ctrl_bit & (serial_data[13:6] == 8'b10000000)) begin // check command and stop bit
           // trick: the 2 LSB command bits lies where controller produces unused constant values
           //         -> (hopefully) no exchange with controller response
-            read_state  <= ST_CTRL_RD;
-            data_stream <= 16'h0000;
-            data_cnt    <=  4'h0;
+            rd_state <= ST_CTRL_RD;
+            data_cnt <=  3'b000;
           end else
-            read_state  <= ST_WAIT4N64;
+            rd_state <= ST_WAIT4N64;
         else begin
-          data_stream[13:7] <= data_stream[12:6];
-          data_stream[6]    <= CTRL;
+          serial_data[13:6] <= {ctrl_bit,serial_data[13:7]};
           data_cnt          <= data_cnt + 1'b1;
         end
       end
-      if (&{prev_ctrl,~CTRL,|data_cnt})
-        sampling_point_n64 <= wait_cnt[4:1];
+      if (|data_cnt & ctrl_negedge)
+        sampl_p_n64 <= wait_cnt[4:1];
     end
     ST_CTRL_RD: begin
-      if (wait_cnt[7:0] == {4'h0,sampling_point_ctrl}) begin // sample data
+      if (wait_cnt[7:0] == {4'h0,sampl_p_ctrl}) begin // sample data
         if (&data_cnt) begin // sixteen bits read (analog values of stick not point of interest)
-          if ({data_stream[14:0], CTRL} == igr_deblur_off) begin // defined button combination pressed
-            nForceDeBlur <= 1'b0;
-            nDeBlur      <= 1'b1;
-          end
-          if ({data_stream[14:0], CTRL} == igr_deblur_on) begin // defined button combination pressed
-            nForceDeBlur <= 1'b0;
-            nDeBlur      <= 1'b0;
-          end
-          if ({data_stream[14:0], CTRL} == igr_15bitmode_off) begin // defined button combination pressed
-`ifdef DEBUG // reset nForceDeBlur by changing 15bit mode
-            nForceDeBlur <= 1'b1;
-`endif
-            n15bit_mode  <= 1'b1;
-          end
-          if ({data_stream[14:0], CTRL} == igr_15bitmode_on) begin // defined button combination pressed
-`ifdef DEBUG // reset nForceDeBlur by changing 15bit mode
-            nForceDeBlur <= 1'b1;
-`endif
-            n15bit_mode  <= 1'b0;
-          end
+          rd_state <= ST_WAIT4N64;
+          case ({ctrl_bit,serial_data[15:1]})
+            `IGR_DEBLUR_OFF: begin
+              nForceDeBlur <= 1'b0;
+              nDeBlur      <= 1'b1;
+            end
+            `IGR_DEBLUR_ON: begin
+              nForceDeBlur <= 1'b0;
+              nDeBlur      <= 1'b0;
+            end
+            `IGR_15BITMODE_OFF: begin
+              n15bit_mode <= 1'b1;
+            end
+            `IGR_15BITMODE_ON: begin
+              n15bit_mode <= 1'b0;
+            end
 `ifdef OPTION_INVLPF
-          if ({data_stream[14:0], CTRL} == igr_toggle_LPF) begin // defined button combination pressed
-            if (prev_data_stream != {data_stream[14:0], CTRL})   // prevents multiple executions (together with remember data)
-              InvLPF <= ~InvLPF;
-            remember_data <= 4'hf;
-          end
+            `IGR_TOGGLE_LPF: begin
+              if (prev_serial_data != serial_data)   // prevents multiple executions (together with remember data)
+                InvLPF <= ~InvLPF;
+                remember_data <= 4'hf;
+            end
 `endif
-          if ({data_stream[14:0], CTRL} == igr_reset) begin// defined button combination pressed
-            initiate_nrst <= 1'b1;
-          end
-          read_state  <= ST_WAIT4N64;
+            `IGR_RESET: begin
+              initiate_nrst <= 1'b1;
+            end
+          endcase
+
 `ifdef OPTION_INVLPF
           if (~|remember_data)
-            prev_data_stream <= {data_stream[14:0], CTRL};
+            prev_serial_data <= serial_data;
           else
             remember_data <= remember_data - 1'b1;
 `endif
         end else begin
-          data_stream[15:1] <= data_stream[14:0];
-          data_stream[0]    <= CTRL;
-          data_cnt          <= data_cnt + 1'b1;
+          data_cnt    <= data_cnt + 1'b1;
+          serial_data <= {ctrl_bit,serial_data[15:1]};
         end
       end
-      if (&{prev_ctrl,~CTRL,|data_cnt})
-        sampling_point_ctrl <= wait_cnt[4:1];
+      if (|data_cnt & ctrl_negedge)
+        sampl_p_ctrl <= wait_cnt[4:1];
+    end
+    default: begin
+      rd_state <= ST_WAIT4N64;
     end
   endcase
 
-
-  if (prev_ctrl & ~CTRL) // counter resets on neg. edge
+  if (ctrl_negedge) begin    // counter resets on neg. edge
     wait_cnt <= 12'h000;
-  else if (~&wait_cnt) // saturate counter if needed
-    wait_cnt <= wait_cnt + 1'b1;
+  end else begin
+    if (~&wait_cnt) // saturate counter if needed
+      wait_cnt <= wait_cnt + 1'b1;
+    else            // counter saturated
+      rd_state <= ST_WAIT4N64;
+  end
 
-  prev_ctrl <= CTRL;
+  ctrl_hist <= {ctrl_hist[1:0],CTRL};
 
-  if (~nRST_IGR) begin
+  if (!nRST_IGR) begin
 `ifdef OPTION_INVLPF
     InvLPF      <= 1'b0;
 `endif
 
     nForceDeBlur <= Default_nForceDeBlur;
 
-    read_state    <= ST_WAIT4N64;
+    rd_state      <= ST_WAIT4N64;
     wait_cnt      <= 12'h000;
-    prev_ctrl     <=  1'b1;
+    ctrl_hist     <=  3'h7;
     initiate_nrst <=  1'b0;
   end
 
-  if (~nfirstboot) begin
+  if (!nfirstboot) begin
     nfirstboot   <=  1'b1;
     nForceDeBlur <=  Default_nForceDeBlur;
     nDeBlur      <= ~Default_DeBlur;
