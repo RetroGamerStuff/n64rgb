@@ -33,7 +33,7 @@
 #include "n64.h"
 
 
-#define COMMAND_HISTORY_LENGTH  3
+#define COMMAND_HISTORY_LENGTH 3
 
 // ToDo: export function into logic to save some memory space
 cmd_t ctrl_data_to_cmd(alt_u32* ctrl_data)
@@ -89,6 +89,7 @@ cmd_t ctrl_data_to_cmd(alt_u32* ctrl_data)
   if (cmd_pre != cmd_new) {
     if (cmd_history_cnt == 0) {
       cmd_pre = cmd_new;
+      cmd_history_cnt = COMMAND_HISTORY_LENGTH;
       return cmd_new;
     } else
       cmd_history_cnt--;

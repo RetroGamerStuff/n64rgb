@@ -134,14 +134,13 @@ menu_t home_menu = {
 
 updateaction_t apply_command(cmd_t command, menu_t* *current_menu)
 {
-  if ((command == CMD_OPEN_MENU) ||
-      (command == CMD_CLOSE_MENU)) {
+  if ((command == CMD_CLOSE_MENU)) {
     while ((*current_menu)->parent) {
       (*current_menu)->current_selection = 0;
       *current_menu = (*current_menu)->parent;
     }
     (*current_menu)->current_selection = 0;
-    return ((command == CMD_OPEN_MENU) ? MENU_OPEN : MENU_CLOSE);
+    return MENU_CLOSE;
   }
 
   updateaction_t todo = NON;
@@ -243,19 +242,13 @@ void print_overlay(menu_t* current_menu)
   vd_print_string(overlay_h_offset,overlay_v_offset,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,*current_menu->overlay);
   switch (current_menu->type) {
     case HOME:
-      vd_print_string(COPYRIGHT_H_OFFSET,COPYRIGHT_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_DARKMAGENTA,copyright_note);
-      vd_print_char(COPYRIGHT_SIGN_H_OFFSET,COPYRIGHT_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_DARKMAGENTA,(char) COPYRIGHT_SIGN);
       vd_print_string(BTN_OVERLAY_0_H_OFFSET,BTN_OVERLAY_0_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_GREEN,btn_overlay_0);
-      for (i = 0; i < VD_WIDTH; i++)
-        vd_print_char(i,VD_HEIGHT-2,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_NAVAJOWHITE,(char) HOME_LOWSEC_UNDERLINE);
-      break;
     case CONFIG:
+    case VINFO:
       vd_print_string(COPYRIGHT_H_OFFSET,COPYRIGHT_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_DARKMAGENTA,copyright_note);
       vd_print_char(COPYRIGHT_SIGN_H_OFFSET,COPYRIGHT_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_DARKMAGENTA,(char) COPYRIGHT_SIGN);
-//      vd_print_string(BTN_OVERLAY_1_H_OFFSET,BTN_OVERLAY_1_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_GREEN,btn_overlay_1);
       for (i = 0; i < VD_WIDTH; i++)
         vd_print_char(i,VD_HEIGHT-2,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_NAVAJOWHITE,(char) HOME_LOWSEC_UNDERLINE);
-      break;
       break;
     case TEXT:
       if (&(*current_menu->overlay) == &license_overlay)
