@@ -117,8 +117,8 @@ output [color_width:0] R_o;     // red data vector
 output [color_width:0] G_o;     // green data vector
 output [color_width:0] B_o;     // blue data vector
 
-output reg ADV712x_CLK;
-output reg ADV712x_SYNC;
+output ADV712x_CLK;
+output ADV712x_SYNC;
 
 
 // start of rtl
@@ -226,14 +226,7 @@ assign  R_o                          = {vdata_r[1][`VDATA_RE_SLICE],vdata_r[1][3
 assign  G_o                          = {vdata_r[1][`VDATA_GR_SLICE],vdata_r[1][2*color_width-1]};
 assign  B_o                          = {vdata_r[1][`VDATA_BL_SLICE],vdata_r[1][  color_width-1]};
 
-always @(negedge nCLK) begin
-  if (!nDSYNC)
-    ADV712x_CLK <= 1'b0;
-  else
-    ADV712x_CLK <= ~ADV712x_CLK;
-  
-  if (ADV712x_CLK)
-    ADV712x_SYNC <= nSYNC_ON_GREEN ? 1'b0 : vdata_r[1][vdata_width-4];
-end
+assign ADV712x_CLK  = ~nDSYNC;
+assign ADV712x_SYNC = nSYNC_ON_GREEN ? 1'b0 : vdata_r[1][vdata_width-4];
 
 endmodule

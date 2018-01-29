@@ -96,8 +96,8 @@ localparam ST_CTRL_RD  = 2'b10; // controller response
 
 reg [11:0] wait_cnt  = 12'b0; // counter for wait state (needs appr. 1.0ms at CLK_4M clock to fill up from 0 to 4095)
 
-reg [ 3:0] sampl_p_n64  =  4'h8; // wait_cnt increased a few times since neg. edge -> sample data
-reg [ 3:0] sampl_p_ctrl =  4'h8; // (9 by default -> delay somewhere around 2.25us)
+localparam SAMPL_P = 8'h8;  // wait_cnt increased a few times since neg. edge -> sample data
+                            // (9 by default -> delay somewhere around 2.25us)
 
 reg [ 2:0] ctrl_hist =  3'h7;
 
@@ -133,7 +133,7 @@ always @(negedge nCLK2) begin
         data_cnt <= 3'b000;
       end
     ST_N64_RD: begin
-      if (wait_cnt[7:0] == {4'h0,sampl_p_n64}) begin // sample data
+      if (wait_cnt[7:0] == SAMPL_P) begin // sample data
         if (data_cnt[3]) // eight bits read
           if (ctrl_bit & (serial_data[13:6] == 8'b10000000)) begin // check command and stop bit
           // trick: the 2 LSB command bits lies where controller produces unused constant values
@@ -147,11 +147,9 @@ always @(negedge nCLK2) begin
           data_cnt          <= data_cnt + 1'b1;
         end
       end
-      if (|data_cnt & ctrl_negedge)
-        sampl_p_n64 <= wait_cnt[4:1];
     end
     ST_CTRL_RD: begin
-      if (wait_cnt[7:0] == {4'h0,sampl_p_ctrl}) begin // sample data
+      if (wait_cnt[7:0] == SAMPL_P) begin // sample data
         if (&data_cnt) begin // sixteen bits read (analog values of stick not point of interest)
           rd_state <= ST_WAIT4N64;
           case ({ctrl_bit,serial_data[15:1]})
@@ -192,8 +190,6 @@ always @(negedge nCLK2) begin
           serial_data <= {ctrl_bit,serial_data[15:1]};
         end
       end
-      if (|data_cnt & ctrl_negedge)
-        sampl_p_ctrl <= wait_cnt[4:1];
     end
     default: begin
       rd_state <= ST_WAIT4N64;

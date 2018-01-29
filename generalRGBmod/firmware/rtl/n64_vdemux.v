@@ -67,12 +67,6 @@ reg  n15bit_mode; // = demuxparams_i[  0] (updated each frame)
 
 // start of rtl
 
-
-`ifdef DEBUG
-  reg [3:0] S_DBr[1:5];
-`endif
-
-
 always @(negedge nCLK) begin // data register management
   if (~nDSYNC) begin
     if (vdata_r_0[vdata_width-1] & ~D_i[3]) // negedge at nVSYNC detected - new frame, new setting for 15bit mode

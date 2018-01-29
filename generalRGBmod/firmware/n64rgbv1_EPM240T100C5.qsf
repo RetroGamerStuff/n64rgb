@@ -152,6 +152,7 @@ set_global_assignment -name TOP_LEVEL_ENTITY n64rgbv1_top
 set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED WITH BUS-HOLD"
 set_global_assignment -name OPTIMIZATION_MODE "HIGH PERFORMANCE EFFORT"
 set_global_assignment -name AUTO_PACKED_REGISTERS_MAX "MINIMIZE AREA"
+set_global_assignment -name ALM_REGISTER_PACKING_EFFORT HIGH
 
 
 ## Additions by Quartus Prime

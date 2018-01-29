@@ -52,8 +52,6 @@ module n64rgb_viletim_sw_top (
   nForceDeBlur_i99, // (pin can be left unconnected for always on; weak pull-up assigned)
   n15bit_mode,      // 15bit color mode if input set to GND (weak pull-up assigned)
 
-  dummy,            // some pins are tied to Vcc/GND according to viletims design
-
   // Video output
   nHSYNC,
   nVSYNC,
@@ -76,16 +74,14 @@ input       nForceDeBlur_i1;
 input       nForceDeBlur_i99;
 input       n15bit_mode;
 
-input [4:0] dummy;
-
 output nHSYNC;
 output nVSYNC;
 output nCSYNC;
 output nCLAMP;
 
-output [color_width-1:0] R_o;     // red data vector
-output [color_width-1:0] G_o;     // green data vector
-output [color_width-1:0] B_o;     // blue data vector
+output [color_width-1:0] R_o; // red data vector
+output [color_width-1:0] G_o; // green data vector
+output [color_width-1:0] B_o; // blue data vector
 
 
 // start of rtl
@@ -125,7 +121,7 @@ wire       blurry_pixel_pos;  // indicates position of a potential blurry pixel
 n64_vinfo_ext get_vinfo(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
-  .Sync_pre(vdata_r[0][`VDATA_SY_SLICE]),
+  .Sync_pre(vdata_r[`VDATA_SY_SLICE]),
   .D_i(D_i),
   .vinfo_o({data_cnt,n64_480i,vmode,blurry_pixel_pos})
 );
@@ -141,7 +137,7 @@ n64_deblur deblur_management(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
   .nRST(1'b1),
-  .vdata_pre(vdata_r[0]),
+  .vdata_pre(vdata_r),
   .vdata_cur(D_i),
   .deblurparams_i({data_cnt,n64_480i,vmode,blurry_pixel_pos,nForceDeBlur,nDeBlurMan}),
   .deblurparams_o(deblurparams_pass)
@@ -151,19 +147,16 @@ n64_deblur deblur_management(
 // Part 4: data demux
 // ==================
 
-wire [`VDATA_FU_SLICE] vdata_r[0:1];
+wire [`VDATA_FU_SLICE] vdata_r;
 
 n64_vdemux video_demux(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
   .D_i(D_i),
   .demuxparams_i({data_cnt,deblurparams_pass,n15bit_mode}),
-  .vdata_r_0(vdata_r[0]),
-  .vdata_r_1(vdata_r[1])
+  .vdata_r_0(vdata_r),
+  .vdata_r_1({nVSYNC,nCLAMP,nHSYNC,nCSYNC,R_o,G_o,B_o})
 );
 
-
-assign {nVSYNC,nCLAMP,nHSYNC,nCSYNC} = vdata_r[1][`VDATA_SY_SLICE];
-assign {R_o,G_o,B_o}                 = vdata_r[1][`VDATA_CO_SLICE];
 
 endmodule
