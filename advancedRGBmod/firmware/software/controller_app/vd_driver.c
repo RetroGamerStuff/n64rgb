@@ -80,24 +80,24 @@ int vd_print_char (alt_u8 horiz_offset, alt_u8 vert_offset, alt_u8 background, a
   return(0);
 }
 
-int vd_change_color_area(alt_u8 horiz_offset_start, alt_u8 horiz_offset_stop, alt_u8 vert_offset_start, alt_u8 vert_offset_stop, alt_u8 background, alt_u8 fontcolor)
-{
-  alt_u8 horiz_offset, vert_offset;
-  for (horiz_offset = horiz_offset_start; horiz_offset<=horiz_offset_stop; horiz_offset++)
-    for (vert_offset = vert_offset_start; vert_offset<=vert_offset_stop; vert_offset++)
-      vd_change_color(horiz_offset,vert_offset, background, fontcolor);
-  return(0);
-};
-
-int vd_change_color_px (alt_u8 horiz_offset, alt_u8 vert_offset, alt_u8 background, alt_u8 color)
-{
-  if((horiz_offset >= 0) && (horiz_offset < _width) && (vert_offset >= 0) && (vert_offset < _height)){
-    VD_SET_ADDR(horiz_offset,vert_offset);
-    VD_SET_DATA(background,color,EMPTY);
-    vd_write_data(1,0);
-  }
-  return(0);
-}
+//int vd_change_color_area(alt_u8 horiz_offset_start, alt_u8 horiz_offset_stop, alt_u8 vert_offset_start, alt_u8 vert_offset_stop, alt_u8 background, alt_u8 fontcolor)
+//{
+//  alt_u8 horiz_offset, vert_offset;
+//  for (horiz_offset = horiz_offset_start; horiz_offset<=horiz_offset_stop; horiz_offset++)
+//    for (vert_offset = vert_offset_start; vert_offset<=vert_offset_stop; vert_offset++)
+//      vd_change_color(horiz_offset,vert_offset, background, fontcolor);
+//  return(0);
+//};
+//
+//int vd_change_color_px (alt_u8 horiz_offset, alt_u8 vert_offset, alt_u8 background, alt_u8 color)
+//{
+//  if((horiz_offset >= 0) && (horiz_offset < _width) && (vert_offset >= 0) && (vert_offset < _height)){
+//    VD_SET_ADDR(horiz_offset,vert_offset);
+//    VD_SET_DATA(background,color,EMPTY);
+//    vd_write_data(1,0);
+//  }
+//  return(0);
+//}
 
 void vd_write_data(alt_u8 wr_color, alt_u8 wr_font)
 {

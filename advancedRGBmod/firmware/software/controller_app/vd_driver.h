@@ -129,19 +129,19 @@ int vd_print_string(alt_u8 horiz_offset, alt_u8 vert_offset, alt_u8 background, 
 int vd_print_char(alt_u8 horiz_offset, alt_u8 vert_offset, alt_u8 background, alt_u8 color, const char character);
 
 /* ToDo: still a bug somewhere here; NIOS II stops working if functions used */
-int vd_change_color_area(alt_u8 horiz_offset_start, alt_u8 horiz_offset_stop, alt_u8 vert_offset_start, alt_u8 vert_offset_stop, alt_u8 background, alt_u8 fontcolor);
-static int inline vd_change_color_lineend (alt_u8 horiz_offset_start, alt_u8 vert_offset, alt_u8 background, alt_u8 fontcolor)
-  { return vd_change_color_area(horiz_offset_start, VD_WIDTH-1, vert_offset, vert_offset, background, fontcolor); }
-static int inline vd_change_color_fullline (alt_u8 vert_offset, alt_u8 background, alt_u8 fontcolor)
-  { return vd_change_color_area(0, VD_WIDTH-1, vert_offset, vert_offset, background, fontcolor); }
-static int inline vd_change_color_columnend (alt_u8 horiz_offset, alt_u8 vert_offset_start, alt_u8 background, alt_u8 fontcolor)
-  { return vd_change_color_area(horiz_offset, horiz_offset, vert_offset_start, VD_HEIGHT-1, background, fontcolor); }
-static int inline vd_change_color_fullcolumn (alt_u8 horiz_offset, alt_u8 background, alt_u8 fontcolor)
-  { return vd_change_color_area(horiz_offset, horiz_offset, 0, VD_HEIGHT-1, background, fontcolor); }
-static int inline vd_change_color (alt_u8 horiz_offset, alt_u8 vert_offset, alt_u8 background, alt_u8 fontcolor)
-  { return vd_change_color_area(horiz_offset, horiz_offset, vert_offset, vert_offset, background, fontcolor); }
-
-int vd_change_color_px (alt_u8 horiz_offset, alt_u8 vert_offset, alt_u8 background, alt_u8 color);
+//int vd_change_color_area(alt_u8 horiz_offset_start, alt_u8 horiz_offset_stop, alt_u8 vert_offset_start, alt_u8 vert_offset_stop, alt_u8 background, alt_u8 fontcolor);
+//static int inline vd_change_color_lineend (alt_u8 horiz_offset_start, alt_u8 vert_offset, alt_u8 background, alt_u8 fontcolor)
+//  { return vd_change_color_area(horiz_offset_start, VD_WIDTH-1, vert_offset, vert_offset, background, fontcolor); }
+//static int inline vd_change_color_fullline (alt_u8 vert_offset, alt_u8 background, alt_u8 fontcolor)
+//  { return vd_change_color_area(0, VD_WIDTH-1, vert_offset, vert_offset, background, fontcolor); }
+//static int inline vd_change_color_columnend (alt_u8 horiz_offset, alt_u8 vert_offset_start, alt_u8 background, alt_u8 fontcolor)
+//  { return vd_change_color_area(horiz_offset, horiz_offset, vert_offset_start, VD_HEIGHT-1, background, fontcolor); }
+//static int inline vd_change_color_fullcolumn (alt_u8 horiz_offset, alt_u8 background, alt_u8 fontcolor)
+//  { return vd_change_color_area(horiz_offset, horiz_offset, 0, VD_HEIGHT-1, background, fontcolor); }
+//static int inline vd_change_color (alt_u8 horiz_offset, alt_u8 vert_offset, alt_u8 background, alt_u8 fontcolor)
+//  { return vd_change_color_area(horiz_offset, horiz_offset, vert_offset, vert_offset, background, fontcolor); }
+//
+//int vd_change_color_px (alt_u8 horiz_offset, alt_u8 vert_offset, alt_u8 background, alt_u8 color);
 
 void vd_write_data(alt_u8 wr_color, alt_u8 wr_font);
 
