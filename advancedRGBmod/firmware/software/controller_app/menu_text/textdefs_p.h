@@ -19,15 +19,15 @@
  *
  *********************************************************************************
  *
- * menutexts.h
+ * menu_text/textdefs_p.h
  *
  *  Created on: 14.01.2018
  *      Author: Peter Bartmann
  *
  ********************************************************************************/
 
-#ifndef MENUTEXTS_H_
-#define MENUTEXTS_H_
+#ifndef MENU_TEXT_TEXTDEFS_P_H_
+#define MENU_TEXT_TEXTDEFS_P_H_
 
 #include <string.h>
 #include <unistd.h>
@@ -36,6 +36,8 @@
 #define HEADER_UNDERLINE      0x08
 #define HOME_LOWSEC_UNDERLINE 0x01
 #define HEADER_H_OFFSET       0
+#define OVERLAY_H_OFFSET      2
+#define OVERLAY_V_OFFSET      0
 #define OVERLAY_V_OFFSET_WH   2
 #define TEXTOVERLAY_H_OFFSET  0
 #define HOMEOVERLAY_H_OFFSET  3
@@ -57,7 +59,7 @@
 #define BTN_OVERLAY_1_H_OFFSET  (VD_WIDTH - 12)
 #define BTN_OVERLAY_1_V_OFFSET  (VD_HEIGHT - 3)
 
-#define CFG_OVERLAY_H_OFFSET  2
+#define CFG_OVERLAY_H_OFFSET  OVERLAY_H_OFFSET
 #define CFG_OVERLAY_V_OFFSET  OVERLAY_V_OFFSET_WH
 #define CFG_VALS_H_OFFSET     (27 + CFG_OVERLAY_H_OFFSET)
 #define CFG_VALS_V_OFFSET     CFG_OVERLAY_V_OFFSET
@@ -69,15 +71,22 @@
 #define CFG_15BIT_V_OFFSET    ( 6 + CFG_VALS_V_OFFSET)
 #define CFG_GAMMA_V_OFFSET    ( 7 + CFG_VALS_V_OFFSET)
 
-#define MISC_OVERLAY_H_OFFSET   2
+#define MISC_OVERLAY_H_OFFSET   OVERLAY_H_OFFSET
 #define MISC_OVERLAY_V_OFFSET   OVERLAY_V_OFFSET_WH
 #define MISC_VALS_H_OFFSET      (23 + MISC_OVERLAY_H_OFFSET)
 #define MISC_VALS_V_OFFSET      CFG_OVERLAY_V_OFFSET
 #define MISC_IGR_RESET_V_OFFSET ( 1 + MISC_VALS_V_OFFSET)
 #define MISC_IGR_QUICK_V_OFFSET ( 2 + MISC_VALS_V_OFFSET)
 
+#define RWDATA_OVERLAY_H_OFFSET  OVERLAY_H_OFFSET
+#define RWDATA_OVERLAY_V_OFFSET  OVERLAY_V_OFFSET_WH
+#define RWDATA_SAVE_FL_V_OFFSET  (1 + RWDATA_OVERLAY_V_OFFSET)
+#define RWDATA_LOAD_FL_V_OFFSET  (3 + RWDATA_OVERLAY_V_OFFSET)
+#define RWDATA_LOAD_JS_V_OFFSET  (4 + RWDATA_OVERLAY_V_OFFSET)
+#define RWDATA_LOAD_N64_V_OFFSET (5 + RWDATA_OVERLAY_V_OFFSET)
 
-#define INFO_OVERLAY_H_OFFSET 2
+
+#define INFO_OVERLAY_H_OFFSET OVERLAY_H_OFFSET
 #define INFO_OVERLAY_V_OFFSET OVERLAY_V_OFFSET_WH
 #define INFO_VALS_H_OFFSET    (18 + INFO_OVERLAY_H_OFFSET)
 #define INFO_VALS_V_OFFSET    INFO_OVERLAY_V_OFFSET
@@ -109,8 +118,9 @@ static const char *btn_overlay_0 =
     "A ... Enter\n"
     "B ... Close";
 
-//static const char *btn_overlay_1 =
-//    "B ... Back";
+static const char *btn_overlay_1 =
+    "A ... Enter\n"
+    "B ... Back";
 
 static const char *vinfo_header =
     "N64 Advanced - Video-Info";
@@ -141,6 +151,16 @@ static const char *misc_overlay =
     "* In-Game Routines:\n"
     "  - Reset:\n"
     "  - Quick-Access:";
+
+static const char *rwdata_header =
+    "N64 Advanced - Load/Save";
+static const char *rwdata_overlay =
+    "Save:\n"
+    " - Configuration\n"
+    "Load:\n"
+    " - Last Configuration\n"
+    " - Defaults from Jumper Set\n"
+    " - N64 Standard";
 
 static const char *thanks_overlay =
     "The N64 RGB project would not be what it is\n"
@@ -204,4 +224,4 @@ const char *SLStrength[]   = {"0%","25%","50%","100%"};
 const char *GammaValue[]   = {"0.70","0.75","0.80","0.85","0.90","1.00","1.10","1.15","1.20"};
 const char *QuickChange[]  = {"Off","DeBlur","15bit mode","All"};
 
-#endif /* MENUTEXTS_H_ */
+#endif /* MENU_TEXT_TEXTDEFS_P_H_ */

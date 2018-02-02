@@ -36,18 +36,46 @@
 #include "n64.h"
 #include "config.h"
 #include "menu.h"
-#include "menutexts.h"
+
+#include "menu_text/textdefs_p.h"
 #include "vd_driver.h"
 
 
-#define SELECTION_WINDOW_WIDTH 13
 
-#define CFG_SELWINDOWCOLOR_BG    BACKGROUNDCOLOR_GREY
-#define CFG_SELWINDOWCOLOR_FONT  FONTCOLOR_DARKMAGENTA
+#define OPT_WINDOWCOLOR_BG    BACKGROUNDCOLOR_WHITE
+#define OPT_WINDOWCOLOR_FONT  FONTCOLOR_BLACK
+
+#define SUBMENU_ARROW_L   ARROW_RIGHT
+#define OPT_ARROW_L       TRIANGLE_LEFT
+#define OPT_ARROW_R       TRIANGLE_RIGHT
+#define OPT_WINDOW_WIDTH  13
 
 
 inline alt_u8 is_cfg_screen (menu_t *menu) /* ugly hack (ToDo on updates: check for validity, i.e. is this property still unique) */
   {  return (menu->leaves[0].config_value->flag_masks.clrflag_mask == CFG_LINEX2_CLRMASK); }
+
+
+static const arrow_t selection_arrow = {
+    .arrowshape_left  = SUBMENU_ARROW_L,
+    .arrowshape_right = SUBMENU_ARROW_L,
+    .larrow_hpos = 1,
+    .rarrow_hpos = 1
+};
+
+static const arrow_t cfg_screen_arrow = {
+    .arrowshape_left  = OPT_ARROW_L,
+    .arrowshape_right = OPT_ARROW_R,
+    .larrow_hpos = (CFG_VALS_H_OFFSET - 2),
+    .rarrow_hpos = (CFG_VALS_H_OFFSET + OPT_WINDOW_WIDTH - 2)
+};
+
+static const arrow_t misc_screen_arrow = {
+    .arrowshape_left  = OPT_ARROW_L,
+    .arrowshape_right = OPT_ARROW_R,
+    .larrow_hpos = (MISC_VALS_H_OFFSET - 2),
+    .rarrow_hpos = (MISC_VALS_H_OFFSET + OPT_WINDOW_WIDTH - 2)
+};
+
 
 extern config_t linex2, deint480ibob, sl_str, vformat, deblur, mode15bit, gamma_lut;
 
@@ -56,20 +84,19 @@ menu_t cfg_screen = {
     .header = &cfg_header,
     .overlay = &cfg_overlay,
     .parent = &home_menu,
-    .arrowshape = TRIANGLE_LEFT,
     .current_selection = 0,
     .number_selections = 7,
-    .hpos_selections = (CFG_VALS_H_OFFSET - 2),
     .leaves = { /* ToDo: assign leave_numbers ??? (e.g. usable if selection is checked) */
-        {.id = CFG_LINEX2_V_OFFSET , .leavetype = ICONFIG, .config_value = &linex2},
-        {.id = CFG_480IBOB_V_OFFSET, .leavetype = ICONFIG, .config_value = &deint480ibob},
-        {.id = CFG_SLSTR_V_OFFSET  , .leavetype = ICONFIG, .config_value = &sl_str},
-        {.id = CFG_FORMAT_V_OFFSET , .leavetype = ICONFIG, .config_value = &vformat},
-        {.id = CFG_DEBLUR_V_OFFSET , .leavetype = ICONFIG, .config_value = &deblur},
-        {.id = CFG_15BIT_V_OFFSET  , .leavetype = ICONFIG, .config_value = &mode15bit},
-        {.id = CFG_GAMMA_V_OFFSET  , .leavetype = ICONFIG, .config_value = &gamma_lut}
+        {.id = CFG_LINEX2_V_OFFSET , .arrow_desc = &cfg_screen_arrow, .leavetype = ICONFIG, .config_value = &linex2},
+        {.id = CFG_480IBOB_V_OFFSET, .arrow_desc = &cfg_screen_arrow, .leavetype = ICONFIG, .config_value = &deint480ibob},
+        {.id = CFG_SLSTR_V_OFFSET  , .arrow_desc = &cfg_screen_arrow, .leavetype = ICONFIG, .config_value = &sl_str},
+        {.id = CFG_FORMAT_V_OFFSET , .arrow_desc = &cfg_screen_arrow, .leavetype = ICONFIG, .config_value = &vformat},
+        {.id = CFG_DEBLUR_V_OFFSET , .arrow_desc = &cfg_screen_arrow, .leavetype = ICONFIG, .config_value = &deblur},
+        {.id = CFG_15BIT_V_OFFSET  , .arrow_desc = &cfg_screen_arrow, .leavetype = ICONFIG, .config_value = &mode15bit},
+        {.id = CFG_GAMMA_V_OFFSET  , .arrow_desc = &cfg_screen_arrow, .leavetype = ICONFIG, .config_value = &gamma_lut}
     }
 };
+
 
 extern config_t igr_reset, igr_quickchange;
 
@@ -78,15 +105,30 @@ menu_t misc_screen = {
     .header = &misc_header,
     .overlay = &misc_overlay,
     .parent = &home_menu,
-    .arrowshape = TRIANGLE_LEFT,
     .current_selection = 0,
     .number_selections = 2,
-    .hpos_selections = (MISC_VALS_H_OFFSET - 2),
     .leaves = {
-        {.id = MISC_IGR_RESET_V_OFFSET, .leavetype = ICONFIG, .config_value = &igr_reset},
-        {.id = MISC_IGR_QUICK_V_OFFSET, .leavetype = ICONFIG, .config_value = &igr_quickchange}
+        {.id = MISC_IGR_RESET_V_OFFSET, .arrow_desc = &misc_screen_arrow, .leavetype = ICONFIG, .config_value = &igr_reset},
+        {.id = MISC_IGR_QUICK_V_OFFSET, .arrow_desc = &misc_screen_arrow, .leavetype = ICONFIG, .config_value = &igr_quickchange}
     }
 };
+
+
+menu_t rwdata_screen = {
+    .type = RWDATA,
+    .header = &rwdata_header,
+    .overlay = &rwdata_overlay,
+    .parent = &home_menu,
+    .current_selection = 0,
+    .number_selections = 4,
+    .leaves = {
+        {.id = RWDATA_SAVE_FL_V_OFFSET , .arrow_desc = &selection_arrow, .leavetype = IFUNC, .save_fun = NULL},
+        {.id = RWDATA_LOAD_FL_V_OFFSET , .arrow_desc = &selection_arrow, .leavetype = IFUNC, .load_fun = NULL},
+        {.id = RWDATA_LOAD_JS_V_OFFSET , .arrow_desc = &selection_arrow, .leavetype = IFUNC, .load_fun = &cfg_load_jumperset},
+        {.id = RWDATA_LOAD_N64_V_OFFSET, .arrow_desc = &selection_arrow, .leavetype = IFUNC, .load_fun = &cfg_load_n64defaults}
+    }
+};
+
 
 menu_t vinfo_screen = {
     .type = VINFO,
@@ -95,15 +137,15 @@ menu_t vinfo_screen = {
     .parent = &home_menu
 };
 
-menu_t thanks_screen = {
-   .type = TEXT,
-   .overlay = &thanks_overlay,
-   .parent = &home_menu
-};
-
 menu_t about_screen = {
    .type = TEXT,
    .overlay = &about_overlay,
+   .parent = &home_menu
+};
+
+menu_t thanks_screen = {
+   .type = TEXT,
+   .overlay = &thanks_overlay,
    .parent = &home_menu
 };
 
@@ -117,138 +159,153 @@ menu_t home_menu = {
     .type = HOME,
     .header  = &home_header,
     .overlay = &home_overlay,
-    .arrowshape = ARROW_RIGHT,
-    .current_selection = 0,
+    .current_selection = 1,
     .number_selections = 7,
-    .hpos_selections = 1,
     .leaves = {
-        {.id = MAIN2VINFO_V_OFFSET  , .leavetype = ISUBMENU, .submenu = &vinfo_screen},
-        {.id = MAIN2CFG_V_OFFSET    , .leavetype = ISUBMENU, .submenu = &cfg_screen},
-        {.id = MAIN2MISC_V_OFFSET   , .leavetype = ISUBMENU, .submenu = &misc_screen},
-        {.id = MAIN2SAVE_V_OFFSET   , .leavetype = ISUBMENU, .submenu = NULL},
-        {.id = MAIN2ABOUT_V_OFFSET  , .leavetype = ISUBMENU, .submenu = &about_screen},
-        {.id = MAIN2THANKS_V_OFFSET , .leavetype = ISUBMENU, .submenu = &thanks_screen},
-        {.id = MAIN2LICENSE_V_OFFSET, .leavetype = ISUBMENU, .submenu = &license_screen}
+        {.id = MAIN2VINFO_V_OFFSET  , .arrow_desc = &selection_arrow, .leavetype = ISUBMENU, .submenu = &vinfo_screen},
+        {.id = MAIN2CFG_V_OFFSET    , .arrow_desc = &selection_arrow, .leavetype = ISUBMENU, .submenu = &cfg_screen},
+        {.id = MAIN2MISC_V_OFFSET   , .arrow_desc = &selection_arrow, .leavetype = ISUBMENU, .submenu = &misc_screen},
+        {.id = MAIN2SAVE_V_OFFSET   , .arrow_desc = &selection_arrow, .leavetype = ISUBMENU, .submenu = &rwdata_screen},
+        {.id = MAIN2ABOUT_V_OFFSET  , .arrow_desc = &selection_arrow, .leavetype = ISUBMENU, .submenu = &about_screen},
+        {.id = MAIN2THANKS_V_OFFSET , .arrow_desc = &selection_arrow, .leavetype = ISUBMENU, .submenu = &thanks_screen},
+        {.id = MAIN2LICENSE_V_OFFSET, .arrow_desc = &selection_arrow, .leavetype = ISUBMENU, .submenu = &license_screen}
     }
 };
 
-updateaction_t apply_command(cmd_t command, menu_t* *current_menu)
+updateaction_t apply_command(cmd_t command, menu_t* *current_menu, configuration_t* sysconfig)
 {
+  alt_u8 id = (*current_menu)->current_selection;
+
   if ((command == CMD_CLOSE_MENU)) {
     while ((*current_menu)->parent) {
       (*current_menu)->current_selection = 0;
       *current_menu = (*current_menu)->parent;
     }
-    (*current_menu)->current_selection = 0;
+    (*current_menu)->current_selection = 1;
     return MENU_CLOSE;
-  }
-
-  updateaction_t todo = NON;
-
-  if (((*current_menu)->type == TEXT)  ||
-      ((*current_menu)->type == VINFO)) {
-    switch (command) {
-      case CMD_MENU_LEFT:
-      case CMD_MENU_BACK:
-        *current_menu = (*current_menu)->parent;
-        return NEW_OVERLAY;
-      default:
-        break;
-    }
   }
 
   if ((*current_menu)->type == HOME) {
     switch (command) {
       case CMD_MENU_RIGHT:
       case CMD_MENU_ENTER:
-        if ((*current_menu)->leaves[(*current_menu)->current_selection].submenu) {
-          *current_menu = (*current_menu)->leaves[(*current_menu)->current_selection].submenu;
+        if ((*current_menu)->leaves[id].submenu) {
+          *current_menu = (*current_menu)->leaves[id].submenu;
           return NEW_OVERLAY;
         }
         break;
       case CMD_MENU_BACK:
-        (*current_menu)->current_selection = 0;
+        (*current_menu)->current_selection = 1;
         return MENU_CLOSE;
-      case CMD_MENU_DOWN:
-        (*current_menu)->current_selection++;
-        if ((*current_menu)->current_selection == (*current_menu)->number_selections)
-          (*current_menu)->current_selection = 0;
-        return NEW_SELECTION;
-        break;
-      case CMD_MENU_UP:
-        if ((*current_menu)->current_selection == 0)
-          (*current_menu)->current_selection =  (*current_menu)->number_selections - 1;
-        else
-          (*current_menu)->current_selection--;
-        return NEW_SELECTION;
-        break;
       default:
         break;
+    }
+  } else {
+    switch (command) {
+      case CMD_MENU_BACK:
+        (*current_menu)->current_selection = 0;
+        *current_menu = (*current_menu)->parent;
+        return NEW_OVERLAY;
+      default:
+        break;
+    }
+  }
+
+  if (((*current_menu)->type == TEXT) ||
+      ((*current_menu)->type == VINFO)  )
+    return NON;
+
+  updateaction_t todo = NON;
+
+  switch (command) {
+    case CMD_MENU_DOWN:
+      (*current_menu)->current_selection++;
+      if ((*current_menu)->current_selection == (*current_menu)->number_selections)
+        (*current_menu)->current_selection = 0;
+      todo = NEW_SELECTION;
+      break;
+    case CMD_MENU_UP:
+      if ((*current_menu)->current_selection == 0)
+        (*current_menu)->current_selection =  (*current_menu)->number_selections - 1;
+      else
+        (*current_menu)->current_selection--;
+      todo = NEW_SELECTION;
+      break;
+    default:
+      break;
+  }
+
+  if (todo == NEW_SELECTION) {
+    if (is_cfg_screen(*current_menu) && (!cfg_get_value((*current_menu)->leaves[0].config_value))) {
+      if ((*current_menu)->current_selection == 1) (*current_menu)->current_selection = 3;
+      if ((*current_menu)->current_selection == 2) (*current_menu)->current_selection = 0;
+    }
+    return todo;
+  }
+
+  if ((*current_menu)->type != CONFIG) {
+    if (command == CMD_MENU_BACK) {
+      (*current_menu)->current_selection = 0;
+      *current_menu = (*current_menu)->parent;
+      return NEW_OVERLAY;
     }
   }
 
   if ((*current_menu)->type == CONFIG) {
     switch (command) {
       case CMD_MENU_RIGHT:
-        cfg_inc_value((*current_menu)->leaves[(*current_menu)->current_selection].config_value);
-        cfg_apply_value((*current_menu)->leaves[(*current_menu)->current_selection].config_value);
+        cfg_inc_value((*current_menu)->leaves[id].config_value);
+        cfg_apply_value((*current_menu)->leaves[id].config_value);
         return NEW_CONF_VALUE;
       case CMD_MENU_LEFT:
-        cfg_dec_value((*current_menu)->leaves[(*current_menu)->current_selection].config_value);
-        cfg_apply_value((*current_menu)->leaves[(*current_menu)->current_selection].config_value);
+        cfg_dec_value((*current_menu)->leaves[id].config_value);
+        cfg_apply_value((*current_menu)->leaves[id].config_value);
         return NEW_CONF_VALUE;
-      case CMD_MENU_BACK:
-        *current_menu = (*current_menu)->parent;
-        return NEW_OVERLAY;
-      case CMD_MENU_DOWN:
-        (*current_menu)->current_selection++;
-        if ((*current_menu)->current_selection == (*current_menu)->number_selections)
-          (*current_menu)->current_selection = 0;
-        todo = NEW_SELECTION;
-        break;
-      case CMD_MENU_UP:
-        if ((*current_menu)->current_selection == 0)
-          (*current_menu)->current_selection =  (*current_menu)->number_selections - 1;
-        else
-          (*current_menu)->current_selection--;
-        todo = NEW_SELECTION;
-        break;
       default:
         break;
     }
-    if (todo == NEW_SELECTION) {
-      if (is_cfg_screen(*current_menu) && (!cfg_get_value((*current_menu)->leaves[0].config_value))) {
-        if ((*current_menu)->current_selection == 1) (*current_menu)->current_selection = 3;
-        if ((*current_menu)->current_selection == 2) (*current_menu)->current_selection = 0;
-      }
+  }
+
+  if ((*current_menu)->type == RWDATA) {
+    if ((command == CMD_MENU_RIGHT) || (command == CMD_MENU_ENTER)) {
+      int retval = -1;
+      if ((*current_menu)->leaves[id].load_fun != NULL)
+        retval = (*current_menu)->leaves[id].load_fun(sysconfig);
+      return (retval == 0 ? RW_DONE : RW_FAILED);
     }
   }
 
-  return todo;
+  return NON;
 }
 
 void print_overlay(menu_t* current_menu)
 {
-  alt_u8 i;
-  VD_CLEAR_SCREEN;
+  alt_u8 h_run;
   alt_u8 overlay_h_offset = (current_menu->type == TEXT) ? TEXTOVERLAY_H_OFFSET : HOMEOVERLAY_H_OFFSET;
   alt_u8 overlay_v_offset = 0;
+
+  VD_CLEAR_SCREEN;
+
   if (current_menu->header) {
     overlay_v_offset = OVERLAY_V_OFFSET_WH;
     vd_print_string(HEADER_H_OFFSET,0,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_DARKMAGENTA,*current_menu->header);
-    for (i = 0; i < VD_WIDTH; i++)
-      vd_print_char(i,1,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_NAVAJOWHITE,(char) HEADER_UNDERLINE);
+    for (h_run = 0; h_run < VD_WIDTH; h_run++)
+      vd_print_char(h_run,1,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_NAVAJOWHITE,(char) HEADER_UNDERLINE);
   }
   vd_print_string(overlay_h_offset,overlay_v_offset,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,*current_menu->overlay);
+
+  if (current_menu->type == HOME) vd_print_string(BTN_OVERLAY_0_H_OFFSET,BTN_OVERLAY_0_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_GREEN,btn_overlay_0);
+  if (current_menu->type == RWDATA) vd_print_string(BTN_OVERLAY_0_H_OFFSET,BTN_OVERLAY_0_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_GREEN,btn_overlay_1);
+
   switch (current_menu->type) {
     case HOME:
-      vd_print_string(BTN_OVERLAY_0_H_OFFSET,BTN_OVERLAY_0_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_GREEN,btn_overlay_0);
     case CONFIG:
     case VINFO:
+    case RWDATA:
       vd_print_string(COPYRIGHT_H_OFFSET,COPYRIGHT_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_DARKMAGENTA,copyright_note);
       vd_print_char(COPYRIGHT_SIGN_H_OFFSET,COPYRIGHT_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_DARKMAGENTA,(char) COPYRIGHT_SIGN);
-      for (i = 0; i < VD_WIDTH; i++)
-        vd_print_char(i,VD_HEIGHT-2,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_NAVAJOWHITE,(char) HOME_LOWSEC_UNDERLINE);
+      for (h_run = 0; h_run < VD_WIDTH; h_run++)
+        vd_print_char(h_run,VD_HEIGHT-2,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_NAVAJOWHITE,(char) HOME_LOWSEC_UNDERLINE);
       break;
     case TEXT:
       if (&(*current_menu->overlay) == &license_overlay)
@@ -261,32 +318,21 @@ void print_overlay(menu_t* current_menu)
 
 void print_selection_arrow(menu_t* current_menu)
 {
-  alt_u8 h_offset = current_menu->hpos_selections;
-  alt_u8 v_run;
+  alt_u8 h_l_offset, h_r_offset;
+  alt_u8 v_run, v_offset;
 
-  for (v_run = 0; v_run < current_menu->number_selections; v_run++)
+  for (v_run = 0; v_run < current_menu->number_selections; v_run++) {
+    h_l_offset = current_menu->leaves[v_run].arrow_desc->larrow_hpos;
+    h_r_offset = current_menu->leaves[v_run].arrow_desc->rarrow_hpos;
+    v_offset   = current_menu->leaves[v_run].id;
     if (v_run == current_menu->current_selection) {
-      vd_print_char(h_offset,current_menu->leaves[v_run].id,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,(char) current_menu->arrowshape);
-      if (current_menu->type == CONFIG)
-        vd_print_char(h_offset + SELECTION_WINDOW_WIDTH,current_menu->leaves[v_run].id,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,(char) TRIANGLE_RIGHT);
+      vd_print_char(h_l_offset,v_offset,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,(char) current_menu->leaves[v_run].arrow_desc->arrowshape_left);
+      vd_print_char(h_r_offset,v_offset,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,(char) current_menu->leaves[v_run].arrow_desc->arrowshape_right);
     } else {
-      vd_clear_char(h_offset,current_menu->leaves[v_run].id);
-      if (current_menu->type == CONFIG)
-        vd_clear_char(h_offset + SELECTION_WINDOW_WIDTH,current_menu->leaves[v_run].id);
+      vd_clear_char(h_l_offset,v_offset);
+      vd_clear_char(h_r_offset,v_offset);
     }
-}
-
-void print_selection_window(menu_t* current_menu)
-{
-  if (current_menu->type != CONFIG) return;
-
-  alt_u8 h_offset  = current_menu->hpos_selections;
-  alt_u8 v_current = current_menu->leaves[current_menu->current_selection].id;
-  alt_u8 v_start   = current_menu->leaves[0].id;
-  alt_u8 v_stop    = current_menu->leaves[current_menu->number_selections-1].id;
-
-  vd_change_color_area(h_offset,(h_offset + SELECTION_WINDOW_WIDTH),v_start,v_stop,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE);
-  vd_change_color_area(h_offset,(h_offset + SELECTION_WINDOW_WIDTH),v_current,v_current,FONTCOLOR_LIGHTGREY,FONTCOLOR_BLACK);
+  }
 }
 
 int update_vinfo_screen(menu_t* current_menu, cfg_word_t* cfg_word, alt_u8 info_data)
@@ -365,31 +411,34 @@ int update_vinfo_screen(menu_t* current_menu, cfg_word_t* cfg_word, alt_u8 info_
 
 int update_cfg_screen(menu_t* current_menu, cfg_word_t* cfg_word)
 {
-  if (current_menu->type != CONFIG)       return -1;
+  if (current_menu->type != CONFIG) return -1;
 
-  alt_u8 h_offset = current_menu->hpos_selections + 2;
-
-  alt_u8 run;
+  alt_u8 h_l_offset, h_r_offset;
+  alt_u8 v_run, v_offset;
   alt_u8 background_color, font_color;
   alt_u16 val_select;
 
-  for (run = 0; run < current_menu->number_selections; run++) {
-//    if (current_menu->current_selection == run) {
-//      background_color = CFG_SELWINDOWCOLOR_BG;
-//      font_color = CFG_SELWINDOWCOLOR_FONT;
+  for (v_run = 0; v_run < current_menu->number_selections; v_run++) {
+    h_l_offset = current_menu->leaves[v_run].arrow_desc->larrow_hpos + 2;
+    h_r_offset = current_menu->leaves[v_run].arrow_desc->rarrow_hpos - 2;
+    v_offset   = current_menu->leaves[v_run].id;
+
+//    if (current_menu->current_selection == v_run) {
+//      background_color = OPT_WINDOWCOLOR_BG;
+//      font_color = OPT_WINDOWCOLOR_FONT;
 //    } else {
       background_color = BACKGROUNDCOLOR_STANDARD;
       font_color = FONTCOLOR_WHITE;
 //    }
-    if (is_cfg_screen(current_menu) && ((run == 1) || (run == 2)) &&
+
+    if (is_cfg_screen(current_menu) && ((v_run == 1) || (v_run == 2)) &&
         (!cfg_get_value(current_menu->leaves[0].config_value))    )
       font_color = FONTCOLOR_GREY;
-    if (run == current_menu->current_selection)
-      vd_clear_area(h_offset,h_offset + SELECTION_WINDOW_WIDTH - 4,current_menu->leaves[run].id,current_menu->leaves[run].id);
-    val_select = cfg_get_value(current_menu->leaves[run].config_value);
-    vd_print_string(h_offset,current_menu->leaves[run].id,background_color,font_color,current_menu->leaves[run].config_value->value_string[val_select]);
-//    h_strend = CFG_VALS_H_OFFSET + strlen(current_menu->leaves[run].config_value->value_string[val_select]);
-//    vd_change_color_area(h_strend,CFG_VALS_H_OFFSET + SELECTION_WINDOW_WIDTH - 1,current_menu->leaves[run].id,current_menu->leaves[run].id,background_color,FONTCOLOR_NON);
+
+    if (v_run == current_menu->current_selection)
+      vd_clear_area(h_l_offset,h_r_offset,v_offset,v_offset);
+    val_select = cfg_get_value(current_menu->leaves[v_run].config_value);
+    vd_print_string(h_l_offset,v_offset,background_color,font_color,current_menu->leaves[v_run].config_value->value_string[val_select]);
   }
 
   return 0;

@@ -41,13 +41,16 @@ typedef enum {
   MENU_CLOSE,
   NEW_OVERLAY,
   NEW_SELECTION,
-  NEW_CONF_VALUE
+  NEW_CONF_VALUE,
+  RW_DONE,
+  RW_FAILED
 } updateaction_t;
 
 typedef enum {
   HOME = 0,
   VINFO,
   CONFIG,
+  RWDATA,
   TEXT
 } screentype_t;
 
@@ -58,11 +61,26 @@ typedef enum {
 } leavetype_t;
 
 typedef struct {
-  alt_u8      id;
-  leavetype_t leavetype;
+  alt_u8  arrowshape_left;
+  alt_u8  arrowshape_right;
+  alt_u8  larrow_hpos;
+  alt_u8  rarrow_hpos;
+} arrow_t;
+
+typedef int (*save_call)(configuration_t*);
+typedef int (*load_call)(configuration_t*);
+
+typedef struct {
+  alt_u8        id;
+  const arrow_t *arrow_desc;
+  leavetype_t   leavetype;
   union {
-    struct menu     *submenu;
-    config_t        *config_value;
+    struct menu *submenu;
+    config_t    *config_value;
+    union {
+      save_call save_fun;
+      load_call load_fun;
+    };
   };
 } leaves_t;
 
@@ -71,29 +89,19 @@ typedef struct menu {
   const char*         *header;
   const char*         *overlay;
   struct menu         *parent;
-  const alt_u8        arrowshape;
   alt_u8              current_selection;
   const alt_u8        number_selections;
-  alt_u8              hpos_selections;
   leaves_t            leaves[];
 
 } menu_t;
 
 extern menu_t home_menu;
 
-updateaction_t apply_command(cmd_t command, menu_t** current_menu);
+updateaction_t apply_command(cmd_t command, menu_t** current_menu, configuration_t* sysconfig);
 void print_overlay(menu_t* current_menu);
 void print_selection_arrow(menu_t* current_menu);
-void print_selection_window(menu_t* current_menu);
 int update_vinfo_screen(menu_t* current_menu, cfg_word_t* cfg_word, alt_u8 info_data);
 int update_cfg_screen(menu_t* current_menu, cfg_word_t* cfg_word);
-
-
-//extern char szText[];
-//
-//void print_home_screen();
-//void print_info_screen();
-//void print_cfg_screen();
 
 
 #endif /* MENU_H_ */

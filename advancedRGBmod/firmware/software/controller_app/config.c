@@ -33,30 +33,6 @@
 #include "config.h"
 
 
-#define CFGI_DEFAULT  CFGI_QUICKCHANGE_RSTMASK
-
-#define JUMPERSET_BASE  DEFAULT_CFG_SET_IN_BASE
-
-#define CFG_GAMMA_DEFAULTVAL      5
-#define CFG_GAMMA_DEFAULT_SETMASK (CFG_GAMMA_DEFAULTVAL<<CFG_GAMMA_OFFSET)
-
-#define FALLBACK_DEFAULT_CONFIG (                 \
-  CFG_GETALL_MASK & ( CFG_USEIGR_SETMASK        | \
-                      CFG_GAMMA_DEFAULT_SETMASK | \
-                      CFG_RGSB_SETMASK          | \
-                      CFG_SLSTR_0_SETMASK         ))
-#define DEFAULT0_CONFIG (                      \
-  CFG_GETALL_MASK & ( CFG_USEIGR_SETMASK        | \
-                      CFG_GAMMA_DEFAULT_SETMASK ))
-
-#define DEFAULT_CFG_ALLMASK           0x3F
-#define DEFAULT_CFG_NYPBPR_GETMASK    (1<<CFG_YPBPR_OFFSET)
-#define DEFAULT_CFG_NRGSB_GETMASK     (1<<CFG_RGSB_OFFSET)
-#define DEFAULT_CFG_NSLSTR_GETMASK    (3<<CFG_SLSTR_OFFSET)
-#define DEFAULT_CFG_LINEX2_GETMASK    (1<<CFG_LINEX2_OFFSET)
-#define DEFAULT_CFG_N480IBOB_GETMASK  (1<<CFG_480IBOB_OFFSET)
-#define DEFAULT_CFG_JUMPERINV_MASK    0x3D  /* inversion due to nature of jumper */
-
 
 void cfg_inc_value(config_t* cfg_data)
 {
@@ -111,21 +87,23 @@ void cfg_set_value(config_t* cfg_data, alt_u16 value)
   }
 };
 
-void cfg_load_defaults(cfg_word_t* cfg_word,alt_u8 fallback)
+int cfg_load_n64defaults(configuration_t* sysconfig)
 {
-  if (cfg_word->cfg_word_type == GENERAL) {
-    alt_u16 jumperset = (IORD_ALTERA_AVALON_PIO_DATA(JUMPERSET_BASE) ^ DEFAULT_CFG_JUMPERINV_MASK) & DEFAULT_CFG_ALLMASK;
+  cfg_load_jumperset(sysconfig); // to get vmode
+  sysconfig->ext_cfg->cfg_word_val &= N64_CLR_MASK;
+  sysconfig->ext_cfg->cfg_word_val |= N64_DEFAULT_CONFIG;
+  return 0;
+}
 
-    if(fallback)
-      cfg_word->cfg_word_val = FALLBACK_DEFAULT_CONFIG;
-    else
-      cfg_word->cfg_word_val = (DEFAULT0_CONFIG | jumperset) & CFG_GETALL_MASK;
+int cfg_load_jumperset(configuration_t* sysconfig)
+{
+  sysconfig->ext_cfg->cfg_word_val &= JUMPER_CLR_MASK;
+  sysconfig->ext_cfg->cfg_word_val |= (cfg_get_jumper() | (CFG_GETALL_MASK & CFG_GAMMA_DEFAULT_SETMASK));
+  return 0;
+}
 
-    cfg_apply_word(cfg_word);
-  } else if (cfg_word->cfg_word_type == INTERNAL) {
-//    if(fallback)
-//      cfg_word->cfg_word_val = CFGI_DEFAULT;
-//    else
-      cfg_word->cfg_word_val = CFGI_DEFAULT;
-  }
+int cfg_load_sysdefaults(configuration_t* sysconfig)
+{
+  sysconfig->int_cfg->cfg_word_val = CFGI_DEFAULT;
+  return 0;
 }

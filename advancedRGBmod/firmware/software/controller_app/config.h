@@ -47,6 +47,11 @@ typedef struct {
   alt_u16               cfg_word_val;
 } cfg_word_t;
 
+typedef struct {
+  cfg_word_t* ext_cfg;
+  cfg_word_t* int_cfg;
+} configuration_t;
+
 typedef enum {
   FLAG,
   VALUE
@@ -72,6 +77,7 @@ typedef struct {
   };
   const char*         *value_string;
 } config_t;
+
 
 #define CFGI_QUICKCHANGE_MAX_VALUE  3
 #define CFGI_QUICKCHANGE_OFFSET     0
@@ -153,6 +159,30 @@ typedef struct {
 #define CFG_480IBOB_CLRMASK       (CFG_GETALL_MASK & ~CFG_480IBOB_SETMASK)
 
 
+#define JUMPERSET_BASE  DEFAULT_CFG_SET_IN_BASE
+
+#define CFGI_DEFAULT              CFGI_QUICKCHANGE_RSTMASK
+#define CFG_GAMMA_DEFAULTVAL      5
+#define CFG_GAMMA_DEFAULT_SETMASK (CFG_GAMMA_DEFAULTVAL<<CFG_GAMMA_OFFSET)
+
+#define N64_CLR_MASK (CFG_USEIGR_CLRMASK    & CFG_DEBLUR_CLRMASK & \
+                      CFG_15BITMODE_CLRMASK & CFG_GAMMA_CLRMASK  & \
+                      CFG_SLSTR_CLRMASK     & CFG_LINEX2_CLRMASK & \
+                      CFG_480IBOB_CLRMASK                          )
+#define N64_DEFAULT_CONFIG (                      \
+  CFG_GETALL_MASK & ( CFG_GAMMA_DEFAULT_SETMASK | \
+                      CFG_SLSTR_0_SETMASK         ))
+
+#define JUMPER_CLR_MASK             (N64_CLR_MASK & CFG_VFORMAT_CLRMASK)
+#define JUMPER_CFG_ALLMASK          0x3F
+#define JUMPER_CFG_NYPBPR_GETMASK   (1<<CFG_YPBPR_OFFSET)
+#define JUMPER_CFG_NRGSB_GETMASK    (1<<CFG_RGSB_OFFSET)
+#define JUMPER_CFG_NSLSTR_GETMASK   (3<<CFG_SLSTR_OFFSET)
+#define JUMPER_CFG_LINEX2_GETMASK   (1<<CFG_LINEX2_OFFSET)
+#define JUMPER_CFG_N480IBOB_GETMASK (1<<CFG_480IBOB_OFFSET)
+#define JUMPER_CFG_INV_MASK         0x3D  /* inversion due to nature of jumper */
+
+
 inline void cfg_toggle_flag(config_t* cfg_data)
   {  if (cfg_data->cfg_type == FLAG) cfg_data->cfg_word->cfg_word_val ^= cfg_data->flag_masks.setflag_mask;  };
 inline void cfg_set_flag(config_t* cfg_data)
@@ -163,9 +193,13 @@ void cfg_inc_value(config_t* cfg_data);
 void cfg_dec_value(config_t* cfg_data);
 alt_u16 cfg_get_value(config_t* cfg_data);
 void cfg_set_value(config_t* cfg_data, alt_u16 value);
-void cfg_load_defaults(cfg_word_t* cfg_word,alt_u8 fallback);
+int cfg_load_n64defaults(configuration_t* sysconfig);
+int cfg_load_jumperset(configuration_t* sysconfig);
+int cfg_load_sysdefaults(configuration_t* sysconfig);
 inline alt_u16 cfg_get_word(alt_u32 cfg_word_base)
   {  return IORD_ALTERA_AVALON_PIO_DATA(cfg_word_base) & CFG_GETALL_MASK;  };
+inline alt_u8 cfg_get_jumper()
+  {  return ((IORD_ALTERA_AVALON_PIO_DATA(JUMPERSET_BASE) & JUMPER_CFG_ALLMASK) ^ JUMPER_CFG_INV_MASK);  };
 inline void cfg_apply_word(cfg_word_t* cfg_word)
   {  IOWR_ALTERA_AVALON_PIO_DATA(cfg_word->cfg_word_base, (cfg_word->cfg_word_val & cfg_word->cfg_word_mask));  };
 inline void cfg_apply_value(config_t* cfg_data)
