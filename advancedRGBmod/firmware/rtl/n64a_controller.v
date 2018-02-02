@@ -320,11 +320,13 @@ reg nVSYNC_pre = 1'b0;
 reg [9:0] h_cnt = 10'h0;
 reg [7:0] v_cnt =  8'h0;
 
-reg [8:0] txt_h_cnt = 9'h0;
-reg [7:0] txt_v_cnt = 8'h0;
+reg [8:0] txt_h_cnt = 9'h0; // 2:0 - font width reservation (allows for max 8p wide font); used for pixel selection
+                            // 8:3 - indexing the char in each row
+reg [7:0] txt_v_cnt = 8'h0; // 3:0 - font hight reservation (allows for max 16p hight font); used for addr. font pixel row
+                            // 7:4 - selects the row of chars
 
-reg [4:0] draw_osd_window = 5'b00000;
-reg [4:0]        en_txtrd = 5'b00000;
+reg [4:0] draw_osd_window = 5'b00000; // font and char memory
+reg [4:0]        en_txtrd = 5'b00000; // introduce four delay taps
 
 always @(negedge nCLK) begin
   if (~nDSYNC) begin
@@ -375,16 +377,19 @@ always @(negedge nCLK) begin
     txt_v_cnt <= 8'h0;
 
     draw_osd_window <= 5'b00000;
-    en_txtrd    <= 5'b00000;
+    en_txtrd        <= 5'b00000;
   end
 end
 
-wire [5:0] txt_xrdaddr = txt_h_cnt[8:3];
-wire [3:0] txt_yrdaddr = txt_v_cnt[7:4];
-
+wire [5:0] txt_xrdaddr = txt_h_cnt[8:3];  // allows for max 64 chars each row
+wire [3:0] txt_yrdaddr = txt_v_cnt[7:4];  // allows for max 16 rows
+                                          // (initialized memories allow for
+                                          //  maximum sizes as 1M9K is used anyway)
 wire [1:0] background_tmp;
 wire [3:0] font_color_tmp;
 wire [6:0] font_addr_lsb;
+
+
 
 ram2port_1 vd_text_u(
   .data(vd_wrdata[6:0]),
@@ -412,7 +417,7 @@ reg [3:0] background_color_del = 4'h0;
 reg [7:0] font_addr_msb        = 8'h0;
 reg [7:0] font_color_del       = 8'h0;
 
-always @(negedge nCLK) begin
+always @(negedge nCLK) begin  // delay font selection according to memory delay of chars and color
   background_color_del <= {background_color_del[1:0],background_tmp};
   font_addr_msb  <= {font_addr_msb [3:0],txt_v_cnt[3:0]};
   font_color_del <= {font_color_del[3:0],font_color_tmp};
