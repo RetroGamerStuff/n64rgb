@@ -19,7 +19,7 @@
  *
  *********************************************************************************
  *
- * cfg_intern_p.h
+ * cfg_header/cfg_intern_p.h
  *
  *  Created on: 19.01.2018
  *      Author: Peter Bartmann
