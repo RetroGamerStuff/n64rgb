@@ -30,7 +30,7 @@
 //
 // Dependencies: vh/igr_params.vh
 //
-// Revision: 2.5
+// Revision: 2.6
 // Features: console reset
 //           override heuristic for deblur (resets on each reset and power cycle)
 //           activate / deactivate de-blur in 240p (a change overrides heuristic for de-blur)
@@ -76,12 +76,12 @@ module n64_igr (
 //   - NTSC: ~4.06MHz (~0.247us period)
 //   -  PAL: ~4.14MHz (~0.242us period)
 
-reg nCLK2 = 1'b0;               // clock with period as described
+reg       CLK_4M      = 1'b0;   // clock with period as described
 reg [2:0] div_clk_cnt = 3'b000; // counter to generate a clock devider 2*6
 
 always @(negedge nCLK) begin
   if (div_clk_cnt == 3'b101) begin
-    nCLK2 <= ~nCLK2;
+    CLK_4M      <= ~CLK_4M;
     div_clk_cnt <= 3'b000;
   end else
     div_clk_cnt <= div_clk_cnt + 1'b1;
@@ -94,21 +94,17 @@ localparam ST_WAIT4N64 = 2'b00; // wait for N64 sending request to controller
 localparam ST_N64_RD   = 2'b01; // N64 request sniffing
 localparam ST_CTRL_RD  = 2'b10; // controller response
 
-reg [11:0] wait_cnt  = 12'b0; // counter for wait state (needs appr. 1.0ms at CLK_4M clock to fill up from 0 to 4095)
-
-localparam SAMPL_P = 8'h8;  // wait_cnt increased a few times since neg. edge -> sample data
-                            // (9 by default -> delay somewhere around 2.25us)
-
-reg [ 2:0] ctrl_hist =  3'h7;
-
-wire ctrl_negedge = ctrl_hist[2] & ~ctrl_hist[1];
-wire ctrl_bit     = ctrl_hist[1];
+reg [7:0] wait_cnt     = 8'h0;  // counter for wait state (needs appr. 64us at CLK_4M clock to fill up from 0 to 255)
+reg [2:0] ctrl_hist    = 3'h7;
+wire      ctrl_negedge =  ctrl_hist[2] & !ctrl_hist[1];
+wire      ctrl_posedge = !ctrl_hist[2] &  ctrl_hist[1];
+wire      ctrl_bit     = !wait_cnt[3];
 
 reg [15:0] serial_data = 16'h0;
-reg  [3:0] data_cnt    =  3'b000;
+reg  [3:0] data_cnt    =  4'h0;
 
 `ifdef OPTION_INVLPF
-  reg [ 3:0] remember_data    =  4'h0;
+  reg [ 1:0] remember_data    =  2'h0;
   reg [15:0] prev_serial_data = 16'h0;
 `endif
 
@@ -125,32 +121,35 @@ reg nfirstboot = 1'b0;
 // 32    - Stop bit
 // (bits[0:15] used here)
 
-always @(negedge nCLK2) begin
+always @(negedge CLK_4M) begin
   case (rd_state)
     ST_WAIT4N64:
       if (&wait_cnt) begin // waiting duration ends (exit wait state only if CTRL was high for a certain duration)
         rd_state <= ST_N64_RD;
-        data_cnt <= 3'b000;
+        data_cnt <= 4'h0;
       end
     ST_N64_RD: begin
-      if (wait_cnt[7:0] == SAMPL_P) begin // sample data
-        if (data_cnt[3]) // eight bits read
+      if (ctrl_posedge) begin
+        if (!data_cnt[3]) begin // still reading
+          serial_data[13:6] <= {ctrl_bit,serial_data[13:7]};
+          data_cnt          <= data_cnt + 1'b1;
+        end else begin          // eight bits read
           if (ctrl_bit & (serial_data[13:6] == 8'b10000000)) begin // check command and stop bit
           // trick: the 2 LSB command bits lies where controller produces unused constant values
           //         -> (hopefully) no exchange with controller response
             rd_state <= ST_CTRL_RD;
-            data_cnt <=  3'b000;
+            data_cnt <= 4'h0;
           end else
             rd_state <= ST_WAIT4N64;
-        else begin
-          serial_data[13:6] <= {ctrl_bit,serial_data[13:7]};
-          data_cnt          <= data_cnt + 1'b1;
         end
       end
     end
     ST_CTRL_RD: begin
-      if (wait_cnt[7:0] == SAMPL_P) begin // sample data
-        if (&data_cnt) begin // sixteen bits read (analog values of stick not point of interest)
+      if (ctrl_posedge) begin
+        if (~&data_cnt) begin // still reading
+          data_cnt    <= data_cnt + 1'b1;
+          serial_data <= {ctrl_bit,serial_data[15:1]};
+        end else begin        // sixteen bits read (analog values of stick not point of interest)
           rd_state <= ST_WAIT4N64;
           case ({ctrl_bit,serial_data[15:1]})
             `IGR_DEBLUR_OFF: begin
@@ -171,7 +170,7 @@ always @(negedge nCLK2) begin
             `IGR_TOGGLE_LPF: begin
               if (prev_serial_data != serial_data)   // prevents multiple executions (together with remember data)
                 InvLPF <= ~InvLPF;
-                remember_data <= 4'hf;
+                remember_data <= 2'h3;
             end
 `endif
             `IGR_RESET: begin
@@ -185,9 +184,6 @@ always @(negedge nCLK2) begin
           else
             remember_data <= remember_data - 1'b1;
 `endif
-        end else begin
-          data_cnt    <= data_cnt + 1'b1;
-          serial_data <= {ctrl_bit,serial_data[15:1]};
         end
       end
     end
@@ -197,7 +193,7 @@ always @(negedge nCLK2) begin
   endcase
 
   if (ctrl_negedge) begin    // counter resets on neg. edge
-    wait_cnt <= 12'h000;
+    wait_cnt <= 8'h0;
   end else begin
     if (~&wait_cnt) // saturate counter if needed
       wait_cnt <= wait_cnt + 1'b1;
@@ -215,9 +211,9 @@ always @(negedge nCLK2) begin
     nForceDeBlur <= Default_nForceDeBlur;
 
     rd_state      <= ST_WAIT4N64;
-    wait_cnt      <= 12'h000;
-    ctrl_hist     <=  3'h7;
-    initiate_nrst <=  1'b0;
+    wait_cnt      <= 8'h0;
+    ctrl_hist     <= 3'h7;
+    initiate_nrst <= 1'b0;
   end
 
   if (!nfirstboot) begin
@@ -229,9 +225,9 @@ always @(negedge nCLK2) begin
 end
 
 
-reg [17:0] rst_cnt = 18'b0; // ~65ms are needed to count from max downto 0 with nCLK2.
+reg [17:0] rst_cnt = 18'b0; // ~65ms are needed to count from max downto 0 with CLK_4M.
 
-always @(negedge nCLK2) begin
+always @(negedge CLK_4M) begin
   if (initiate_nrst == 1'b1) begin
     DRV_RST <= 1'b1;      // reset system
     rst_cnt <= 18'h3ffff;

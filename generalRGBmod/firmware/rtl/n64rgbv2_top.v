@@ -149,7 +149,7 @@ assign nRST_nManualDB = ~install_type ? 1'bz :
 
 wire nForceDeBlur = install_type ? nForceDeBlur_IGR : (~CTRL_nAutoDB & nRST_nManualDB);
 wire nDeBlurMan   = install_type ? nDeBlur_IGR      :                  nRST_nManualDB;
-wire n15bit_mode  = install_type ? n15bit_mode_IGR  : ~Default_DeBlur;
+wire n15bit_mode  = install_type ? n15bit_mode_IGR  : ~Default_n15bit_mode;
 
 // Part 2 - 4: RGB Demux with De-Blur Add-On
 // =========================================

@@ -31,7 +31,7 @@
 // Dependencies: vh/igr_params.vh
 //               ip/altpll_1.qip
 //
-// Revision: 3.0
+// Revision: 3.1
 // Features: console reset
 //           override heuristic for deblur (resets on each reset and power cycle)
 //           activate / deactivate de-blur in 240p (a change overrides heuristic for de-blur)
@@ -87,18 +87,14 @@ localparam ST_WAIT4N64 = 2'b00; // wait for N64 sending request to controller
 localparam ST_N64_RD   = 2'b01; // N64 request sniffing
 localparam ST_CTRL_RD  = 2'b10; // controller response
 
-reg [11:0] wait_cnt  = 12'b0; // counter for wait state (needs appr. 1.0ms at CLK_4M clock to fill up from 0 to 4095)
-
-reg [ 3:0] sampl_p_n64  =  4'h8; // wait_cnt increased a few times since neg. edge -> sample data
-reg [ 3:0] sampl_p_ctrl =  4'h8; // (9 by default -> delay somewhere around 2.25us)
-
-reg [ 2:0] ctrl_hist =  3'h7;
-
-wire ctrl_negedge = ctrl_hist[2] & ~ctrl_hist[1];
-wire ctrl_bit     = ctrl_hist[1];
+reg [7:0] wait_cnt     = 8'h0; // counter for wait state (needs appr. 64us at CLK_4M clock to fill up from 0 to 1023)
+reg [2:0] ctrl_hist    = 3'h7;
+wire      ctrl_negedge =  ctrl_hist[2] & !ctrl_hist[1];
+wire      ctrl_posedge = !ctrl_hist[2] &  ctrl_hist[1];
+wire      ctrl_bit     = !wait_cnt[3];
 
 reg [15:0] serial_data = 16'h0;
-reg  [3:0] data_cnt    =  3'b000;
+reg  [3:0] data_cnt    =  4'h0;
 
 reg initiate_nrst = 1'b0;
 
@@ -118,29 +114,30 @@ always @(posedge CLK_4M) begin
     ST_WAIT4N64:
       if (&wait_cnt) begin // waiting duration ends (exit wait state only if CTRL was high for a certain duration)
         rd_state <= ST_N64_RD;
-        data_cnt <= 3'b000;
+        data_cnt <= 4'h0;
       end
     ST_N64_RD: begin
-      if (wait_cnt[7:0] == {4'h0,sampl_p_n64}) begin // sample data
-        if (data_cnt[3]) // eight bits read
+      if (ctrl_posedge) begin
+        if (!data_cnt[3]) begin // still reading
+          serial_data[13:6] <= {ctrl_bit,serial_data[13:7]};
+          data_cnt          <= data_cnt + 1'b1;
+        end else begin          // eight bits read
           if (ctrl_bit & (serial_data[13:6] == 8'b10000000)) begin // check command and stop bit
           // trick: the 2 LSB command bits lies where controller produces unused constant values
           //         -> (hopefully) no exchange with controller response
             rd_state <= ST_CTRL_RD;
-            data_cnt <=  3'b000;
+            data_cnt <= 4'h0;
           end else
             rd_state <= ST_WAIT4N64;
-        else begin
-          serial_data[13:6] <= {ctrl_bit,serial_data[13:7]};
-          data_cnt          <= data_cnt + 1'b1;
         end
       end
-      if (|data_cnt & ctrl_negedge)
-        sampl_p_n64 <= wait_cnt[4:1];
     end
     ST_CTRL_RD: begin
-      if (wait_cnt[7:0] == {4'h0,sampl_p_ctrl}) begin // sample data
-        if (&data_cnt) begin // sixteen bits read (analog values of stick not point of interest)
+      if (ctrl_posedge) begin
+        if (~&data_cnt) begin // still reading
+          data_cnt    <= data_cnt + 1'b1;
+          serial_data <= {ctrl_bit,serial_data[15:1]};
+        end else begin        // sixteen bits read (analog values of stick not point of interest)
           rd_state <= ST_WAIT4N64;
           case ({ctrl_bit,serial_data[15:1]})
             `IGR_DEBLUR_OFF: begin
@@ -161,13 +158,8 @@ always @(posedge CLK_4M) begin
               initiate_nrst <= 1'b1;
             end
           endcase
-        end else begin
-          data_cnt    <= data_cnt + 1'b1;
-          serial_data <= {ctrl_bit,serial_data[15:1]};
         end
       end
-      if (|data_cnt & ctrl_negedge)
-        sampl_p_ctrl <= wait_cnt[4:1];
     end
     default: begin
       rd_state <= ST_WAIT4N64;
@@ -175,7 +167,7 @@ always @(posedge CLK_4M) begin
   endcase
 
   if (ctrl_negedge) begin    // counter resets on neg. edge
-    wait_cnt <= 12'h000;
+    wait_cnt <= 8'h0;
   end else begin
     if (~&wait_cnt) // saturate counter if needed
       wait_cnt <= wait_cnt + 1'b1;
@@ -189,9 +181,9 @@ always @(posedge CLK_4M) begin
     nForceDeBlur <= Default_nForceDeBlur;
 
     rd_state      <= ST_WAIT4N64;
-    wait_cnt      <= 12'h000;
-    ctrl_hist     <=  3'h7;
-    initiate_nrst <=  1'b0;
+    wait_cnt      <= 8'h0;
+    ctrl_hist     <= 3'h7;
+    initiate_nrst <= 1'b0;
   end
 
   if (!nfirstboot) begin

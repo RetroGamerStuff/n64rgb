@@ -38,8 +38,6 @@ set_time_format -unit ns -decimal_places 3
 # Create Clock
 #**************************************************************
 
-
-# create_clock -name {nCLK2} -period 240.000 -waveform { 0.000 120.000 } [get_registers {n64_igr:igr|nCLK2}]
 create_clock -name {CTRL_i} -period 2000.000 -waveform { 0.000 1000.000 } [get_ports { CTRL_nAutoDB }]
 
 
@@ -47,7 +45,7 @@ create_clock -name {CTRL_i} -period 2000.000 -waveform { 0.000 1000.000 } [get_p
 # Create Generated Clock
 #**************************************************************
 
-create_generated_clock -name nCLK2 -source [get_ports {nCLK}] -divide_by 12 [get_registers {n64_igr:igr|nCLK2}]
+create_generated_clock -name CLK_4M -source [get_ports {nCLK}] -divide_by 12 [get_registers {n64_igr:igr|CLK_4M}]
 
 
 #**************************************************************
