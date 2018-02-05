@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="8.5.0">
+<eagle version="8.6.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -10957,8 +10957,6 @@ Source: 3M</description>
 <part name="C4" library="rcl" deviceset="C-EU" device="C0805" value="47u"/>
 <part name="C5" library="rcl" deviceset="C-EU" device="C0805" value="10u"/>
 <part name="P+1" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="+5V" device=""/>
-<part name="J2" library="jumper" deviceset="SJ" device=""/>
-<part name="P+23" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="VCC" device="" value="VCC@3.3V"/>
 <part name="C25" library="rcl" deviceset="C-EU" device="C0603" value="0.01u"/>
 <part name="C24" library="rcl" deviceset="C-EU" device="C0603" value="0.1u"/>
 <part name="C23" library="rcl" deviceset="C-EU" device="C0603" value="0.01u"/>
@@ -10987,6 +10985,7 @@ Source: 3M</description>
 <text x="269.24" y="129.54" size="1.27" layer="97" font="fixed">ugly pinout choices
 for R2,G2 and B2 at CPLD
 to support prototypes</text>
+<text x="5.08" y="15.24" size="1.778" layer="97" font="vector">PCB Design (c) 2017-2018 Peter Bartmann</text>
 </plain>
 <instances>
 <instance part="R13" gate="G$1" x="264.16" y="15.24"/>
@@ -11101,8 +11100,6 @@ to support prototypes</text>
 <instance part="C4" gate="G$1" x="355.6" y="215.9"/>
 <instance part="C5" gate="G$1" x="335.28" y="215.9"/>
 <instance part="P+1" gate="1" x="335.28" y="226.06"/>
-<instance part="J2" gate="1" x="355.6" y="228.6" rot="R270"/>
-<instance part="P+23" gate="VCC" x="355.6" y="238.76"/>
 <instance part="C25" gate="G$1" x="322.58" y="215.9"/>
 <instance part="C24" gate="G$1" x="314.96" y="215.9"/>
 <instance part="C23" gate="G$1" x="307.34" y="215.9"/>
@@ -11510,11 +11507,6 @@ to support prototypes</text>
 <pinref part="R12" gate="G$1" pin="1"/>
 <pinref part="P+18" gate="VCC" pin="VCC"/>
 <wire x1="45.72" y1="71.12" x2="45.72" y2="73.66" width="0.1524" layer="91"/>
-</segment>
-<segment>
-<pinref part="J2" gate="1" pin="1"/>
-<pinref part="P+23" gate="VCC" pin="VCC"/>
-<wire x1="355.6" y1="233.68" x2="355.6" y2="236.22" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$13" class="0">
@@ -12229,8 +12221,6 @@ to support prototypes</text>
 <wire x1="355.6" y1="220.98" x2="375.92" y2="220.98" width="0.1524" layer="91"/>
 <wire x1="355.6" y1="218.44" x2="355.6" y2="220.98" width="0.1524" layer="91"/>
 <junction x="355.6" y="220.98"/>
-<pinref part="J2" gate="1" pin="2"/>
-<wire x1="355.6" y1="220.98" x2="355.6" y2="223.52" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="IT" class="0">
