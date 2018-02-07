@@ -131,6 +131,7 @@ set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to Default_DeBlur
 ## Files
 ## =====
 set_global_assignment -name VERILOG_FILE rtl/n64rgb_viletim_igr_top.v
+set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64rgb_params.vh
 set_global_assignment -name VERILOG_FILE rtl/n64_igr.v
 set_global_assignment -name VERILOG_FILE rtl/n64_vinfo_ext.v
 set_global_assignment -name VERILOG_FILE rtl/n64_deblur.v

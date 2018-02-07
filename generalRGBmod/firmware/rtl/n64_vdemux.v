@@ -30,7 +30,7 @@
 //
 // Dependencies: vh/n64rgb_params.vh
 //
-// Revision: 1.0
+// Revision: 1.1
 //
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -68,8 +68,8 @@ reg  n15bit_mode; // = demuxparams_i[  0] (updated each frame)
 // start of rtl
 
 always @(negedge nCLK) begin // data register management
-  if (~nDSYNC) begin
-    if (vdata_r_0[vdata_width-1] & ~D_i[3]) // negedge at nVSYNC detected - new frame, new setting for 15bit mode
+  if (!nDSYNC) begin
+    if (vdata_r_0[vdata_width-1] & !D_i[3]) // negedge at nVSYNC detected - new frame, new setting for 15bit mode
       n15bit_mode <= demuxparams_i[0];
 
     // shift data to output registers

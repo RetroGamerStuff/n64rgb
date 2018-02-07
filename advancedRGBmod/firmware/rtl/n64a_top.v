@@ -37,7 +37,7 @@
 //               rtl/n64a_video.v     (Rev. 1.0)
 // (more dependencies may appear in other files)
 //
-// Revision: 1.1
+// Revision: 1.2
 // Features: based on n64rgb version 2.5
 //           selectable RGB, RGsB or YPbPr
 //           linebuffer for - NTSC 240p (480i optional) -> 480p rate conversion
@@ -179,15 +179,14 @@ n64a_igr igr(
 // ==========================================================
 
 wire [1:0] data_cnt;
-wire       n64_480i;
-wire       vmode;             // PAL: vmode == 1          ; NTSC: vmode == 0
+wire       n64_480i, vmode;
 wire       blurry_pixel_pos;  // indicates position of a potential blurry pixel
 
 n64_vinfo_ext get_vinfo(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
-  .Sync_pre(vdata_ir[0][`VDATA_I_SY_SLICE]),
-  .D_i(D_i),
+  .Sync_pre(vdata_ir[1][`VDATA_I_SY_SLICE]),
+  .Sync_cur(vdata_ir[0][`VDATA_I_SY_SLICE]),
   .vinfo_o({data_cnt,n64_480i,vmode,blurry_pixel_pos})
 );
 
@@ -195,7 +194,7 @@ n64_vinfo_ext get_vinfo(
 // Part 3: DeBlur Management (incl. heuristic)
 // ===========================================
 
-wire [1:0] deblurparams_pass;
+wire ndo_deblur;
 
 n64_deblur deblur_management(
   .nCLK(nCLK),
@@ -203,9 +202,11 @@ n64_deblur deblur_management(
   .nRST(nRST),
   .vdata_pre(vdata_ir[0]),
   .vdata_cur(D_i),
-  .deblurparams_i({data_cnt,n64_480i,vmode,blurry_pixel_pos,nForceDeBlur,nDeBlurMan}),
-  .deblurparams_o(deblurparams_pass)
+  .deblurparams_i({data_cnt,n64_480i,blurry_pixel_pos,nForceDeBlur,nDeBlurMan}),
+  .ndo_deblur(ndo_deblur)
 );
+
+wire nblank_rgb = ~blurry_pixel_pos;
 
 
 // Part 4: data demux
@@ -217,7 +218,7 @@ n64_vdemux video_demux(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
   .D_i(D_i),
-  .demuxparams_i({data_cnt,deblurparams_pass,n15bit_mode}),
+  .demuxparams_i({data_cnt,ndo_deblur,nblank_rgb,n15bit_mode}),
   .vdata_r_0(vdata_ir[0]),
   .vdata_r_1(vdata_ir[1])
 );

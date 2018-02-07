@@ -108,15 +108,19 @@ output [color_width-1:0] B_o; // blue data vector
 // ==========================
 
 wire nForceDeBlur, nDeBlurMan, n15bit_mode;
-wire nRST_IGR = nRST_o1 & nRST_o99;
 wire DRV_RST;
-wire CTRL_IGR = CTRL_nAutoDB;
+
+reg  nRST_IGR;
+
+always @(negedge nCLK) begin
+  nRST_IGR <= nRST_o1 & nRST_o99;
+end
 
 n64_igr igr(
   .nCLK(nCLK),
   .nRST_IGR(nRST_IGR),
   .DRV_RST(DRV_RST),
-  .CTRL(CTRL_IGR),
+  .CTRL(CTRL_nAutoDB),
   .Default_nForceDeBlur(Default_nForceDeBlur),
   .Default_DeBlur(Default_DeBlur),
   .Default_n15bit_mode(Default_n15bit_mode),
@@ -151,15 +155,14 @@ assign nRST_o99 = DRV_RST ? 1'b0 : 1'bz;
 
 wire [1:0] data_cnt;
 wire       n64_480i;
-wire       vmode;             // PAL: vmode == 1          ; NTSC: vmode == 0
-wire       blurry_pixel_pos;  // indicates position of a potential blurry pixel
+wire       nblank_rgb;  // indicates position of a potential blurry pixel
 
 n64_vinfo_ext get_vinfo(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
-  .Sync_pre(vdata_r[`VDATA_SY_SLICE]),
-  .D_i(D_i),
-  .vinfo_o({data_cnt,n64_480i,vmode,blurry_pixel_pos})
+  .Sync_pre(vdata_r[1][`VDATA_SY_SLICE]),
+  .Sync_cur(vdata_r[0][`VDATA_SY_SLICE]),
+  .vinfo_o({data_cnt,n64_480i,nblank_rgb})
 );
 
 
@@ -167,33 +170,37 @@ n64_vinfo_ext get_vinfo(
 // ===========================================
 
 wire nrst_deblur = nRST_o1 & nRST_o99;
-wire ndo_deblur, nblank_rgb;
-wire [1:0] deblurparams_pass;
+wire ndo_deblur;
 
 n64_deblur deblur_management(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
   .nRST(nrst_deblur),
-  .vdata_pre(vdata_r),
+  .vdata_pre(vdata_r[0]),
   .vdata_cur(D_i),
-  .deblurparams_i({data_cnt,n64_480i,vmode,blurry_pixel_pos,nForceDeBlur,nDeBlurMan}),
-  .deblurparams_o(deblurparams_pass)
+  .deblurparams_i({data_cnt,n64_480i,~nblank_rgb,nForceDeBlur,nDeBlurMan}),
+  .ndo_deblur(ndo_deblur)
 );
 
 
 // Part 4: data demux
 // ==================
 
-wire [`VDATA_FU_SLICE] vdata_r;
+wire [`VDATA_FU_SLICE] vdata_r[0:1];
 
 n64_vdemux video_demux(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
   .D_i(D_i),
-  .demuxparams_i({data_cnt,deblurparams_pass,n15bit_mode}),
-  .vdata_r_0(vdata_r),
-  .vdata_r_1({nVSYNC,nCLAMP,nHSYNC,nCSYNC,R_o,G_o,B_o})
+  .demuxparams_i({data_cnt,ndo_deblur,nblank_rgb,n15bit_mode}),
+  .vdata_r_0(vdata_r[0]),
+  .vdata_r_1(vdata_r[1])
 );
 
+
+// assign final outputs
+// --------------------
+
+assign {nVSYNC,nCLAMP,nHSYNC,nCSYNC,R_o,G_o,B_o} = vdata_r[1];
 
 endmodule

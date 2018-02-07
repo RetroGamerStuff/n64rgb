@@ -121,21 +121,32 @@ output ADV712x_CLK;
 output ADV712x_SYNC;
 
 
+`define SWITCH_INSTALL  !install_type
+`define IGR_INSTALL      install_type
+
 // start of rtl
 
 // Part 1: connect IGR module
 // ==========================
 
-wire nForceDeBlur_IGR, nDeBlur_IGR, n15bit_mode_IGR;
-wire nRST_IGR = install_type ? nRST_nManualDB : 1'b1;
 wire DRV_RST;
-wire CTRL_IGR = install_type ? CTRL_nAutoDB : 1'b1;
+wire nForceDeBlur_IGR, nDeBlur_IGR, n15bit_mode_IGR;
+
+reg nRST_IGR = 1'b0;
+
+always @(negedge nCLK) begin
+  if (`IGR_INSTALL)
+    nRST_IGR <= nRST_nManualDB;
+  else
+    nRST_IGR <= 1'b0;
+end
+
 
 n64_igr igr(
   .nCLK(nCLK),
   .nRST_IGR(nRST_IGR),
   .DRV_RST(DRV_RST),
-  .CTRL(CTRL_IGR),
+  .CTRL(CTRL_nAutoDB),
   .Default_nForceDeBlur(Default_nForceDeBlur),
   .Default_DeBlur(Default_DeBlur),
   .Default_n15bit_mode(Default_n15bit_mode),
@@ -146,10 +157,6 @@ n64_igr igr(
 
 assign nRST_nManualDB = ~install_type ? 1'bz : 
                          DRV_RST      ? 1'b0 : 1'bz;
-
-wire nForceDeBlur = install_type ? nForceDeBlur_IGR : (~CTRL_nAutoDB & nRST_nManualDB);
-wire nDeBlurMan   = install_type ? nDeBlur_IGR      :                  nRST_nManualDB;
-wire n15bit_mode  = install_type ? n15bit_mode_IGR  : ~Default_n15bit_mode;
 
 // Part 2 - 4: RGB Demux with De-Blur Add-On
 // =========================================
@@ -173,24 +180,38 @@ wire n15bit_mode  = install_type ? n15bit_mode_IGR  : ~Default_n15bit_mode;
 
 wire [1:0] data_cnt;
 wire       n64_480i;
-wire       vmode;             // PAL: vmode == 1          ; NTSC: vmode == 0
-wire       blurry_pixel_pos;  // indicates position of a potential blurry pixel
+wire       nblank_rgb;  // indicates position of a potential blurry pixel
 
 n64_vinfo_ext get_vinfo(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
-  .Sync_pre(vdata_r[0][`VDATA_SY_SLICE]),
-  .D_i(D_i),
-  .vinfo_o({data_cnt,n64_480i,vmode,blurry_pixel_pos})
+  .Sync_pre(vdata_r[1][`VDATA_SY_SLICE]),
+  .Sync_cur(vdata_r[0][`VDATA_SY_SLICE]),
+  .vinfo_o({data_cnt,n64_480i,nblank_rgb})
 );
 
 
 // Part 3: DeBlur Management (incl. heuristic)
 // ===========================================
 
-wire nrst_deblur = install_type ? nRST_nManualDB : 1'b1;
-wire ndo_deblur, nblank_rgb;
-wire [1:0] deblurparams_pass;
+reg nForceDeBlur, nDeBlurMan, n15bit_mode, nrst_deblur;
+
+always @(negedge nCLK) begin
+  if (`IGR_INSTALL) begin
+    nForceDeBlur <= nForceDeBlur_IGR;
+    nDeBlurMan   <= nDeBlur_IGR;
+    n15bit_mode  <= n15bit_mode_IGR;
+    nrst_deblur  <= nRST_nManualDB;
+  end else begin
+    nForceDeBlur <= (~CTRL_nAutoDB & nRST_nManualDB);
+    nDeBlurMan   <=                  nRST_nManualDB;
+    n15bit_mode  <=  Default_n15bit_mode;
+    nrst_deblur  <= (~CTRL_nAutoDB & nRST_nManualDB);
+  end
+end
+
+
+wire ndo_deblur;
 
 n64_deblur deblur_management(
   .nCLK(nCLK),
@@ -198,8 +219,8 @@ n64_deblur deblur_management(
   .nRST(nrst_deblur),
   .vdata_pre(vdata_r[0]),
   .vdata_cur(D_i),
-  .deblurparams_i({data_cnt,n64_480i,vmode,blurry_pixel_pos,nForceDeBlur,nDeBlurMan}),
-  .deblurparams_o(deblurparams_pass)
+  .deblurparams_i({data_cnt,n64_480i,~nblank_rgb,nForceDeBlur,nDeBlurMan}),
+  .ndo_deblur(ndo_deblur)
 );
 
 
@@ -212,7 +233,7 @@ n64_vdemux video_demux(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
   .D_i(D_i),
-  .demuxparams_i({data_cnt,deblurparams_pass,n15bit_mode}),
+  .demuxparams_i({data_cnt,ndo_deblur,nblank_rgb,n15bit_mode}),
   .vdata_r_0(vdata_r[0]),
   .vdata_r_1(vdata_r[1])
 );
