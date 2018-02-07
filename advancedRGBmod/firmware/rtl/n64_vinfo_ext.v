@@ -71,7 +71,7 @@ end
 // estimation of 240p/288p
 // =======================
 
-reg FrameID  = 1'b0; // 0 = even frame, 1 = odd frame; 240p: only odd frames; 480i: even and odd frames
+reg FrameID  = 1'b0; // 0 = even frame, 1 = odd frame; 240p: only even or odd frames; 480i: even and odd frames
 reg n64_480i = 1'b1; // 0 = 240p/288p , 1= 480i/576i
 
 always @(negedge nCLK) begin
@@ -81,7 +81,7 @@ always @(negedge nCLK) begin
         n64_480i <= ~FrameID;
         FrameID  <= 1'b1;
       end else begin                    // no negedge at nHSYNC -> even frame
-        n64_480i <= 1'b1;
+        n64_480i <= FrameID;
         FrameID  <= 1'b0;
       end
     end
