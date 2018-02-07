@@ -115,7 +115,7 @@ always @(negedge nCLK) begin
 
     if(!n64_480i) begin // 240p
       if(posedge_nCSYNC) // posedge nCSYNC -> reset blanking
-        blurry_pixel_pos <= vmode;
+        blurry_pixel_pos <= ~vmode;
       else
         blurry_pixel_pos <= ~blurry_pixel_pos;
     end else
