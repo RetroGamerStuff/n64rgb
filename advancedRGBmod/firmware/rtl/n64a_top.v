@@ -124,7 +124,7 @@ input       n480i_bob;
 
 assign SYS_CLKen = 1'b1;
 
-wire [ 4:0] InfoSet = {n64_480i,vmode,~deblurparams_pass[1],UseVGA_HVSync,nFilterBypass};
+wire [ 4:0] InfoSet = {n64_480i,vmode,~ndo_deblur,UseVGA_HVSync,nFilterBypass};
 wire [ 5:0] DefaultConfigSet = {nEN_YPbPr,(~nEN_YPbPr | nEN_RGsB),SL_str,n240p,n480i_bob}; // (~nEN_YPbPr | nEN_RGsB) ensures that not both jumpers are set and passed through the NIOS II
 wire [12:0] ConfigSet;
 
@@ -190,7 +190,7 @@ n64_vinfo_ext get_vinfo(
 // Part 3: DeBlur Management (incl. heuristic)
 // ===========================================
 
-wire [1:0] deblurparams_pass;
+wire ndo_deblur;
 
 n64_deblur deblur_management(
   .nCLK(nCLK),
@@ -198,9 +198,11 @@ n64_deblur deblur_management(
   .nRST(nRST),
   .vdata_pre(vdata_r[0]),
   .vdata_cur(D_i),
-  .deblurparams_i({data_cnt,n64_480i,vmode,blurry_pixel_pos,nForceDeBlur,nDeBlurMan}),
-  .deblurparams_o(deblurparams_pass)
+  .deblurparams_i({data_cnt,n64_480i,blurry_pixel_pos,nForceDeBlur,nDeBlurMan}),
+  .ndo_deblur(ndo_deblur)
 );
+
+wire nblank_rgb = ~blurry_pixel_pos;
 
 
 // Part 4: data demux
@@ -213,7 +215,7 @@ n64_vdemux video_demux(
   .nDSYNC(nDSYNC),
   .nRST(nRST),
   .D_i(D_i),
-  .demuxparams_i({data_cnt,deblurparams_pass,n15bit_mode}),
+  .demuxparams_i({data_cnt,ndo_deblur,nblank_rgb,n15bit_mode}),
   .gammaparams_i(cfg_gamma),
   .vdata_r_0(vdata_r[0]),
   .vdata_r_1(vdata_r[1]),

@@ -30,7 +30,7 @@
 //
 // Dependencies: vh/n64a_params.vh
 //
-// Revision: 1.1
+// Revision: 1.2
 //
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -45,7 +45,7 @@ module n64_deblur (
   vdata_cur,
 
   deblurparams_i,
-  deblurparams_o
+  ndo_deblur
 );
 
 `include "vh/n64a_params.vh"
@@ -55,25 +55,23 @@ input nDSYNC;
 
 input nRST;
 
-input [`VDATA_I_FU_SLICE] vdata_pre;        // whole vector
-input [color_width_i-1:0] vdata_cur;        // current D_i input
+input [`VDATA_I_FU_SLICE] vdata_pre;  // whole vector
+input [color_width_i-1:0] vdata_cur;  // current D_i input
 
-input  [6:0] deblurparams_i;  // order: data_cnt,n64_480i,vmode,blurry_pixel_pos,nForceDeBlur,nDeBlurMan
-output [1:0] deblurparams_o;  // order: ndo_deblur,nblank_rgb
+input  [5:0] deblurparams_i;          // order: data_cnt,n64_480i,blurry_pixel_pos,nForceDeBlur,nDeBlurMan
+output reg  ndo_deblur = 1'b1;
 
 
 // some pre-assignments and definitions
 
-wire   [1:0] data_cnt = deblurparams_i[6:5];
-wire         n64_480i = deblurparams_i[  4];
-wire            vmode = deblurparams_i[  3];
+wire   [1:0] data_cnt = deblurparams_i[5:4];
+wire         n64_480i = deblurparams_i[  3];
 wire blurry_pixel_pos = deblurparams_i[  2];
 wire     nForceDeBlur = deblurparams_i[  1];
 wire       nDeBlurMan = deblurparams_i[  0];
 
 wire negedge_nVSYNC =  vdata_pre[3*color_width_i+3] & !vdata_cur[3];
 wire negedge_nHSYNC =  vdata_pre[3*color_width_i+1] & !vdata_cur[1];
-wire posedge_nCSYNC = !vdata_pre[3*color_width_i  ] &  vdata_cur[0];
 
 wire [color_width_i-1:0] R_pre = vdata_pre[`VDATA_I_RE_SLICE];
 wire [color_width_i-1:0] G_pre = vdata_pre[`VDATA_I_GR_SLICE];
@@ -118,7 +116,7 @@ always @(negedge nCLK) begin // estimation of blur effect
 
 
         if (&gradient_changes) begin  // evaluate gradients: &gradient_changes == all color components changed the gradient
-          if ((~&nblur_est_cnt) && (~|nblur_est_holdoff))
+          if ((~&nblur_est_cnt) & (~|nblur_est_holdoff))
             nblur_est_cnt <= nblur_est_cnt +1'b1;
           nblur_est_holdoff <= 2'b01;
         end
@@ -126,13 +124,13 @@ always @(negedge nCLK) begin // estimation of blur effect
         gradient_changes    <= 2'b00; // reset
       end
 
-      if(negedge_nHSYNC) begin // negedge at HSYNC detected - new line
+      if(negedge_nHSYNC) begin  // negedge at HSYNC detected - new line
         nblur_est_holdoff <= 2'b00;
       end
 
-      if(negedge_nVSYNC) begin // negedge at nVSYNC detected - new frame
+      if(negedge_nVSYNC) begin  // negedge at nVSYNC detected - new frame
         if (run_estimation)
-          if(&nblur_est_cnt) // add to weight
+          if(&nblur_est_cnt)  // add to weight
               nblur_n64_trend <= &nblur_n64_trend ? nblur_n64_trend :         // saturate if needed
                                                     nblur_n64_trend + 1'b1;
           else// subtract
@@ -181,10 +179,6 @@ end
 
 // finally the blanking management
 
-reg ndo_deblur = 1'b1; // force de-blur option for 240p? -> yes: enable it if user wants to | no: enable de-blur depending on estimation
-
-reg nblank_rgb = 1'b1; // blanking of RGB pixels for de-blur
-
 always @(negedge nCLK) begin
   if (!nDSYNC) begin
     if (negedge_nVSYNC) begin // negedge at nVSYNC detected - new frame, new setting
@@ -193,20 +187,7 @@ always @(negedge nCLK) begin
       else
         ndo_deblur <= n64_480i | nDeBlurMan;
     end
-    if(ndo_deblur)
-      nblank_rgb <= 1'b1;
-    else begin 
-      if(posedge_nCSYNC) // posedge nCSYNC -> reset blanking
-        nblank_rgb <= vmode;
-      else
-        nblank_rgb <= ~nblank_rgb;
-    end
   end
 end
-
-
-// post-assignment
-
-assign deblurparams_o = {ndo_deblur,nblank_rgb};
 
 endmodule
