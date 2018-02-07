@@ -40,16 +40,26 @@
 #define FLASH_H_
 
 #include "alt_types.h"
-#include "altera_epcq_controller2.h"
+#include "altera_epcq_controller.h"
+
+
+// EPCS16 pagesize is 256 bytes
+// Flash is split to 1.5MB FW and 512kB userdata
+#define PAGESIZE 256
+#define PAGES_PER_SECTOR 256        //EPCS "sector" corresponds to "block" on Spansion flash
+#define SECTORSIZE (PAGESIZE*PAGES_PER_SECTOR)
+#define USERDATA_OFFSET 0x180000
+#define MAX_USERDATA_ENTRY 15    // 16 sectors for userdata
+
 
 #define FLASH_DETECT_ERROR      200
 #define FLASH_READ_ERROR        201
 #define FLASH_ERASE_ERROR       202
 #define FLASH_WRITE_ERROR       203
 
-void set_flash(alt_epcq_controller2_dev* *epcq_controller2_dev);
-int check_flash(alt_epcq_controller2_dev *epcq_controller2_dev);
-int read_flash(alt_epcq_controller2_dev *epcq_controller2_dev, alt_u32 offset, alt_u32 length, alt_u8 *dstbuf);
-int write_flash_page(alt_epcq_controller2_dev *epcq_controller2_dev, alt_u8 *pagedata, alt_u32 length, alt_u32 pagenum);
+void set_flash();
+int check_flash();
+int read_flash(alt_u32 offset, alt_u32 length, alt_u8 *dstbuf);
+int write_flash_page(alt_u8 *pagedata, alt_u32 length, alt_u32 pagenum);
 
 #endif /* FLASH_H_ */

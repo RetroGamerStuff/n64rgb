@@ -38,38 +38,32 @@
 
 #include <unistd.h>
 #include "system.h"
-#include "altera_epcq_controller2.h"
+#include "altera_epcq_controller.h"
 #include "flash.h"
 
 
-// EPCS16 pagesize is 256 bytes
-// Flash is split to 1.5MB FW and 512kB userdata
-#define PAGESIZE 256
-#define PAGES_PER_SECTOR 256        //EPCS "sector" corresponds to "block" on Spansion flash
-#define SECTORSIZE (PAGESIZE*PAGES_PER_SECTOR)
-#define USERDATA_OFFSET 0x180000
-#define MAX_USERDATA_ENTRY 15    // 16 sectors for userdata
+alt_epcq_controller_dev *epcq_controller_dev;
 
-void set_flash(alt_epcq_controller2_dev* *epcq_controller2_dev)
+void set_flash()
 {
-  alt_epcq_controller2_dev epcq_controller2_0;
-  altera_epcq_controller2_init(&epcq_controller2_0);
-  *epcq_controller2_dev = &epcq_controller2_0;
+  alt_epcq_controller_dev epcq_controller_0;
+  altera_epcq_controller_init(&epcq_controller_0);
+  epcq_controller_dev = &epcq_controller_0;
 }
 
-int check_flash(alt_epcq_controller2_dev *epcq_controller2_dev)
+int check_flash()
 {
-  if ((epcq_controller2_dev == NULL) || !(epcq_controller2_dev->is_epcs && (epcq_controller2_dev->page_size == PAGESIZE)))
+  if ((epcq_controller_dev == NULL) || !(epcq_controller_dev->is_epcs && (epcq_controller_dev->page_size == PAGESIZE)))
     return -FLASH_DETECT_ERROR;
 
   return 0;
 }
 
-int read_flash(alt_epcq_controller2_dev *epcq_controller2_dev, alt_u32 offset, alt_u32 length, alt_u8 *dstbuf)
+int read_flash(alt_u32 offset, alt_u32 length, alt_u8 *dstbuf)
 {
   int retval, i;
 
-  retval = alt_epcq_controller2_read(&epcq_controller2_dev->dev, offset, dstbuf, length);
+  retval = alt_epcq_controller_read(&epcq_controller_dev->dev, offset, dstbuf, length);
   if (retval != 0) return -FLASH_READ_ERROR;
 
   for (i=0; i<length; i++)
@@ -78,12 +72,12 @@ int read_flash(alt_epcq_controller2_dev *epcq_controller2_dev, alt_u32 offset, a
   return 0;
 }
 
-int write_flash_page(alt_epcq_controller2_dev *epcq_controller2_dev, alt_u8 *pagedata, alt_u32 length, alt_u32 pagenum)
+int write_flash_page(alt_u8 *pagedata, alt_u32 length, alt_u32 pagenum)
 {
   int retval, i;
 
   if ((pagenum % PAGES_PER_SECTOR) == 0) {
-    retval = alt_epcq_controller2_erase_block(&epcq_controller2_dev->dev, pagenum*PAGESIZE);
+    retval = alt_epcq_controller_erase_block(&epcq_controller_dev->dev, pagenum*PAGESIZE);
     if (retval != 0) return -FLASH_ERASE_ERROR;
   }
 
@@ -91,7 +85,7 @@ int write_flash_page(alt_epcq_controller2_dev *epcq_controller2_dev, alt_u8 *pag
   for (i=0; i<length; i++)
     pagedata[i] = ALT_CI_NIOS_CUSTOM_INSTR_BITSWAP_0(pagedata[i]) >> 24;
 
-  retval = alt_epcq_controller2_write_block(&epcq_controller2_dev->dev, (pagenum/PAGES_PER_SECTOR)*PAGES_PER_SECTOR*PAGESIZE, pagenum*PAGESIZE, pagedata, length);
+  retval = alt_epcq_controller_write_block(&epcq_controller_dev->dev, (pagenum/PAGES_PER_SECTOR)*PAGES_PER_SECTOR*PAGESIZE, pagenum*PAGESIZE, pagedata, length);
 
   if (retval != 0) return -FLASH_WRITE_ERROR;
 

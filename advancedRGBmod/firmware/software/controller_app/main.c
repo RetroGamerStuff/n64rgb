@@ -61,8 +61,7 @@ int main()
   updateaction_t todo;
   menu_t *menu = &home_menu;
 
-  alt_epcq_controller2_dev *epcq_controller2_dev;
-  set_flash(&epcq_controller2_dev);
+  set_flash();
 
   char szText[VD_WIDTH];
 
