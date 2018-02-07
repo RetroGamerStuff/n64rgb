@@ -79,6 +79,7 @@ typedef struct {
   const char*         *value_string;
 } config_t;
 
+#define CFG_VERSION_INVALID 100
 
 #define CFGI_QUICKCHANGE_MAX_VALUE  3
 #define CFGI_QUICKCHANGE_OFFSET     0
@@ -194,6 +195,8 @@ void cfg_inc_value(config_t* cfg_data);
 void cfg_dec_value(config_t* cfg_data);
 alt_u16 cfg_get_value(config_t* cfg_data);
 void cfg_set_value(config_t* cfg_data, alt_u16 value);
+int cfg_save_to_flash(configuration_t* sysconfig);
+int cfg_load_from_flash(configuration_t* sysconfig);
 int cfg_load_n64defaults(configuration_t* sysconfig);
 int cfg_load_jumperset(configuration_t* sysconfig);
 int cfg_load_sysdefaults(configuration_t* sysconfig);

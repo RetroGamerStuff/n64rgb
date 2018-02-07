@@ -31,8 +31,16 @@
 #include "system.h"
 #include "n64.h"
 #include "config.h"
+#include "flash.h"
 
+#define FWCFG_MAIN  0 // 0 = test; 1 = master
+#define FWCFG_SUB   0 // running number
 
+typedef struct {
+  alt_u8  vers_cfg_main;
+  alt_u8  vers_cfg_sub;
+  alt_u16 cfg_words[NUM_CFG_WORDS];
+} cfg4flash_t;
 
 void cfg_inc_value(config_t* cfg_data)
 {
@@ -85,6 +93,37 @@ void cfg_set_value(config_t* cfg_data, alt_u16 value)
 
     cfg_data->cfg_word->cfg_word_val = cfg_word;
   }
+};
+
+int cfg_save_to_flash(configuration_t* sysconfig)
+{
+  alt_u8 databuf[PAGESIZE];
+  int idx;
+
+  ((cfg4flash_t*) databuf)->vers_cfg_main = FWCFG_MAIN;
+  ((cfg4flash_t*) databuf)->vers_cfg_sub = FWCFG_SUB;
+  for (idx = 0; idx < NUM_CFG_WORDS; idx++)
+    ((cfg4flash_t*) databuf)->cfg_words[idx] = sysconfig->cfg_word_def[idx]->cfg_word_val;
+
+  return write_flash_page((alt_u8*) databuf, sizeof(cfg4flash_t), USERDATA_OFFSET/PAGESIZE);
+};
+
+int cfg_load_from_flash(configuration_t* sysconfig)
+{
+  alt_u8 databuf[PAGESIZE];
+  int idx, retval;
+
+  retval = read_flash(USERDATA_OFFSET, PAGESIZE, databuf);
+
+  if (retval != 0) return retval;
+
+  if ((((cfg4flash_t*) databuf)->vers_cfg_main != FWCFG_MAIN) ||
+      (((cfg4flash_t*) databuf)->vers_cfg_sub  != FWCFG_SUB)   ) return -CFG_VERSION_INVALID;
+
+  for (idx = 0; idx < NUM_CFG_WORDS; idx++)
+    sysconfig->cfg_word_def[idx]->cfg_word_val = ((cfg4flash_t*) databuf)->cfg_words[idx];
+
+  return 0;
 };
 
 int cfg_load_n64defaults(configuration_t* sysconfig)
