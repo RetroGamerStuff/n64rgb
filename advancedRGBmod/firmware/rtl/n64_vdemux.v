@@ -95,11 +95,10 @@ end
 
 
 always @(negedge nCLK) begin // data register management
-  if (~nDSYNC) begin
+  if (!nDSYNC) begin
     // shift data to output registers
-    if(ndo_deblur)        // deblur inactive
-      vdata_r_1[`VDATA_I_FU_SLICE] <= vdata_r_0[`VDATA_I_FU_SLICE];
-    else if (nblank_rgb)  // deblur active: pass RGB only if not blanked
+    vdata_r_1[`VDATA_I_SY_SLICE] <= vdata_r_0[`VDATA_I_SY_SLICE];
+    if (ndo_deblur | nblank_rgb)  // deblur active: pass RGB only if not blanked
       vdata_r_1[`VDATA_I_CO_SLICE] <= vdata_r_0[`VDATA_I_CO_SLICE];
 
      vdata_gr[`VDATA_I_RE_SLICE] <= data_gamma_rom;
@@ -135,7 +134,7 @@ always @(negedge nCLK) begin // data register management
     vdata_r[i] <= vdata_r[i-1];
   vdata_r[2] <= vdata_r_1;
 
-  if (~nRST) begin
+  if (!nRST) begin
     vdata_r_6  <= {vdata_width_i{1'b0}};
     for (i = 2; i < 6; i = i+1)
       vdata_r[i] <= {vdata_width_i{1'b0}};

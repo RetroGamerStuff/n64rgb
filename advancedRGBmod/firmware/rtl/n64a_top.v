@@ -181,8 +181,8 @@ wire       blurry_pixel_pos;  // indicates position of a potential blurry pixel
 n64_vinfo_ext get_vinfo(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
-  .Sync_pre(vdata_r[0][`VDATA_I_SY_SLICE]),
-  .D_i(D_i),
+  .Sync_pre(vdata_r[1][`VDATA_I_SY_SLICE]),
+  .Sync_cur(vdata_r[0][`VDATA_I_SY_SLICE]),
   .vinfo_o({data_cnt,n64_480i,vmode,blurry_pixel_pos})
 );
 

@@ -90,13 +90,13 @@ wire nVSYNC_cur = video_data_i[3*color_width_i+3];
 // Part 1: Connect PLL
 // ===================
 
-wire CLK_4M, CLK_16k, CLK_100M, PLL_LOCKED;
+wire CLK_4M, CLK_16k, CLK_25M, PLL_LOCKED;
 
 altpll_1 sys_pll(
   .inclk0(SYS_CLK),
   .c0(CLK_4M),
   .c1(CLK_16k),
-  .c2(CLK_100M),
+  .c2(CLK_25M),
   .locked(PLL_LOCKED)
 );
 
@@ -127,7 +127,7 @@ wire [12:0] vd_wrdata;
 wire [15:0] SysConfigSet;
 
 system system_u(
-  .clk_clk(CLK_100M),
+  .clk_clk(CLK_25M),
   .reset_reset_n(nRST_pll),
   .vd_wraddr_export(vd_wraddr),
   .vd_wrctrl_export(vd_wrctrl),
@@ -159,16 +159,12 @@ localparam ST_WAIT4N64 = 2'b00; // wait for N64 sending request to controller
 localparam ST_N64_RD   = 2'b01; // N64 request sniffing
 localparam ST_CTRL_RD  = 2'b10; // controller response
 
-reg [11:0] wait_cnt  = 12'b0; // counter for wait state (needs appr. 1.0ms at CLK_4M clock to fill up from 0 to 4095)
-
-reg [ 9:0] sampl_p_cnt  = 10'h0; // used to estimated new threshold point
-reg [ 3:0] sampl_p_n64  =  4'h8; // wait_cnt increased a few times since neg. edge -> sample data
-reg [ 3:0] sampl_p_ctrl =  4'h8; // (9 by default -> delay somewhere around 2.25us)
-
-reg [ 2:0] ctrl_hist =  3'h7;
-
-wire ctrl_negedge = ctrl_hist[2] & ~ctrl_hist[1];
-wire ctrl_bit     = ctrl_hist[1];
+reg [7:0] wait_cnt      = 8'h0; // counter for wait state (needs appr. 64us at CLK_4M clock to fill up from 0 to 1023)
+reg [2:0] ctrl_hist     = 3'h7;
+wire      ctrl_negedge  =  ctrl_hist[2] & !ctrl_hist[1];
+wire      ctrl_posedge  = !ctrl_hist[2] &  ctrl_hist[1];
+wire      ctrl_bit      = !wait_cnt[3];
+wire      ctrl_rd_valid = (wait_cnt > 8'h5) && (wait_cnt < 8'h10);
 
 reg [31:0] serial_data[0:1];
 reg [ 5:0] ctrl_data_cnt    = 6'h0;
@@ -190,9 +186,6 @@ reg initiate_nrst = 1'b0;
 // 24:31 - Y axis
 // 32    - Stop bit
 
-wire [4:0] sampl_p_new = (rd_state == ST_N64_RD) ? (sampl_p_cnt[7:4] + sampl_p_cnt[3] - 1'b1) :
-                                                   (sampl_p_cnt[9:6] + sampl_p_cnt[5] - 1'b1) ;
-
 always @(posedge CLK_4M) begin
   case (rd_state)
     ST_WAIT4N64:
@@ -202,31 +195,29 @@ always @(posedge CLK_4M) begin
         ctrl_data_cnt  <=  6'h0;
       end
     ST_N64_RD: begin
-      if (wait_cnt[7:0] == {4'h0,sampl_p_n64}) begin // sample data
-        if (ctrl_data_cnt[3]) // eight bits read
-          if (ctrl_bit & (serial_data[0][29:22] == 8'b10000000)) begin // check command and stop bit
-          // trick: the 2 LSB command bits lies where controller produces unused constant values
-          //         -> (hopefully) no exchange with controller response
-            next_rd_state  <= ST_CTRL_RD;
-            serial_data[0] <= 32'h0;
-            ctrl_data_cnt  <=  6'h0;
-          end else
-            next_rd_state <= ST_WAIT4N64;
-        else begin
+      if (ctrl_posedge) begin // sample data
+        if (!ctrl_data_cnt[3]) begin  // eight bits read
           serial_data[0][29:22] <= {ctrl_bit,serial_data[0][29:23]};
           ctrl_data_cnt         <=  ctrl_data_cnt + 1'b1;
+        end else if (ctrl_bit & (serial_data[0][29:22] == 8'b10000000)) begin // check command and last stop bit
+          next_rd_state  <= ST_CTRL_RD;
+          serial_data[0] <= 32'h0;
+          ctrl_data_cnt  <=  6'h0;
+        end else begin
+          next_rd_state <= ST_WAIT4N64;
         end
       end
     end
     ST_CTRL_RD: begin
-      if (wait_cnt[7:0] == {4'h0,sampl_p_ctrl}) begin // sample data
-        if (ctrl_data_cnt[5]) begin // thirtytwo bits read
-          next_rd_state <= ST_WAIT4N64;
-//          new_ctrl_data <= CTRL; // stop bit must be '1' (wrong: last posedge is at 50/50 duty)
-          new_ctrl_data[0] <= 1'b1;
-        end else begin
+      if (ctrl_posedge) begin // sample data
+        if (!ctrl_data_cnt[5]) begin  // still reading
           serial_data[0] <= {ctrl_bit,serial_data[0][31:1]};
           ctrl_data_cnt  <=  ctrl_data_cnt + 1'b1;
+        end else if (ctrl_data_cnt[5]) begin  // thirtytwo bits read
+          next_rd_state    <= ST_WAIT4N64;
+          new_ctrl_data[0] <= ctrl_rd_valid;  // last posedge is at 50/50 duty
+        end else begin
+          next_rd_state <= ST_WAIT4N64;
         end
       end
     end
@@ -236,20 +227,9 @@ always @(posedge CLK_4M) begin
     end
   endcase
 
-  if (~&sampl_p_cnt)
-    sampl_p_cnt <= sampl_p_cnt + 1'b1;
-
   if (ctrl_negedge) begin    // counter resets on neg. edge
     rd_state <= next_rd_state;
-    wait_cnt <= 12'h000;
-    if (|next_rd_state) begin     // following statements not applied to ST_WAIT4N64
-      if (~|ctrl_data_cnt)
-        sampl_p_cnt <= 10'h0;
-      else if (ctrl_data_cnt[3] & (rd_state == ST_N64_RD) & ~sampl_p_new[4])
-        sampl_p_n64  <= sampl_p_new[3:0];
-      else if (ctrl_data_cnt[5] & (rd_state == ST_CTRL_RD) & ~sampl_p_new[4])
-        sampl_p_ctrl <= sampl_p_new[3:0];
-    end
+    wait_cnt <= 8'h0;
   end else begin
     if (~&wait_cnt) // saturate counter if needed
       wait_cnt <= wait_cnt + 1'b1;
@@ -273,9 +253,9 @@ always @(posedge CLK_4M) begin
   if (!nRST) begin
          rd_state <= ST_WAIT4N64;
     next_rd_state <= ST_WAIT4N64;
-    wait_cnt      <= 12'h000;
-    ctrl_hist     <=  3'h7;
-    initiate_nrst <=  1'b0;
+    wait_cnt      <= 8'h0;
+    ctrl_hist     <= 3'h7;
+    initiate_nrst <= 1'b0;
 
     new_ctrl_data <=  2'b0;
 
@@ -397,7 +377,7 @@ ram2port_1 vd_text_u(
   .rdclock(~nCLK),
   .rden(en_txtrd[0]),
   .wraddress(vd_wraddr),
-  .wrclock(CLK_100M),
+  .wrclock(CLK_25M),
   .wren(vd_wrctrl[0]),
   .q(font_addr_lsb)
 );
@@ -408,7 +388,7 @@ ram2port_2 vd_color_u(
   .rdclock(~nCLK),
   .rden(en_txtrd[0]),
   .wraddress(vd_wraddr),
-  .wrclock(CLK_100M),
+  .wrclock(CLK_25M),
   .wren(vd_wrctrl[1]),
   .q({background_tmp,font_color_tmp})
 );
