@@ -36,9 +36,11 @@
 
 
 typedef enum {
-  GENERAL,
+  GENERAL = 0,
   INTERNAL
 } cfg_word_type_t;
+
+#define NUM_CFG_WORDS 2
 
 typedef struct {
   const cfg_word_type_t cfg_word_type;
@@ -48,8 +50,7 @@ typedef struct {
 } cfg_word_t;
 
 typedef struct {
-  cfg_word_t* ext_cfg;
-  cfg_word_t* int_cfg;
+  cfg_word_t* cfg_word_def[NUM_CFG_WORDS];
 } configuration_t;
 
 typedef enum {

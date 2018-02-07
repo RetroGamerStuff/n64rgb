@@ -50,7 +50,7 @@
 #define RWM_SHOW_CNT 512
 
 const alt_u8 RW_Message_FontColor[] = {FONTCOLOR_GREEN,FONTCOLOR_RED};
-const char   *RW_Message[] = {"< Success >","< Fail >"};
+const char   *RW_Message[] = {"< Success >","< Failed >"};
 
 
 /* ToDo: break up with configuration word general - e.g. externalize non-flaged values for gamma and sl_str */
@@ -66,12 +66,11 @@ int main()
   char szText[VD_WIDTH];
 
   configuration_t sysconfig = {
-      .ext_cfg = &cfg_data_general,
-      .int_cfg = &cfg_data_internal
+      .cfg_word_def = {&cfg_data_general,&cfg_data_internal}
   };
 
-  sysconfig.ext_cfg->cfg_word_val = 0;
-  sysconfig.int_cfg->cfg_word_val = 0;
+  sysconfig.cfg_word_def[GENERAL]->cfg_word_val = 0;
+  sysconfig.cfg_word_def[INTERNAL]->cfg_word_val = 0;
 
   alt_u32 ctrl_data;
   alt_u8  info_data;
@@ -89,8 +88,8 @@ int main()
   else
     cfg_load_jumperset(&sysconfig);
 
-  cfg_apply_word(sysconfig.ext_cfg);
-  cfg_io_word_pre = sysconfig.ext_cfg->cfg_word_val;
+  cfg_apply_word(sysconfig.cfg_word_def[GENERAL]);
+  cfg_io_word_pre = sysconfig.cfg_word_def[GENERAL]->cfg_word_val;
 
   cfg_load_sysdefaults(&sysconfig);
 
@@ -113,7 +112,7 @@ int main()
       switch (todo) {
         case MENU_CLOSE:
           cfg_clear_flag(&show_osd);
-          cfg_apply_word(sysconfig.ext_cfg);
+          cfg_apply_word(sysconfig.cfg_word_def[GENERAL]);
           break;
         case NEW_OVERLAY:
           print_overlay(menu);
@@ -124,12 +123,11 @@ int main()
           print_selection_arrow(menu);
           break;
         case RW_DONE:
-          cfg_apply_word(sysconfig.ext_cfg);
+          cfg_apply_word(sysconfig.cfg_word_def[GENERAL]);
           vd_print_string(RWM_H_OFFSET,RWM_V_OFFSET,BACKGROUNDCOLOR_STANDARD,RW_Message_FontColor[0],RW_Message[0]);
           message_cnt = RWM_SHOW_CNT;
           break;
         case RW_FAILED:
-          cfg_apply_word(sysconfig.ext_cfg);
           vd_print_string(RWM_H_OFFSET,RWM_V_OFFSET,BACKGROUNDCOLOR_STANDARD,RW_Message_FontColor[1],RW_Message[1]);
           message_cnt = RWM_SHOW_CNT;
           break;
@@ -139,22 +137,22 @@ int main()
 
       if ((menu->type == VINFO) &&
           ((info_data_pre != info_data)              ||
-           (cfg_io_word_pre != sysconfig.ext_cfg->cfg_word_val) ||
+           (cfg_io_word_pre != sysconfig.cfg_word_def[GENERAL]->cfg_word_val) ||
            (todo == NEW_OVERLAY)                     ))
         update_vinfo_screen(menu,&cfg_data_general,info_data);
 
       if ((menu->type == CONFIG) &&
-          ((cfg_io_word_pre != sysconfig.ext_cfg->cfg_word_val) ||
+          ((cfg_io_word_pre != sysconfig.cfg_word_def[GENERAL]->cfg_word_val) ||
            (todo == NEW_OVERLAY)                     ||
            (todo == NEW_CONF_VALUE)                  ||
            (todo == NEW_SELECTION)                   ))
-        update_cfg_screen(menu,sysconfig.ext_cfg);
+        update_cfg_screen(menu,sysconfig.cfg_word_def[GENERAL]);
 
     } else { /* END OF if(cfg_get_value(&show_osd)) */
 
       if (command == CMD_OPEN_MENU) {
         cfg_set_flag(&show_osd);
-        cfg_apply_word(sysconfig.ext_cfg);
+        cfg_apply_word(sysconfig.cfg_word_def[GENERAL]);
         print_overlay(menu);
         print_selection_arrow(menu);
       }
@@ -201,7 +199,7 @@ int main()
 
 
     info_data_pre = info_data;
-    cfg_io_word_pre = sysconfig.ext_cfg->cfg_word_val;
+    cfg_io_word_pre = sysconfig.cfg_word_def[GENERAL]->cfg_word_val;
 
     /* ToDo: use external interrupt to go on on nVSYNC */
     while(!get_nvsync())                         {};  /* wait for nVSYNC goes high */

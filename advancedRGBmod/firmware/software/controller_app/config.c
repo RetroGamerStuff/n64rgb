@@ -90,20 +90,20 @@ void cfg_set_value(config_t* cfg_data, alt_u16 value)
 int cfg_load_n64defaults(configuration_t* sysconfig)
 {
   cfg_load_jumperset(sysconfig); // to get vmode
-  sysconfig->ext_cfg->cfg_word_val &= N64_CLR_MASK;
-  sysconfig->ext_cfg->cfg_word_val |= N64_DEFAULT_CONFIG;
+  sysconfig->cfg_word_def[GENERAL]->cfg_word_val &= N64_CLR_MASK;
+  sysconfig->cfg_word_def[GENERAL]->cfg_word_val |= N64_DEFAULT_CONFIG;
   return 0;
 }
 
 int cfg_load_jumperset(configuration_t* sysconfig)
 {
-  sysconfig->ext_cfg->cfg_word_val &= JUMPER_CLR_MASK;
-  sysconfig->ext_cfg->cfg_word_val |= (cfg_get_jumper() | (CFG_GETALL_MASK & CFG_GAMMA_DEFAULT_SETMASK));
+  sysconfig->cfg_word_def[GENERAL]->cfg_word_val &= JUMPER_CLR_MASK;
+  sysconfig->cfg_word_def[GENERAL]->cfg_word_val |= (cfg_get_jumper() | (CFG_GETALL_MASK & CFG_GAMMA_DEFAULT_SETMASK));
   return 0;
 }
 
 int cfg_load_sysdefaults(configuration_t* sysconfig)
 {
-  sysconfig->int_cfg->cfg_word_val = CFGI_DEFAULT;
+  sysconfig->cfg_word_def[INTERNAL]->cfg_word_val = CFGI_DEFAULT;
   return 0;
 }
