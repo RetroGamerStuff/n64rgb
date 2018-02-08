@@ -175,15 +175,15 @@ wire       cfg_n480i_bob =  ~ConfigSet[ 0];
 
 wire [1:0] data_cnt;
 wire       n64_480i;
-wire       vmode;             // PAL: vmode == 1          ; NTSC: vmode == 0
-wire       blurry_pixel_pos;  // indicates position of a potential blurry pixel
+wire       vmode;       // PAL: vmode == 1; NTSC: vmode == 0
+wire       nblank_rgb;  // indicates position of a potential blurry pixel
 
 n64_vinfo_ext get_vinfo(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
   .Sync_pre(vdata_r[1][`VDATA_I_SY_SLICE]),
   .Sync_cur(vdata_r[0][`VDATA_I_SY_SLICE]),
-  .vinfo_o({data_cnt,n64_480i,vmode,blurry_pixel_pos})
+  .vinfo_o({data_cnt,n64_480i,vmode,nblank_rgb})
 );
 
 
@@ -198,11 +198,9 @@ n64_deblur deblur_management(
   .nRST(nRST),
   .vdata_pre(vdata_r[0]),
   .vdata_cur(D_i),
-  .deblurparams_i({data_cnt,n64_480i,blurry_pixel_pos,nForceDeBlur,nDeBlurMan}),
+  .deblurparams_i({data_cnt,n64_480i,~nblank_rgb,nForceDeBlur,nDeBlurMan}),
   .ndo_deblur(ndo_deblur)
 );
-
-wire nblank_rgb = ~blurry_pixel_pos;
 
 
 // Part 4: data demux

@@ -99,11 +99,11 @@ end
 // determine vmode and blurry pixel position
 // =========================================
 
-reg [1:0] line_cnt;         // PAL: line_cnt[1:0] == 0x ; NTSC: line_cnt[1:0] = 1x
-reg       vmode = 1'b0;     // PAL: vmode == 1          ; NTSC: vmode == 0
-reg       blurry_pixel_pos; // indicates position of a potential blurry pixel
-                            // blurry_pixel_pos == 0 -> pixel at D_i
-                            // blurry_pixel_pos == 1 -> pixel at previous RGB data
+reg [1:0] line_cnt;     // PAL: line_cnt[1:0] == 0x ; NTSC: line_cnt[1:0] = 1x
+reg       vmode = 1'b0; // PAL: vmode == 1          ; NTSC: vmode == 0
+reg       nblank_rgb;   // indicates position of a potential blurry pixel
+                        // nblank_rgb == 0 -> blurry pixel at vdata[0]
+                        // nblank_rgb == 1 -> non-blurry pixel at vdata[0]
 
 always @(negedge nCLK) begin
   if (!nDSYNC) begin
@@ -115,11 +115,11 @@ always @(negedge nCLK) begin
 
     if(!n64_480i) begin // 240p
       if(posedge_nCSYNC) // posedge nCSYNC -> reset blanking
-        blurry_pixel_pos <= vmode;
+        nblank_rgb <= ~vmode;
       else
-        blurry_pixel_pos <= ~blurry_pixel_pos;
+        nblank_rgb <= ~nblank_rgb;
     end else
-      blurry_pixel_pos <= 1'b1;
+      nblank_rgb <= 1'b1;
   end
 end
 
@@ -127,7 +127,7 @@ end
 // pack vinfo_o vector
 // =================
 
-assign vinfo_o = {data_cnt,n64_480i,vmode,blurry_pixel_pos};
+assign vinfo_o = {data_cnt,n64_480i,vmode,nblank_rgb};
 
 
 endmodule 
