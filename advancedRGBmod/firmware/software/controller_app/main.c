@@ -92,10 +92,12 @@ int main()
   else {
     int load_from_jumperset = check_flash();
 
-    if (!load_from_jumperset)
-      load_from_jumperset = cfg_load_from_flash(&sysconfig);
-
     if (!load_from_jumperset) {
+      load_from_jumperset = cfg_load_from_flash(&sysconfig);
+      cfg_clear_flag(&show_osd);
+    }
+
+    if (load_from_jumperset != 0) {
       cfg_clear_words(&sysconfig);  // just in case anything went wrong before
       cfg_load_jumperset(&sysconfig);
     }
