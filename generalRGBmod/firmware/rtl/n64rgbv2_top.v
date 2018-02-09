@@ -108,17 +108,17 @@ input Default_nForceDeBlur;
 input Default_DeBlur;
 input Default_n15bit_mode;
 
-output reg nHSYNC;
-output reg nVSYNC;
-output reg nCSYNC;
-output reg nCLAMP;
+output nHSYNC;
+output nVSYNC;
+output nCSYNC;
+output nCLAMP;
 
-output reg [color_width:0] R_o;     // red data vector
-output reg [color_width:0] G_o;     // green data vector
-output reg [color_width:0] B_o;     // blue data vector
+output [color_width:0] R_o;
+output [color_width:0] G_o;
+output [color_width:0] B_o;
 
-output     ADV712x_CLK;
-output reg ADV712x_SYNC;
+output ADV712x_CLK;
+output ADV712x_SYNC;
 
 
 `define SWITCH_INSTALL  !install_type
@@ -183,8 +183,8 @@ wire [3:0] vinfo_pass;
 n64_vinfo_ext get_vinfo(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
-  .Sync_pre(vdata_r[1][`VDATA_SY_SLICE]),
-  .Sync_cur(vdata_r[0][`VDATA_SY_SLICE]),
+  .Sync_pre(vdata_r[0][`VDATA_SY_SLICE]),
+  .Sync_cur(D_i[3:0]),
   .vinfo_o(vinfo_pass)
 );
 
@@ -215,8 +215,8 @@ n64_deblur deblur_management(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
   .nRST(nrst_deblur),
-  .vdata_pre(vdata_r[1]),
-  .vdata_cur(vdata_r[0]),
+  .vdata_pre(vdata_r[0]),
+  .D_i(D_i),
   .deblurparams_i({vinfo_pass,nForceDeBlur,nDeBlurMan}),
   .ndo_deblur(ndo_deblur)
 );
@@ -240,15 +240,12 @@ n64_vdemux video_demux(
 // assign final outputs
 // --------------------
 
-always @(posedge nDSYNC) begin
-  {nVSYNC,nCLAMP,nHSYNC,nCSYNC} <=  vdata_r[1][`VDATA_SY_SLICE];
-   R_o                          <= {vdata_r[1][`VDATA_RE_SLICE],vdata_r[1][3*color_width-1]};
-   G_o                          <= {vdata_r[1][`VDATA_GR_SLICE],vdata_r[1][2*color_width-1]};
-   B_o                          <= {vdata_r[1][`VDATA_BL_SLICE],vdata_r[1][  color_width-1]};
+assign {nVSYNC,nCLAMP,nHSYNC,nCSYNC} =  vdata_r[1][`VDATA_SY_SLICE];
+assign  R_o                          = {vdata_r[1][`VDATA_RE_SLICE],vdata_r[1][3*color_width-1]};
+assign  G_o                          = {vdata_r[1][`VDATA_GR_SLICE],vdata_r[1][2*color_width-1]};
+assign  B_o                          = {vdata_r[1][`VDATA_BL_SLICE],vdata_r[1][  color_width-1]};
 
-  ADV712x_SYNC <= nSYNC_ON_GREEN ? 1'b0 : vdata_r[1][vdata_width-4];
-end
-
-assign ADV712x_CLK  = nDSYNC;
+assign ADV712x_SYNC = nSYNC_ON_GREEN ? 1'b0 : vdata_r[1][vdata_width-4];
+assign ADV712x_CLK  = ~nCLK;
 
 endmodule

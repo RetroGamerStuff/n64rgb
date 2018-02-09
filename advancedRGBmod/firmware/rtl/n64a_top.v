@@ -198,8 +198,8 @@ n64_deblur deblur_management(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
   .nRST(nRST),
-  .vdata_pre(vdata_ir[1]),
-  .vdata_cur(vdata_ir[0]),
+  .vdata_pre(vdata_ir[0]),
+  .D_i(D_i),
   .deblurparams_i({vinfo_pass,nForceDeBlur,nDeBlurMan}),
   .ndo_deblur(ndo_deblur)
 );

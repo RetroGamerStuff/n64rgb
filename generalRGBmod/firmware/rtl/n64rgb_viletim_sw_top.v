@@ -58,9 +58,9 @@ module n64rgb_viletim_sw_top (
   nCSYNC,
   nCLAMP,
 
-  R_o,     // red data vector
-  G_o,     // green data vector
-  B_o      // blue data vector
+  R_o,
+  G_o,
+  B_o
 );
 
 `include "vh/n64rgb_params.vh"
@@ -74,14 +74,14 @@ input nForceDeBlur_i1;
 input nForceDeBlur_i99;
 input n15bit_mode;
 
-output reg nHSYNC;
-output reg nVSYNC;
-output reg nCSYNC;
-output reg nCLAMP;
+output nHSYNC;
+output nVSYNC;
+output nCSYNC;
+output nCLAMP;
 
-output reg [color_width-1:0] R_o; // red data vector
-output reg [color_width-1:0] G_o; // green data vector
-output reg [color_width-1:0] B_o; // blue data vector
+output [color_width-1:0] R_o;
+output [color_width-1:0] G_o;
+output [color_width-1:0] B_o;
 
 
 // start of rtl
@@ -122,8 +122,8 @@ wire [3:0] vinfo_pass;
 n64_vinfo_ext get_vinfo(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
-  .Sync_pre(vdata_r[1][`VDATA_SY_SLICE]),
-  .Sync_cur(vdata_r[0][`VDATA_SY_SLICE]),
+  .Sync_pre(vdata_r[`VDATA_SY_SLICE]),
+  .Sync_cur(D_i[3:0]),
   .vinfo_o(vinfo_pass)
 );
 
@@ -137,8 +137,8 @@ n64_deblur deblur_management(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
   .nRST(1'b1),
-  .vdata_pre(vdata_r[1]),
-  .vdata_cur(vdata_r[0]),
+  .vdata_pre(vdata_r),
+  .D_i(D_i),
   .deblurparams_i({vinfo_pass,nForceDeBlur,nDeBlurMan}),
   .ndo_deblur(ndo_deblur)
 );
@@ -147,23 +147,16 @@ n64_deblur deblur_management(
 // Part 4: data demux
 // ==================
 
-wire [`VDATA_FU_SLICE] vdata_r[0:1];
+wire [`VDATA_FU_SLICE] vdata_r;
 
 n64_vdemux video_demux(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
   .D_i(D_i),
   .demuxparams_i({vinfo_pass,ndo_deblur,n15bit_mode}),
-  .vdata_r_0(vdata_r[0]),
-  .vdata_r_1(vdata_r[1])
+  .vdata_r_0(vdata_r),
+  .vdata_r_1({nVSYNC,nCLAMP,nHSYNC,nCSYNC,R_o,G_o,B_o})
 );
-
-
-// assign final outputs
-// --------------------
-
-always @(posedge nDSYNC)
-  {nVSYNC,nCLAMP,nHSYNC,nCSYNC,R_o,G_o,B_o} <= vdata_r[1];
 
 
 endmodule
