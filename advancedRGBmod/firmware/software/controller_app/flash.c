@@ -38,21 +38,18 @@
 
 #include <unistd.h>
 #include "system.h"
+#include "sys/alt_sys_init.h"
 #include "altera_epcq_controller.h"
+#include "altera_epcq_controller_regs.h"
 #include "flash.h"
 
-
+ALTERA_EPCQ_CONTROLLER_AVL_MEM_AVL_CSR_INSTANCE ( EPCQ_CONTROLLER_0, EPCQ_CONTROLLER_0_AVL_MEM, EPCQ_CONTROLLER_0_AVL_CSR, epcq_controller_0);
 alt_epcq_controller_dev *epcq_controller_dev;
-
-void set_flash()
-{
-  alt_epcq_controller_dev epcq_controller_0;
-  altera_epcq_controller_init(&epcq_controller_0);
-  epcq_controller_dev = &epcq_controller_0;
-}
 
 int check_flash()
 {
+  epcq_controller_dev = &epcq_controller_0;
+
   if ((epcq_controller_dev == NULL) || !(epcq_controller_dev->is_epcs && (epcq_controller_dev->page_size == PAGESIZE)))
     return -FLASH_DETECT_ERROR;
 

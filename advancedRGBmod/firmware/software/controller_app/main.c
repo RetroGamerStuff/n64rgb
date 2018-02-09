@@ -30,7 +30,6 @@
 #include <string.h>
 #include <unistd.h>
 #include "system.h"
-#include "altera_epcq_controller2.h"
 
 #include "cfg_header/cfg_internal_p.h"
 #include "cfg_header/cfg_io_p.h"
@@ -53,7 +52,16 @@ const alt_u8 RW_Message_FontColor[] = {FONTCOLOR_GREEN,FONTCOLOR_RED};
 const char   *RW_Message[] = {"< Success >","< Failed >"};
 
 
-/* ToDo: break up with configuration word general - e.g. externalize non-flaged values for gamma and sl_str */
+/* ToDo's:
+ * - new configuration scheme (use 32bit I/Os)
+ * - Warning display messages
+ * - Confirm to load or to save
+ * - Highlight non-saved options
+ * - HW and FW version display
+ * - Header logo
+ * - Scanline Options (finer granulated)
+ * - Additional windows (Ctrl. input, Video Output as OSD without menu)
+ */
 
 int main()
 {
@@ -61,16 +69,13 @@ int main()
   updateaction_t todo;
   menu_t *menu = &home_menu;
 
-  set_flash();
-
   char szText[VD_WIDTH];
 
   configuration_t sysconfig = {
       .cfg_word_def = {&cfg_data_general,&cfg_data_internal}
   };
 
-  sysconfig.cfg_word_def[GENERAL]->cfg_word_val = 0;
-  sysconfig.cfg_word_def[INTERNAL]->cfg_word_val = 0;
+  cfg_clear_words(&sysconfig);
 
   alt_u32 ctrl_data;
   alt_u8  info_data;
@@ -82,11 +87,20 @@ int main()
 
   info_data = get_info_data();
 
-  /* ToDo: replace by load from flash */
   if (info_data & INFO_FALLBACKMODE_GETMASK)
     cfg_load_n64defaults(&sysconfig);
-  else
-    cfg_load_jumperset(&sysconfig);
+  else {
+    int load_from_jumperset = check_flash();
+
+    if (!load_from_jumperset)
+      load_from_jumperset = cfg_load_from_flash(&sysconfig);
+
+    if (!load_from_jumperset) {
+      cfg_clear_words(&sysconfig);  // just in case anything went wrong before
+      cfg_load_jumperset(&sysconfig);
+    }
+  }
+
 
   cfg_apply_word(sysconfig.cfg_word_def[GENERAL]);
   cfg_io_word_pre = sysconfig.cfg_word_def[GENERAL]->cfg_word_val;

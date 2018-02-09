@@ -57,7 +57,6 @@
 #define FLASH_ERASE_ERROR       202
 #define FLASH_WRITE_ERROR       203
 
-void set_flash();
 int check_flash();
 int read_flash(alt_u32 offset, alt_u32 length, alt_u8 *dstbuf);
 int write_flash_page(alt_u8 *pagedata, alt_u32 length, alt_u32 pagenum);

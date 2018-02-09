@@ -208,5 +208,7 @@ inline void cfg_apply_word(cfg_word_t* cfg_word)
   {  IOWR_ALTERA_AVALON_PIO_DATA(cfg_word->cfg_word_base, (cfg_word->cfg_word_val & cfg_word->cfg_word_mask));  };
 inline void cfg_apply_value(config_t* cfg_data)
   {  IOWR_ALTERA_AVALON_PIO_DATA(cfg_data->cfg_word->cfg_word_base, (cfg_data->cfg_word->cfg_word_val & cfg_data->cfg_word->cfg_word_mask));  };
+inline void cfg_clear_words(configuration_t* sysconfig)
+  {  sysconfig->cfg_word_def[GENERAL]->cfg_word_val = 0; sysconfig->cfg_word_def[INTERNAL]->cfg_word_val = 0;  };
 
 #endif /* CONFIG_H_ */
