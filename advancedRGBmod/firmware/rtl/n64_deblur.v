@@ -42,7 +42,7 @@ module n64_deblur (
   nRST,
 
   vdata_pre,
-  vdata_cur,
+  D_i,
 
   deblurparams_i,
   ndo_deblur
@@ -56,7 +56,7 @@ input nDSYNC;
 input nRST;
 
 input [`VDATA_I_FU_SLICE] vdata_pre;
-input [`VDATA_I_FU_SLICE] vdata_cur;
+input [color_width_i-1:0] D_i;
 
 input  [5:0] deblurparams_i;          // order: data_cnt,n64_480i,blurry_pixel_pos,nForceDeBlur,nDeBlurMan
 output reg  ndo_deblur = 1'b1;
@@ -70,16 +70,16 @@ wire            vmode = deblurparams_i[  2];
 wire     nForceDeBlur = deblurparams_i[  1];
 wire       nDeBlurMan = deblurparams_i[  0];
 
-wire negedge_nVSYNC =  vdata_pre[3*color_width_i+3] & !vdata_cur[3*color_width_i+3];
-wire posedge_nCSYNC = !vdata_pre[3*color_width_i  ] &  vdata_cur[3*color_width_i  ];
+wire negedge_nVSYNC =  vdata_pre[3*color_width_i+3] & !D_i[3];
+wire posedge_nCSYNC = !vdata_pre[3*color_width_i  ] &  D_i[0];
 
-wire Rmsb_pre = vdata_pre[3*color_width_i-1];
-wire Gmsb_pre = vdata_pre[2*color_width_i-1];
-wire Bmsb_pre = vdata_pre[  color_width_i-1];
+wire [1:0] Rcmp_pre = vdata_pre[3*color_width_i-1:3*color_width_i-2];
+wire [1:0] Gcmp_pre = vdata_pre[2*color_width_i-1:2*color_width_i-2];
+wire [1:0] Bcmp_pre = vdata_pre[  color_width_i-1:  color_width_i-2];
 
-wire Rmsb_cur = vdata_cur[3*color_width_i-1];
-wire Gmsb_cur = vdata_cur[2*color_width_i-1];
-wire Bmsb_cur = vdata_cur[  color_width_i-1];
+wire [1:0] Rcmp_cur = D_i[color_width_i-1:color_width_i-2];
+wire [1:0] Gcmp_cur = D_i[color_width_i-1:color_width_i-2];
+wire [1:0] Bcmp_cur = D_i[color_width_i-1:color_width_i-2];
 
 
 // some more definitions for the heuristics
@@ -109,7 +109,7 @@ reg [1:0] gradient[2:0];  // shows the (sharp) gradient direction between neighb
                           // gradient[x][1]   = 1 -> decreasing intensity
                           // gradient[x][0]   = 1 -> increasing intensity
                           // else                 -> constant
-reg [1:0] gradient_changes = 2'b00; // one bit for green (most sensitive to Y) and one bit for red and blue
+reg [1:0] gradient_changes = 2'b00; // value is 2'b11 if all gradients has been changed
 
 reg [1:0] nblur_est_cnt     = 2'b00;  // register to estimate whether blur is used or not by the N64
 reg [`TREND_RANGE] nblur_n64_trend = init_trend;  // trend shows if the algorithm tends to estimate more blur enabled rather than disabled
@@ -119,42 +119,41 @@ reg nblur_n64 = 1'b1;                             // blur effect is estimated to
 always @(negedge nCLK) begin // estimation of blur effect
   if (!n64_480i) begin
     if (!nDSYNC) begin
-      if(!blur_pix) begin  // incomming (potential) blurry pixel
-                           // (blur_pix changes on next @(negedge nCLK))
-
-        if (|gradient_changes)  // evaluate gradients
-          if (~&nblur_est_cnt)
-            nblur_est_cnt <= nblur_est_cnt +1'b1;
-
-        gradient_changes    <= 2'b00; // reset
-      end
-
       if(negedge_nVSYNC) begin  // negedge at nVSYNC detected - new frame
-        if (run_estimation)
-          if(&nblur_est_cnt)  // add to weight
-              nblur_n64_trend <= &nblur_n64_trend ? nblur_n64_trend :         // saturate if needed
-                                                    nblur_n64_trend + 1'b1;
-          else// subtract
-              nblur_n64_trend <= |nblur_n64_trend ? nblur_n64_trend - 1'b1 :
-                                                    nblur_n64_trend;          // saturate if needed
+        if (run_estimation & nblur_est_cnt[1])  // add to weight
+            nblur_n64_trend <= &nblur_n64_trend ? nblur_n64_trend :         // saturate if needed
+                                                  nblur_n64_trend + 1'b1;
+        else// subtract
+            nblur_n64_trend <= |nblur_n64_trend ? nblur_n64_trend - 1'b1 :
+                                                  nblur_n64_trend;          // saturate if needed
 
         nblur_n64     <= nblur_n64_trend[`NBLUR_TH_BIT];
         nblur_est_cnt <= 2'b00;
 
         run_estimation <= 1'b1;
       end
+
+      if(!blur_pix) begin  // incomming (potential) blurry pixel
+                           // (blur_pix changes on next @(negedge nCLK))
+
+        if (&gradient_changes)  // evaluate gradients
+          if (~&nblur_est_cnt)
+            nblur_est_cnt <= nblur_est_cnt +1'b1;
+
+        gradient_changes    <= 2'b00; // reset
+      end
     end else begin
       if (blur_pix) begin
         case(data_cnt)
-            2'b01: gradient[2] <= {(!Rmsb_pre & Rmsb_cur),(Rmsb_pre & !Rmsb_cur)};
-            2'b10: gradient[1] <= {(!Gmsb_pre & Gmsb_cur),(Gmsb_pre & !Gmsb_cur)};
-            2'b11: gradient[0] <= {(!Bmsb_pre & Bmsb_cur),(Bmsb_pre & !Bmsb_cur)};
+            2'b01: gradient[2] <= {(Rcmp_pre < Rcmp_cur),(Rcmp_pre > Rcmp_cur)};
+            2'b10: gradient[1] <= {(Gcmp_pre < Gcmp_cur),(Gcmp_pre > Gcmp_cur)};
+            2'b11: gradient[0] <= {(Bcmp_pre < Bcmp_cur),(Bcmp_pre > Bcmp_cur)};
         endcase
       end else begin
         case(data_cnt)
-            2'b01: if (&(gradient[2] ^ {(!Rmsb_pre & Rmsb_cur),(Rmsb_pre & !Rmsb_cur)})) gradient_changes[0] <= 1'b1;
-            2'b10: if (&(gradient[1] ^ {(!Gmsb_pre & Gmsb_cur),(Gmsb_pre & !Gmsb_cur)})) gradient_changes[1] <= 1'b1;
-            2'b11: if (&(gradient[0] ^ {(!Bmsb_pre & Bmsb_cur),(Bmsb_pre & !Bmsb_cur)})) gradient_changes[0] <= gradient_changes[0] & 1'b1;
+            2'b01: if (&(gradient[2] ^ {(Rcmp_pre < Rcmp_cur),(Rcmp_pre > Rcmp_cur)})) gradient_changes[0] <= 1'b1;
+            2'b10: if (~&(gradient[1] ^ {(Gcmp_pre < Gcmp_cur),(Gcmp_pre > Gcmp_cur)})) gradient_changes[0] <= 1'b0;
+            2'b11: if (&(gradient[0] ^ {(Bcmp_pre < Bcmp_cur),(Bcmp_pre > Bcmp_cur)})) gradient_changes[1] <= 1'b1;
         endcase
       end
     end
