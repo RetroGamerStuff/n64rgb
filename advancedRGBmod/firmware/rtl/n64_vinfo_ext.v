@@ -53,7 +53,7 @@ input nDSYNC;
 input  [3:0] Sync_pre;
 input  [3:0] Sync_cur;
 
-output [4:0] vinfo_o;   // order: data_cnt,n64_480i,vmode,blurry_pixel_pos
+output [3:0] vinfo_o;   // order: data_cnt,n64_480i,vmode
 
 
 // some pre-assignments
@@ -62,8 +62,6 @@ wire posedge_nVSYNC = !Sync_pre[3] &  Sync_cur[3];
 wire negedge_nVSYNC =  Sync_pre[3] & !Sync_cur[3];
 wire posedge_nHSYNC = !Sync_pre[1] &  Sync_cur[1];
 wire negedge_nHSYNC =  Sync_pre[1] & !Sync_cur[1];
-wire posedge_nCSYNC = !Sync_pre[0] &  Sync_cur[0];
-
 
 
 // data counter for heuristic and de-mux
@@ -105,9 +103,6 @@ end
 
 reg [1:0] line_cnt;         // PAL: line_cnt[1:0] == 0x ; NTSC: line_cnt[1:0] = 1x
 reg       vmode = 1'b0;     // PAL: vmode == 1          ; NTSC: vmode == 0
-reg       blurry_pixel_pos; // indicates position of a potential blurry pixel
-                            // blurry_pixel_pos == 0 -> pixel at D_i
-                            // blurry_pixel_pos == 1 -> pixel at previous RGB data
 
 always @(negedge nCLK) begin
   if (!nDSYNC) begin
@@ -116,14 +111,6 @@ always @(negedge nCLK) begin
       vmode    <= ~line_cnt[1];
     end else if(posedge_nHSYNC) // posedge nHSYNC -> increase line_cnt
       line_cnt <= line_cnt + 1'b1;
-
-    if(!n64_480i) begin // 240p
-      if(posedge_nCSYNC) // posedge nCSYNC -> reset blanking
-        blurry_pixel_pos <= vmode;
-      else
-        blurry_pixel_pos <= ~blurry_pixel_pos;
-    end else
-      blurry_pixel_pos <= 1'b0;
   end
 end
 
@@ -131,7 +118,7 @@ end
 // pack vinfo_o vector
 // =================
 
-assign vinfo_o = {data_cnt,n64_480i,vmode,blurry_pixel_pos};
+assign vinfo_o = {data_cnt,n64_480i,vmode};
 
 
 endmodule 
