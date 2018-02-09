@@ -53,7 +53,7 @@ input nDSYNC;
 input  [3:0] Sync_pre;
 input  [3:0] Sync_cur;
 
-output [4:0] vinfo_o;   // order: data_cnt,n64_480i,vmode,blurry_pixel_pos
+output [3:0] vinfo_o;   // order: data_cnt,n64_480i,vmode
 
 
 // some pre-assignments
@@ -131,7 +131,7 @@ end
 // pack vinfo_o vector
 // =================
 
-assign vinfo_o = {data_cnt,n64_480i,vmode,blurry_pixel_pos};
+assign vinfo_o = {data_cnt,n64_480i,vmode};
 
 
 endmodule 

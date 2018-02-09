@@ -178,16 +178,14 @@ n64a_igr igr(
 // Part 2: get all of the vinfo needed for further processing
 // ==========================================================
 
-wire [1:0] data_cnt;
-wire       n64_480i, vmode;
-wire       blurry_pixel_pos;  // indicates position of a potential blurry pixel
+wire [3:0] vinfo_pass;
 
 n64_vinfo_ext get_vinfo(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
   .Sync_pre(vdata_ir[1][`VDATA_I_SY_SLICE]),
   .Sync_cur(vdata_ir[0][`VDATA_I_SY_SLICE]),
-  .vinfo_o({data_cnt,n64_480i,vmode,blurry_pixel_pos})
+  .vinfo_o(vinfo_pass)
 );
 
 
@@ -200,13 +198,11 @@ n64_deblur deblur_management(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
   .nRST(nRST),
-  .vdata_pre(vdata_ir[0]),
-  .vdata_cur(D_i),
-  .deblurparams_i({data_cnt,n64_480i,blurry_pixel_pos,nForceDeBlur,nDeBlurMan}),
+  .vdata_pre(vdata_ir[1]),
+  .vdata_cur(vdata_ir[0]),
+  .deblurparams_i({vinfo_pass,nForceDeBlur,nDeBlurMan}),
   .ndo_deblur(ndo_deblur)
 );
-
-wire nblank_rgb = ~blurry_pixel_pos;
 
 
 // Part 4: data demux
@@ -218,7 +214,7 @@ n64_vdemux video_demux(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
   .D_i(D_i),
-  .demuxparams_i({data_cnt,ndo_deblur,nblank_rgb,n15bit_mode}),
+  .demuxparams_i({vinfo_pass,ndo_deblur,n15bit_mode}),
   .vdata_r_0(vdata_ir[0]),
   .vdata_r_1(vdata_ir[1])
 );
@@ -233,10 +229,12 @@ n64_vdemux video_demux(
 
 wire CLK_out;
 
-wire       nENABLE_linedbl = (n64_480i & n480i_bob) | ~n240p_active | ~nRST;
-wire [1:0] SL_str_dbl      = n64_480i ? 2'b11 : SL_str;
+wire n64_480i = vinfo_pass[1];
 
-wire [4:0] vinfo_dbl = {nENABLE_linedbl,SL_str_dbl,vmode,n64_480i};
+wire       nENABLE_linedbl = (n64_480i & n480i_bob) | ~n240p_active | ~nRST;
+wire [1:0] SL_str_dbl      =  n64_480i ? 2'b11 : SL_str;
+
+wire [4:0] vinfo_dbl = {nENABLE_linedbl,SL_str_dbl,vinfo_pass[1:0]};
 
 wire [vdata_width_o-1:0] vdata_tmp;
 
