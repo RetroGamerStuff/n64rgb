@@ -102,6 +102,7 @@ The hidden jumper are nothing else then neighbouring pins. This pin is marked wi
 - J11.2 -> deactivate the de-blur heuristic. **[1]**
 - pin 36 and 37 (hidden jumper on v1) / J12.1 -> activates the 15bit color mode by default
 - J12 (v1) / J12.2 (v2) -> Altering installation type **[2]** 
+- J21 -> enable Sync on Green if closed (N64RGBv2 only)
 
 **Notes**:  
 
@@ -155,8 +156,8 @@ A complete installation and setup guide to this modding kit is provided in the m
 - Install the modding board:
   * Installation description is part of the guide located in the top folder.
   * However an installation guide of a similar product made by viletim is provided [here](http://etim.net.au/n64rgb/). The minor differences / extra pads are as follows:
-    * N64RGBv2: J2 shorts 3.3V from CPLD with power rail of the ADV7125 (DAC). **If you use 5V at the analog power rail of the ADV7125, you must not close J2!**
-    * Pad *Fil*: controls the low pass filter mode (v1 only, see above)
+    * (_outdated_) N64RGBv2: J2 (formerly J1 on earlier versions, where J1 is not at bottom side) shorts 3.3V from CPLD with power rail of the ADV7125 (DAC). **If you use 5V at the analog power rail of the ADV7125, you must not close J2!**
+    * Pad *Fil* (N64RGBv1 only): controls the low pass filter mode (v1 only, see above)
     * Pad *Rst#*: connect this pad to the PIF-NUS pin 27
     * Pad *Ctrl*: connect this pin to the middle pin of the controller port you want to use for the IGR functions (controller port 1 is probably connected to PIF-NUS pin 16; check that before soldering a wire)
   * You have to be aware of the pinout of your video-encoder build into your N64. Pads on the DIY modding board are labeled.
@@ -166,7 +167,7 @@ A complete installation and setup guide to this modding kit is provided in the m
 Choose the PCB service which suits you. Here are some:
 
 - OSHPark: [Link to the Main PCB v1](https://oshpark.com/shared_projects/zPCxky4e) (If the PCB was updated and I forgot to update this link, look onto [my profile](https://oshpark.com/profiles/borti4938))
-- OSHPark: [Link to the Main PCB v2](https://oshpark.com/shared_projects/KUxvVUbc) (If the PCB was updated and I forgot to update this link, look onto [my profile](https://oshpark.com/profiles/borti4938))
+- OSHPark: [Link to the Main PCB v2](https://oshpark.com/shared_projects/XceXMR8r) (If the PCB was updated and I forgot to update this link, look onto [my profile](https://oshpark.com/profiles/borti4938))
 - PCBWay.com: [Link](http://www.pcbway.com/), [Affiliate Link](http://www.pcbway.com/setinvite.aspx?inviteid=10658)
 
 ### BOM / Part List for the PCB

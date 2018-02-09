@@ -109,18 +109,22 @@ input Default_nForceDeBlur;
 input Default_DeBlur;
 input Default_n15bit_mode;
 
-output nHSYNC;
-output nVSYNC;
-output nCSYNC;
-output nCLAMP;
+output reg nHSYNC;
+output reg nVSYNC;
+output reg nCSYNC;
+output reg nCLAMP;
 
-output [color_width-1:0] R_o;     // red data vector
-output [color_width-1:0] G_o;     // green data vector
-output [color_width-1:0] B_o;     // blue data vector
+output reg [color_width-1:0] R_o; // red data vector
+output reg [color_width-1:0] G_o; // green data vector
+output reg [color_width-1:0] B_o; // blue data vector
 
-input  nTHS7374_LPF_Bypass_p85_i;   // my first prototypes have FIL pad input at pin 85 (MaxV only)
-input  nTHS7374_LPF_Bypass_p98_i;   // the GitHub final version at pin 98
-output THS7374_LPF_Bypass_o;         // so simply combine both for same firmware file
+input      nTHS7374_LPF_Bypass_p85_i;   // my first prototypes have FIL pad input at pin 85 (MaxV only)
+input      nTHS7374_LPF_Bypass_p98_i;   // the GitHub final version at pin 98
+output reg  THS7374_LPF_Bypass_o;       // so simply combine both for same firmware file
+
+
+`define SWITCH_INSTALL  !install_type
+`define IGR_INSTALL      install_type
 
 
 // start of rtl
@@ -129,19 +133,25 @@ output THS7374_LPF_Bypass_o;         // so simply combine both for same firmware
 // ==========================
 
 wire nForceDeBlur_IGR, nDeBlur_IGR, n15bit_mode_IGR;
-wire nRST_IGR = install_type ? nRST_nManualDB : 1'b0;
 wire DRV_RST;
-wire CTRL_IGR = install_type ? CTRL_nAutoDB   : 1'b1;
-
 `ifdef OPTION_INVLPF
   wire InvLPF;
 `endif
+
+reg nRST_IGR;
+
+always @(negedge nCLK) begin
+  if (`IGR_INSTALL)
+    nRST_IGR <= nRST_nManualDB;
+  else
+    nRST_IGR <= 1'b0;
+end
 
 n64_igr igr(
   .nCLK(nCLK),
   .nRST_IGR(nRST_IGR),
   .DRV_RST(DRV_RST),
-  .CTRL(CTRL_IGR),
+  .CTRL(CTRL_nAutoDB),
   .Default_nForceDeBlur(Default_nForceDeBlur),
   .Default_DeBlur(Default_DeBlur),
   .Default_n15bit_mode(Default_n15bit_mode),
@@ -157,9 +167,6 @@ n64_igr igr(
 assign nRST_nManualDB = ~install_type ? 1'bz : 
                          DRV_RST      ? 1'b0 : 1'bz;
 
-wire nForceDeBlur = install_type ? nForceDeBlur_IGR : (~CTRL_nAutoDB & nRST_nManualDB);
-wire nDeBlurMan   = install_type ? nDeBlur_IGR      :                  nRST_nManualDB;
-wire n15bit_mode  = install_type ? n15bit_mode_IGR  : ~Default_DeBlur;
 
 // Part 2 - 4: RGB Demux with De-Blur Add-On
 // =========================================
@@ -181,35 +188,47 @@ wire n15bit_mode  = install_type ? n15bit_mode_IGR  : ~Default_DeBlur;
 // Part 2: get all of the vinfo needed for further processing
 // ==========================================================
 
-wire [1:0] data_cnt;
-wire       n64_480i;
-wire       vmode;             // PAL: vmode == 1          ; NTSC: vmode == 0
-wire       blurry_pixel_pos;  // indicates position of a potential blurry pixel
+wire [3:0] vinfo_pass;
 
 n64_vinfo_ext get_vinfo(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
-  .Sync_pre(vdata_r[0][`VDATA_SY_SLICE]),
-  .D_i(D_i),
-  .vinfo_o({data_cnt,n64_480i,vmode,blurry_pixel_pos})
+  .Sync_pre(vdata_r[1][`VDATA_SY_SLICE]),
+  .Sync_cur(vdata_r[0][`VDATA_SY_SLICE]),
+  .vinfo_o(vinfo_pass)
 );
 
 
 // Part 3: DeBlur Management (incl. heuristic)
 // ===========================================
 
-wire nrst_deblur = install_type ? nRST_nManualDB : 1'b1;
-wire ndo_deblur, nblank_rgb;
-wire [1:0] deblurparams_pass;
+reg nForceDeBlur, nDeBlurMan, n15bit_mode, nrst_deblur;
+
+always @(negedge nCLK) begin
+  if (`IGR_INSTALL) begin
+    nForceDeBlur <= nForceDeBlur_IGR;
+    nDeBlurMan   <= nDeBlur_IGR;
+    n15bit_mode  <= n15bit_mode_IGR;
+    nrst_deblur  <= nRST_nManualDB;
+  end else begin
+    nForceDeBlur <= (~CTRL_nAutoDB & nRST_nManualDB);
+    nDeBlurMan   <=                  nRST_nManualDB;
+    n15bit_mode  <=  Default_n15bit_mode;
+    nrst_deblur  <= (~CTRL_nAutoDB & nRST_nManualDB);
+  end
+end
+
+
+wire ndo_deblur;
 
 n64_deblur deblur_management(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
   .nRST(nrst_deblur),
   .vdata_pre(vdata_r[0]),
-  .vdata_cur(D_i),
-  .deblurparams_i({data_cnt,n64_480i,vmode,blurry_pixel_pos,nForceDeBlur,nDeBlurMan}),
-  .deblurparams_o(deblurparams_pass)
+  .vdata_cur(vdata_r[1]),
+  .deblurparams_i({vinfo_pass,nForceDeBlur,nDeBlurMan}),
+  .ndo_deblur(ndo_deblur)
 );
 
 
@@ -222,19 +241,25 @@ n64_vdemux video_demux(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
   .D_i(D_i),
-  .demuxparams_i({data_cnt,deblurparams_pass,n15bit_mode}),
+  .demuxparams_i({vinfo_pass,ndo_deblur,n15bit_mode}),
   .vdata_r_0(vdata_r[0]),
   .vdata_r_1(vdata_r[1])
 );
 
 
-assign {nVSYNC,nCLAMP,nHSYNC,nCSYNC} = vdata_r[1][`VDATA_SY_SLICE];
-assign {R_o,G_o,B_o}                 = vdata_r[1][`VDATA_CO_SLICE];
+// assign final outputs
+// --------------------
 
-`ifdef OPTION_INVLPF
-  assign THS7374_LPF_Bypass_o = ~(nTHS7374_LPF_Bypass_p85_i & nTHS7374_LPF_Bypass_p98_i) ^ InvLPF;
-`else
-  assign THS7374_LPF_Bypass_o = ~(nTHS7374_LPF_Bypass_p85_i & nTHS7374_LPF_Bypass_p98_i);
-`endif
+always @(posedge nDSYNC) begin
+  {nVSYNC,nCLAMP,nHSYNC,nCSYNC,R_o,G_o,B_o} <= vdata_r[1];
+
+  `ifdef OPTION_INVLPF
+    THS7374_LPF_Bypass_o <= ~(nTHS7374_LPF_Bypass_p85_i & nTHS7374_LPF_Bypass_p98_i) ^ InvLPF;
+  `else
+    THS7374_LPF_Bypass_o <= ~(nTHS7374_LPF_Bypass_p85_i & nTHS7374_LPF_Bypass_p98_i);
+  `endif
+end
+
+
 
 endmodule

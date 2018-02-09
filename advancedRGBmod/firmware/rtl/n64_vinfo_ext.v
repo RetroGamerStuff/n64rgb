@@ -30,7 +30,7 @@
 //
 // Dependencies: vh/n64a_params.vh
 //
-// Revision: 1.0
+// Revision: 1.1
 //
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -41,6 +41,7 @@ module n64_vinfo_ext(
 
   Sync_pre,
   Sync_cur,
+
   vinfo_o
 );
 
@@ -51,7 +52,8 @@ input nDSYNC;
 
 input  [3:0] Sync_pre;
 input  [3:0] Sync_cur;
-output [4:0] vinfo_o;   // order: data_cnt,n64_480i,vmode,blurry_pixel_pos
+
+output [3:0] vinfo_o;   // order: data_cnt,n64_480i,vmode
 
 
 // some pre-assignments
@@ -60,7 +62,7 @@ wire posedge_nVSYNC = !Sync_pre[3] &  Sync_cur[3];
 wire negedge_nVSYNC =  Sync_pre[3] & !Sync_cur[3];
 wire posedge_nHSYNC = !Sync_pre[1] &  Sync_cur[1];
 wire negedge_nHSYNC =  Sync_pre[1] & !Sync_cur[1];
-wire posedge_nCSYNC = !Sync_pre[0] &  Sync_cur[0];
+
 
 // data counter for heuristic and de-mux
 // =====================================
@@ -78,7 +80,7 @@ end
 // estimation of 240p/288p
 // =======================
 
-reg FrameID  = 1'b0; // 0 = even frame, 1 = odd frame; 240p: only even or odd frames; 480i: even and odd frames
+reg FrameID  = 1'b0; // 0 = even frame, 1 = odd frame; 240p: only even or only odd frames; 480i: even and odd frames
 reg n64_480i = 1'b1; // 0 = 240p/288p , 1= 480i/576i
 
 always @(negedge nCLK) begin
@@ -99,11 +101,8 @@ end
 // determine vmode and blurry pixel position
 // =========================================
 
-reg [1:0] line_cnt;     // PAL: line_cnt[1:0] == 0x ; NTSC: line_cnt[1:0] = 1x
-reg       vmode = 1'b0; // PAL: vmode == 1          ; NTSC: vmode == 0
-reg       nblank_rgb;   // indicates position of a potential blurry pixel
-                        // nblank_rgb == 0 -> blurry pixel at vdata[0]
-                        // nblank_rgb == 1 -> non-blurry pixel at vdata[0]
+reg [1:0] line_cnt;         // PAL: line_cnt[1:0] == 0x ; NTSC: line_cnt[1:0] = 1x
+reg       vmode = 1'b0;     // PAL: vmode == 1          ; NTSC: vmode == 0
 
 always @(negedge nCLK) begin
   if (!nDSYNC) begin
@@ -112,22 +111,13 @@ always @(negedge nCLK) begin
       vmode    <= ~line_cnt[1];
     end else if(posedge_nHSYNC) // posedge nHSYNC -> increase line_cnt
       line_cnt <= line_cnt + 1'b1;
-
-    if(!n64_480i) begin // 240p
-      if(posedge_nCSYNC) // posedge nCSYNC -> reset blanking
-        nblank_rgb <= ~vmode;
-      else
-        nblank_rgb <= ~nblank_rgb;
-    end else
-      nblank_rgb <= 1'b1;
   end
 end
 
 
 // pack vinfo_o vector
-// =================
+// ===================
 
-assign vinfo_o = {data_cnt,n64_480i,vmode,nblank_rgb};
-
+assign vinfo_o = {data_cnt,n64_480i,vmode};
 
 endmodule 

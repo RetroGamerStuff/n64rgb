@@ -41,7 +41,7 @@ set_global_assignment -name FAMILY "MAX II"
 set_global_assignment -name DEVICE EPM240T100C5
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 15.1.2
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "11:03:36  AUGUST 12, 2016"
-set_global_assignment -name LAST_QUARTUS_VERSION "17.1.0 Lite Edition"
+set_global_assignment -name LAST_QUARTUS_VERSION "17.1.1 Lite Edition"
 set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
 set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
 set_global_assignment -name DEVICE_FILTER_PACKAGE TQFP
@@ -119,18 +119,10 @@ set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to nForceDeBlur_i99
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to nAutoDeBlur
 
 
-## Some Dummies
-## ============
-set_location_assignment PIN_37 -to dummy[0]
-set_location_assignment PIN_39 -to dummy[1]
-set_location_assignment PIN_58 -to dummy[2]
-set_location_assignment PIN_88 -to dummy[3]
-set_location_assignment PIN_90 -to dummy[4]
-
-
 ## Files
 ## =====
 set_global_assignment -name VERILOG_FILE rtl/n64rgb_viletim_sw_top.v
+set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64rgb_params.vh
 set_global_assignment -name VERILOG_FILE rtl/n64_vinfo_ext.v
 set_global_assignment -name VERILOG_FILE rtl/n64_deblur.v
 set_global_assignment -name VERILOG_FILE rtl/n64_vdemux.v
@@ -141,11 +133,8 @@ set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files/viletim
 ## Fitter Settings
 ## ===============
 set_global_assignment -name TOP_LEVEL_ENTITY n64rgb_viletim_sw_top
-set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED WITH WEAK PULL-UP"
-set_global_assignment -name ALM_REGISTER_PACKING_EFFORT HIGH
+set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED WITH BUS-HOLD"
 set_global_assignment -name OPTIMIZATION_MODE "HIGH PERFORMANCE EFFORT"
-set_global_assignment -name ALLOW_SHIFT_REGISTER_MERGING_ACROSS_HIERARCHIES ALWAYS
-set_global_assignment -name DISABLE_REGISTER_MERGING_ACROSS_HIERARCHIES OFF
 
 
 ## Additions by Quartus Prime

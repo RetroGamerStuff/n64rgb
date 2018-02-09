@@ -37,7 +37,7 @@
 //               rtl/n64a_video.v      (Rev. 1.0)
 // (more dependencies may appear in other files)
 //
-// Revision: 1.1
+// Revision: 1.2
 // Features: based on n64rgb version 2.5
 //           selectable RGB, RGsB or YPbPr
 //           linebuffer for - NTSC 240p (480i optional) -> 480p rate conversion
@@ -124,6 +124,9 @@ input       n480i_bob;
 
 assign SYS_CLKen = 1'b1;
 
+wire n64_480i = vinfo_pass[1];
+wire vmode    = vinfo_pass[0];
+
 wire [ 4:0] InfoSet = {n64_480i,vmode,~ndo_deblur,UseVGA_HVSync,nFilterBypass};
 wire [ 5:0] DefaultConfigSet = {nEN_YPbPr,(~nEN_YPbPr | nEN_RGsB),SL_str,n240p,n480i_bob}; // (~nEN_YPbPr | nEN_RGsB) ensures that not both jumpers are set and passed through the NIOS II
 wire [12:0] ConfigSet;
@@ -173,17 +176,14 @@ wire       cfg_n480i_bob =  ~ConfigSet[ 0];
 // Part 2: get all of the vinfo needed for further processing
 // ==========================================================
 
-wire [1:0] data_cnt;
-wire       n64_480i;
-wire       vmode;       // PAL: vmode == 1; NTSC: vmode == 0
-wire       nblank_rgb;  // indicates position of a potential blurry pixel
+wire [3:0] vinfo_pass;
 
 n64_vinfo_ext get_vinfo(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
   .Sync_pre(vdata_r[1][`VDATA_I_SY_SLICE]),
   .Sync_cur(vdata_r[0][`VDATA_I_SY_SLICE]),
-  .vinfo_o({data_cnt,n64_480i,vmode,nblank_rgb})
+  .vinfo_o(vinfo_pass)
 );
 
 
@@ -196,9 +196,9 @@ n64_deblur deblur_management(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
   .nRST(nRST),
-  .vdata_pre(vdata_r[0]),
-  .vdata_cur(D_i),
-  .deblurparams_i({data_cnt,n64_480i,~nblank_rgb,nForceDeBlur,nDeBlurMan}),
+  .vdata_pre(vdata_r[1]),
+  .vdata_cur(vdata_r[0]),
+  .deblurparams_i({vinfo_pass,nForceDeBlur,nDeBlurMan}),
   .ndo_deblur(ndo_deblur)
 );
 
@@ -213,7 +213,7 @@ n64_vdemux video_demux(
   .nDSYNC(nDSYNC),
   .nRST(nRST),
   .D_i(D_i),
-  .demuxparams_i({data_cnt,ndo_deblur,nblank_rgb,n15bit_mode}),
+  .demuxparams_i({vinfo_pass,ndo_deblur,n15bit_mode}),
   .gammaparams_i(cfg_gamma),
   .vdata_r_0(vdata_r[0]),
   .vdata_r_1(vdata_r[1]),
@@ -229,10 +229,9 @@ n64_vdemux video_demux(
 wire CLK_out;
 
 wire       nENABLE_linedbl = (n64_480i & cfg_n480i_bob) | ~cfg_n240p | ~nRST;
+wire [1:0] SL_str_dbl      =  n64_480i ? 2'b00 : cfg_SL_str;
 
- wire [1:0] SL_str_dbl      = n64_480i ? 2'b00 : cfg_SL_str;
-
-wire [4:0] vinfo_dbl = {nENABLE_linedbl,SL_str_dbl,vmode,n64_480i};
+wire [4:0] vinfo_dbl = {nENABLE_linedbl,SL_str_dbl,vinfo_pass[1:0]};
 
 wire [vdata_width_o-1:0] vdata_tmp;
 

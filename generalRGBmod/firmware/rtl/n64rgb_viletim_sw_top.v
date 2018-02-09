@@ -52,8 +52,6 @@ module n64rgb_viletim_sw_top (
   nForceDeBlur_i99, // (pin can be left unconnected for always on; weak pull-up assigned)
   n15bit_mode,      // 15bit color mode if input set to GND (weak pull-up assigned)
 
-  dummy,            // some pins are tied to Vcc/GND according to viletims design
-
   // Video output
   nHSYNC,
   nVSYNC,
@@ -71,21 +69,19 @@ input                   nCLK;
 input                   nDSYNC;
 input [color_width-1:0] D_i;
 
-input       nAutoDeBlur;
-input       nForceDeBlur_i1;
-input       nForceDeBlur_i99;
-input       n15bit_mode;
+input nAutoDeBlur;
+input nForceDeBlur_i1;
+input nForceDeBlur_i99;
+input n15bit_mode;
 
-input [4:0] dummy;
+output reg nHSYNC;
+output reg nVSYNC;
+output reg nCSYNC;
+output reg nCLAMP;
 
-output nHSYNC;
-output nVSYNC;
-output nCSYNC;
-output nCLAMP;
-
-output [color_width-1:0] R_o;     // red data vector
-output [color_width-1:0] G_o;     // green data vector
-output [color_width-1:0] B_o;     // blue data vector
+output reg [color_width-1:0] R_o; // red data vector
+output reg [color_width-1:0] G_o; // green data vector
+output reg [color_width-1:0] B_o; // blue data vector
 
 
 // start of rtl
@@ -93,8 +89,12 @@ output [color_width-1:0] B_o;     // blue data vector
 // Part 1: connect switches
 // ========================
 
-wire nForceDeBlur = &{~nAutoDeBlur,nForceDeBlur_i1,nForceDeBlur_i99};
-wire nDeBlurMan   = nForceDeBlur_i1 & nForceDeBlur_i99;
+reg nForceDeBlur, nDeBlurMan;
+
+always @(negedge nCLK) begin
+  nForceDeBlur <= &{~nAutoDeBlur,nForceDeBlur_i1,nForceDeBlur_i99};
+  nDeBlurMan   <= nForceDeBlur_i1 & nForceDeBlur_i99;
+end
 
 
 // Part 2 - 4: RGB Demux with De-Blur Add-On
@@ -117,34 +117,30 @@ wire nDeBlurMan   = nForceDeBlur_i1 & nForceDeBlur_i99;
 // Part 2: get all of the vinfo needed for further processing
 // ==========================================================
 
-wire [1:0] data_cnt;
-wire       n64_480i;
-wire       vmode;             // PAL: vmode == 1          ; NTSC: vmode == 0
-wire       blurry_pixel_pos;  // indicates position of a potential blurry pixel
+wire [3:0] vinfo_pass;
 
 n64_vinfo_ext get_vinfo(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
-  .Sync_pre(vdata_r[0][`VDATA_SY_SLICE]),
-  .D_i(D_i),
-  .vinfo_o({data_cnt,n64_480i,vmode,blurry_pixel_pos})
+  .Sync_pre(vdata_r[1][`VDATA_SY_SLICE]),
+  .Sync_cur(vdata_r[0][`VDATA_SY_SLICE]),
+  .vinfo_o(vinfo_pass)
 );
 
 
 // Part 3: DeBlur Management (incl. heuristic)
 // ===========================================
 
-wire ndo_deblur, nblank_rgb;
-wire [1:0] deblurparams_pass;
+wire ndo_deblur;
 
 n64_deblur deblur_management(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
   .nRST(1'b1),
-  .vdata_pre(vdata_r[0]),
-  .vdata_cur(D_i),
-  .deblurparams_i({data_cnt,n64_480i,vmode,blurry_pixel_pos,nForceDeBlur,nDeBlurMan}),
-  .deblurparams_o(deblurparams_pass)
+  .vdata_pre(vdata_r[1]),
+  .vdata_cur(vdata_r[0]),
+  .deblurparams_i({vinfo_pass,nForceDeBlur,nDeBlurMan}),
+  .ndo_deblur(ndo_deblur)
 );
 
 
@@ -157,13 +153,17 @@ n64_vdemux video_demux(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
   .D_i(D_i),
-  .demuxparams_i({data_cnt,deblurparams_pass,n15bit_mode}),
+  .demuxparams_i({vinfo_pass,ndo_deblur,n15bit_mode}),
   .vdata_r_0(vdata_r[0]),
   .vdata_r_1(vdata_r[1])
 );
 
 
-assign {nVSYNC,nCLAMP,nHSYNC,nCSYNC} = vdata_r[1][`VDATA_SY_SLICE];
-assign {R_o,G_o,B_o}                 = vdata_r[1][`VDATA_CO_SLICE];
+// assign final outputs
+// --------------------
+
+always @(posedge nDSYNC)
+  {nVSYNC,nCLAMP,nHSYNC,nCSYNC,R_o,G_o,B_o} <= vdata_r[1];
+
 
 endmodule

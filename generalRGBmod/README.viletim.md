@@ -30,8 +30,8 @@ By default this feature is on.
   * By default (pin 100 and 99 / pad *A* and *M* left open) the de-blur feature is switched *off*!
 - 'firmware with IGR':
   * **By default heuristic is activated on every power cycle and on every reset!** However, as the heuristic guess might be not reliable, the guess can be override. Also, the heuristic algorithm can be switched off permanently by setting pin 61 of the MaxII CPLD to GND (short pin 61 and 60)
-  * Press D-Pad le + L + R + C-le to deactivate de-blur (overrides the guess)
-  * Press D-Pad ri + L + R + C-ri to activate de-blur (overrides the guess)
+  * Press Z + Start + R + C-le to deactivate de-blur (overrides the guess)
+  * Press Z + Start + R + C-ri to activate de-blur (overrides the guess)
   * If heuristic estimation is switched off, the de-blur setting has a default value. This default is set on each power cycle. Default is de-blur *on*! If you want to have it *off* by default, short pin 91 and 90 at the MaxII CPLD!
 
 _(Button combinations can be modified according to your needs - see note below @ **In-Game Routines (IGR)**)_
@@ -52,8 +52,8 @@ The 15bit color mode reduces the color depth from 21bit (7bit for each color) do
 By default this feature is off.
 - 'firmware without IGR': To activate it set pin 36 of the CPLD to GND (short pin 36 and 37). This feature is *off* by default.
 - 'firmware with IGR':
-  * to deactivate 15bit mode press D-Pad up + L + R + C-up.
-  * to (re)activate 15bit mode press D-Pad dw + L + R + C-dw.
+  * to deactivate 15bit mode press Z + Start + R + C-up.
+  * to (re)activate 15bit mode press Z + Start + R + C-dw.
   * the default is set on each power cycle. Default for 15bit color mode is *off*! If you want to have it *on* by default, short pin 36 and 37 at the MaxII CPLD!
 
 _(Button combinations can be modified according to your needs - see note below @ **In-Game Routines (IGR)**)_
@@ -71,7 +71,7 @@ Three functunalities are implemented: toggle de-blur feature / override heuristi
 
 The button combination are as follows:
 
-- reset the console: A + B + D-Pad dw + D-Pad ri + L + R
+- reset the console: Z + Start + R + A + B
 - (de)activate de-blur / override heuristic for de-blur: (see description above)
 - (de)activate 15bit mode: (see description above)
 
