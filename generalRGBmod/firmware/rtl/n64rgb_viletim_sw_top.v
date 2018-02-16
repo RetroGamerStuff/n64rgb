@@ -89,11 +89,12 @@ output [color_width-1:0] B_o;
 // Part 1: connect switches
 // ========================
 
-reg nForceDeBlur, nDeBlurMan;
+reg nForceDeBlur, nDeBlurMan, nrst_deblur;
 
 always @(negedge nCLK) begin
   nForceDeBlur <= &{~nAutoDeBlur,nForceDeBlur_i1,nForceDeBlur_i99};
   nDeBlurMan   <= nForceDeBlur_i1 & nForceDeBlur_i99;
+  nrst_deblur  <= ~nAutoDeBlur;
 end
 
 
@@ -136,7 +137,7 @@ wire ndo_deblur;
 n64_deblur deblur_management(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
-  .nRST(1'b1),
+  .nRST(nrst_deblur),
   .vdata_pre(vdata_r),
   .D_i(D_i),
   .deblurparams_i({vinfo_pass,nForceDeBlur,nDeBlurMan}),

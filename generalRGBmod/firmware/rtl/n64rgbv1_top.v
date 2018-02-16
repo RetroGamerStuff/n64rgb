@@ -214,7 +214,7 @@ always @(negedge nCLK) begin
     nForceDeBlur <= (~CTRL_nAutoDB & nRST_nManualDB);
     nDeBlurMan   <=                  nRST_nManualDB;
     n15bit_mode  <=  Default_n15bit_mode;
-    nrst_deblur  <= (~CTRL_nAutoDB & nRST_nManualDB);
+    nrst_deblur  <= ~CTRL_nAutoDB;
   end
 end
 
