@@ -47,7 +47,7 @@
 #define COPYRIGHT_V_OFFSET      (VD_HEIGHT - 1)
 #define COPYRIGHT_SIGN_H_OFFSET (COPYRIGHT_H_OFFSET - 2)
 
-#define CR_SIGN_LICENSE_H_OFFSET  15
+#define CR_SIGN_LICENSE_H_OFFSET  17
 #define CR_SIGN_LICENSE_V_OFFSET   2
 
 #define VERSION_H_OFFSET 20
@@ -163,43 +163,42 @@ static const char *rwdata_overlay =
     " - N64 Standard";
 
 static const char *thanks_overlay =
-    "The N64 RGB project would not be what it is\n"
-    "without the contributions many other people.\n"
-    "Here, I want to point out especially:\n"
+    "The N64 RGB project would not be what it is without\n"
+    "the contributions of many other people. Here, I want \n"
+    "to point out especially:\n"
     " - viletim  : First public DIY N64 DAC project\n"
     " - Ikari_01 : Initial implementation of PAL/NTSC\n"
     "              as well as 480i/576i detection\n"
     " - sftwninja: Pushing me to the N64A project\n"
     " - Xenogears: Sponsoring of prototypes\n\n"
     "Visit GitHub:\n"
-    "     <https://github.com/borti4938/n64rgb>\n"
+    "      <https://github.com/borti4938/n64rgb>\n"
     "Any contribution in any kind is highly welcomed!";
-  /* 123456789012345678901234567890123456789012345678 */
+  /* 1234567890123456789012345678901234567890123456789012 */
 
 static const char *about_overlay =
-    "The N64 RGB project is open source, i.e.\n"
-    "PCB files, HDL and SW sources are provided\n"
-    "to you FOR FREE!\n\n"
+    "The N64 RGB project is open source, i.e.PCB files,\n"
+    "HDL and SW sources are provided to you FOR FREE!\n\n"
     "Your version\n"
     " - firmware (HDL):\n"
     " - firmware (SW) :\n\n"
-    "Questions / Support:\n"
+    "Questions / (limited) Support:\n"
     " - GitHub: <https://github.com/borti4938/n64rgb>\n"
     " - Email:  <borti4938@gmx.de>";
-  /* 123456789012345678901234567890123456789012345678 */
+  /* 1234567890123456789012345678901234567890123456789012 */
 
 static const char *license_overlay =
     "The N64Advanced is part of the\n"
     "N64 RGB/YPbPr DAC project\n"
-    "     Copyright   2015 - 2018 Peter Bartmann\n"
+    "       Copyright   2015 - 2018 Peter Bartmann\n"
     "This project is published under GNU GPL v3.0 or\n"
-    "later. You should have received a copy of the\n"
-    "GNU General Public License along with this\n"
-    "project. If not, see \n"
-    "      <http://www.gnu.org/licenses/>.\n\n"
+    "later. You should have received a copy of the GNU\n"
+    "General Public License along with this project.\n"
+    " If not, see\n"
+    "        <http://www.gnu.org/licenses/>.\n\n"
     "What ever you do, also respect licenses of third\n"
     "party vendors providing the design tools...";
-  /* 123456789012345678901234567890123456789012345678  */
+  /* 1234567890123456789012345678901234567890123456789012 */
 
 static const char *home_header =
     "N64 Advanced - Main Menu";

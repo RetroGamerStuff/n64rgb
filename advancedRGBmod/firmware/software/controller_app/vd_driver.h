@@ -34,7 +34,7 @@
 
 
 // define virtual display (memory mapped)
-#define VD_WIDTH  49
+#define VD_WIDTH  52
 #define VD_HEIGHT 12
 
 // define some masks and shifts
