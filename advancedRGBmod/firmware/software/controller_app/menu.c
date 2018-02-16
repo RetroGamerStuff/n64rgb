@@ -237,7 +237,7 @@ updateaction_t apply_command(cmd_t command, menu_t* *current_menu, configuration
   }
 
   if (todo == NEW_SELECTION) {
-    if (is_cfg_screen(*current_menu) && (!cfg_get_value((*current_menu)->leaves[0].config_value))) {
+    if (is_cfg_screen(*current_menu) && (!cfg_get_value((*current_menu)->leaves[0].config_value,0))) {
       if ((*current_menu)->current_selection == 1) (*current_menu)->current_selection = 3;
       if ((*current_menu)->current_selection == 2) (*current_menu)->current_selection = 0;
     }
@@ -414,28 +414,31 @@ int update_cfg_screen(menu_t* current_menu)
   alt_u8 h_l_offset, h_r_offset;
   alt_u8 v_run, v_offset;
   alt_u8 background_color, font_color;
-  alt_u16 val_select;
+  alt_u8 val_select, ref_val_select;
 
   for (v_run = 0; v_run < current_menu->number_selections; v_run++) {
     h_l_offset = current_menu->leaves[v_run].arrow_desc->larrow_hpos + 2;
     h_r_offset = current_menu->leaves[v_run].arrow_desc->rarrow_hpos - 2;
     v_offset   = current_menu->leaves[v_run].id;
 
+    val_select     = cfg_get_value(current_menu->leaves[v_run].config_value,0);
+    ref_val_select = cfg_get_value(current_menu->leaves[v_run].config_value,use_flash);
+
 //    if (current_menu->current_selection == v_run) {
 //      background_color = OPT_WINDOWCOLOR_BG;
 //      font_color = OPT_WINDOWCOLOR_FONT;
 //    } else {
       background_color = BACKGROUNDCOLOR_STANDARD;
-      font_color = FONTCOLOR_WHITE;
+      font_color = (val_select == ref_val_select) ? FONTCOLOR_WHITE : FONTCOLOR_YELLOW;
 //    }
 
     if (is_cfg_screen(current_menu) && ((v_run == 1) || (v_run == 2)) &&
-        (!cfg_get_value(current_menu->leaves[0].config_value))    )
-      font_color = FONTCOLOR_GREY;
+        (!cfg_get_value(current_menu->leaves[0].config_value,0))    )
+      font_color = (val_select == ref_val_select) ? FONTCOLOR_GREY : FONTCOLOR_DARKORANGE;
 
     if (v_run == current_menu->current_selection)
       vd_clear_area(h_l_offset,h_r_offset,v_offset,v_offset);
-    val_select = cfg_get_value(current_menu->leaves[v_run].config_value);
+
     vd_print_string(h_l_offset,v_offset,background_color,font_color,current_menu->leaves[v_run].config_value->value_string[val_select]);
   }
 

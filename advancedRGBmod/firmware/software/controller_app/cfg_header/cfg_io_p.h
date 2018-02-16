@@ -45,9 +45,10 @@ extern const char *QuickChange[];
 
 // video
 cfg_word_t cfg_data_video =
-  { .cfg_word_type = VIDEO,
-    .cfg_word_mask = CFG_VIDEO_GETALL_MASK,
-    .cfg_word_val  = 0x00
+  { .cfg_word_type    = VIDEO,
+    .cfg_word_mask    = CFG_VIDEO_GETALL_MASK,
+    .cfg_word_val     = 0x00,
+    .cfg_ref_word_val = 0x00
   };
 
 config_t linex2 = {
@@ -85,9 +86,10 @@ config_t vformat = {
 
 // image
 cfg_word_t cfg_data_image =
-  { .cfg_word_type = IMAGE,
-    .cfg_word_mask = CFG_IMAGE_GETALL_MASK,
-    .cfg_word_val  = 0x00
+  { .cfg_word_type    = IMAGE,
+    .cfg_word_mask    = CFG_IMAGE_GETALL_MASK,
+    .cfg_word_val     = 0x00,
+    .cfg_ref_word_val = 0x00
   };
 
 config_t gamma_lut = {
@@ -114,9 +116,10 @@ config_t sl_str = {
 
 // misc
 cfg_word_t cfg_data_misc =
-  { .cfg_word_type = MISC,
-    .cfg_word_mask = CFG_MISC_GETALL_MASK,
-    .cfg_word_val  = 0x0000
+  { .cfg_word_type    = MISC,
+    .cfg_word_mask    = CFG_MISC_GETALL_MASK,
+    .cfg_word_val     = 0x00,
+    .cfg_ref_word_val = 0x00
   };
 
 config_t igr_reset = {
@@ -165,9 +168,10 @@ config_t mode15bit = {
 
 //menu
 cfg_word_t cfg_data_menu =
-  { .cfg_word_type = MENU,
-    .cfg_word_mask = CFG_MENU_GETALL_MASK,
-    .cfg_word_val  = 0x00
+  { .cfg_word_type    = MENU,
+    .cfg_word_mask    = CFG_MENU_GETALL_MASK,
+    .cfg_word_val     = 0x00,
+    .cfg_ref_word_val = 0x00
   };
 
 config_t show_osd = {

@@ -74,10 +74,14 @@ void cfg_dec_value(config_t* cfg_data)
   cfg_data->cfg_word->cfg_word_val = cfg_word;
 };
 
-alt_u8 cfg_get_value(config_t* cfg_data)
+alt_u8 cfg_get_value(config_t* cfg_data,alt_u8 get_reference)
 {
-  if (cfg_data->cfg_type == FLAG) return ((cfg_data->cfg_word->cfg_word_val & cfg_data->flag_masks.setflag_mask)     >> cfg_data->cfg_word_offset);
-  else                            return ((cfg_data->cfg_word->cfg_word_val & cfg_data->value_details.getvalue_mask) >> cfg_data->cfg_word_offset);
+  alt_u8 cfg_word;
+  if (!get_reference) cfg_word = cfg_data->cfg_word->cfg_word_val;
+  else                cfg_word = cfg_data->cfg_word->cfg_ref_word_val;
+
+  if (cfg_data->cfg_type == FLAG) return ((cfg_word & cfg_data->flag_masks.setflag_mask)     >> cfg_data->cfg_word_offset);
+  else                            return ((cfg_word & cfg_data->value_details.getvalue_mask) >> cfg_data->cfg_word_offset);
 };
 
 void cfg_set_value(config_t* cfg_data, alt_u8 value)
@@ -102,8 +106,10 @@ int cfg_save_to_flash(configuration_t* sysconfig)
 
   ((cfg4flash_t*) databuf)->vers_cfg_main = FWCFG_MAIN;
   ((cfg4flash_t*) databuf)->vers_cfg_sub = FWCFG_SUB;
-  for (idx = 0; idx < NUM_CFG_WORDS; idx++)
+  for (idx = 0; idx < NUM_CFG_WORDS; idx++) {
     ((cfg4flash_t*) databuf)->cfg_words[idx] = sysconfig->cfg_word_def[idx]->cfg_word_val;
+    sysconfig->cfg_word_def[idx]->cfg_ref_word_val = sysconfig->cfg_word_def[idx]->cfg_word_val;
+  }
 
   return write_flash_page((alt_u8*) databuf, sizeof(cfg4flash_t), USERDATA_OFFSET/PAGESIZE);
 };
@@ -120,8 +126,12 @@ int cfg_load_from_flash(configuration_t* sysconfig)
   if ((((cfg4flash_t*) databuf)->vers_cfg_main != FWCFG_MAIN) ||
       (((cfg4flash_t*) databuf)->vers_cfg_sub  != FWCFG_SUB)   ) return -CFG_VERSION_INVALID;
 
-  for (idx = 0; idx < NUM_CFG_WORDS; idx++)
-    sysconfig->cfg_word_def[idx]->cfg_word_val = ((cfg4flash_t*) databuf)->cfg_words[idx];
+  for (idx = 0; idx < NUM_CFG_WORDS; idx++) {
+    sysconfig->cfg_word_def[idx]->cfg_word_val     = ((cfg4flash_t*) databuf)->cfg_words[idx];
+    sysconfig->cfg_word_def[idx]->cfg_ref_word_val = sysconfig->cfg_word_def[idx]->cfg_word_val;
+  }
+
+  cfg_update_reference(sysconfig);
 
   return 0;
 };
@@ -136,6 +146,9 @@ int cfg_load_n64defaults(configuration_t* sysconfig)
   sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= N64_DEFAULT_IMAGE_CFG;
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val &= N64_VIDEO_CLR_MASK;
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= N64_DEFAULT_VIDEO_CFG;
+
+  cfg_update_reference(sysconfig);
+
   return 0;
 }
 
@@ -158,9 +171,24 @@ void cfg_apply_to_logic(configuration_t* sysconfig)
   IOWR_ALTERA_AVALON_PIO_DATA(CFG_SET_OUT_BASE,wr_word);
 }
 
-void cfg_clear_words(configuration_t* sysconfig){
+void cfg_clear_words(configuration_t* sysconfig)
+{
+  int idx;
+  for (idx = 0; idx < NUM_CFG_WORDS; idx++)
+    sysconfig->cfg_word_def[idx]->cfg_word_val = 0;
+}
+
+void cfg_load_from_ios(configuration_t* sysconfig)
+{
   int idx;
   alt_u32 rd_word = IORD_ALTERA_AVALON_PIO_DATA(CFG_SET_OUT_BASE);
   for (idx = 0; idx < NUM_CFG_WORDS; idx++)
     sysconfig->cfg_word_def[idx]->cfg_word_val = (rd_word >> (8*sysconfig->cfg_word_def[idx]->cfg_word_type)) & sysconfig->cfg_word_def[idx]->cfg_word_mask;
+}
+
+void cfg_update_reference(configuration_t* sysconfig)
+{
+  int idx;
+  for (idx = 0; idx < NUM_CFG_WORDS; idx++)
+    sysconfig->cfg_word_def[idx]->cfg_ref_word_val = sysconfig->cfg_word_def[idx]->cfg_word_val;
 }

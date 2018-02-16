@@ -48,6 +48,7 @@ typedef struct {
   const cfg_word_type_t cfg_word_type;
   const alt_u8          cfg_word_mask;
   alt_u8                cfg_word_val;
+  alt_u8                cfg_ref_word_val;
 } cfg_word_t;
 
 typedef struct {
@@ -211,7 +212,7 @@ inline void cfg_clear_flag(config_t* cfg_data)
   {  if (cfg_data->cfg_type == FLAG) cfg_data->cfg_word->cfg_word_val &= cfg_data->flag_masks.clrflag_mask;  };
 void cfg_inc_value(config_t* cfg_data);
 void cfg_dec_value(config_t* cfg_data);
-alt_u8 cfg_get_value(config_t* cfg_data);
+alt_u8 cfg_get_value(config_t* cfg_data,alt_u8 get_reference);
 void cfg_set_value(config_t* cfg_data, alt_u8 value);
 int cfg_save_to_flash(configuration_t* sysconfig);
 int cfg_load_from_flash(configuration_t* sysconfig);
@@ -223,5 +224,7 @@ inline alt_u32 cfg_get_from_logic()
 inline alt_u8 cfg_get_jumper()
   {  return (IORD_ALTERA_AVALON_PIO_DATA(JUMPER_CFG_SET_IN_BASE) & JUMPER_VCFG_GETALL_MASK);  };
 void cfg_clear_words(configuration_t* sysconfig);
+void cfg_load_from_ios(configuration_t* sysconfig);
+void cfg_update_reference(configuration_t* sysconfig);
 
 #endif /* CONFIG_H_ */
