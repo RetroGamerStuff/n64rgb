@@ -255,11 +255,9 @@ updateaction_t apply_command(cmd_t command, menu_t* *current_menu, configuration
     switch (command) {
       case CMD_MENU_RIGHT:
         cfg_inc_value((*current_menu)->leaves[id].config_value);
-        cfg_apply_value((*current_menu)->leaves[id].config_value);
         return NEW_CONF_VALUE;
       case CMD_MENU_LEFT:
         cfg_dec_value((*current_menu)->leaves[id].config_value);
-        cfg_apply_value((*current_menu)->leaves[id].config_value);
         return NEW_CONF_VALUE;
       default:
         break;
@@ -335,10 +333,9 @@ void print_selection_arrow(menu_t* current_menu)
   }
 }
 
-int update_vinfo_screen(menu_t* current_menu, cfg_word_t* cfg_word, alt_u8 info_data)
+int update_vinfo_screen(menu_t* current_menu, configuration_t* sysconfig, alt_u8 info_data)
 {
-  if (current_menu->type != VINFO)        return -2;
-  if (cfg_word->cfg_word_type != GENERAL) return -1;
+  if (current_menu->type != VINFO) return -1;
 
   alt_u8 str_select;
   static alt_u8 video_sd_ed;
@@ -349,7 +346,7 @@ int update_vinfo_screen(menu_t* current_menu, cfg_word_t* cfg_word, alt_u8 info_
   vd_print_string(INFO_VALS_H_OFFSET,INFO_VIN_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,VideoMode[str_select]);
 
   // Video Output
-  switch(((cfg_word->cfg_word_val & (CFG_LINEX2_GETMASK | CFG_480IBOB_GETMASK)) << 2) | str_select) {
+  switch((((sysconfig->cfg_word_def[VIDEO]->cfg_word_val & (CFG_LINEX2_GETMASK | CFG_480IBOB_GETMASK)) >> (CFG_480IBOB_OFFSET - 2)) | str_select) & 0xF) {
    /* order: lineX2, 480ibob, 480i, pal */
     case 0xF: /* 1111 */
     case 0xD: /* 1101 */
@@ -371,15 +368,15 @@ int update_vinfo_screen(menu_t* current_menu, cfg_word_t* cfg_word, alt_u8 info_
   vd_print_string(INFO_VALS_H_OFFSET,INFO_VOUT_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,VideoMode[str_select]);
 
   // Color Depth
-  str_select = (cfg_word->cfg_word_val & CFG_15BITMODE_GETMASK) >> CFG_15BITMODE_OFFSET;
+  str_select = (sysconfig->cfg_word_def[MISC]->cfg_word_val & CFG_15BITMODE_GETMASK) >> CFG_15BITMODE_OFFSET;
   vd_clear_lineend(INFO_VALS_H_OFFSET,INFO_COL_V_OFFSET);
   vd_print_string(INFO_VALS_H_OFFSET,INFO_COL_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,VideoColor[str_select]);
 
   // Video Format
-  if (cfg_word->cfg_word_val & CFG_YPBPR_GETMASK)
+  if (sysconfig->cfg_word_def[VIDEO]->cfg_word_val & CFG_YPBPR_GETMASK)
     str_select = 2;
   else
-    str_select = (cfg_word->cfg_word_val & CFG_RGSB_GETMASK) >> CFG_RGSB_OFFSET;
+    str_select = (sysconfig->cfg_word_def[VIDEO]->cfg_word_val & CFG_RGSB_GETMASK) >> CFG_RGSB_OFFSET;
   vd_clear_lineend(INFO_VALS_H_OFFSET,INFO_FORMAT_V_OFFSET);
   vd_print_string(INFO_VALS_H_OFFSET,INFO_FORMAT_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,VideoFormat[str_select]);
 
@@ -391,7 +388,7 @@ int update_vinfo_screen(menu_t* current_menu, cfg_word_t* cfg_word, alt_u8 info_
   } else {
     str_select = (info_data & INFO_DODEBLUR_GETMASK) >> INFO_DODEBLUR_OFFSET;
     vd_print_string(INFO_VALS_H_OFFSET, INFO_DEBLUR_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,OffOn[str_select]);
-    str_select = (((cfg_word->cfg_word_val & CFG_DEBLUR_GETMASK) >> CFG_DEBLUR_OFFSET) > 0);
+    str_select = (((sysconfig->cfg_word_def[MISC]->cfg_word_val & CFG_DEBLUR_GETMASK) >> CFG_DEBLUR_OFFSET) > 0);
     vd_print_string(INFO_VALS_H_OFFSET + 4,INFO_DEBLUR_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,DeBlur[str_select]);
   }
 
@@ -409,7 +406,7 @@ int update_vinfo_screen(menu_t* current_menu, cfg_word_t* cfg_word, alt_u8 info_
 }
 
 
-int update_cfg_screen(menu_t* current_menu, cfg_word_t* cfg_word)
+int update_cfg_screen(menu_t* current_menu)
 {
   if (current_menu->type != CONFIG) return -1;
 

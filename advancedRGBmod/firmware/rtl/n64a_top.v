@@ -128,31 +128,32 @@ wire n64_480i = vinfo_pass[1];
 wire vmode    = vinfo_pass[0];
 
 wire [ 4:0] InfoSet = {n64_480i,vmode,~ndo_deblur,UseVGA_HVSync,nFilterBypass};
-wire [ 5:0] DefaultConfigSet = {nEN_YPbPr,(~nEN_YPbPr | nEN_RGsB),SL_str,n240p,n480i_bob}; // (~nEN_YPbPr | nEN_RGsB) ensures that not both jumpers are set and passed through the NIOS II
-wire [12:0] ConfigSet;
+wire [ 5:0] JumperCfgSet = {n240p,~n480i_bob,~SL_str,~nEN_YPbPr,(nEN_YPbPr & ~nEN_RGsB)}; // (~nEN_YPbPr | nEN_RGsB) ensures that not both jumpers are set and passed through the NIOS II
+                                                                                          // SL_str is placed in reserved space of OutConfigSet
+wire [18:0] OutConfigSet;
 
 n64a_controller controller_u(
   .SYS_CLK(SYS_CLK),
   .nRST(nRST),
   .CTRL(CTRL_i),
   .InfoSet(InfoSet),
-  .DefaultConfigSet(DefaultConfigSet),
-  .ConfigSet(ConfigSet),
+  .JumperCfgSet({2'b0,JumperCfgSet}),
+  .OutConfigSet(OutConfigSet),
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
   .video_data_i(vdata_r[2]),
   .video_data_o(vdata_r[3])
 );
 
-wire       nDeBlurMan    =  ~ConfigSet[12];
-wire       nForceDeBlur  = ~|ConfigSet[12:11];
-wire       n15bit_mode   =  ~ConfigSet[10];
-wire [3:0] cfg_gamma     =   ConfigSet[ 9:6];
-wire       cfg_nEN_YPbPr =  ~ConfigSet[ 5];
-wire       cfg_nEN_RGsB  =  ~ConfigSet[ 4];
-wire [1:0] cfg_SL_str    =   ConfigSet[ 3:2];
-wire       cfg_n240p     =   ConfigSet[ 1];
-wire       cfg_n480i_bob =  ~ConfigSet[ 0];
+wire       nDeBlurMan    =  ~OutConfigSet[18];
+wire       nForceDeBlur  = ~|OutConfigSet[18:17];
+wire       n15bit_mode   =  ~OutConfigSet[16];
+wire [3:0] cfg_gamma     =   OutConfigSet[15:12];
+wire [2:0] cfg_SL_str    =   OutConfigSet[ 9: 8];
+wire       cfg_lineX2    =   OutConfigSet[ 5];
+wire       cfg_n480i_bob =  ~OutConfigSet[ 4];
+wire       cfg_nEN_YPbPr =  ~OutConfigSet[ 1];
+wire       cfg_nEN_RGsB  =  ~OutConfigSet[ 0];
 
 
 // Part 2 - 4: RGB Demux with De-Blur Add-On
@@ -228,7 +229,7 @@ n64_vdemux video_demux(
 
 wire CLK_out;
 
-wire       nENABLE_linedbl = (n64_480i & cfg_n480i_bob) | ~cfg_n240p | ~nRST;
+wire       nENABLE_linedbl = (n64_480i & cfg_n480i_bob) | ~cfg_lineX2 | ~nRST;
 wire [1:0] SL_str_dbl      =  n64_480i ? 2'b00 : cfg_SL_str;
 
 wire [4:0] vinfo_dbl = {nENABLE_linedbl,SL_str_dbl,vinfo_pass[1:0]};

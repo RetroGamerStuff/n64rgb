@@ -51,8 +51,8 @@ module n64a_controller (
   CTRL,
 
   InfoSet,
-  DefaultConfigSet,
-  ConfigSet,
+  JumperCfgSet,
+  OutConfigSet,
 
   nCLK,
   nDSYNC,
@@ -70,8 +70,8 @@ inout nRST;
 input CTRL;
 
 input      [ 4:0] InfoSet;
-input      [ 5:0] DefaultConfigSet;
-output reg [12:0] ConfigSet;
+input      [ 5:0] JumperCfgSet;
+output reg [18:0] OutConfigSet;
 
 input nCLK;
 input nDSYNC;
@@ -124,7 +124,17 @@ wire [ 9:0] vd_wraddr;
 wire [ 1:0] vd_wrctrl;
 wire [12:0] vd_wrdata;
 
-wire [15:0] SysConfigSet;
+wire [31:0] SysConfigSet;
+
+// general structur: [31:24] menu, [23:16] misc, [15:8] image, [7:0] video
+// [31:28] (reserved)
+// [27:24] {show_osd,(3bits reserve)}
+// [23:21] (reserved)
+// [21:19] use_igr and (quick_access 15bit mode and deblur (not used in logic))
+// [18:16] {VI-DeBlur (2bit), 15bit mode}
+// [15: 8] {gamma (4bits),(2bits reserve),Scanline_str (2bits)}
+// [ 7: 6] (reserved)
+// [ 5: 0] {lineX2,480I-DeInt,(2bits reserve),RGsB,YPbPr}
 
 system system_u(
   .clk_clk(CLK_25M),
@@ -133,20 +143,22 @@ system system_u(
   .vd_wrctrl_export(vd_wrctrl),
   .vd_wrdata_export(vd_wrdata),
   .ctrl_data_in_export(serial_data[1]),
-  .default_cfg_set_in_export(DefaultConfigSet),
+  .jumper_cfg_set_in_export(JumperCfgSet),
   .cfg_set_out_export(SysConfigSet),
   .info_set_in_export({InfoSet,FallbackMode}),
   .sync_in_export({new_ctrl_data[1],nVSYNC_cur})
 );
 
-wire show_osd = SysConfigSet[14];
-wire use_igr  = SysConfigSet[13];
+reg show_osd = 1'b0;
+reg  use_igr = 1'b0;
 
-always @(negedge nCLK) begin
-  if (&{~nDSYNC,nVSYNC_pre,~nVSYNC_cur} | ~nRST)
-    ConfigSet <= SysConfigSet[12:0];
-//    ConfigSet <= {cfg_nDeBlurMan,cfg_nForceDeBlur,cfg_n15bit_mode,cfg_gamma,cfg_nEN_RGsB,cfg_nEN_YPbPr,cfg_SL_str,cfg_n240p,cfg_n480i_bob};
-end
+always @(negedge nCLK)
+  if (&{~nDSYNC,nVSYNC_pre,~nVSYNC_cur} | ~nRST) begin
+    show_osd     <= SysConfigSet[27];
+    use_igr      <= SysConfigSet[21];
+    OutConfigSet <= SysConfigSet[18:0];
+  end
+
 
 
 // Part 3: Controller Sniffing
@@ -349,6 +361,7 @@ always @(negedge nCLK) begin
   en_txtrd[4:1] <= en_txtrd[3:0];
   en_txtrd[  0] <=(h_cnt > `OSD_TXT_H_START)   && (h_cnt < `OSD_TXT_H_STOP)     &&
                   (v_cnt > `OSD_HEADER_V_STOP) && (v_cnt < `OSD_FOOTER_V_START);
+
   if (~nRST) begin
     h_cnt <= 10'h0;
     v_cnt <=  8'h0;

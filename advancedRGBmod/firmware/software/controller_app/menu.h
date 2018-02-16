@@ -100,8 +100,8 @@ extern menu_t home_menu;
 updateaction_t apply_command(cmd_t command, menu_t** current_menu, configuration_t* sysconfig);
 void print_overlay(menu_t* current_menu);
 void print_selection_arrow(menu_t* current_menu);
-int update_vinfo_screen(menu_t* current_menu, cfg_word_t* cfg_word, alt_u8 info_data);
-int update_cfg_screen(menu_t* current_menu, cfg_word_t* cfg_word);
+int update_vinfo_screen(menu_t* current_menu, configuration_t* sysconfig, alt_u8 info_data);
+int update_cfg_screen(menu_t* current_menu);
 
 
 #endif /* MENU_H_ */

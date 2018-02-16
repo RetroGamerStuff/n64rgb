@@ -31,7 +31,6 @@
 #include <unistd.h>
 #include "system.h"
 
-#include "cfg_header/cfg_internal_p.h"
 #include "cfg_header/cfg_io_p.h"
 #include "n64.h"
 #include "config.h"
@@ -53,7 +52,6 @@ const char   *RW_Message[] = {"< Success >","< Failed >"};
 
 
 /* ToDo's:
- * - new configuration scheme (use 32bit I/Os)
  * - Warning display messages
  * - Confirm to load or to save
  * - Highlight non-saved options
@@ -72,7 +70,10 @@ int main()
   char szText[VD_WIDTH];
 
   configuration_t sysconfig = {
-      .cfg_word_def = {&cfg_data_general,&cfg_data_internal}
+      .cfg_word_def[VIDEO] = &cfg_data_video,
+      .cfg_word_def[IMAGE] = &cfg_data_image,
+      .cfg_word_def[MISC]  = &cfg_data_misc,
+      .cfg_word_def[MENU]  = &cfg_data_menu
   };
 
   cfg_clear_words(&sysconfig);
@@ -81,7 +82,6 @@ int main()
   alt_u8  info_data;
 
   static alt_u8  info_data_pre = 0;
-  static alt_u16 cfg_io_word_pre = 0;
 
   static int message_cnt = 0;
 
@@ -104,10 +104,7 @@ int main()
   }
 
 
-  cfg_apply_word(sysconfig.cfg_word_def[GENERAL]);
-  cfg_io_word_pre = sysconfig.cfg_word_def[GENERAL]->cfg_word_val;
-
-  cfg_load_sysdefaults(&sysconfig);
+  cfg_apply_to_logic(&sysconfig);
 
   /* Event loop never exits. */
   while (1) {
@@ -128,7 +125,6 @@ int main()
       switch (todo) {
         case MENU_CLOSE:
           cfg_clear_flag(&show_osd);
-          cfg_apply_word(sysconfig.cfg_word_def[GENERAL]);
           break;
         case NEW_OVERLAY:
           print_overlay(menu);
@@ -139,7 +135,6 @@ int main()
           print_selection_arrow(menu);
           break;
         case RW_DONE:
-          cfg_apply_word(sysconfig.cfg_word_def[GENERAL]);
           vd_print_string(RWM_H_OFFSET,RWM_V_OFFSET,BACKGROUNDCOLOR_STANDARD,RW_Message_FontColor[0],RW_Message[0]);
           message_cnt = RWM_SHOW_CNT;
           break;
@@ -153,53 +148,45 @@ int main()
 
       if ((menu->type == VINFO) &&
           ((info_data_pre != info_data)              ||
-           (cfg_io_word_pre != sysconfig.cfg_word_def[GENERAL]->cfg_word_val) ||
            (todo == NEW_OVERLAY)                     ))
-        update_vinfo_screen(menu,&cfg_data_general,info_data);
+        update_vinfo_screen(menu,&sysconfig,info_data);
 
-      if ((menu->type == CONFIG) &&
-          ((cfg_io_word_pre != sysconfig.cfg_word_def[GENERAL]->cfg_word_val) ||
-           (todo == NEW_OVERLAY)                     ||
-           (todo == NEW_CONF_VALUE)                  ||
-           (todo == NEW_SELECTION)                   ))
-        update_cfg_screen(menu,sysconfig.cfg_word_def[GENERAL]);
+      if ((menu->type == CONFIG) && ((todo == NEW_OVERLAY)    ||
+                                     (todo == NEW_CONF_VALUE) ||
+                                     (todo == NEW_SELECTION)  ))
+        update_cfg_screen(menu);
 
     } else { /* END OF if(cfg_get_value(&show_osd)) */
 
       if (command == CMD_OPEN_MENU) {
         cfg_set_flag(&show_osd);
-        cfg_apply_word(sysconfig.cfg_word_def[GENERAL]);
         print_overlay(menu);
         print_selection_arrow(menu);
       }
 
-      if ((cfg_get_value(&igr_quickchange) & CFGI_QUDEBLUR_GETMASK))
+      if ((cfg_get_value(&igr_quickchange) & CFG_QUDEBLUR_GETMASK))
         switch (command) {
           case CMD_DEBLUR_QUICK_ON:
             if (!(info_data & INFO_480I_GETMASK)) {
               cfg_set_value(&deblur,DEBLUR_FORCE_ON);
-              cfg_apply_value(&deblur);
             };
             break;
           case CMD_DEBLUR_QUICK_OFF:
             if (!(info_data & INFO_480I_GETMASK)) {
               cfg_set_value(&deblur,DEBLUR_FORCE_OFF);
-              cfg_apply_value(&deblur);
             };
             break;
           default:
             break;
         }
 
-      if ((cfg_get_value(&igr_quickchange) & CFGI_QU15BITMODE_GETMASK))
+      if ((cfg_get_value(&igr_quickchange) & CFG_QU15BITMODE_GETMASK))
           switch (command) {
             case CMD_15BIT_QUICK_ON:
               cfg_set_flag(&mode15bit);
-              cfg_apply_value(&mode15bit);
               break;
             case CMD_15BIT_QUICK_OFF:
               cfg_clear_flag(&mode15bit);
-              cfg_apply_value(&mode15bit);
               break;
             default:
               break;
@@ -215,7 +202,8 @@ int main()
 
 
     info_data_pre = info_data;
-    cfg_io_word_pre = sysconfig.cfg_word_def[GENERAL]->cfg_word_val;
+
+    cfg_apply_to_logic(&sysconfig);
 
     /* ToDo: use external interrupt to go on on nVSYNC */
     while(!get_nvsync())                         {};  /* wait for nVSYNC goes high */
