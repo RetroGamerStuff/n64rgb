@@ -143,7 +143,7 @@ system system_u(
   .vd_wrctrl_export(vd_wrctrl),
   .vd_wrdata_export(vd_wrdata),
   .ctrl_data_in_export(serial_data[1]),
-  .jumper_cfg_set_in_export(JumperCfgSet),
+  .jumper_cfg_set_in_export({2'b00,JumperCfgSet}),
   .cfg_set_out_export(SysConfigSet),
   .info_set_in_export({InfoSet,FallbackMode}),
   .sync_in_export({new_ctrl_data[1],nVSYNC_cur})

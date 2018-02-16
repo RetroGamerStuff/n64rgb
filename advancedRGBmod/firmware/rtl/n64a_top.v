@@ -137,7 +137,7 @@ n64a_controller controller_u(
   .nRST(nRST),
   .CTRL(CTRL_i),
   .InfoSet(InfoSet),
-  .JumperCfgSet({2'b0,JumperCfgSet}),
+  .JumperCfgSet(JumperCfgSet),
   .OutConfigSet(OutConfigSet),
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
