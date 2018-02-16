@@ -57,7 +57,8 @@ typedef enum {
 typedef enum {
   ICONFIG,
   ISUBMENU,
-  IFUNC
+  IFUNC,
+  IFLASHFUNC
 } leavetype_t;
 
 typedef struct {

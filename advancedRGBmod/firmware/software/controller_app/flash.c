@@ -46,12 +46,16 @@
 ALTERA_EPCQ_CONTROLLER_AVL_MEM_AVL_CSR_INSTANCE ( EPCQ_CONTROLLER_0, EPCQ_CONTROLLER_0_AVL_MEM, EPCQ_CONTROLLER_0_AVL_CSR, epcq_controller_0);
 alt_epcq_controller_dev *epcq_controller_dev;
 
+alt_u8 use_flash = 0;
+
 int check_flash()
 {
   epcq_controller_dev = &epcq_controller_0;
 
   if ((epcq_controller_dev == NULL) || !(epcq_controller_dev->is_epcs && (epcq_controller_dev->page_size == PAGESIZE)))
     return -FLASH_DETECT_ERROR;
+
+  use_flash = 1;
 
   return 0;
 }

@@ -50,6 +50,7 @@
 #define OPT_ARROW_R       TRIANGLE_RIGHT
 #define OPT_WINDOW_WIDTH  13
 
+extern alt_u8 use_flash;
 
 inline alt_u8 is_cfg_screen (menu_t *menu) /* ugly hack (ToDo on updates: check for validity, i.e. is this property still unique) */
   {  return (menu->leaves[0].config_value->flag_masks.clrflag_mask == CFG_LINEX2_CLRMASK); }
@@ -122,8 +123,8 @@ menu_t rwdata_screen = {
     .current_selection = 0,
     .number_selections = 4,
     .leaves = {
-        {.id = RWDATA_SAVE_FL_V_OFFSET , .arrow_desc = &selection_arrow, .leavetype = IFUNC, .save_fun = &cfg_save_to_flash},
-        {.id = RWDATA_LOAD_FL_V_OFFSET , .arrow_desc = &selection_arrow, .leavetype = IFUNC, .load_fun = &cfg_load_from_flash},
+        {.id = RWDATA_SAVE_FL_V_OFFSET , .arrow_desc = &selection_arrow, .leavetype = IFLASHFUNC, .save_fun = &cfg_save_to_flash},
+        {.id = RWDATA_LOAD_FL_V_OFFSET , .arrow_desc = &selection_arrow, .leavetype = IFLASHFUNC, .load_fun = &cfg_load_from_flash},
         {.id = RWDATA_LOAD_JS_V_OFFSET , .arrow_desc = &selection_arrow, .leavetype = IFUNC, .load_fun = &cfg_load_jumperset},
         {.id = RWDATA_LOAD_N64_V_OFFSET, .arrow_desc = &selection_arrow, .leavetype = IFUNC, .load_fun = &cfg_load_n64defaults}
     }
@@ -267,7 +268,7 @@ updateaction_t apply_command(cmd_t command, menu_t* *current_menu, configuration
   if ((*current_menu)->type == RWDATA) {
     if ((command == CMD_MENU_RIGHT) || (command == CMD_MENU_ENTER)) {
       int retval = -1;
-      if ((*current_menu)->leaves[id].load_fun != NULL)
+      if (use_flash || ((*current_menu)->leaves[id].leavetype != IFLASHFUNC))
         retval = (*current_menu)->leaves[id].load_fun(sysconfig);
       return (retval == 0 ? RW_DONE : RW_FAILED);
     }

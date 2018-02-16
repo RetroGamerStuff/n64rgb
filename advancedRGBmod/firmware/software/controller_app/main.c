@@ -59,6 +59,7 @@ const char   *RW_Message[] = {"< Success >","< Failed >"};
  * - Header logo
  * - Scanline Options (finer granulated)
  * - Additional windows (Ctrl. input, Video Output as OSD without menu)
+ * - make use of leavetype_t to more generalize menu updates
  */
 
 int main()
@@ -77,6 +78,7 @@ int main()
   };
 
   cfg_clear_words(&sysconfig);
+  check_flash();
 
   alt_u32 ctrl_data;
   alt_u8  info_data;
@@ -87,22 +89,20 @@ int main()
 
   info_data = get_info_data();
 
-  if (info_data & INFO_FALLBACKMODE_GETMASK)
-    cfg_load_n64defaults(&sysconfig);
-  else {
-    int load_from_jumperset = check_flash();
+  int load_from_jumperset = 1;
 
-    if (!load_from_jumperset) {
-      load_from_jumperset = cfg_load_from_flash(&sysconfig);
-      cfg_clear_flag(&show_osd);
-    }
-
-    if (load_from_jumperset != 0) {
-      cfg_clear_words(&sysconfig);  // just in case anything went wrong before
-      cfg_load_jumperset(&sysconfig);
-    }
+  if (use_flash) {
+    load_from_jumperset = cfg_load_from_flash(&sysconfig);
+    cfg_clear_flag(&show_osd);
   }
 
+  if (info_data & INFO_FALLBACKMODE_GETMASK)
+    cfg_load_n64defaults(&sysconfig);
+  else if (load_from_jumperset != 0) {
+    cfg_clear_words(&sysconfig);  // just in case anything went wrong while loading from flash
+    cfg_load_jumperset(&sysconfig);
+//    cfg_save_to_flash(&sysconfig);
+  }
 
   cfg_apply_to_logic(&sysconfig);
 
@@ -113,7 +113,7 @@ int main()
 
     command = ctrl_data_to_cmd(&ctrl_data);
 
-    if(cfg_get_value(&show_osd)) {
+    if(cfg_get_value(&show_osd,0)) {
 
       if (message_cnt > 0) {
         if (message_cnt == 1) vd_clear_area(RWM_H_OFFSET,RWM_H_OFFSET+RWM_LENGTH,RWM_V_OFFSET,RWM_V_OFFSET);
@@ -164,7 +164,7 @@ int main()
         print_selection_arrow(menu);
       }
 
-      if ((cfg_get_value(&igr_quickchange) & CFG_QUDEBLUR_GETMASK))
+      if ((cfg_get_value(&igr_quickchange,0) & CFG_QUDEBLUR_GETMASK))
         switch (command) {
           case CMD_DEBLUR_QUICK_ON:
             if (!(info_data & INFO_480I_GETMASK)) {
@@ -180,7 +180,7 @@ int main()
             break;
         }
 
-      if ((cfg_get_value(&igr_quickchange) & CFG_QU15BITMODE_GETMASK))
+      if ((cfg_get_value(&igr_quickchange,0) & CFG_QU15BITMODE_GETMASK))
           switch (command) {
             case CMD_15BIT_QUICK_ON:
               cfg_set_flag(&mode15bit);
