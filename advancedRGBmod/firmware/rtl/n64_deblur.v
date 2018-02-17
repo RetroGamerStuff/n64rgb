@@ -120,16 +120,18 @@ always @(negedge nCLK) begin // estimation of blur effect
   if (!n64_480i) begin
     if (!nDSYNC) begin
       if(negedge_nVSYNC) begin  // negedge at nVSYNC detected - new frame
-        if (run_estimation & nblur_est_cnt[1])  // add to weight
-            nblur_n64_trend <= &nblur_n64_trend ? nblur_n64_trend :         // saturate if needed
-                                                  nblur_n64_trend + 1'b1;
-        else// subtract
-            nblur_n64_trend <= |nblur_n64_trend ? nblur_n64_trend - 1'b1 :
-                                                  nblur_n64_trend;          // saturate if needed
+        if (run_estimation) begin
+          if (&nblur_est_cnt) // add to weight
+              nblur_n64_trend <= &nblur_n64_trend ? nblur_n64_trend :         // saturate if needed
+                                                    nblur_n64_trend + 1'b1;
+          else                // subtract
+              nblur_n64_trend <= |nblur_n64_trend ? nblur_n64_trend - 1'b1 :
+                                                    nblur_n64_trend;          // saturate if needed
 
-        nblur_n64     <= nblur_n64_trend[`NBLUR_TH_BIT];
-        nblur_est_cnt <= 2'b00;
+          nblur_n64 <= nblur_n64_trend[`NBLUR_TH_BIT];
+        end
 
+        nblur_est_cnt  <= 2'b00;
         run_estimation <= 1'b1;
       end
 
