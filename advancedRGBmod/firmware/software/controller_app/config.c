@@ -147,18 +147,18 @@ int cfg_load_n64defaults(configuration_t* sysconfig)
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val &= N64_VIDEO_CLR_MASK;
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= N64_DEFAULT_VIDEO_CFG;
 
-  cfg_update_reference(sysconfig);
-
   return 0;
 }
 
 int cfg_load_jumperset(configuration_t* sysconfig)
 {
   alt_u8 jumper_word = cfg_get_jumper();
+
   sysconfig->cfg_word_def[IMAGE]->cfg_word_val &= N64_IMAGE_CLR_MASK;
-  sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= (((jumper_word & JUMPER_ICFG_SLSTR_GETMASK) >> JUMPER_SLSTR_OFFSET) << CFG_SLSTR_OFFSET);
+  sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= (N64_DEFAULT_IMAGE_CFG | ((jumper_word & JUMPER_ICFG_SLSTR_GETMASK) >> JUMPER_SLSTR_BACKSHIFT));
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val &= JUMPER_VIDEOCLR_MASK;
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= (jumper_word & JUMPER_VCFG_GETALL_MASK);
+
   return 0;
 }
 

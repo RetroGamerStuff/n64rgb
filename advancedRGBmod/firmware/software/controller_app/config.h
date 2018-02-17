@@ -190,10 +190,14 @@ typedef struct {
 #define N64_DEFAULT_VIDEO_CFG (CFG_VIDEO_GETALL_MASK & 0x00                      )
 
 // the jumper
-#define JUMPER_SLSTR_OFFSET 3
+#define JUMPER_GETALL_MASK  0x3F
+
+#define JUMPER_SLSTR_OFFSET     2
+#define JUMPER_SLSTR_BACKSHIFT  (JUMPER_SLSTR_OFFSET-CFG_SLSTR_OFFSET)
 
 #define JUMPER_IMAGECLR_MASK        N64_IMAGE_CLR_MASK
-#define JUMPER_ICFG_SLSTR_GETMASK   (0x3<<JUMPER_SLSTR_OFFSET)
+#define JUMPER_ICFG_GETALL_MASK     (3<<JUMPER_SLSTR_OFFSET)
+#define JUMPER_ICFG_SLSTR_GETMASK   JUMPER_ICFG_GETALL_MASK
 
 #define JUMPER_VIDEOCLR_MASK        (N64_VIDEO_CLR_MASK & CFG_VFORMAT_CLRMASK)
 #define JUMPER_VCFG_GETALL_MASK     CFG_VIDEO_GETALL_MASK
@@ -222,7 +226,7 @@ void cfg_apply_to_logic(configuration_t* sysconfig);
 inline alt_u32 cfg_get_from_logic()
   {  return IORD_ALTERA_AVALON_PIO_DATA(CFG_SET_OUT_BASE) & CFG_GETALL_MASK;  };
 inline alt_u8 cfg_get_jumper()
-  {  return (IORD_ALTERA_AVALON_PIO_DATA(JUMPER_CFG_SET_IN_BASE) & JUMPER_VCFG_GETALL_MASK);  };
+  {  return (IORD_ALTERA_AVALON_PIO_DATA(JUMPER_CFG_SET_IN_BASE) & JUMPER_GETALL_MASK);  };
 void cfg_clear_words(configuration_t* sysconfig);
 void cfg_load_from_ios(configuration_t* sysconfig);
 void cfg_update_reference(configuration_t* sysconfig);
