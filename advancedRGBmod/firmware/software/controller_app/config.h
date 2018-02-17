@@ -131,10 +131,10 @@ typedef struct {
 #define CFG_SLSTR_CLRMASK         (CFG_IMAGE_GETALL_MASK & ~CFG_SLSTR_GETMASK)
 
 // misc
-#define CFG_USEIGR_OFFSET         4
-#define CFG_QUICKCHANGE_OFFSET    2
-  #define CFG_QU15BITMODE_OFFSET    3
-  #define CFG_QUDEBLUR_OFFSET       2
+#define CFG_USEIGR_OFFSET         5
+#define CFG_QUICKCHANGE_OFFSET    3
+  #define CFG_QU15BITMODE_OFFSET    4
+  #define CFG_QUDEBLUR_OFFSET       3
 #define CFG_DEBLUR_OFFSET         1
 #define CFG_15BITMODE_OFFSET      0
 
