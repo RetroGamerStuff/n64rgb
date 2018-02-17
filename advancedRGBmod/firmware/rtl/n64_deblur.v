@@ -73,13 +73,13 @@ wire       nDeBlurMan = deblurparams_i[  0];
 wire negedge_nVSYNC =  vdata_pre[3*color_width_i+3] & !D_i[3];
 wire posedge_nCSYNC = !vdata_pre[3*color_width_i  ] &  D_i[0];
 
-wire [1:0] Rcmp_pre = vdata_pre[3*color_width_i-1:3*color_width_i-2];
-wire [1:0] Gcmp_pre = vdata_pre[2*color_width_i-1:2*color_width_i-2];
-wire [1:0] Bcmp_pre = vdata_pre[  color_width_i-1:  color_width_i-2];
+wire [2:0] Rcmp_pre = vdata_pre[3*color_width_i-1:3*color_width_i-3];
+wire [2:0] Gcmp_pre = vdata_pre[2*color_width_i-1:2*color_width_i-3];
+wire [2:0] Bcmp_pre = vdata_pre[  color_width_i-1:  color_width_i-3];
 
-wire [1:0] Rcmp_cur = D_i[color_width_i-1:color_width_i-2];
-wire [1:0] Gcmp_cur = D_i[color_width_i-1:color_width_i-2];
-wire [1:0] Bcmp_cur = D_i[color_width_i-1:color_width_i-2];
+wire [2:0] Rcmp_cur = D_i[color_width_i-1:color_width_i-3];
+wire [2:0] Gcmp_cur = D_i[color_width_i-1:color_width_i-3];
+wire [2:0] Bcmp_cur = D_i[color_width_i-1:color_width_i-3];
 
 
 // some more definitions for the heuristics
