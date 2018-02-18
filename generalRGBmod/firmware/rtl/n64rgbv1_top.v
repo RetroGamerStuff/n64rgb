@@ -81,9 +81,9 @@ module n64rgbv1_top (
   nCSYNC,
   nCLAMP,
 
-  R_o,     // red data vector
-  G_o,     // green data vector
-  B_o,     // blue data vector
+  R_o,
+  G_o,
+  B_o,
 
   // Filter control of THS7374
   nTHS7374_LPF_Bypass_p85_i,   // my first prototypes have FIL pad input at pin 85 (MaxV only)
@@ -109,18 +109,18 @@ input Default_nForceDeBlur;
 input Default_DeBlur;
 input Default_n15bit_mode;
 
-output reg nHSYNC;
-output reg nVSYNC;
-output reg nCSYNC;
-output reg nCLAMP;
+output nHSYNC;
+output nVSYNC;
+output nCSYNC;
+output nCLAMP;
 
-output reg [color_width-1:0] R_o; // red data vector
-output reg [color_width-1:0] G_o; // green data vector
-output reg [color_width-1:0] B_o; // blue data vector
+output [color_width-1:0] R_o;
+output [color_width-1:0] G_o;
+output [color_width-1:0] B_o;
 
-input      nTHS7374_LPF_Bypass_p85_i;   // my first prototypes have FIL pad input at pin 85 (MaxV only)
-input      nTHS7374_LPF_Bypass_p98_i;   // the GitHub final version at pin 98
-output reg  THS7374_LPF_Bypass_o;       // so simply combine both for same firmware file
+input  nTHS7374_LPF_Bypass_p85_i;   // my first prototypes have FIL pad input at pin 85 (MaxV only)
+input  nTHS7374_LPF_Bypass_p98_i;   // the GitHub final version at pin 98
+output  THS7374_LPF_Bypass_o;       // so simply combine both for same firmware file
 
 
 `define SWITCH_INSTALL  !install_type
@@ -193,8 +193,8 @@ wire [3:0] vinfo_pass;
 n64_vinfo_ext get_vinfo(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
-  .Sync_pre(vdata_r[1][`VDATA_SY_SLICE]),
-  .Sync_cur(vdata_r[0][`VDATA_SY_SLICE]),
+  .Sync_pre(vdata_r[`VDATA_SY_SLICE]),
+  .Sync_cur(D_i[3:0]),
   .vinfo_o(vinfo_pass)
 );
 
@@ -214,7 +214,7 @@ always @(negedge nCLK) begin
     nForceDeBlur <= (~CTRL_nAutoDB & nRST_nManualDB);
     nDeBlurMan   <=                  nRST_nManualDB;
     n15bit_mode  <=  Default_n15bit_mode;
-    nrst_deblur  <= (~CTRL_nAutoDB & nRST_nManualDB);
+    nrst_deblur  <= ~CTRL_nAutoDB;
   end
 end
 
@@ -225,8 +225,8 @@ n64_deblur deblur_management(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
   .nRST(nrst_deblur),
-  .vdata_pre(vdata_r[0]),
-  .vdata_cur(vdata_r[1]),
+  .vdata_pre(vdata_r),
+  .D_i(D_i),
   .deblurparams_i({vinfo_pass,nForceDeBlur,nDeBlurMan}),
   .ndo_deblur(ndo_deblur)
 );
@@ -235,31 +235,26 @@ n64_deblur deblur_management(
 // Part 4: data demux
 // ==================
 
-wire [`VDATA_FU_SLICE] vdata_r[0:1];
+wire [`VDATA_FU_SLICE] vdata_r;
 
 n64_vdemux video_demux(
   .nCLK(nCLK),
   .nDSYNC(nDSYNC),
   .D_i(D_i),
   .demuxparams_i({vinfo_pass,ndo_deblur,n15bit_mode}),
-  .vdata_r_0(vdata_r[0]),
-  .vdata_r_1(vdata_r[1])
+  .vdata_r_0(vdata_r),
+  .vdata_r_1({nVSYNC,nCLAMP,nHSYNC,nCSYNC,R_o,G_o,B_o})
 );
 
 
 // assign final outputs
 // --------------------
 
-always @(posedge nDSYNC) begin
-  {nVSYNC,nCLAMP,nHSYNC,nCSYNC,R_o,G_o,B_o} <= vdata_r[1];
-
-  `ifdef OPTION_INVLPF
-    THS7374_LPF_Bypass_o <= ~(nTHS7374_LPF_Bypass_p85_i & nTHS7374_LPF_Bypass_p98_i) ^ InvLPF;
-  `else
-    THS7374_LPF_Bypass_o <= ~(nTHS7374_LPF_Bypass_p85_i & nTHS7374_LPF_Bypass_p98_i);
-  `endif
-end
-
+`ifdef OPTION_INVLPF
+  assign THS7374_LPF_Bypass_o = ~(nTHS7374_LPF_Bypass_p85_i & nTHS7374_LPF_Bypass_p98_i) ^ InvLPF;
+`else
+  assign THS7374_LPF_Bypass_o = ~(nTHS7374_LPF_Bypass_p85_i & nTHS7374_LPF_Bypass_p98_i);
+`endif
 
 
 endmodule

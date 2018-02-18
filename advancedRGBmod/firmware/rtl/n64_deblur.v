@@ -153,9 +153,9 @@ always @(negedge nCLK) begin // estimation of blur effect
         endcase
       end else begin
         case(data_cnt)
-            2'b01: if (&(gradient[2] ^ {(Rcmp_pre < Rcmp_cur),(Rcmp_pre > Rcmp_cur)})) gradient_changes[0] <= 1'b1;
-            2'b10: if (~&(gradient[1] ^ {(Gcmp_pre < Gcmp_cur),(Gcmp_pre > Gcmp_cur)})) gradient_changes[0] <= 1'b0;
-            2'b11: if (&(gradient[0] ^ {(Bcmp_pre < Bcmp_cur),(Bcmp_pre > Bcmp_cur)})) gradient_changes[1] <= 1'b1;
+          2'b01: if ( &(gradient[2] ^ {(Rcmp_pre < Rcmp_cur),(Rcmp_pre > Rcmp_cur)})) gradient_changes[0] <= 1'b1;
+          2'b10: if (~&(gradient[1] ^ {(Gcmp_pre < Gcmp_cur),(Gcmp_pre > Gcmp_cur)})) gradient_changes[0] <= 1'b0;
+          2'b11: if ( &(gradient[0] ^ {(Bcmp_pre < Bcmp_cur),(Bcmp_pre > Bcmp_cur)})) gradient_changes[1] <= 1'b1;
         endcase
       end
     end
