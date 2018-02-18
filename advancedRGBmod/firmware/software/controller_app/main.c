@@ -54,7 +54,6 @@ const char   *RW_Message[] = {"< Success >","< Failed >"};
 /* ToDo's:
  * - Warning display messages
  * - Confirm to load or to save
- * - Highlight non-saved options
  * - HW and FW version display
  * - Header logo
  * - Scanline Options (finer granulated)
