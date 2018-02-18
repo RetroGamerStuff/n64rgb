@@ -73,13 +73,13 @@ wire       nDeBlurMan = deblurparams_i[  0];
 wire negedge_nVSYNC =  vdata_pre[3*color_width_i+3] & !D_i[3];
 wire posedge_nCSYNC = !vdata_pre[3*color_width_i  ] &  D_i[0];
 
-wire [1:0] Rcmp_pre = vdata_pre[3*color_width_i-1:3*color_width_i-2];
-wire [1:0] Gcmp_pre = vdata_pre[2*color_width_i-1:2*color_width_i-2];
-wire [1:0] Bcmp_pre = vdata_pre[  color_width_i-1:  color_width_i-2];
+wire [2:0] Rcmp_pre = vdata_pre[3*color_width_i-1:3*color_width_i-3];
+wire [2:0] Gcmp_pre = vdata_pre[2*color_width_i-1:2*color_width_i-3];
+wire [2:0] Bcmp_pre = vdata_pre[  color_width_i-1:  color_width_i-3];
 
-wire [1:0] Rcmp_cur = D_i[color_width_i-1:color_width_i-2];
-wire [1:0] Gcmp_cur = D_i[color_width_i-1:color_width_i-2];
-wire [1:0] Bcmp_cur = D_i[color_width_i-1:color_width_i-2];
+wire [2:0] Rcmp_cur = D_i[color_width_i-1:color_width_i-3];
+wire [2:0] Gcmp_cur = D_i[color_width_i-1:color_width_i-3];
+wire [2:0] Bcmp_cur = D_i[color_width_i-1:color_width_i-3];
 
 // some more definitions for the heuristics
 
@@ -119,14 +119,17 @@ always @(negedge nCLK) begin // estimation of blur effect
   if (!n64_480i) begin
     if (!nDSYNC) begin
       if(negedge_nVSYNC) begin  // negedge at nVSYNC detected - new frame
-        if (run_estimation & nblur_est_cnt[1])  // add to weight
-            nblur_n64_trend <= &nblur_n64_trend ? nblur_n64_trend :         // saturate if needed
-                                                  nblur_n64_trend + 1'b1;
-        else// subtract
-            nblur_n64_trend <= |nblur_n64_trend ? nblur_n64_trend - 1'b1 :
-                                                  nblur_n64_trend;          // saturate if needed
+        if (run_estimation) begin
+          if (&nblur_est_cnt) // add to weight
+              nblur_n64_trend <= &nblur_n64_trend ? nblur_n64_trend :         // saturate if needed
+                                                    nblur_n64_trend + 1'b1;
+          else                // subtract
+              nblur_n64_trend <= |nblur_n64_trend ? nblur_n64_trend - 1'b1 :
+                                                    nblur_n64_trend;          // saturate if needed
 
-        nblur_n64     <= nblur_n64_trend[`NBLUR_TH_BIT];
+          nblur_n64 <= nblur_n64_trend[`NBLUR_TH_BIT];
+        end
+
         nblur_est_cnt <= 2'b00;
 
         run_estimation <= 1'b1;
