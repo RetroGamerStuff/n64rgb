@@ -52,9 +52,11 @@
 
 extern alt_u8 use_flash;
 
-inline alt_u8 is_cfg_screen (menu_t *menu) /* ugly hack (ToDo on updates: check for validity, i.e. is this property still unique) */
+inline alt_u8 is_cfg_screen (menu_t *menu)  /* ugly hack (ToDo on updates: check for validity, i.e. is this property still unique) */
   {  return ((menu->leaves[0].config_value->flag_masks.clrflag_mask == CFG_LINEX2_CLRMASK) ||
              (menu->leaves[0].config_value->flag_masks.clrflag_mask == CFG_SL_EN_CLRMASK )  ); }
+inline alt_u8 is_misc_screen (menu_t *menu) /* ugly hack (ToDo on updates: check for validity, i.e. is this property still unique) */
+  {  return (menu->leaves[0].config_value->flag_masks.clrflag_mask == CFG_USEIGR_CLRMASK); }
 
 
 static const arrow_t selection_arrow = {
@@ -97,7 +99,8 @@ menu_t home_menu, vinfo_screen, cfg_screen, cfg_sl_subscreen, misc_screen,
 
 extern config_t linex2, deint480ibob, sl_str, vformat, deblur, mode15bit, gamma_lut;
 extern config_t sl_en, sl_id, sl_str;
-extern config_t igr_reset, igr_quickchange;
+extern config_t igr_reset, igr_quickchange, filteraddon_cutoff;
+extern const char *FilterAddOn[];
 
 
 menu_t home_menu = {
@@ -162,10 +165,11 @@ menu_t misc_screen = {
     .overlay = &misc_overlay,
     .parent = &home_menu,
     .current_selection = 0,
-    .number_selections = 2,
+    .number_selections = 3,
     .leaves = {
-        {.id = MISC_IGR_RESET_V_OFFSET, .arrow_desc = &misc_screen_arrow, .leavetype = ICONFIG, .config_value = &igr_reset},
-        {.id = MISC_IGR_QUICK_V_OFFSET, .arrow_desc = &misc_screen_arrow, .leavetype = ICONFIG, .config_value = &igr_quickchange}
+        {.id = MISC_IGR_RESET_V_OFFSET  , .arrow_desc = &misc_screen_arrow, .leavetype = ICONFIG, .config_value = &igr_reset},
+        {.id = MISC_IGR_QUICK_V_OFFSET  , .arrow_desc = &misc_screen_arrow, .leavetype = ICONFIG, .config_value = &igr_quickchange},
+        {.id = MISC_FILTERADDON_V_OFFSET, .arrow_desc = &misc_screen_arrow, .leavetype = ICONFIG, .config_value = &filteraddon_cutoff}
     }
 };
 
@@ -205,8 +209,6 @@ menu_t license_screen = {
 
 updateaction_t apply_command(cmd_t command, menu_t* *current_menu, configuration_t* sysconfig)
 {
-  alt_u8 sel = (*current_menu)->current_selection;
-
   if ((command == CMD_CLOSE_MENU)) {
     while ((*current_menu)->parent) {
       (*current_menu)->current_selection = 0;
@@ -251,11 +253,16 @@ updateaction_t apply_command(cmd_t command, menu_t* *current_menu, configuration
       break;
   }
 
+  alt_u8 sel = (*current_menu)->current_selection;
+
   if (todo == NEW_SELECTION) {
     if (is_cfg_screen(*current_menu) && (!cfg_get_value((*current_menu)->leaves[0].config_value,0))) {
-      if ((*current_menu)->current_selection == 1) (*current_menu)->current_selection = 3;
-      if ((*current_menu)->current_selection == 2) (*current_menu)->current_selection = 0;
+      if (sel == 1) (*current_menu)->current_selection = 3;
+      if (sel == 2) (*current_menu)->current_selection = 0;
     }
+    if (is_misc_screen(*current_menu) && sel == 3 && !use_filteraddon)
+      (*current_menu)->current_selection = (command == CMD_MENU_UP) ? 1 : 0;
+
     return todo;
   }
 
@@ -339,18 +346,19 @@ void print_selection_arrow(menu_t* current_menu)
   alt_u8 h_l_offset, h_r_offset;
   alt_u8 v_run, v_offset;
 
-  for (v_run = 0; v_run < current_menu->number_selections; v_run++) {
-    h_l_offset = current_menu->leaves[v_run].arrow_desc->larrow_hpos;
-    h_r_offset = current_menu->leaves[v_run].arrow_desc->rarrow_hpos;
-    v_offset   = current_menu->leaves[v_run].id;
-    if (v_run == current_menu->current_selection) {
-      vd_print_char(h_l_offset,v_offset,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,(char) current_menu->leaves[v_run].arrow_desc->arrowshape_left);
-      vd_print_char(h_r_offset,v_offset,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,(char) current_menu->leaves[v_run].arrow_desc->arrowshape_right);
-    } else {
-      vd_clear_char(h_l_offset,v_offset);
-      vd_clear_char(h_r_offset,v_offset);
+  for (v_run = 0; v_run < current_menu->number_selections; v_run++)
+    if (current_menu->leaves[v_run].arrow_desc != NULL) {
+      h_l_offset = current_menu->leaves[v_run].arrow_desc->larrow_hpos;
+      h_r_offset = current_menu->leaves[v_run].arrow_desc->rarrow_hpos;
+      v_offset   = current_menu->leaves[v_run].id;
+      if (v_run == current_menu->current_selection) {
+        vd_print_char(h_l_offset,v_offset,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,(char) current_menu->leaves[v_run].arrow_desc->arrowshape_left);
+        vd_print_char(h_r_offset,v_offset,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,(char) current_menu->leaves[v_run].arrow_desc->arrowshape_right);
+      } else {
+        vd_clear_char(h_l_offset,v_offset);
+        vd_clear_char(h_r_offset,v_offset);
+      }
     }
-  }
 }
 
 int update_vinfo_screen(menu_t* current_menu, configuration_t* sysconfig, alt_u8 info_data)
@@ -413,14 +421,14 @@ int update_vinfo_screen(menu_t* current_menu, configuration_t* sysconfig, alt_u8
   }
 
   // Filter Add-on
-  if (info_data & INFO_USEVGA_GETMASK)
-    str_select = 0;
-  else if (info_data & INFO_FILTERNBYPASS_GETMASK)
-    str_select = video_sd_ed + 1;
-  else
-    str_select = 3;
   vd_clear_lineend(INFO_VALS_H_OFFSET,INFO_FAO_V_OFFSET);
-  vd_print_string(INFO_VALS_H_OFFSET,INFO_FAO_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE, FilterAddOn[str_select]);
+  if (!use_filteraddon)
+    vd_print_string(INFO_VALS_H_OFFSET,INFO_FAO_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_GREY, FilterAddOn[4]);
+  else {
+    str_select = ((sysconfig->cfg_word_def[MISC]->cfg_word_val & CFG_FILTERADDON_GETMASK) >> CFG_FILTERADDON_OFFSET);
+    if (str_select == 0) str_select = video_sd_ed + 1;
+    vd_print_string(INFO_VALS_H_OFFSET,INFO_FAO_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE, FilterAddOn[str_select]);
+  }
 
   return 0;
 }
@@ -458,7 +466,10 @@ int update_cfg_screen(menu_t* current_menu)
     if (v_run == current_menu->current_selection)
       vd_clear_area(h_l_offset,h_r_offset,v_offset,v_offset);
 
-    vd_print_string(h_l_offset,v_offset,background_color,font_color,current_menu->leaves[v_run].config_value->value_string[val_select]);
+    if (is_misc_screen(current_menu) && v_run == 3 && use_filteraddon)
+      vd_print_string(h_l_offset,v_offset - 1,background_color,FONTCOLOR_GREY,FilterAddOn[4]);
+    else
+      vd_print_string(h_l_offset,v_offset,background_color,font_color,current_menu->leaves[v_run].config_value->value_string[val_select]);
   }
 
   return 0;

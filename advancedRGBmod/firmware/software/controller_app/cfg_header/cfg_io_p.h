@@ -37,7 +37,7 @@
 
 
 extern const char *OffOn[], *EvenOdd[], *VideoFormat[], *DeBlurCfg[],
-                  *SLStrength[], *GammaValue[], *QuickChange[];
+                  *SLStrength[], *GammaValue[], *QuickChange[], *FilterAddOn[];
 
 // video
 cfg_word_t cfg_data_video =
@@ -182,6 +182,17 @@ config_t mode15bit = {
         .clrflag_mask = CFG_15BITMODE_CLRMASK
     },
     .value_string = &OffOn
+};
+
+config_t filteraddon_cutoff = {
+    .cfg_word        = &cfg_data_misc,
+    .cfg_word_offset = CFG_FILTERADDON_OFFSET,
+    .cfg_type        = VALUE,
+    .value_details   = {
+        .max_value     = CFG_FILTER_MAX_VALUE,
+        .getvalue_mask = CFG_FILTERADDON_GETMASK,
+    },
+    .value_string = &FilterAddOn
 };
 
 //menu

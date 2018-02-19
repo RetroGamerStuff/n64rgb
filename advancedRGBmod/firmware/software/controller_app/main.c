@@ -85,6 +85,7 @@ int main()
   static int message_cnt = 0;
 
   info_data = get_info_data();
+  check_filteraddon(info_data);
 
   int load_from_jumperset = 1;
 

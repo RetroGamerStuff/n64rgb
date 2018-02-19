@@ -79,12 +79,13 @@
 #define CFG_SL_ID_V_OFFSET        ( 2 + CFG_SL_VALS_V_OFFSET)
 #define CFG_SL_STR_V_OFFSET       ( 3 + CFG_SL_VALS_V_OFFSET)
 
-#define MISC_OVERLAY_H_OFFSET   OVERLAY_H_OFFSET
-#define MISC_OVERLAY_V_OFFSET   OVERLAY_V_OFFSET_WH
-#define MISC_VALS_H_OFFSET      (23 + MISC_OVERLAY_H_OFFSET)
-#define MISC_VALS_V_OFFSET      CFG_OVERLAY_V_OFFSET
-#define MISC_IGR_RESET_V_OFFSET ( 1 + MISC_VALS_V_OFFSET)
-#define MISC_IGR_QUICK_V_OFFSET ( 2 + MISC_VALS_V_OFFSET)
+#define MISC_OVERLAY_H_OFFSET     OVERLAY_H_OFFSET
+#define MISC_OVERLAY_V_OFFSET     OVERLAY_V_OFFSET_WH
+#define MISC_VALS_H_OFFSET        (23 + MISC_OVERLAY_H_OFFSET)
+#define MISC_VALS_V_OFFSET        CFG_OVERLAY_V_OFFSET
+#define MISC_IGR_RESET_V_OFFSET   ( 1 + MISC_VALS_V_OFFSET)
+#define MISC_IGR_QUICK_V_OFFSET   ( 2 + MISC_VALS_V_OFFSET)
+#define MISC_FILTERADDON_V_OFFSET ( 4 + MISC_VALS_V_OFFSET)
 
 #define RWDATA_OVERLAY_H_OFFSET  OVERLAY_H_OFFSET
 #define RWDATA_OVERLAY_V_OFFSET  OVERLAY_V_OFFSET_WH
@@ -165,7 +166,9 @@ static const char *misc_header =
 static const char *misc_overlay =
     "* In-Game Routines:\n"
     "  - Reset:\n"
-    "  - Quick-Access:";
+    "  - Quick-Access:\n\n"
+    "* Filter AddOn:\n"
+    "  - Filter Cut-Off:";
 
 static const char *rwdata_header =
     "N64 Advanced - Load/Save";
@@ -179,7 +182,7 @@ static const char *rwdata_overlay =
 
 static const char *thanks_overlay =
     "The N64 RGB project would not be what it is without\n"
-    "the contributions of many other people. Here, I want \n"
+    "the contributions of many other people. Here, I want\n"
     "to point out especially:\n"
     " - viletim  : First public DIY N64 DAC project\n"
     " - Ikari_01 : Initial implementation of PAL/NTSC\n"
@@ -234,7 +237,7 @@ const char *VideoColor[]   = {"21bit","15bit"};
 const char *VideoFormat[]  = {"RGBS","RGBS/RGsB","YPbPr"};
 const char *DeBlur[]       = {"(estimated)","(forced)","(480i/576i)"};
 const char *DeBlurCfg[]    = {"Auto","Off","Always"};
-const char *FilterAddOn[]  = {"not installed","9.5MHz","18MHz","Filter bypassed"};
+const char *FilterAddOn[]  = {"Auto","9.5MHz","18MHz","Filter bypassed","(not installed)"};
 const char *SLStrength[]   = {"  6.25%"," 12.50%"," 18.75%"," 25.00%",
                               " 31.25%"," 37.50%"," 43,75%"," 50.00%",
                               " 56.25%"," 62.50%"," 68.75%"," 75.00%",

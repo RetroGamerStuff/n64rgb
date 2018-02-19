@@ -35,6 +35,8 @@
 
 #define COMMAND_HISTORY_LENGTH 3
 
+alt_u8 use_filteraddon;
+
 // ToDo: export function into logic to save some memory space
 cmd_t ctrl_data_to_cmd(alt_u32* ctrl_data)
 {

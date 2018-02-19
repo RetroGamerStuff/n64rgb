@@ -142,7 +142,7 @@ int cfg_load_from_flash(configuration_t* sysconfig)
 
 int cfg_load_n64defaults(configuration_t* sysconfig)
 {
-  cfg_load_jumperset(sysconfig); // to get vmode
+  cfg_load_jumperset(sysconfig); // to get vmode and set filter addon (if applied)
 
   sysconfig->cfg_word_def[MISC]->cfg_word_val &= N64_MISC_CLR_MASK;
   sysconfig->cfg_word_def[MISC]->cfg_word_val |= N64_DEFAULT_MISC_CFG;
@@ -158,10 +158,18 @@ int cfg_load_jumperset(configuration_t* sysconfig)
 {
   alt_u8 jumper_word = cfg_get_jumper();
 
-  sysconfig->cfg_word_def[IMAGE]->cfg_word_val &= N64_IMAGE_CLR_MASK;
+  sysconfig->cfg_word_def[MISC]->cfg_word_val  &= JUMPER_MISC_CLR_MASK;
+  sysconfig->cfg_word_def[IMAGE]->cfg_word_val &= JUMPER_IMAGE_CLR_MASK;
   sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= (N64_DEFAULT_IMAGE_CFG);
-  sysconfig->cfg_word_def[VIDEO]->cfg_word_val &= JUMPER_VIDEOCLR_MASK;
+  sysconfig->cfg_word_def[VIDEO]->cfg_word_val &= JUMPER_VIDEO_CLR_MASK;
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= ((jumper_word & JUMPER_VCFG_GETALL_MASK) | CFG_SL_ID_SETMASK | CFG_SL_EN_SETMASK);
+
+  if (use_filteraddon) {
+    if (jumper_word & JUMPER_MCFG_FILTER_GETMASK)
+      sysconfig->cfg_word_def[MISC]->cfg_word_val |= CFG_FILTER_AUTO_SETMASK;
+    else
+      sysconfig->cfg_word_def[MISC]->cfg_word_val |= CFG_FILTER_OFF_SETMASK;
+  }
 
   switch ((jumper_word & JUMPER_ICFG_SLSTR_GETMASK) >> JUMPER_SLSTR_OFFSET) {
     case 1:

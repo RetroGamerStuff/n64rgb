@@ -69,9 +69,9 @@ inout nRST;
 
 input CTRL;
 
-input      [ 4:0] InfoSet;
-input      [ 5:0] JumperCfgSet;
-output reg [18:0] OutConfigSet;
+input      [ 3:0] InfoSet;
+input      [ 6:0] JumperCfgSet;
+output reg [20:0] OutConfigSet;
 
 input nCLK;
 input nDSYNC;
@@ -129,9 +129,8 @@ wire [31:0] SysConfigSet;
 // general structur: [31:24] menu, [23:16] misc, [15:8] image, [7:0] video
 // [31:28] (reserved)
 // [27:24] {show_osd,(3bits reserve)}
-// [23:21] (reserved)
-// [21:19] use_igr and (quick_access 15bit mode and deblur (not used in logic))
-// [18:16] {VI-DeBlur (2bit), 15bit mode}
+// [23:21] use_igr and (quick_access 15bit mode and deblur (not used in logic))
+// [20:16] {FilterSet (2bit),VI-DeBlur (2bit), 15bit mode}
 // [15: 8] {gamma (4bits),(2bits reserve),Scanline_str (2bits)}
 // [ 7: 6] (reserved)
 // [ 5: 0] {lineX2,480I-DeInt,Scanline_ID,Scanline_En,RGsB,YPbPr}
@@ -143,9 +142,9 @@ system system_u(
   .vd_wrctrl_export(vd_wrctrl),
   .vd_wrdata_export(vd_wrdata),
   .ctrl_data_in_export(serial_data[1]),
-  .jumper_cfg_set_in_export({2'b00,JumperCfgSet}),
+  .jumper_cfg_set_in_export({1'b0,JumperCfgSet}),
   .cfg_set_out_export(SysConfigSet),
-  .info_set_in_export({InfoSet,FallbackMode}),
+  .info_set_in_export({3'b000,InfoSet,FallbackMode}),
   .sync_in_export({new_ctrl_data[1],nVSYNC_cur})
 );
 
@@ -155,8 +154,8 @@ reg  use_igr = 1'b0;
 always @(negedge nCLK)
   if (&{~nDSYNC,nVSYNC_pre,~nVSYNC_cur} | ~nRST) begin
     show_osd     <= SysConfigSet[27];
-    use_igr      <= SysConfigSet[21];
-    OutConfigSet <= SysConfigSet[18:0];
+    use_igr      <= SysConfigSet[23];
+    OutConfigSet <= SysConfigSet[20:0];
   end
 
 

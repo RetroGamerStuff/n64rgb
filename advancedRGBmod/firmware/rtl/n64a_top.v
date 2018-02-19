@@ -127,10 +127,9 @@ assign SYS_CLKen = 1'b1;
 wire n64_480i = vinfo_pass[1];
 wire vmode    = vinfo_pass[0];
 
-wire [ 4:0] InfoSet = {n64_480i,vmode,~ndo_deblur,UseVGA_HVSync,nFilterBypass};
-wire [ 5:0] JumperCfgSet = {n240p,~n480i_bob,~SL_str,~nEN_YPbPr,(nEN_YPbPr & ~nEN_RGsB)}; // (~nEN_YPbPr | nEN_RGsB) ensures that not both jumpers are set and passed through the NIOS II
-                                                                                          // SL_str is placed in reserved space of OutConfigSet
-wire [18:0] OutConfigSet;
+wire [ 3:0] InfoSet = {n64_480i,vmode,~ndo_deblur,UseVGA_HVSync};
+wire [ 6:0] JumperCfgSet = {nFilterBypass,n240p,~n480i_bob,~SL_str,~nEN_YPbPr,(nEN_YPbPr & ~nEN_RGsB)}; // (~nEN_YPbPr | nEN_RGsB) ensures that not both jumpers are set and passed through the NIOS II
+wire [20:0] OutConfigSet;
 
 n64a_controller controller_u(
   .SYS_CLK(SYS_CLK),
@@ -145,6 +144,7 @@ n64a_controller controller_u(
   .video_data_o(vdata_r[3])
 );
 
+wire [1:0] FilterSetting =   OutConfigSet[20:19];
 wire       nDeBlurMan    =  ~OutConfigSet[18];
 wire       nForceDeBlur  = ~|OutConfigSet[18:17];
 wire       n15bit_mode   =  ~OutConfigSet[16];
@@ -269,6 +269,12 @@ assign nCSYNC_ADV712x = cfg_nEN_RGsB & cfg_nEN_YPbPr ? 1'b0  : Sync_o[0];
 // Filter Add On:
 // =============================
 //
+// Filter setting from NIOS II core:
+// - 00: Auto
+// - 01: 9.5MHz
+// - 10: 18.0MHz
+// - 11: Bypassed (i.e. 72MHz)
+//
 // FILTER 1 | FILTER 2 | DESCRIPTION
 // ---------+----------+--------------------
 //      0   |     0    |  SD filter ( 9.5MHz)
@@ -278,11 +284,17 @@ assign nCSYNC_ADV712x = cfg_nEN_RGsB & cfg_nEN_YPbPr ? 1'b0  : Sync_o[0];
 //
 // (Bypass SF is hard wired to 0)
 
+reg [1:2] Filter;
+
+always @(posedge CLK_out)
+  Filter <= FilterSetting   == 2'b11 ? 2'b11 :        // bypassed
+            FilterSetting   == 2'b10 ? 2'b01 :        // 18.0MHz
+            FilterSetting   == 2'b01 ? 2'b00 :        // 9.5MHz
+            nENABLE_linedbl == 1'b0  ? 2'b01 : 2'b00; // Auto (18.0MHz in LineX2 and 9.5MHz else)
+
 assign nCSYNC       = Sync_o[0];
 
-assign nVSYNC_or_F2 = UseVGA_HVSync                     ? Sync_o[3] :
-                      (nFilterBypass & nENABLE_linedbl) ? 1'b0 : 1'b1;
-assign nHSYNC_or_F1 = UseVGA_HVSync                     ? Sync_o[1] :
-                      nFilterBypass                     ? 1'b0 : 1'b1;
+assign nVSYNC_or_F2 = UseVGA_HVSync ? Sync_o[3] : Filter[2];
+assign nHSYNC_or_F1 = UseVGA_HVSync ? Sync_o[1] : Filter[1];
 
 endmodule

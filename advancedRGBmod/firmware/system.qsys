@@ -360,7 +360,7 @@
   <parameter name="resetValue" value="0" />
   <parameter name="simDoTestBenchWiring" value="false" />
   <parameter name="simDrivenValue" value="0" />
-  <parameter name="width" value="6" />
+  <parameter name="width" value="8" />
  </module>
  <module
    name="jtag_uart_0"

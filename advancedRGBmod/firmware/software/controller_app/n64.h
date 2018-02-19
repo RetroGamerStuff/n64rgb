@@ -97,15 +97,13 @@
 #define BTN_MENU_ENTER  CTRL_A_SETMASK
 #define BTN_MENU_BACK   CTRL_B_SETMASK
 
+#define INFO_480I_OFFSET      4
+#define INFO_VMODE_OFFSET     3
+#define INFO_DODEBLUR_OFFSET  2
+#define INFO_USEVGA_OFFSET    1
+#define INFO_FALLBACKMODE     0
 
-#define INFO_480I_OFFSET          5
-#define INFO_VMODE_OFFSET         4
-#define INFO_DODEBLUR_OFFSET     3
-#define INFO_USEVGA_OFFSET        2
-#define INFO_FILTERNBYPASS_OFFSET 1
-#define INFO_FALLBACKMODE         0
-
-#define INFO_GETALL_MASK            0x3F
+#define INFO_GETALL_MASK            0x1F
 #define INFO_480I_GETMASK           (1<<INFO_480I_OFFSET)
 //#define INFO_480I_SETMASK           (1<<INFO_480I_OFFSET)
 //#define INFO_480I_CLRMASK           (INFO_GETALL_MASK & ~INFO_480I_SETMASK)
@@ -118,9 +116,6 @@
 #define INFO_USEVGA_GETMASK         (1<<INFO_USEVGA_OFFSET)
 //#define INFO_USEVGA_SETMASK         (1<<INFO_USEVGA_OFFSET)
 //#define INFO_USEVGA_CLRMASK         (INFO_GETALL_MASK & ~INFO_USEVGA_SETMASK)
-#define INFO_FILTERNBYPASS_GETMASK  (1<<INFO_FILTERNBYPASS_OFFSET)
-//#define INFO_FILTERNBYPASS_SETMASK  (1<<INFO_FILTERNBYPASS_OFFSET)
-//#define INFO_FILTERNBYPASS_CLRMASK  (INFO_GETALL_MASK & ~INFO_FILTERNBYPASS_SETMASK)
 #define INFO_FALLBACKMODE_GETMASK   (1<<INFO_FALLBACKMODE)
 //#define INFO_FALLBACKMODE_SETMASK   (1<<INFO_FALLBACKMODE)
 //#define INFO_FALLBACKMODE_CLRMASK   (INFO_GETALL_MASK & ~INFO_FALLBACKMODE_SETMASK)
@@ -136,9 +131,6 @@ typedef enum {
   CMD_DEBLUR_QUICK_OFF,
   CMD_15BIT_QUICK_ON,
   CMD_15BIT_QUICK_OFF,
-  CMD_CFG_SAVE,
-  CMD_CFG_DEFAULT,
-  CMD_CFG_RELOAD,
   CMD_MENU_ENTER,
   CMD_MENU_BACK,
   CMD_MENU_UP,
@@ -148,11 +140,15 @@ typedef enum {
 } cmd_t;
 
 
+extern alt_u8 use_filteraddon;
+
 cmd_t ctrl_data_to_cmd();
 inline alt_u32 get_ctrl_data()
   {  return IORD_ALTERA_AVALON_PIO_DATA(CTRL_DATA_IN_BASE);  };
 inline alt_u8 get_info_data()
   {  return (IORD_ALTERA_AVALON_PIO_DATA(INFO_SET_IN_BASE) & INFO_GETALL_MASK);  };
+inline void check_filteraddon(alt_u8 info_data)
+  {  use_filteraddon = (info_data & INFO_USEVGA_GETMASK) ? 0 : 1;  };
 inline alt_u8 get_nvsync()
   {  return (IORD_ALTERA_AVALON_PIO_DATA(SYNC_IN_BASE) & NVSYNC_IN_MASK);  };
 inline alt_u8 new_ctrl_available()
