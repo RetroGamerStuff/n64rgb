@@ -65,11 +65,19 @@
 #define CFG_VALS_V_OFFSET     CFG_OVERLAY_V_OFFSET
 #define CFG_LINEX2_V_OFFSET   ( 1 + CFG_VALS_V_OFFSET)
 #define CFG_480IBOB_V_OFFSET  ( 2 + CFG_VALS_V_OFFSET)
-#define CFG_SLSTR_V_OFFSET    ( 3 + CFG_VALS_V_OFFSET)
+#define CFG_SLOPTS_V_OFFSET   ( 3 + CFG_VALS_V_OFFSET)
 #define CFG_FORMAT_V_OFFSET   ( 4 + CFG_VALS_V_OFFSET)
 #define CFG_DEBLUR_V_OFFSET   ( 5 + CFG_VALS_V_OFFSET)
 #define CFG_15BIT_V_OFFSET    ( 6 + CFG_VALS_V_OFFSET)
 #define CFG_GAMMA_V_OFFSET    ( 7 + CFG_VALS_V_OFFSET)
+
+#define CFG_SL_OVERLAY_H_OFFSET   OVERLAY_H_OFFSET
+#define CFG_SL_OVERLAY_V_OFFSET   OVERLAY_V_OFFSET_WH
+#define CFG_SL_VALS_H_OFFSET      (25 + CFG_SL_OVERLAY_H_OFFSET)
+#define CFG_SL_VALS_V_OFFSET      CFG_SL_OVERLAY_V_OFFSET
+#define CFG_SL_EN_V_OFFSET        ( 1 + CFG_SL_VALS_V_OFFSET)
+#define CFG_SL_ID_V_OFFSET        ( 2 + CFG_SL_VALS_V_OFFSET)
+#define CFG_SL_STR_V_OFFSET       ( 3 + CFG_SL_VALS_V_OFFSET)
 
 #define MISC_OVERLAY_H_OFFSET   OVERLAY_H_OFFSET
 #define MISC_OVERLAY_V_OFFSET   OVERLAY_V_OFFSET_WH
@@ -139,11 +147,18 @@ static const char *cfg_overlay =
     "* Linedoubling:\n"
     "  - LineX2:\n"
     "  - 480i de-int. (bob):\n"
-    "  - Scanlines:\n"
+    "  - Scanlines:            [Submenu]\n"
     "* Output Format:\n"
     "* 240p-DeBlur:\n"
     "* 15bit Mode:\n"
     "* Gamma Value:";
+
+static const char *cfg_sl_header =
+    "N64 Advanced - Scanline configuration";
+static const char *cfg_sl_overlay =
+    "* Use Scanlines:\n"
+    "* Scanline ID:\n"
+    "* Scanline Strength:";
 
 static const char *misc_header =
     "N64 Advanced - Miscellaneous";
@@ -213,6 +228,7 @@ static const char *home_overlay =
 
 
 const char *OffOn[]        = {"Off","On"};
+const char *EvenOdd[]      = {"Even","Odd"};
 const char *VideoMode[]    = {"240p60","288p50","480i60","576i50","480p60","576p50"};
 const char *VideoColor[]   = {"21bit","15bit"};
 const char *VideoFormat[]  = {"RGBS","RGBS/RGsB","YPbPr"};

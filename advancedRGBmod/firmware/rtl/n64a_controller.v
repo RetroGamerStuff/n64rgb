@@ -134,7 +134,7 @@ wire [31:0] SysConfigSet;
 // [18:16] {VI-DeBlur (2bit), 15bit mode}
 // [15: 8] {gamma (4bits),(2bits reserve),Scanline_str (2bits)}
 // [ 7: 6] (reserved)
-// [ 5: 0] {lineX2,480I-DeInt,(2bits reserve),RGsB,YPbPr}
+// [ 5: 0] {lineX2,480I-DeInt,Scanline_ID,Scanline_En,RGsB,YPbPr}
 
 system system_u(
   .clk_clk(CLK_25M),

@@ -149,9 +149,11 @@ wire       nDeBlurMan    =  ~OutConfigSet[18];
 wire       nForceDeBlur  = ~|OutConfigSet[18:17];
 wire       n15bit_mode   =  ~OutConfigSet[16];
 wire [3:0] cfg_gamma     =   OutConfigSet[15:12];
-wire [2:0] cfg_SL_str    =   OutConfigSet[ 9: 8];
+wire [1:0] cfg_SL_str    =   OutConfigSet[ 9: 8];
 wire       cfg_lineX2    =   OutConfigSet[ 5];
 wire       cfg_n480i_bob =  ~OutConfigSet[ 4];
+wire       cfg_SL_id     =   OutConfigSet[ 3];
+wire       cfg_SL_en     =   OutConfigSet[ 2];
 wire       cfg_nEN_YPbPr =  ~OutConfigSet[ 1];
 wire       cfg_nEN_RGsB  =  ~OutConfigSet[ 0];
 
@@ -230,9 +232,10 @@ n64_vdemux video_demux(
 wire CLK_out;
 
 wire       nENABLE_linedbl = (n64_480i & cfg_n480i_bob) | ~cfg_lineX2 | ~nRST;
-wire [1:0] SL_str_dbl      =  n64_480i ? 2'b00 : cfg_SL_str;
+wire [1:0] SL_str_dbl      =  n64_480i  ? 2'b00      :
+                              cfg_SL_en ? cfg_SL_str : 2'b00;
 
-wire [4:0] vinfo_dbl = {nENABLE_linedbl,SL_str_dbl,vinfo_pass[1:0]};
+wire [5:0] vinfo_dbl = {nENABLE_linedbl,SL_str_dbl,cfg_SL_id,vinfo_pass[1:0]};
 
 wire [vdata_width_o-1:0] vdata_tmp;
 

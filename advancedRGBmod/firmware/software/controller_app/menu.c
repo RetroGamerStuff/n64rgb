@@ -53,7 +53,8 @@
 extern alt_u8 use_flash;
 
 inline alt_u8 is_cfg_screen (menu_t *menu) /* ugly hack (ToDo on updates: check for validity, i.e. is this property still unique) */
-  {  return (menu->leaves[0].config_value->flag_masks.clrflag_mask == CFG_LINEX2_CLRMASK); }
+  {  return ((menu->leaves[0].config_value->flag_masks.clrflag_mask == CFG_LINEX2_CLRMASK) ||
+             (menu->leaves[0].config_value->flag_masks.clrflag_mask == CFG_SL_EN_CLRMASK )  ); }
 
 
 static const arrow_t selection_arrow = {
@@ -63,11 +64,25 @@ static const arrow_t selection_arrow = {
     .rarrow_hpos = 1
 };
 
-static const arrow_t cfg_screen_arrow = {
+static const arrow_t cfg_opt_arrow = {
     .arrowshape_left  = OPT_ARROW_L,
     .arrowshape_right = OPT_ARROW_R,
     .larrow_hpos = (CFG_VALS_H_OFFSET - 2),
     .rarrow_hpos = (CFG_VALS_H_OFFSET + OPT_WINDOW_WIDTH - 2)
+};
+
+static const arrow_t cfg_sel_arrow = {
+    .arrowshape_left  = SUBMENU_ARROW_L,
+    .arrowshape_right = SUBMENU_ARROW_L,
+    .larrow_hpos = (CFG_VALS_H_OFFSET - 2),
+    .rarrow_hpos = (CFG_VALS_H_OFFSET - 2)
+};
+
+static const arrow_t cfg_sl_opt_arrow = {
+    .arrowshape_left  = OPT_ARROW_L,
+    .arrowshape_right = OPT_ARROW_R,
+    .larrow_hpos = (CFG_SL_VALS_H_OFFSET - 2),
+    .rarrow_hpos = (CFG_SL_VALS_H_OFFSET + OPT_WINDOW_WIDTH - 2)
 };
 
 static const arrow_t misc_screen_arrow = {
@@ -77,8 +92,37 @@ static const arrow_t misc_screen_arrow = {
     .rarrow_hpos = (MISC_VALS_H_OFFSET + OPT_WINDOW_WIDTH - 2)
 };
 
+menu_t home_menu, vinfo_screen, cfg_screen, cfg_sl_subscreen, misc_screen,
+       rwdata_screen, about_screen, thanks_screen, license_screen;
 
 extern config_t linex2, deint480ibob, sl_str, vformat, deblur, mode15bit, gamma_lut;
+extern config_t sl_en, sl_id, sl_str;
+extern config_t igr_reset, igr_quickchange;
+
+
+menu_t home_menu = {
+    .type = HOME,
+    .header  = &home_header,
+    .overlay = &home_overlay,
+    .current_selection = 1,
+    .number_selections = 7,
+    .leaves = {
+        {.id = MAIN2VINFO_V_OFFSET  , .arrow_desc = &selection_arrow, .leavetype = ISUBMENU, .submenu = &vinfo_screen},
+        {.id = MAIN2CFG_V_OFFSET    , .arrow_desc = &selection_arrow, .leavetype = ISUBMENU, .submenu = &cfg_screen},
+        {.id = MAIN2MISC_V_OFFSET   , .arrow_desc = &selection_arrow, .leavetype = ISUBMENU, .submenu = &misc_screen},
+        {.id = MAIN2SAVE_V_OFFSET   , .arrow_desc = &selection_arrow, .leavetype = ISUBMENU, .submenu = &rwdata_screen},
+        {.id = MAIN2ABOUT_V_OFFSET  , .arrow_desc = &selection_arrow, .leavetype = ISUBMENU, .submenu = &about_screen},
+        {.id = MAIN2THANKS_V_OFFSET , .arrow_desc = &selection_arrow, .leavetype = ISUBMENU, .submenu = &thanks_screen},
+        {.id = MAIN2LICENSE_V_OFFSET, .arrow_desc = &selection_arrow, .leavetype = ISUBMENU, .submenu = &license_screen}
+    }
+};
+
+menu_t vinfo_screen = {
+    .type = VINFO,
+    .header = &vinfo_header,
+    .overlay = &vinfo_overlay,
+    .parent = &home_menu
+};
 
 menu_t cfg_screen = {
     .type = CONFIG,
@@ -87,19 +131,30 @@ menu_t cfg_screen = {
     .parent = &home_menu,
     .current_selection = 0,
     .number_selections = 7,
-    .leaves = { /* ToDo: assign leave_numbers ??? (e.g. usable if selection is checked) */
-        {.id = CFG_LINEX2_V_OFFSET , .arrow_desc = &cfg_screen_arrow, .leavetype = ICONFIG, .config_value = &linex2},
-        {.id = CFG_480IBOB_V_OFFSET, .arrow_desc = &cfg_screen_arrow, .leavetype = ICONFIG, .config_value = &deint480ibob},
-        {.id = CFG_SLSTR_V_OFFSET  , .arrow_desc = &cfg_screen_arrow, .leavetype = ICONFIG, .config_value = &sl_str},
-        {.id = CFG_FORMAT_V_OFFSET , .arrow_desc = &cfg_screen_arrow, .leavetype = ICONFIG, .config_value = &vformat},
-        {.id = CFG_DEBLUR_V_OFFSET , .arrow_desc = &cfg_screen_arrow, .leavetype = ICONFIG, .config_value = &deblur},
-        {.id = CFG_15BIT_V_OFFSET  , .arrow_desc = &cfg_screen_arrow, .leavetype = ICONFIG, .config_value = &mode15bit},
-        {.id = CFG_GAMMA_V_OFFSET  , .arrow_desc = &cfg_screen_arrow, .leavetype = ICONFIG, .config_value = &gamma_lut}
+    .leaves = {
+        {.id = CFG_LINEX2_V_OFFSET , .arrow_desc = &cfg_opt_arrow, .leavetype = ICONFIG , .config_value = &linex2},
+        {.id = CFG_480IBOB_V_OFFSET, .arrow_desc = &cfg_opt_arrow, .leavetype = ICONFIG , .config_value = &deint480ibob},
+        {.id = CFG_SLOPTS_V_OFFSET , .arrow_desc = &cfg_sel_arrow, .leavetype = ISUBMENU, .submenu      = &cfg_sl_subscreen},
+        {.id = CFG_FORMAT_V_OFFSET , .arrow_desc = &cfg_opt_arrow, .leavetype = ICONFIG , .config_value = &vformat},
+        {.id = CFG_DEBLUR_V_OFFSET , .arrow_desc = &cfg_opt_arrow, .leavetype = ICONFIG , .config_value = &deblur},
+        {.id = CFG_15BIT_V_OFFSET  , .arrow_desc = &cfg_opt_arrow, .leavetype = ICONFIG , .config_value = &mode15bit},
+        {.id = CFG_GAMMA_V_OFFSET  , .arrow_desc = &cfg_opt_arrow, .leavetype = ICONFIG , .config_value = &gamma_lut}
     }
 };
 
-
-extern config_t igr_reset, igr_quickchange;
+menu_t cfg_sl_subscreen = {
+    .type = CONFIG,
+    .header = &cfg_sl_header,
+    .overlay = &cfg_sl_overlay,
+    .parent = &cfg_screen,
+    .current_selection = 0,
+    .number_selections = 3,
+    .leaves = {
+        {.id = CFG_SL_EN_V_OFFSET , .arrow_desc = &cfg_sl_opt_arrow, .leavetype = ICONFIG, .config_value = &sl_en},
+        {.id = CFG_SL_ID_V_OFFSET , .arrow_desc = &cfg_sl_opt_arrow, .leavetype = ICONFIG, .config_value = &sl_id},
+        {.id = CFG_SL_STR_V_OFFSET, .arrow_desc = &cfg_sl_opt_arrow, .leavetype = ICONFIG, .config_value = &sl_str}
+    }
+};
 
 menu_t misc_screen = {
     .type = CONFIG,
@@ -114,7 +169,6 @@ menu_t misc_screen = {
     }
 };
 
-
 menu_t rwdata_screen = {
     .type = RWDATA,
     .header = &rwdata_header,
@@ -123,19 +177,11 @@ menu_t rwdata_screen = {
     .current_selection = 0,
     .number_selections = 4,
     .leaves = {
-        {.id = RWDATA_SAVE_FL_V_OFFSET , .arrow_desc = &selection_arrow, .leavetype = IFLASHFUNC, .save_fun = &cfg_save_to_flash},
-        {.id = RWDATA_LOAD_FL_V_OFFSET , .arrow_desc = &selection_arrow, .leavetype = IFLASHFUNC, .load_fun = &cfg_load_from_flash},
+        {.id = RWDATA_SAVE_FL_V_OFFSET , .arrow_desc = &selection_arrow, .leavetype = IFUNC, .save_fun = &cfg_save_to_flash},
+        {.id = RWDATA_LOAD_FL_V_OFFSET , .arrow_desc = &selection_arrow, .leavetype = IFUNC, .load_fun = &cfg_load_from_flash},
         {.id = RWDATA_LOAD_JS_V_OFFSET , .arrow_desc = &selection_arrow, .leavetype = IFUNC, .load_fun = &cfg_load_jumperset},
         {.id = RWDATA_LOAD_N64_V_OFFSET, .arrow_desc = &selection_arrow, .leavetype = IFUNC, .load_fun = &cfg_load_n64defaults}
     }
-};
-
-
-menu_t vinfo_screen = {
-    .type = VINFO,
-    .header = &vinfo_header,
-    .overlay = &vinfo_overlay,
-    .parent = &home_menu
 };
 
 menu_t about_screen = {
@@ -156,22 +202,6 @@ menu_t license_screen = {
    .parent = &home_menu
 };
 
-menu_t home_menu = {
-    .type = HOME,
-    .header  = &home_header,
-    .overlay = &home_overlay,
-    .current_selection = 1,
-    .number_selections = 7,
-    .leaves = {
-        {.id = MAIN2VINFO_V_OFFSET  , .arrow_desc = &selection_arrow, .leavetype = ISUBMENU, .submenu = &vinfo_screen},
-        {.id = MAIN2CFG_V_OFFSET    , .arrow_desc = &selection_arrow, .leavetype = ISUBMENU, .submenu = &cfg_screen},
-        {.id = MAIN2MISC_V_OFFSET   , .arrow_desc = &selection_arrow, .leavetype = ISUBMENU, .submenu = &misc_screen},
-        {.id = MAIN2SAVE_V_OFFSET   , .arrow_desc = &selection_arrow, .leavetype = ISUBMENU, .submenu = &rwdata_screen},
-        {.id = MAIN2ABOUT_V_OFFSET  , .arrow_desc = &selection_arrow, .leavetype = ISUBMENU, .submenu = &about_screen},
-        {.id = MAIN2THANKS_V_OFFSET , .arrow_desc = &selection_arrow, .leavetype = ISUBMENU, .submenu = &thanks_screen},
-        {.id = MAIN2LICENSE_V_OFFSET, .arrow_desc = &selection_arrow, .leavetype = ISUBMENU, .submenu = &license_screen}
-    }
-};
 
 updateaction_t apply_command(cmd_t command, menu_t* *current_menu, configuration_t* sysconfig)
 {

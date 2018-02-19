@@ -161,8 +161,10 @@ int cfg_load_jumperset(configuration_t* sysconfig)
   sysconfig->cfg_word_def[IMAGE]->cfg_word_val &= N64_IMAGE_CLR_MASK;
   sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= (N64_DEFAULT_IMAGE_CFG | ((jumper_word & JUMPER_ICFG_SLSTR_GETMASK) >> JUMPER_SLSTR_BACKSHIFT));
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val &= JUMPER_VIDEOCLR_MASK;
-  sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= (jumper_word & JUMPER_VCFG_GETALL_MASK);
+  sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= ((jumper_word & JUMPER_VCFG_GETALL_MASK) | CFG_SL_ID_SETMASK);
 
+  if (jumper_word & JUMPER_ICFG_SLSTR_GETMASK != 0)
+    sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= CFG_SL_EN_SETMASK;
   return 0;
 }
 

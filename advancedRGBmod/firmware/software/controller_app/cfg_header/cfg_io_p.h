@@ -36,12 +36,8 @@
 #include "../config.h"
 
 
-extern const char *OffOn[];
-extern const char *VideoFormat[];
-extern const char *DeBlurCfg[];
-extern const char *SLStrength[];
-extern const char *GammaValue[];
-extern const char *QuickChange[];
+extern const char *OffOn[], *EvenOdd[], *VideoFormat[], *DeBlurCfg[],
+                  *SLStrength[], *GammaValue[], *QuickChange[];
 
 // video
 cfg_word_t cfg_data_video =
@@ -69,6 +65,28 @@ config_t deint480ibob = {
     .flag_masks      = {
         .setflag_mask = CFG_480IBOB_SETMASK,
         .clrflag_mask = CFG_480IBOB_CLRMASK
+    },
+    .value_string = &OffOn
+};
+
+config_t sl_id = {
+    .cfg_word = &cfg_data_video,
+    .cfg_word_offset = CFG_SL_ID_OFFSET,
+    .cfg_type        = FLAG,
+    .flag_masks      = {
+        .setflag_mask = CFG_SL_ID_SETMASK,
+        .clrflag_mask = CFG_SL_ID_CLRMASK
+    },
+    .value_string = &EvenOdd
+};
+
+config_t sl_en = {
+    .cfg_word = &cfg_data_video,
+    .cfg_word_offset = CFG_SL_EN_OFFSET,
+    .cfg_type        = FLAG,
+    .flag_masks      = {
+        .setflag_mask = CFG_SL_EN_SETMASK,
+        .clrflag_mask = CFG_SL_EN_CLRMASK
     },
     .value_string = &OffOn
 };

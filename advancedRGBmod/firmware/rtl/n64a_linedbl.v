@@ -59,7 +59,7 @@ input  nCLK_in;
 output CLK_out;
 input  nRST;
 
-input [4:0] vinfo_dbl; // [nLinedbl,SL_str (2bits),PAL,interlaced]
+input [5:0] vinfo_dbl; // [nLinedbl,SL_str (2bits),SL_id,PAL,interlaced]
 
 input  [`VDATA_I_FU_SLICE] vdata_i;
 output [`VDATA_O_FU_SLICE] vdata_o;
@@ -74,11 +74,12 @@ wire [color_width_i-1:0] R_i = vdata_i[`VDATA_I_RE_SLICE];
 wire [color_width_i-1:0] G_i = vdata_i[`VDATA_I_GR_SLICE];
 wire [color_width_i-1:0] B_i = vdata_i[`VDATA_I_BL_SLICE];
 
-wire nENABLE_linedbl = vinfo_dbl[4] | ~rdrun[1];
-wire [1:0] SL_str = vinfo_dbl[3:2];
+wire nENABLE_linedbl = vinfo_dbl[5] | ~rdrun[1];
 
-wire n64_480i = vinfo_dbl[1];
-wire pal_mode = vinfo_dbl[0];
+wire [1:0] SL_str   = vinfo_dbl[4:3];
+wire       SL_id    = vinfo_dbl[2];
+wire       n64_480i = vinfo_dbl[1];
+wire       pal_mode = vinfo_dbl[0];
 
 // start of rtl
 
@@ -312,7 +313,7 @@ always @(posedge PX_CLK_4x) begin
   rdcnt_buf <= rdcnt;
 
   if (rden[2]) begin
-    if (rdcnt) begin
+    if (rdcnt ^ (~SL_id)) begin
       case (SL_str)
         2'b00: begin
           R_o <= {R_buf,1'b0};
