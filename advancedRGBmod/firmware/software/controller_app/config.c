@@ -101,6 +101,8 @@ void cfg_set_value(config_t* cfg_data, alt_u8 value)
 
 int cfg_save_to_flash(configuration_t* sysconfig)
 {
+  if (!use_flash) return -CFG_FLASH_NOT_USED;
+
   alt_u8 databuf[PAGESIZE];
   int idx;
 
@@ -116,6 +118,8 @@ int cfg_save_to_flash(configuration_t* sysconfig)
 
 int cfg_load_from_flash(configuration_t* sysconfig)
 {
+  if (!use_flash) return -CFG_FLASH_NOT_USED;
+
   alt_u8 databuf[PAGESIZE];
   int idx, retval;
 
