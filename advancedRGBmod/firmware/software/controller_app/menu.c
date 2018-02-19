@@ -175,7 +175,7 @@ menu_t home_menu = {
 
 updateaction_t apply_command(cmd_t command, menu_t* *current_menu, configuration_t* sysconfig)
 {
-  alt_u8 id = (*current_menu)->current_selection;
+  alt_u8 sel = (*current_menu)->current_selection;
 
   if ((command == CMD_CLOSE_MENU)) {
     while ((*current_menu)->parent) {
@@ -186,29 +186,14 @@ updateaction_t apply_command(cmd_t command, menu_t* *current_menu, configuration
     return MENU_CLOSE;
   }
 
-  if ((*current_menu)->type == HOME) {
-    switch (command) {
-      case CMD_MENU_RIGHT:
-      case CMD_MENU_ENTER:
-        if ((*current_menu)->leaves[id].submenu) {
-          *current_menu = (*current_menu)->leaves[id].submenu;
-          return NEW_OVERLAY;
-        }
-        break;
-      case CMD_MENU_BACK:
-        (*current_menu)->current_selection = 1;
-        return MENU_CLOSE;
-      default:
-        break;
-    }
-  } else {
-    switch (command) {
-      case CMD_MENU_BACK:
-        (*current_menu)->current_selection = 0;
-        *current_menu = (*current_menu)->parent;
-        return NEW_OVERLAY;
-      default:
-        break;
+  if (command == CMD_MENU_BACK) {
+    if ((*current_menu)->parent) {
+      (*current_menu)->current_selection = 0;
+      *current_menu = (*current_menu)->parent;
+      return NEW_OVERLAY;
+    } else {
+      (*current_menu)->current_selection = 1;
+      return MENU_CLOSE;
     }
   }
 
@@ -244,32 +229,36 @@ updateaction_t apply_command(cmd_t command, menu_t* *current_menu, configuration
     return todo;
   }
 
-  if ((*current_menu)->type != CONFIG) {
-    if (command == CMD_MENU_BACK) {
-      (*current_menu)->current_selection = 0;
-      *current_menu = (*current_menu)->parent;
-      return NEW_OVERLAY;
+  if ((*current_menu)->leaves[sel].leavetype == ISUBMENU) {
+    switch (command) {
+      case CMD_MENU_RIGHT:
+      case CMD_MENU_ENTER:
+        if ((*current_menu)->leaves[sel].submenu) {
+          *current_menu = (*current_menu)->leaves[sel].submenu;
+          return NEW_OVERLAY;
+        }
+        break;
+      default:
+        break;
     }
   }
 
-  if ((*current_menu)->type == CONFIG) {
+  if ((*current_menu)->leaves[sel].leavetype == ICONFIG) {
     switch (command) {
       case CMD_MENU_RIGHT:
-        cfg_inc_value((*current_menu)->leaves[id].config_value);
+        cfg_inc_value((*current_menu)->leaves[sel].config_value);
         return NEW_CONF_VALUE;
       case CMD_MENU_LEFT:
-        cfg_dec_value((*current_menu)->leaves[id].config_value);
+        cfg_dec_value((*current_menu)->leaves[sel].config_value);
         return NEW_CONF_VALUE;
       default:
         break;
     }
   }
 
-  if ((*current_menu)->type == RWDATA) {
+  if ((*current_menu)->leaves[sel].leavetype == IFUNC) {
     if ((command == CMD_MENU_RIGHT) || (command == CMD_MENU_ENTER)) {
-      int retval = -1;
-      if (use_flash || ((*current_menu)->leaves[id].leavetype != IFLASHFUNC))
-        retval = (*current_menu)->leaves[id].load_fun(sysconfig);
+      int retval = (*current_menu)->leaves[sel].load_fun(sysconfig);
       return (retval == 0 ? RW_DONE : RW_FAILED);
     }
   }

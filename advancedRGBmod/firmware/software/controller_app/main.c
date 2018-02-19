@@ -58,7 +58,6 @@ const char   *RW_Message[] = {"< Success >","< Failed >"};
  * - Header logo
  * - Scanline Options (finer granulated)
  * - Additional windows (Ctrl. input, Video Output as OSD without menu)
- * - make use of leavetype_t to more generalize menu updates
  */
 
 int main()
