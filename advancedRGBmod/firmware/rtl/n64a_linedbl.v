@@ -59,7 +59,7 @@ input  nCLK_in;
 output CLK_out;
 input  nRST;
 
-input [5:0] vinfo_dbl; // [nLinedbl,SL_str (2bits),SL_id,PAL,interlaced]
+input [8:0] vinfo_dbl; // [nLinedbl,SL_str (4bits),SL_id,SL_en,PAL,interlaced]
 
 input  [`VDATA_I_FU_SLICE] vdata_i;
 output [`VDATA_O_FU_SLICE] vdata_o;
@@ -74,12 +74,12 @@ wire [color_width_i-1:0] R_i = vdata_i[`VDATA_I_RE_SLICE];
 wire [color_width_i-1:0] G_i = vdata_i[`VDATA_I_GR_SLICE];
 wire [color_width_i-1:0] B_i = vdata_i[`VDATA_I_BL_SLICE];
 
-wire nENABLE_linedbl = vinfo_dbl[5] | ~rdrun[1];
-
-wire [1:0] SL_str   = vinfo_dbl[4:3];
-wire       SL_id    = vinfo_dbl[2];
-wire       n64_480i = vinfo_dbl[1];
-wire       pal_mode = vinfo_dbl[0];
+wire nENABLE_linedbl =  vinfo_dbl[8] | ~rdrun[1];
+wire [3:0] nSL_str   = ~vinfo_dbl[7:4];
+wire       SL_id     =  vinfo_dbl[3];
+wire       SL_en     =  vinfo_dbl[2];
+wire       n64_480i  =  vinfo_dbl[1];
+wire       pal_mode  =  vinfo_dbl[0];
 
 // start of rtl
 
@@ -278,6 +278,26 @@ reg [color_width_o-1:0] R_o;
 reg [color_width_o-1:0] G_o;
 reg [color_width_o-1:0] B_o;
 
+wire [color_width_o-1:0] SL_R, SL_G, SL_B;
+
+lpm_mult_0 calc_SL_R(
+  .dataa(R_buf),
+  .datab(nSL_str),
+  .result(SL_R)
+);
+
+lpm_mult_0 calc_SL_G(
+  .dataa(R_buf),
+  .datab(nSL_str),
+  .result(SL_G)
+);
+
+lpm_mult_0 calc_SL_B(
+  .dataa(R_buf),
+  .datab(nSL_str),
+  .result(SL_B)
+);
+
 always @(posedge PX_CLK_4x) begin
 
   if (rdcnt_buf ^ rdcnt) begin
@@ -313,32 +333,10 @@ always @(posedge PX_CLK_4x) begin
   rdcnt_buf <= rdcnt;
 
   if (rden[2]) begin
-    if (rdcnt ^ (~SL_id)) begin
-      case (SL_str)
-        2'b00: begin
-          R_o <= {R_buf,1'b0};
-          G_o <= {G_buf,1'b0};
-          B_o <= {B_buf,1'b0};
-        end
-        2'b01: begin
-          R_o <= {1'b0 ,R_buf[color_width_i-1:0]} +
-                 {2'b00,R_buf[color_width_i-1:1]};
-          G_o <= {1'b0 ,G_buf[color_width_i-1:0]} +
-                 {2'b00,G_buf[color_width_i-1:1]};
-          B_o <= {1'b0 ,B_buf[color_width_i-1:0]} +
-                 {2'b00,B_buf[color_width_i-1:1]};
-        end
-        2'b10: begin
-          R_o <= {1'b0,R_buf[color_width_i-1:0]};
-          G_o <= {1'b0,G_buf[color_width_i-1:0]};
-          B_o <= {1'b0,B_buf[color_width_i-1:0]};
-        end
-        2'b11: begin
-          R_o <= {color_width_o{1'b0}};
-          G_o <= {color_width_o{1'b0}};
-          B_o <= {color_width_o{1'b0}};
-        end
-      endcase
+    if (SL_en & (rdcnt ^ (~SL_id))) begin
+      R_o <= SL_R;
+      G_o <= SL_G;
+      B_o <= SL_B;
     end else begin
       R_o <= {R_buf,1'b0};
       G_o <= {G_buf,1'b0};

@@ -235,7 +235,10 @@ const char *VideoFormat[]  = {"RGBS","RGBS/RGsB","YPbPr"};
 const char *DeBlur[]       = {"(estimated)","(forced)","(480i/576i)"};
 const char *DeBlurCfg[]    = {"Auto","Off","Always"};
 const char *FilterAddOn[]  = {"not installed","9.5MHz","18MHz","Filter bypassed"};
-const char *SLStrength[]   = {"0%","25%","50%","100%"};
+const char *SLStrength[]   = {"  6.25%"," 12.50%"," 18.75%"," 25.00%",
+                              " 31.25%"," 37.50%"," 43,75%"," 50.00%",
+                              " 56.25%"," 62.50%"," 68.75%"," 75.00%",
+                              " 81.25%"," 87.50%"," 93,75%","100.00%"};
 const char *GammaValue[]   = {"0.70","0.75","0.80","0.85","0.90","1.00","1.10","1.15","1.20"};
 const char *QuickChange[]  = {"Off","DeBlur","15bit mode","All"};
 

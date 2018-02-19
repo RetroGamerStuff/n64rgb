@@ -86,7 +86,7 @@ typedef struct {
 
 // the overall masks
 #define CFG_VIDEO_GETALL_MASK 0x3F
-#define CFG_IMAGE_GETALL_MASK 0xF3
+#define CFG_IMAGE_GETALL_MASK 0xFF
 #define CFG_MISC_GETALL_MASK  0x1F
 #define CFG_MENU_GETALL_MASK  0x08
 
@@ -176,11 +176,11 @@ typedef struct {
 #define CFG_SHOWOSD_CLRMASK       (CFG_MENU_GETALL_MASK & ~CFG_SHOWOSD_SETMASK)
 
 // some max values
-#define CFG_QUICKCHANGE_MAX_VALUE 3
-#define CFG_GAMMA_MAX_VALUE       8
-#define CFG_SLSTR_MAX_VALUE       3
-#define CFG_VFORMAT_MAX_VALUE     2
-#define CFG_DEBLUR_MAX_VALUE      2
+#define CFG_QUICKCHANGE_MAX_VALUE  3
+#define CFG_GAMMA_MAX_VALUE        8
+#define CFG_SLSTR_MAX_VALUE       15
+#define CFG_VFORMAT_MAX_VALUE      2
+#define CFG_DEBLUR_MAX_VALUE       2
 
 // some default values
 #define CFG_GAMMA_DEFAULTVAL      5
@@ -202,7 +202,6 @@ typedef struct {
 #define JUMPER_GETALL_MASK  0x3F
 
 #define JUMPER_SLSTR_OFFSET     2
-#define JUMPER_SLSTR_BACKSHIFT  (JUMPER_SLSTR_OFFSET-CFG_SLSTR_OFFSET)
 
 #define JUMPER_IMAGECLR_MASK        N64_IMAGE_CLR_MASK
 #define JUMPER_ICFG_GETALL_MASK     (3<<JUMPER_SLSTR_OFFSET)

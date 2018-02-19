@@ -182,6 +182,7 @@ set_global_assignment -name QIP_FILE ip/Cyclone10LP/rom1port_0.qip
 set_global_assignment -name VERILOG_FILE rtl/n64a_linedbl.v
 set_global_assignment -name QIP_FILE ip/Cyclone10LP/altpll_0.qip
 set_global_assignment -name QIP_FILE ip/Cyclone10LP/ram2port_0.qip
+set_global_assignment -name QIP_FILE ip/Cyclone10LP/lpm_mult_0.qip
 set_global_assignment -name VERILOG_FILE rtl/n64a_vconv.v
 set_global_assignment -name QIP_FILE ip/Cyclone10LP/altmult_add3_0.qip
 set_global_assignment -name QIP_FILE ip/Cyclone10LP/altmult_add2_0.qip

@@ -56,7 +56,6 @@ const char   *RW_Message[] = {"< Success >","< Failed >"};
  * - Confirm to load or to save
  * - HW and FW version display
  * - Header logo
- * - Scanline Options (finer granulated)
  * - Additional windows (Ctrl. input, Video Output as OSD without menu)
  */
 
