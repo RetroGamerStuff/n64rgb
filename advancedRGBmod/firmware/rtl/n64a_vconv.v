@@ -39,7 +39,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 module n64a_vconv(
-  CLK,
+  VCLK,
 
   nEN_YPbPr,    // enables color transformation on '0'
 
@@ -51,7 +51,7 @@ module n64a_vconv(
 
 localparam coeff_width = 20;
 
-input CLK;
+input VCLK;
 
 input nEN_YPbPr;
 
@@ -88,7 +88,7 @@ initial begin
   end
 end
 
-always @(posedge CLK) begin
+always @(posedge VCLK) begin
   for (i = 1; i < 3; i = i+1) begin
     S[i] <= S[i-1];
     R[i] <= R[i-1];
@@ -119,7 +119,7 @@ localparam fyg = 20'd615514;
 localparam fyb = 20'd119538;
 
 altmult_add3_0 calcY(
-  .clock0(CLK),
+  .clock0(VCLK),
   .dataa_0(R_i),
   .dataa_1(G_i),
   .dataa_2(B_i),
@@ -136,7 +136,7 @@ localparam fpbr = 20'd353865;
 localparam fpbg = 20'd694711;
 
 altmult_add2_0 calcPb_nPart(
-  .clock0(CLK),
+  .clock0(VCLK),
   .dataa_0(R_i),
   .dataa_1(G_i),
   .datab_0(fpbr),
@@ -151,7 +151,7 @@ localparam fprg = 20'd878052;
 localparam fprb = 20'd170524;
 
 altmult_add2_0 calcPr_nPart(
-  .clock0(CLK),
+  .clock0(VCLK),
   .dataa_0(G_i),
   .dataa_1(B_i),
   .datab_0(fprg),
@@ -169,8 +169,8 @@ wire [color_width_o  :0] Pb_tmp = Pb_addmult[color_width_o+1:1] + Pb_addmult[0];
 wire [color_width_o  :0] Pr_tmp = Pr_addmult[color_width_o+1:1] + Pr_addmult[0];
 
 
-always @(posedge CLK) begin
-  if (~nEN_YPbPr) begin
+always @(posedge VCLK) begin
+  if (!nEN_YPbPr) begin
      S_o <= S[2];
     V1_o <= {~Pr_tmp[color_width_o],Pr_tmp[color_width_o-1:1]};
     V2_o <= Y_tmp;

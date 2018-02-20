@@ -48,7 +48,7 @@
 
 module n64a_top (
   // N64 Video Input
-  nCLK,
+  VCLK,
   nDSYNC,
   D_i,
 
@@ -87,7 +87,7 @@ module n64a_top (
 
 `include "vh/n64a_params.vh"
 
-input                     nCLK;
+input                     VCLK;
 input                     nDSYNC;
 input [color_width_i-1:0] D_i;
 
@@ -125,7 +125,7 @@ input       n480i_bob;
 reg nfirstboot = 1'b0;
 reg UseJumperSet;
 
-always @(negedge nCLK) begin
+always @(posedge VCLK) begin
   if (~nfirstboot) begin
     UseJumperSet <= nRST;  // fallback if reset pressed on power cycle
     nfirstboot   <= 1'b1;
@@ -164,7 +164,7 @@ n64a_igr igr(
 // -------------------------------------------------
 //
 // pulse shapes and their realtion to each other:
-// nCLK (~50MHz, Numbers representing negedge count)
+// VCLK (~50MHz, Numbers representing negedge count)
 // ---. 3 .---. 0 .---. 1 .---. 2 .---. 3 .---
 //    |___|   |___|   |___|   |___|   |___|
 // nDSYNC (~12.5MHz)                           .....
@@ -181,7 +181,7 @@ n64a_igr igr(
 wire [3:0] vinfo_pass;
 
 n64_vinfo_ext get_vinfo(
-  .nCLK(nCLK),
+  .VCLK(VCLK),
   .nDSYNC(nDSYNC),
   .Sync_pre(vdata_ir[1][`VDATA_I_SY_SLICE]),
   .Sync_cur(vdata_ir[0][`VDATA_I_SY_SLICE]),
@@ -195,7 +195,7 @@ n64_vinfo_ext get_vinfo(
 wire ndo_deblur;
 
 n64_deblur deblur_management(
-  .nCLK(nCLK),
+  .VCLK(VCLK),
   .nDSYNC(nDSYNC),
   .nRST(nRST),
   .vdata_pre(vdata_ir[0]),
@@ -211,7 +211,7 @@ n64_deblur deblur_management(
 wire [`VDATA_I_FU_SLICE] vdata_ir[0:1];
 
 n64_vdemux video_demux(
-  .nCLK(nCLK),
+  .VCLK(VCLK),
   .nDSYNC(nDSYNC),
   .D_i(D_i),
   .demuxparams_i({vinfo_pass,ndo_deblur,n15bit_mode}),
@@ -227,7 +227,7 @@ n64_vdemux video_demux(
 // Part 5.1: Line Multiplier
 // =========================
 
-wire CLK_out;
+wire VCLK_out;
 
 wire n64_480i = vinfo_pass[1];
 
@@ -239,8 +239,8 @@ wire [4:0] vinfo_dbl = {nENABLE_linedbl,SL_str_dbl,vinfo_pass[1:0]};
 wire [vdata_width_o-1:0] vdata_tmp;
 
 n64a_linedbl linedoubler(
-  .nCLK_in(nCLK),
-  .CLK_out(CLK_out),
+  .VCLK_in(VCLK),
+  .VCLK_out(VCLK_out),
   .nRST(nRST),
   .vinfo_dbl(vinfo_dbl),
   .vdata_i(vdata_ir[1]),
@@ -254,7 +254,7 @@ n64a_linedbl linedoubler(
 wire [3:0] Sync_o;
 
 n64a_vconv video_converter(
-  .CLK(CLK_out),
+  .VCLK(VCLK_out),
   .nEN_YPbPr(nEN_YPbPr_active),    // enables color transformation on '0'
   .vdata_i(vdata_tmp),
   .vdata_o({Sync_o,V1_o,V2_o,V3_o})
@@ -263,9 +263,10 @@ n64a_vconv video_converter(
 // Part 5.3: assign final outputs
 // ==============================
 
-assign    CLK_ADV712x = CLK_out;
+assign    CLK_ADV712x = VCLK_out;
 assign nCSYNC_ADV712x = nEN_RGsB & nEN_YPbPr ? 1'b0  : Sync_o[0]; // output sync on G even in fallback mode
 //assign nBLANK_ADV712x = 1'b1;
+
 
 // Filter Add On:
 // =============================
@@ -278,7 +279,6 @@ assign nCSYNC_ADV712x = nEN_RGsB & nEN_YPbPr ? 1'b0  : Sync_o[0]; // output sync
 //      1   |     1    | FHD filter (72.0MHz)
 //
 // (Bypass SF is hard wired to 0)
-
 assign nCSYNC       = Sync_o[0];
 
 assign nVSYNC_or_F2 = UseVGA_HVSync                     ? Sync_o[3] :

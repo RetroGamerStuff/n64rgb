@@ -42,7 +42,7 @@
 
 
 module n64_igr (
-  input      nCLK,
+  input      VCLK,
   input      nRST_IGR,
   output reg DRV_RST,
 
@@ -69,17 +69,17 @@ module n64_igr (
 `endif
 
 
-// nCLK frequency (NTSC and PAL related to console type; not to video type)
+// VCLK frequency (NTSC and PAL related to console type; not to video type)
 //   - NTSC: ~48.68MHz
 //   -  PAL: ~49.66MHz
-// nCLK2 is nCLK divided by 2*6
+// VCLK2 is VCLK divided by 2*6
 //   - NTSC: ~4.06MHz (~0.247us period)
 //   -  PAL: ~4.14MHz (~0.242us period)
 
 reg       CLK_4M      = 1'b0;   // clock with period as described
 reg [2:0] div_clk_cnt = 3'b000; // counter to generate a clock devider 2*6
 
-always @(negedge nCLK) begin
+always @(posedge VCLK) begin
   if (div_clk_cnt == 3'b101) begin
     CLK_4M      <= ~CLK_4M;
     div_clk_cnt <= 3'b000;
@@ -121,7 +121,7 @@ reg nfirstboot = 1'b0;
 // 32    - Stop bit
 // (bits[0:15] used here)
 
-always @(negedge CLK_4M) begin
+always @(posedge CLK_4M) begin
   case (rd_state)
     ST_WAIT4N64:
       if (&wait_cnt) begin // waiting duration ends (exit wait state only if CTRL was high for a certain duration)
@@ -227,7 +227,7 @@ end
 
 reg [17:0] rst_cnt = 18'b0; // ~65ms are needed to count from max downto 0 with CLK_4M.
 
-always @(negedge CLK_4M) begin
+always @(posedge CLK_4M) begin
   if (initiate_nrst == 1'b1) begin
     DRV_RST <= 1'b1;      // reset system
     rst_cnt <= 18'h3ffff;

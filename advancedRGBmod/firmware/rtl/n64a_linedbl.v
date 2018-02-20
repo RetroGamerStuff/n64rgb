@@ -41,8 +41,8 @@
 
 
 module n64a_linedbl(
-  nCLK_in,
-  CLK_out,
+  VCLK_in,
+  VCLK_out,
   nRST,
 
   vinfo_dbl,
@@ -55,8 +55,8 @@ module n64a_linedbl(
 
 localparam ram_depth = 11; // plus 1 due to oversampling
 
-input  nCLK_in;
-output CLK_out;
+input  VCLK_in;
+output VCLK_out;
 input  nRST;
 
 input [4:0] vinfo_dbl; // [nLinedbl,SL_str (2bits),PAL,interlaced]
@@ -86,14 +86,14 @@ wire pal_mode = vinfo_dbl[0];
 
 reg div_2x = 1'b0;
 
-always @(negedge nCLK_in) begin
+always @(posedge VCLK_in) begin
   div_2x <= ~div_2x;
 end
 
 
 wire PX_CLK_4x, PLL_locked;
 altpll_0 vid_pll(
-  .inclk0(nCLK_in),
+  .inclk0(VCLK_in),
   .areset(~nRST),
   .locked(PLL_locked),
   .c0(PX_CLK_4x)
@@ -132,8 +132,8 @@ reg [1:0] start_rdproc = 2'b00;
 reg [1:0]  stop_rdproc = 2'b00;
 
 
-always @(negedge nCLK_in) begin
-  if (~div_2x) begin
+always @(posedge VCLK_in) begin
+  if (!div_2x) begin
     if (nVS_i_buf & ~nVS_i) begin
       // trigger new frame
       newFrame[0] <= ~newFrame[1];
@@ -167,7 +167,7 @@ always @(negedge nCLK_in) begin
       endcase
     end
 
-    if (nHS_i_buf & ~nHS_i) begin // negedge nHSYNC -> reset wrhcnt and toggle wrline
+    if (nHS_i_buf & !nHS_i) begin // negedge nHSYNC -> reset wrhcnt and toggle wrline
       line_width[wrline] <= wrhcnt[ram_depth-1:0];
 
       wrhcnt <= {ram_depth{1'b0}};
@@ -261,7 +261,7 @@ ram2port_0 videobuffer_0(
   .rdclock(PX_CLK_4x),
   .rden(&{rden[0],~rdline}),
   .wraddress(wraddr),
-  .wrclock(~nCLK_in),
+  .wrclock(VCLK_in),
   .wren(&{wren,~wrline,~line_overflow,~div_2x}),
   .q({R_buf[0],G_buf[0],B_buf[0]})
 );
@@ -272,7 +272,7 @@ ram2port_0 videobuffer_1(
   .rdclock(PX_CLK_4x),
   .rden(&{rden[0],rdline}),
   .wraddress(wraddr),
-  .wrclock(~nCLK_in),
+  .wrclock(VCLK_in),
   .wren(&{wren,wrline,~line_overflow,~div_2x}),
   .q({R_buf[1],G_buf[1],B_buf[1]})
 );
@@ -372,7 +372,7 @@ end
 
 // post-assignment
 
-assign CLK_out = PX_CLK_4x;
+assign VCLK_out = PX_CLK_4x;
 assign vdata_o = {S_o,R_o,G_o,B_o};
 
 endmodule 

@@ -36,7 +36,7 @@
 
 
 module n64_vdemux(
-  nCLK,
+  VCLK,
   nDSYNC,
 
   D_i,
@@ -48,7 +48,7 @@ module n64_vdemux(
 
 `include "vh/n64a_params.vh"
 
-input nCLK;
+input VCLK;
 input nDSYNC;
 
 input  [color_width_i-1:0] D_i;
@@ -73,7 +73,7 @@ wire posedge_nCSYNC = !vdata_r_0[3*color_width_i] &  D_i[0];
 
 reg nblank_rgb = 1'b1;
 
-always @(negedge nCLK)
+always @(posedge VCLK)
   if (!nDSYNC) begin
     if (n64_480i | ndo_deblur) begin
       nblank_rgb <= 1'b1;
@@ -86,7 +86,7 @@ always @(negedge nCLK)
   end
 
 
-always @(negedge nCLK) begin // data register management
+always @(posedge VCLK) begin // data register management
   if (!nDSYNC) begin
     if (vdata_r_0[vdata_width_i-1] & !D_i[3]) // negedge at nVSYNC detected - new frame, new setting for 15bit mode
       n15bit_mode <= demuxparams_i[0];
