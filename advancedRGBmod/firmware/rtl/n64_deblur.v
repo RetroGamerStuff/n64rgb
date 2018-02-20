@@ -36,7 +36,7 @@
 
 
 module n64_deblur (
-  nCLK,
+  VCLK,
   nDSYNC,
 
   nRST,
@@ -50,7 +50,7 @@ module n64_deblur (
 
 `include "vh/n64a_params.vh"
 
-input nCLK;
+input VCLK;
 input nDSYNC;
 
 input nRST;
@@ -94,7 +94,7 @@ localparam init_trend = 9'h100;  // initial value (shall have MSB set, zero else
 
 reg blur_pix = 1'b0;
 
-always @(negedge nCLK)
+always @(posedge VCLK)
   if (!nDSYNC) begin
     if(posedge_nCSYNC) // posedge nCSYNC -> reset blanking
       blur_pix <= ~vmode;
@@ -116,7 +116,7 @@ reg [`TREND_RANGE] nblur_n64_trend = init_trend;  // trend shows if the algorith
                                                   // this acts as like as a very simple mean filter
 reg nblur_n64 = 1'b1;                             // blur effect is estimated to be off within the N64 if value is 1'b1
 
-always @(negedge nCLK) begin // estimation of blur effect
+always @(posedge VCLK) begin // estimation of blur effect
   if (!n64_480i) begin
     if (!nDSYNC) begin
       if(negedge_nVSYNC) begin  // negedge at nVSYNC detected - new frame
@@ -136,7 +136,7 @@ always @(negedge nCLK) begin // estimation of blur effect
       end
 
       if(!blur_pix) begin  // incomming (potential) blurry pixel
-                           // (blur_pix changes on next @(negedge nCLK))
+                           // (blur_pix changes on next @(negedge VCLK))
 
         if (&gradient_changes)  // evaluate gradients
           if (~&nblur_est_cnt)
@@ -172,7 +172,7 @@ end
 
 // finally the blanking management
 
-always @(negedge nCLK) begin
+always @(posedge VCLK) begin
   if (!nDSYNC) begin
     if (negedge_nVSYNC) begin // negedge at nVSYNC detected - new frame, new setting
       if (nForceDeBlur)

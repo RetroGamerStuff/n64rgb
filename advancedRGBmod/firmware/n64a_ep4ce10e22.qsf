@@ -69,7 +69,7 @@ set_global_assignment -name OUTPUT_IO_TIMING_FAR_END_VMEAS "HALF SIGNAL SWING" -
 
 ## N64 Video Input
 ## ===============
-set_location_assignment PIN_23 -to nCLK
+set_location_assignment PIN_23 -to VCLK
 set_location_assignment PIN_135 -to nDSYNC
 set_location_assignment PIN_136 -to D_i[6]
 set_location_assignment PIN_137 -to D_i[5]
@@ -227,6 +227,12 @@ set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to V1_o[0]
 set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to nCSYNC
 set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to nVSYNC_or_F2
 set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to nHSYNC_or_F1
+
+
+## Assignments for Synthesis and Fitter
+## ====================================
+
+set_global_assignment -name OPTIMIZE_HOLD_TIMING "ALL PATHS"
 
 ## Additions by Quartus Prime
 ## ==========================

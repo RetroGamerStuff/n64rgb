@@ -90,7 +90,7 @@ GND                          : 19        : gnd    :                   :         
 altera_reserved_tdo          : 20        : output : 3.3-V LVTTL       :         : 1         : N              
 nCE                          : 21        :        :                   :         : 1         :                
 GND+                         : 22        :        :                   :         : 1         :                
-nCLK                         : 23        : input  : 3.3-V LVTTL       :         : 1         : Y              
+VCLK                         : 23        : input  : 3.3-V LVTTL       :         : 1         : Y              
 SYS_CLK                      : 24        : input  : 3.3-V LVTTL       :         : 2         : Y              
 GND+                         : 25        :        :                   :         : 2         :                
 VCCIO2                       : 26        : power  :                   : 3.3V    : 2         :                

@@ -36,7 +36,7 @@
 
 
 module n64_vdemux(
-  nCLK,
+  VCLK,
   nDSYNC,
   nRST,
 
@@ -51,7 +51,7 @@ module n64_vdemux(
 
 `include "vh/n64a_params.vh"
 
-input nCLK;
+input VCLK;
 input nDSYNC;
 input nRST;
 
@@ -84,7 +84,7 @@ wire posedge_nCSYNC = !vdata_r_0[3*color_width_i] &  D_i[0];
 
 reg nblank_rgb = 1'b1;
 
-always @(negedge nCLK)
+always @(posedge VCLK)
   if (!nDSYNC) begin
     if (n64_480i | ndo_deblur) begin
       nblank_rgb <= 1'b1;
@@ -112,7 +112,7 @@ initial begin
 end
 
 
-always @(negedge nCLK) begin // data register management
+always @(posedge VCLK) begin // data register management
   if (!nDSYNC) begin
     // shift data to output registers
     vdata_r_1[`VDATA_I_SY_SLICE] <= vdata_r_0[`VDATA_I_SY_SLICE];
@@ -164,7 +164,7 @@ end
 
 rom1port_0 gamma_table_u(
   .address({gamma_rom_page,addr_gamma_rom}),
-  .clock(~nCLK),
+  .clock(VCLK),
   .rden(en_gamma_boost),
   .q(data_gamma_rom)
 );

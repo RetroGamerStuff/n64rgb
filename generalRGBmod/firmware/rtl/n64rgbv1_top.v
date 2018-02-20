@@ -58,7 +58,7 @@
 
 module n64rgbv1_top (
   // N64 Video Input
-  nCLK,
+  VCLK,
   nDSYNC,
   D_i,
 
@@ -93,7 +93,7 @@ module n64rgbv1_top (
 
 `include "vh/n64rgb_params.vh"
 
-input                   nCLK;
+input                   VCLK;
 input                   nDSYNC;
 input [color_width-1:0] D_i;
 
@@ -140,7 +140,7 @@ wire DRV_RST;
 
 reg nRST_IGR;
 
-always @(negedge nCLK) begin
+always @(negedge VCLK) begin
   if (`IGR_INSTALL)
     nRST_IGR <= nRST_nManualDB;
   else
@@ -148,7 +148,7 @@ always @(negedge nCLK) begin
 end
 
 n64_igr igr(
-  .nCLK(nCLK),
+  .VCLK(VCLK),
   .nRST_IGR(nRST_IGR),
   .DRV_RST(DRV_RST),
   .CTRL(CTRL_nAutoDB),
@@ -175,7 +175,7 @@ assign nRST_nManualDB = ~install_type ? 1'bz :
 // -------------------------------------------------
 //
 // pulse shapes and their realtion to each other:
-// nCLK (~50MHz, Numbers representing negedge count)
+// VCLK (~50MHz, Numbers representing negedge count)
 // ---. 3 .---. 0 .---. 1 .---. 2 .---. 3 .---
 //    |___|   |___|   |___|   |___|   |___|
 // nDSYNC (~12.5MHz)                           .....
@@ -191,7 +191,7 @@ assign nRST_nManualDB = ~install_type ? 1'bz :
 wire [3:0] vinfo_pass;
 
 n64_vinfo_ext get_vinfo(
-  .nCLK(nCLK),
+  .VCLK(VCLK),
   .nDSYNC(nDSYNC),
   .Sync_pre(vdata_r[`VDATA_SY_SLICE]),
   .Sync_cur(D_i[3:0]),
@@ -204,7 +204,7 @@ n64_vinfo_ext get_vinfo(
 
 reg nForceDeBlur, nDeBlurMan, n15bit_mode, nrst_deblur;
 
-always @(negedge nCLK) begin
+always @(posedge VCLK) begin
   if (`IGR_INSTALL) begin
     nForceDeBlur <= nForceDeBlur_IGR;
     nDeBlurMan   <= nDeBlur_IGR;
@@ -222,7 +222,7 @@ end
 wire ndo_deblur;
 
 n64_deblur deblur_management(
-  .nCLK(nCLK),
+  .VCLK(VCLK),
   .nDSYNC(nDSYNC),
   .nRST(nrst_deblur),
   .vdata_pre(vdata_r),
@@ -238,7 +238,7 @@ n64_deblur deblur_management(
 wire [`VDATA_FU_SLICE] vdata_r;
 
 n64_vdemux video_demux(
-  .nCLK(nCLK),
+  .VCLK(VCLK),
   .nDSYNC(nDSYNC),
   .D_i(D_i),
   .demuxparams_i({vinfo_pass,ndo_deblur,n15bit_mode}),

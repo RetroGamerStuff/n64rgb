@@ -52,7 +52,7 @@ set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "3.3-V LVTTL"
 
 ## N64 Video Input
 ## ===============
-set_location_assignment PIN_12 -to nCLK
+set_location_assignment PIN_12 -to VCLK
 set_location_assignment PIN_14 -to nDSYNC
 set_location_assignment PIN_19 -to D_i[0]
 set_location_assignment PIN_18 -to D_i[1]
@@ -62,7 +62,7 @@ set_location_assignment PIN_15 -to D_i[4]
 set_location_assignment PIN_7 -to D_i[5]
 set_location_assignment PIN_6 -to D_i[6]
 
-set_instance_assignment -name GLOBAL_SIGNAL GLOBAL_CLOCK -to nCLK
+set_instance_assignment -name GLOBAL_SIGNAL GLOBAL_CLOCK -to VCLK
 set_instance_assignment -name GLOBAL_SIGNAL GLOBAL_CLOCK -to nDSYNC
 
 
@@ -150,6 +150,7 @@ set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files/v2/5M570ZT100C
 set_global_assignment -name TOP_LEVEL_ENTITY n64rgbv2_top
 set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED WITH BUS-HOLD"
 set_global_assignment -name MAXII_OPTIMIZATION_TECHNIQUE AREA
+set_global_assignment -name OPTIMIZE_HOLD_TIMING "ALL PATHS"
 
 
 ## Additions by Quartus Prime
@@ -159,5 +160,3 @@ set_global_assignment -name NUM_PARALLEL_PROCESSORS 2
 set_global_assignment -name ENABLE_OCT_DONE OFF
 set_global_assignment -name STRATIXV_CONFIGURATION_SCHEME "PASSIVE SERIAL"
 set_global_assignment -name USE_CONFIGURATION_DEVICE ON
-set_global_assignment -name ALLOW_REGISTER_RETIMING ON
-set_global_assignment -name OPTIMIZATION_MODE "HIGH PERFORMANCE EFFORT"

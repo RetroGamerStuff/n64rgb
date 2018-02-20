@@ -54,7 +54,7 @@ module n64a_controller (
   JumperCfgSet,
   OutConfigSet,
 
-  nCLK,
+  VCLK,
   nDSYNC,
 
   video_data_i,
@@ -73,7 +73,7 @@ input      [ 3:0] InfoSet;
 input      [ 6:0] JumperCfgSet;
 output reg [20:0] OutConfigSet;
 
-input nCLK;
+input VCLK;
 input nDSYNC;
 
 input      [`VDATA_I_FU_SLICE] video_data_i;
@@ -151,7 +151,7 @@ system system_u(
 reg show_osd = 1'b0;
 reg  use_igr = 1'b0;
 
-always @(negedge nCLK)
+always @(posedge VCLK)
   if (&{~nDSYNC,nVSYNC_pre,~nVSYNC_cur} | ~nRST) begin
     show_osd     <= SysConfigSet[27];
     use_igr      <= SysConfigSet[23];
@@ -319,8 +319,8 @@ reg [7:0] txt_v_cnt = 8'h0; // 3:0 - font hight reservation (allows for max 16p 
 reg [4:0] draw_osd_window = 5'b00000; // font and char memory
 reg [4:0]        en_txtrd = 5'b00000; // introduce four delay taps
 
-always @(negedge nCLK) begin
-  if (~nDSYNC) begin
+always @(posedge VCLK) begin
+  if (!nDSYNC) begin
     h_cnt <= ~&h_cnt ? h_cnt + 1'b1 : h_cnt;
 
     if (nHSYNC_pre & ~nHSYNC_cur) begin
@@ -361,7 +361,7 @@ always @(negedge nCLK) begin
   en_txtrd[  0] <=(h_cnt > `OSD_TXT_H_START)   && (h_cnt < `OSD_TXT_H_STOP)     &&
                   (v_cnt > `OSD_HEADER_V_STOP) && (v_cnt < `OSD_FOOTER_V_START);
 
-  if (~nRST) begin
+  if (!nRST) begin
     h_cnt <= 10'h0;
     v_cnt <=  8'h0;
 
@@ -386,7 +386,7 @@ wire [6:0] font_addr_lsb;
 ram2port_1 vd_text_u(
   .data(vd_wrdata[6:0]),
   .rdaddress({txt_xrdaddr,txt_yrdaddr}),
-  .rdclock(~nCLK),
+  .rdclock(VCLK),
   .rden(en_txtrd[0]),
   .wraddress(vd_wraddr),
   .wrclock(CLK_25M),
@@ -397,7 +397,7 @@ ram2port_1 vd_text_u(
 ram2port_2 vd_color_u(
   .data(vd_wrdata[12:7]),
   .rdaddress({txt_xrdaddr,txt_yrdaddr}),
-  .rdclock(~nCLK),
+  .rdclock(VCLK),
   .rden(en_txtrd[0]),
   .wraddress(vd_wraddr),
   .wrclock(CLK_25M),
@@ -409,12 +409,12 @@ reg [3:0] background_color_del = 4'h0;
 reg [7:0] font_addr_msb        = 8'h0;
 reg [7:0] font_color_del       = 8'h0;
 
-always @(negedge nCLK) begin  // delay font selection according to memory delay of chars and color
+always @(posedge VCLK) begin  // delay font selection according to memory delay of chars and color
   background_color_del <= {background_color_del[1:0],background_tmp};
   font_addr_msb  <= {font_addr_msb [3:0],txt_v_cnt[3:0]};
   font_color_del <= {font_color_del[3:0],font_color_tmp};
 
-  if (~nRST) begin
+  if (!nRST) begin
     background_color_del <= 4'h0;
     font_addr_msb        <= 8'h0;
     font_color_del       <= 8'h0;
@@ -427,17 +427,17 @@ wire [7:0] font_word;
 
 rom1port_1 font_mem_u(
   .address({font_addr_msb[7:4],font_addr_lsb}),
-  .clock(~nCLK),
+  .clock(~VCLK),
   .rden(en_txtrd[2]),
   .q(font_word)
 );
 
 reg [11:0] font_pixel_select = 12'h0;
 
-always @(negedge nCLK) begin
+always @(posedge VCLK) begin
   font_pixel_select  <= {font_pixel_select [8:0],txt_h_cnt[2:0]};
 
-  if (~nRST)
+  if (!nRST)
     font_pixel_select  <= 12'h0;
 end
 
@@ -467,7 +467,7 @@ wire [`VDATA_I_CO_SLICE] txt_color = (font_color == `FONTCOLOR_WHITE)       ? `O
                                      (font_color == `FONTCOLOR_NAVAJOWHITE) ? `OSD_TXT_COLOR_NAVAJOWHITE :
                                                                               `OSD_TXT_COLOR_DARKGOLD    ;
 
-always @(negedge nCLK) begin
+always @(posedge VCLK) begin
   // pass through sync
   video_data_o[`VDATA_I_SY_SLICE] <= video_data_i[`VDATA_I_SY_SLICE];
 

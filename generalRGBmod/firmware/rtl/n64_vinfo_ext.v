@@ -36,7 +36,7 @@
 
 
 module n64_vinfo_ext(
-  nCLK,
+  VCLK,
   nDSYNC,
 
   Sync_pre,
@@ -47,7 +47,7 @@ module n64_vinfo_ext(
 
 `include "vh/n64rgb_params.vh"
 
-input nCLK;
+input VCLK;
 input nDSYNC;
 
 input  [3:0] Sync_pre;
@@ -69,7 +69,7 @@ wire negedge_nHSYNC =  Sync_pre[1] & !Sync_cur[1];
 
 reg [1:0] data_cnt = 2'b00;
 
-always @(negedge nCLK) begin // data register management
+always @(posedge VCLK) begin // data register management
   if (!nDSYNC)
     data_cnt <= 2'b01;  // reset data counter
   else
@@ -83,7 +83,7 @@ end
 reg FrameID  = 1'b0; // 0 = even frame, 1 = odd frame; 240p: only even or only odd frames; 480i: even and odd frames
 reg n64_480i = 1'b1; // 0 = 240p/288p , 1= 480i/576i
 
-always @(negedge nCLK) begin
+always @(posedge VCLK) begin
   if (!nDSYNC) begin
     if (negedge_nVSYNC) begin    // negedge at nVSYNC
       if (negedge_nHSYNC) begin  // negedge at nHSYNC, too -> odd frame
@@ -104,7 +104,7 @@ end
 reg [1:0] line_cnt;     // PAL: line_cnt[1:0] == 0x ; NTSC: line_cnt[1:0] = 1x
 reg       vmode = 1'b0; // PAL: vmode == 1          ; NTSC: vmode == 0
 
-always @(negedge nCLK) begin
+always @(posedge VCLK) begin
   if (!nDSYNC) begin
     if(posedge_nVSYNC) begin // posedge at nVSYNC detected - reset line_cnt and set vmode
       line_cnt <= 2'b00;

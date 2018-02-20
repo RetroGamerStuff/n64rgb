@@ -54,7 +54,7 @@ set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "3.3-V LVTTL"
 
 ## N64 Video Input
 ## ===============
-set_location_assignment PIN_12 -to nCLK
+set_location_assignment PIN_12 -to VCLK
 set_location_assignment PIN_14 -to nDSYNC
 set_location_assignment PIN_21 -to D_i[0]
 set_location_assignment PIN_20 -to D_i[1]
@@ -64,7 +64,7 @@ set_location_assignment PIN_17 -to D_i[4]
 set_location_assignment PIN_16 -to D_i[5]
 set_location_assignment PIN_15 -to D_i[6]
 
-set_instance_assignment -name GLOBAL_SIGNAL GLOBAL_CLOCK -to nCLK
+set_instance_assignment -name GLOBAL_SIGNAL GLOBAL_CLOCK -to VCLK
 set_instance_assignment -name GLOBAL_SIGNAL GLOBAL_CLOCK -to nDSYNC
 
 
@@ -135,6 +135,7 @@ set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files/viletim
 set_global_assignment -name TOP_LEVEL_ENTITY n64rgb_viletim_sw_top
 set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED WITH BUS-HOLD"
 set_global_assignment -name MAXII_OPTIMIZATION_TECHNIQUE AREA
+set_global_assignment -name OPTIMIZE_HOLD_TIMING "ALL PATHS"
 
 
 ## Additions by Quartus Prime

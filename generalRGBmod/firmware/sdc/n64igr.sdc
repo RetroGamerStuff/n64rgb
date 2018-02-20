@@ -45,7 +45,7 @@ create_clock -name {CTRL_i} -period 2000.000 -waveform { 0.000 1000.000 } [get_p
 # Create Generated Clock
 #**************************************************************
 
-create_generated_clock -name CLK_4M -source [get_ports {nCLK}] -divide_by 12 [get_registers {n64_igr:igr|CLK_4M}]
+create_generated_clock -name CLK_4M -source [get_ports {VCLK}] -divide_by 12 [get_registers {n64_igr:igr|CLK_4M}]
 
 
 #**************************************************************
