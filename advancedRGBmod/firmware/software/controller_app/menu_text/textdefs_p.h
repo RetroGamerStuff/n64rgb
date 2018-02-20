@@ -75,9 +75,9 @@
 #define CFG_SL_OVERLAY_V_OFFSET   OVERLAY_V_OFFSET_WH
 #define CFG_SL_VALS_H_OFFSET      (25 + CFG_SL_OVERLAY_H_OFFSET)
 #define CFG_SL_VALS_V_OFFSET      CFG_SL_OVERLAY_V_OFFSET
-#define CFG_SL_EN_V_OFFSET        ( 1 + CFG_SL_VALS_V_OFFSET)
-#define CFG_SL_ID_V_OFFSET        ( 2 + CFG_SL_VALS_V_OFFSET)
-#define CFG_SL_STR_V_OFFSET       ( 3 + CFG_SL_VALS_V_OFFSET)
+#define CFG_SL_EN_V_OFFSET        ( 0 + CFG_SL_VALS_V_OFFSET)
+#define CFG_SL_ID_V_OFFSET        ( 1 + CFG_SL_VALS_V_OFFSET)
+#define CFG_SL_STR_V_OFFSET       ( 2 + CFG_SL_VALS_V_OFFSET)
 
 #define MISC_OVERLAY_H_OFFSET     OVERLAY_H_OFFSET
 #define MISC_OVERLAY_V_OFFSET     OVERLAY_V_OFFSET_WH
@@ -85,7 +85,7 @@
 #define MISC_VALS_V_OFFSET        CFG_OVERLAY_V_OFFSET
 #define MISC_IGR_RESET_V_OFFSET   ( 1 + MISC_VALS_V_OFFSET)
 #define MISC_IGR_QUICK_V_OFFSET   ( 2 + MISC_VALS_V_OFFSET)
-#define MISC_FILTERADDON_V_OFFSET ( 4 + MISC_VALS_V_OFFSET)
+#define MISC_FILTERADDON_V_OFFSET ( 5 + MISC_VALS_V_OFFSET)
 
 #define RWDATA_OVERLAY_H_OFFSET  OVERLAY_H_OFFSET
 #define RWDATA_OVERLAY_V_OFFSET  OVERLAY_V_OFFSET_WH
@@ -148,7 +148,7 @@ static const char *cfg_overlay =
     "* Linedoubling:\n"
     "  - LineX2:\n"
     "  - 480i de-int. (bob):\n"
-    "  - Scanlines:            [Submenu]\n"
+    "  - Scanlines:\n"
     "* Output Format:\n"
     "* 240p-DeBlur:\n"
     "* 15bit Mode:\n"
@@ -212,7 +212,7 @@ static const char *license_overlay =
     "This project is published under GNU GPL v3.0 or\n"
     "later. You should have received a copy of the GNU\n"
     "General Public License along with this project.\n"
-    " If not, see\n"
+    "If not, see\n"
     "        <http://www.gnu.org/licenses/>.\n\n"
     "What ever you do, also respect licenses of third\n"
     "party vendors providing the design tools...";
@@ -229,6 +229,7 @@ static const char *home_overlay =
     "Acknowledgment...\n"
     "License...";
 
+const char *EnterSubMenu = "[Enter submenu]";
 
 const char *OffOn[]        = {"Off","On"};
 const char *EvenOdd[]      = {"Even","Odd"};
@@ -237,7 +238,7 @@ const char *VideoColor[]   = {"21bit","15bit"};
 const char *VideoFormat[]  = {"RGBS","RGBS/RGsB","YPbPr"};
 const char *DeBlur[]       = {"(estimated)","(forced)","(480i/576i)"};
 const char *DeBlurCfg[]    = {"Auto","Off","Always"};
-const char *FilterAddOn[]  = {"Auto","9.5MHz","18MHz","Filter bypassed","(not installed)"};
+const char *FilterAddOn[]  = {"Auto","9.5MHz","18MHz","(bypassed)","(not installed)"};
 const char *SLStrength[]   = {"  6.25%"," 12.50%"," 18.75%"," 25.00%",
                               " 31.25%"," 37.50%"," 43,75%"," 50.00%",
                               " 56.25%"," 62.50%"," 68.75%"," 75.00%",

@@ -100,8 +100,6 @@ menu_t home_menu, vinfo_screen, cfg_screen, cfg_sl_subscreen, misc_screen,
 extern config_t linex2, deint480ibob, sl_str, vformat, deblur, mode15bit, gamma_lut;
 extern config_t sl_en, sl_id, sl_str;
 extern config_t igr_reset, igr_quickchange, filteraddon_cutoff;
-extern const char *FilterAddOn[];
-
 
 menu_t home_menu = {
     .type = HOME,
@@ -260,7 +258,7 @@ updateaction_t apply_command(cmd_t command, menu_t* *current_menu, configuration
       if (sel == 1) (*current_menu)->current_selection = 3;
       if (sel == 2) (*current_menu)->current_selection = 0;
     }
-    if (is_misc_screen(*current_menu) && sel == 3 && !use_filteraddon)
+    if (is_misc_screen(*current_menu) && sel == 2 && !use_filteraddon)
       (*current_menu)->current_selection = (command == CMD_MENU_UP) ? 1 : 0;
 
     return todo;
@@ -448,28 +446,37 @@ int update_cfg_screen(menu_t* current_menu)
     h_r_offset = current_menu->leaves[v_run].arrow_desc->rarrow_hpos - 2;
     v_offset   = current_menu->leaves[v_run].id;
 
-    val_select     = cfg_get_value(current_menu->leaves[v_run].config_value,0);
-    ref_val_select = cfg_get_value(current_menu->leaves[v_run].config_value,use_flash);
+    if (current_menu->leaves[v_run].leavetype == ISUBMENU) {
+      font_color = FONTCOLOR_WHITE;
+      if (is_cfg_screen(current_menu) && ((v_run == 1) || (v_run == 2)) &&
+                (!cfg_get_value(current_menu->leaves[0].config_value,0))    )
+        font_color = FONTCOLOR_GREY;
+      vd_print_string(h_l_offset,v_offset,background_color,font_color,EnterSubMenu);
+    }
+    else if (current_menu->leaves[v_run].leavetype == ICONFIG) {
+      val_select     = cfg_get_value(current_menu->leaves[v_run].config_value,0);
+      ref_val_select = cfg_get_value(current_menu->leaves[v_run].config_value,use_flash);
 
-//    if (current_menu->current_selection == v_run) {
-//      background_color = OPT_WINDOWCOLOR_BG;
-//      font_color = OPT_WINDOWCOLOR_FONT;
-//    } else {
-      background_color = BACKGROUNDCOLOR_STANDARD;
-      font_color = (val_select == ref_val_select) ? FONTCOLOR_WHITE : FONTCOLOR_YELLOW;
-//    }
+//      if (current_menu->current_selection == v_run) {
+//        background_color = OPT_WINDOWCOLOR_BG;
+//        font_color = OPT_WINDOWCOLOR_FONT;
+//      } else {
+        background_color = BACKGROUNDCOLOR_STANDARD;
+        font_color = (val_select == ref_val_select) ? FONTCOLOR_WHITE : FONTCOLOR_YELLOW;
+//      }
 
-    if (is_cfg_screen(current_menu) && ((v_run == 1) || (v_run == 2)) &&
-        (!cfg_get_value(current_menu->leaves[0].config_value,0))    )
-      font_color = (val_select == ref_val_select) ? FONTCOLOR_GREY : FONTCOLOR_DARKORANGE;
+      if (is_cfg_screen(current_menu) && ((v_run == 1) || (v_run == 2)) &&
+          (!cfg_get_value(current_menu->leaves[0].config_value,0))    )
+        font_color = (val_select == ref_val_select) ? FONTCOLOR_GREY : FONTCOLOR_DARKORANGE;
 
-    if (v_run == current_menu->current_selection)
-      vd_clear_area(h_l_offset,h_r_offset,v_offset,v_offset);
+      if (v_run == current_menu->current_selection)
+        vd_clear_area(h_l_offset,h_r_offset,v_offset,v_offset);
 
-    if (is_misc_screen(current_menu) && v_run == 3 && use_filteraddon)
-      vd_print_string(h_l_offset,v_offset - 1,background_color,FONTCOLOR_GREY,FilterAddOn[4]);
-    else
-      vd_print_string(h_l_offset,v_offset,background_color,font_color,current_menu->leaves[v_run].config_value->value_string[val_select]);
+      if (is_misc_screen(current_menu) && v_run == 2 && !use_filteraddon)
+        vd_print_string(h_l_offset-2,v_offset - 1,background_color,FONTCOLOR_GREY,FilterAddOn[4]);
+      else
+        vd_print_string(h_l_offset,v_offset,background_color,font_color,current_menu->leaves[v_run].config_value->value_string[val_select]);
+    }
   }
 
   return 0;

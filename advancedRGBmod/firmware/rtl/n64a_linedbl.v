@@ -287,19 +287,18 @@ lpm_mult_0 calc_SL_R(
 );
 
 lpm_mult_0 calc_SL_G(
-  .dataa(R_buf),
+  .dataa(G_buf),
   .datab(nSL_str),
   .result(SL_G)
 );
 
 lpm_mult_0 calc_SL_B(
-  .dataa(R_buf),
+  .dataa(B_buf),
   .datab(nSL_str),
   .result(SL_B)
 );
 
 always @(posedge PX_CLK_4x) begin
-
   if (rdcnt_buf ^ rdcnt) begin
     S_o[0] <= 1'b0;
     S_o[1] <= 1'b0;

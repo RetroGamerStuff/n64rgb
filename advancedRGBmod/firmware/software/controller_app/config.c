@@ -173,10 +173,10 @@ int cfg_load_jumperset(configuration_t* sysconfig)
 
   switch ((jumper_word & JUMPER_ICFG_SLSTR_GETMASK) >> JUMPER_SLSTR_OFFSET) {
     case 1:
-      sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= (0x4<<CFG_SLSTR_OFFSET);  // 25%
+      sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= (0x3<<CFG_SLSTR_OFFSET);  // 25%
       break;
     case 2:
-      sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= (0x8<<CFG_SLSTR_OFFSET);  // 50%
+      sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= (0x7<<CFG_SLSTR_OFFSET);  // 50%
       break;
     case 3:
       sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= (0xF<<CFG_SLSTR_OFFSET);  // 100%
