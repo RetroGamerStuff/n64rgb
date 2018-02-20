@@ -219,6 +219,11 @@ set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to nCSYNC
 set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to nVSYNC_or_F2
 set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to nHSYNC_or_F1
 
+## Synthesis and Fitter Assignments
+## ================================
+
+set_global_assignment -name OPTIMIZE_HOLD_TIMING "ALL PATHS"
+
 ## Additions by Quartus Prime
 ## ==========================
 set_global_assignment -name NUM_PARALLEL_PROCESSORS 2
