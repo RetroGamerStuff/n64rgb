@@ -183,8 +183,8 @@ wire [3:0] vinfo_pass;
 n64_vinfo_ext get_vinfo(
   .VCLK(VCLK),
   .nDSYNC(nDSYNC),
-  .Sync_pre(vdata_ir[1][`VDATA_I_SY_SLICE]),
-  .Sync_cur(vdata_ir[0][`VDATA_I_SY_SLICE]),
+  .Sync_pre(vdata_ir[0][`VDATA_I_SY_SLICE]),
+  .Sync_cur(D_i[3:0]),
   .vinfo_o(vinfo_pass)
 );
 
@@ -214,7 +214,7 @@ n64_vdemux video_demux(
   .VCLK(VCLK),
   .nDSYNC(nDSYNC),
   .D_i(D_i),
-  .demuxparams_i({vinfo_pass,ndo_deblur,n15bit_mode}),
+  .demuxparams_i({vinfo_pass[3:1],ndo_deblur,n15bit_mode}),
   .vdata_r_0(vdata_ir[0]),
   .vdata_r_1(vdata_ir[1])
 );
@@ -222,7 +222,6 @@ n64_vdemux video_demux(
 
 // Part 5: Post-Processing
 // =======================
-
 
 // Part 5.1: Line Multiplier
 // =========================

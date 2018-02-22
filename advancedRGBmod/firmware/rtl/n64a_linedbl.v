@@ -74,12 +74,11 @@ wire [color_width_i-1:0] R_i = vdata_i[`VDATA_I_RE_SLICE];
 wire [color_width_i-1:0] G_i = vdata_i[`VDATA_I_GR_SLICE];
 wire [color_width_i-1:0] B_i = vdata_i[`VDATA_I_BL_SLICE];
 
-
 wire nENABLE_linedbl = vinfo_dbl[4] | ~rdrun[1];
 wire [1:0]    SL_str = vinfo_dbl[3:2];
 
-wire n64_480i = vinfo_dbl[1];
-wire pal_mode = vinfo_dbl[0];
+wire pal_mode = vinfo_dbl[1];
+wire n64_480i = vinfo_dbl[0];
 
 
 // start of rtl

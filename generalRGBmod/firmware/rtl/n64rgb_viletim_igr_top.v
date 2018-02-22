@@ -190,7 +190,7 @@ n64_vdemux video_demux(
   .VCLK(VCLK),
   .nDSYNC(nDSYNC),
   .D_i(D_i),
-  .demuxparams_i({vinfo_pass,ndo_deblur,n15bit_mode}),
+  .demuxparams_i({vinfo_pass[3:1],ndo_deblur,n15bit_mode}),
   .vdata_r_0(vdata_r),
   .vdata_r_1({nVSYNC,nCLAMP,nHSYNC,nCSYNC,R_o,G_o,B_o})
 );
