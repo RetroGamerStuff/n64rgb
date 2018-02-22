@@ -1,4 +1,4 @@
-## Generated SDC file "n64a_sdc.sdc"
+## Generated SDC file "n64advanced.sdc"
 
 ## Copyright (C) 2017  Intel Corporation. All rights reserved.
 ## Your use of Intel Corporation's design tools, logic functions 
@@ -41,6 +41,7 @@ set_time_format -unit ns -decimal_places 3
 
 create_clock -name {VCLK} -period 20.000 -waveform { 0.000 10.000 } [get_ports { VCLK }]
 create_clock -name {SYS_CLK} -period 20.000 -waveform { 0.000 10.000 } [get_ports { SYS_CLK }]
+create_clock -name {nDSYNC} -period 80.000 -waveform { 0.000 60.000 } [get_ports { nDSYNC }]
 
 
 #**************************************************************
@@ -67,6 +68,12 @@ derive_clock_uncertainty
 # Set Input Delay
 #**************************************************************
 
+set_input_delay -clock { VCLK } -min 5.4 [get_ports {nDSYNC}]
+set_input_delay -clock { VCLK } -max 6.4 [get_ports {nDSYNC}]
+set_input_delay -clock { VCLK } -min 5.4 [get_ports {D_i[*]}]
+set_input_delay -clock { VCLK } -max 6.4  [get_ports {D_i[*]}]
+set_input_delay -clock { nDSYNC } -min -1 -add_delay [get_ports {D_i[*]}]
+set_input_delay -clock { nDSYNC } -max 1 -add_delay [get_ports {D_i[*]}]
 
 
 #**************************************************************
@@ -79,6 +86,7 @@ derive_clock_uncertainty
 # Set Clock Groups
 #**************************************************************
 
+set_clock_groups -asynchronous -group [get_clocks {altera_reserved_tck}] 
 
 
 #**************************************************************

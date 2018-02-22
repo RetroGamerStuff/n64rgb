@@ -64,6 +64,12 @@ create_clock -name {nDSYNC} -period 80.000 -waveform { 0.000 60.000 } [get_ports
 # Set Input Delay
 #**************************************************************
 
+set_input_delay -clock { VCLK } -min 5.4 [get_ports {nDSYNC}]
+set_input_delay -clock { VCLK } -max 6.4 [get_ports {nDSYNC}]
+set_input_delay -clock { VCLK } -min 5.4 [get_ports {D_i[*]}]
+set_input_delay -clock { VCLK } -max 6.4  [get_ports {D_i[*]}]
+set_input_delay -clock { nDSYNC } -min -1 -add_delay [get_ports {D_i[*]}]
+set_input_delay -clock { nDSYNC } -max 1 -add_delay [get_ports {D_i[*]}]
 
 
 #**************************************************************
