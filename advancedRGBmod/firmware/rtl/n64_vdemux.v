@@ -114,7 +114,8 @@ end
 always @(posedge VCLK) begin // data register management
   if (!nDSYNC) begin
     // shift data to output registers
-    vdata_r_1[`VDATA_I_SY_SLICE] <= vdata_r_0[`VDATA_I_SY_SLICE];
+    if (ndo_deblur)
+      vdata_r_1[`VDATA_I_SY_SLICE] <= vdata_r_0[`VDATA_I_SY_SLICE];
 
     if (nblank_rgb)  // deblur active: pass RGB only if not blanked
       vdata_r_1[`VDATA_I_CO_SLICE] <= vdata_r_0[`VDATA_I_CO_SLICE];
@@ -133,6 +134,8 @@ always @(posedge VCLK) begin // data register management
          vdata_gr[`VDATA_I_BL_SLICE] <= data_gamma_rom;
                       addr_gamma_rom <= vdata_r_1[`VDATA_I_GR_SLICE];
         vdata_r_0[`VDATA_I_GR_SLICE] <= n15bit_mode ? D_i : {D_i[6:2], 2'b00};
+        if (!ndo_deblur)
+          vdata_r_1[`VDATA_I_SY_SLICE] <= vdata_r_0[`VDATA_I_SY_SLICE];
       end
       2'b11: begin
                       addr_gamma_rom <= vdata_r_1[`VDATA_I_BL_SLICE];
