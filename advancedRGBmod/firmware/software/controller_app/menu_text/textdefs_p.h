@@ -189,7 +189,7 @@ static const char *thanks_overlay =
     "              as well as 480i/576i detection\n"
     " - sftwninja: Pushing me to the N64A project\n"
     " - Xenogears: Sponsoring of prototypes\n\n"
-    "Visit GitHub:\n"
+    "Visit the GitHub project:\n"
     "      <https://github.com/borti4938/n64rgb>\n"
     "Any contribution in any kind is highly welcomed!";
   /* 1234567890123456789012345678901234567890123456789012 */
