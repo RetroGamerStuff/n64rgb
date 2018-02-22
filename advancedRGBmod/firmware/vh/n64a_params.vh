@@ -122,8 +122,8 @@ parameter vdata_width_o = 4 + 3*color_width_o;
   `define MAX_TEXT_ROWS     4'd11
 
   // positioning of OSD window (not linedoubled)
-  `define OSD_WINDOW_H_START 10'd128
-  `define OSD_WINDOW_H_STOP  10'd559  // 7 pixels left margin + 416 (8x52) pixels free text + 7 pixel right margin + 2 unequality comparision
+  `define OSD_WINDOW_H_START 10'd160
+  `define OSD_WINDOW_H_STOP  10'd591  // 7 pixels left margin + 416 (8x52) pixels free text + 7 pixel right margin + 2 unequality comparision
 //  `define OSD_WINDOW_V_START  8'd32
 //  `define OSD_WINDOW_V_STOP   8'd227  // 25 lines header + 144 (12x12) lines free text + 25 line footer + 2 unequality comparision
   `define OSD_WINDOW_V_START  8'd50
@@ -131,8 +131,8 @@ parameter vdata_width_o = 4 + 3*color_width_o;
 
 
   // define some areas in the OSD windows
-  `define OSD_TXT_H_START    10'd135
-  `define OSD_TXT_H_STOP     10'd552
+  `define OSD_TXT_H_START    10'd167
+  `define OSD_TXT_H_STOP     10'd584
   `define OSD_HEADER_V_STOP   8'd57
   `define OSD_FOOTER_V_START  8'd202
 
