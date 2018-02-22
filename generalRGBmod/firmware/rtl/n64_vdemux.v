@@ -52,7 +52,7 @@ input VCLK;
 input nDSYNC;
 
 input  [color_width-1:0] D_i;
-input  [            5:0] demuxparams_i;
+input  [            4:0] demuxparams_i;
 
 output reg [`VDATA_FU_SLICE] vdata_r_0; // buffer for sync, red, green and blue
 output reg [`VDATA_FU_SLICE] vdata_r_1; // (unpacked array types in ports requires system verilog)
@@ -60,8 +60,7 @@ output reg [`VDATA_FU_SLICE] vdata_r_1; // (unpacked array types in ports requir
 
 // unpack demux params
 
-wire [1:0] data_cnt     = demuxparams_i[5:4];
-wire       n64_480i     = demuxparams_i[  3];
+wire [1:0] data_cnt     = demuxparams_i[4:3];
 wire       vmode        = demuxparams_i[  2];
 wire       ndo_deblur   = demuxparams_i[  1];
 reg        n15bit_mode; // = demuxparams_i[  0] (updated each frame)
@@ -75,7 +74,7 @@ reg nblank_rgb = 1'b1;
 
 always @(posedge VCLK)
   if (!nDSYNC) begin
-    if (n64_480i | ndo_deblur) begin
+    if (ndo_deblur) begin
       nblank_rgb <= 1'b1;
     end else begin
       if(posedge_nCSYNC) // posedge nCSYNC -> reset blanking

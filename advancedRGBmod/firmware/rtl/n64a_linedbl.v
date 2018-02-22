@@ -78,8 +78,8 @@ wire nENABLE_linedbl =  vinfo_dbl[8] | ~rdrun[1];
 wire [3:0] nSL_str   = ~vinfo_dbl[7:4];
 wire       SL_id     =  vinfo_dbl[3];
 wire       SL_en     =  vinfo_dbl[2];
-wire       n64_480i  =  vinfo_dbl[1];
-wire       pal_mode  =  vinfo_dbl[0];
+wire       pal_mode  =  vinfo_dbl[1];
+wire       n64_480i  =  vinfo_dbl[0];
 
 // start of rtl
 

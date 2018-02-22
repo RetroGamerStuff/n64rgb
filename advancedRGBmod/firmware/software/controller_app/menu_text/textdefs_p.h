@@ -233,7 +233,7 @@ const char *EnterSubMenu = "[Enter submenu]";
 
 const char *OffOn[]        = {"Off","On"};
 const char *EvenOdd[]      = {"Even","Odd"};
-const char *VideoMode[]    = {"240p60","288p50","480i60","576i50","480p60","576p50"};
+const char *VideoMode[]    = {"240p60","480i60","288p50","576i50","480p60","576p50"};
 const char *VideoColor[]   = {"21bit","15bit"};
 const char *VideoFormat[]  = {"RGBS","RGBS/RGsB","YPbPr"};
 const char *DeBlur[]       = {"(estimated)","(forced)","(480i/576i)"};

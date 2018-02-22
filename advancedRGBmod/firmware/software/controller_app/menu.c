@@ -367,20 +367,20 @@ int update_vinfo_screen(menu_t* current_menu, configuration_t* sysconfig, alt_u8
   static alt_u8 video_sd_ed;
 
   // Video Input
-  str_select = ((info_data & (INFO_480I_GETMASK | INFO_VMODE_GETMASK)) >> INFO_VMODE_OFFSET);
+  str_select = ((info_data & (INFO_480I_GETMASK | INFO_VMODE_GETMASK)) >> INFO_480I_OFFSET);
   vd_clear_lineend(INFO_VALS_H_OFFSET,INFO_VIN_V_OFFSET);
   vd_print_string(INFO_VALS_H_OFFSET,INFO_VIN_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,VideoMode[str_select]);
 
   // Video Output
   switch((((sysconfig->cfg_word_def[VIDEO]->cfg_word_val & (CFG_LINEX2_GETMASK | CFG_480IBOB_GETMASK)) >> (CFG_480IBOB_OFFSET - 2)) | str_select) & 0xF) {
-   /* order: lineX2, 480ibob, 480i, pal */
+   /* order: lineX2, 480ibob, pal, 480i */
     case 0xF: /* 1111 */
-    case 0xD: /* 1101 */
-    case 0x9: /* 1001 */
+    case 0xE: /* 1110 */
+    case 0xA: /* 1010 */
       str_select  = 5;
       video_sd_ed = 1;
       break;
-    case 0xE: /* 1110 */
+    case 0xD: /* 1101 */
     case 0xC: /* 1100 */
     case 0x8: /* 1000 */
       str_select  = 4;

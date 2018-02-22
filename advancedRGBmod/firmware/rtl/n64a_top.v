@@ -124,10 +124,10 @@ input       n480i_bob;
 
 assign SYS_CLKen = 1'b1;
 
-wire n64_480i = vinfo_pass[1];
-wire vmode    = vinfo_pass[0];
+wire vmode    = vinfo_pass[1];
+wire n64_480i = vinfo_pass[0];
 
-wire [ 3:0] InfoSet = {n64_480i,vmode,~ndo_deblur,UseVGA_HVSync};
+wire [ 3:0] InfoSet = {vmode,n64_480i,~ndo_deblur,UseVGA_HVSync};
 wire [ 6:0] JumperCfgSet = {nFilterBypass,n240p,~n480i_bob,~SL_str,~nEN_YPbPr,(nEN_YPbPr & ~nEN_RGsB)}; // (~nEN_YPbPr | nEN_RGsB) ensures that not both jumpers are set and passed through the NIOS II
 wire [20:0] OutConfigSet;
 
@@ -184,8 +184,8 @@ wire [3:0] vinfo_pass;
 n64_vinfo_ext get_vinfo(
   .VCLK(VCLK),
   .nDSYNC(nDSYNC),
-  .Sync_pre(vdata_r[1][`VDATA_I_SY_SLICE]),
-  .Sync_cur(vdata_r[0][`VDATA_I_SY_SLICE]),
+  .Sync_pre(vdata_r[0][`VDATA_I_SY_SLICE]),
+  .Sync_cur(D_i[3:0]),
   .vinfo_o(vinfo_pass)
 );
 
@@ -216,7 +216,7 @@ n64_vdemux video_demux(
   .nDSYNC(nDSYNC),
   .nRST(nRST),
   .D_i(D_i),
-  .demuxparams_i({vinfo_pass,ndo_deblur,n15bit_mode}),
+  .demuxparams_i({vinfo_pass[3:1],ndo_deblur,n15bit_mode}),
   .gammaparams_i(cfg_gamma),
   .vdata_r_0(vdata_r[0]),
   .vdata_r_1(vdata_r[1]),

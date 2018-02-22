@@ -58,15 +58,15 @@ input nRST;
 input [`VDATA_I_FU_SLICE] vdata_pre;
 input [color_width_i-1:0] D_i;
 
-input  [5:0] deblurparams_i;          // order: data_cnt,n64_480i,blurry_pixel_pos,nForceDeBlur,nDeBlurMan
+input  [5:0] deblurparams_i;          // order: data_cnt,vmode,n64_480i,nForceDeBlur,nDeBlurMan
 output reg  ndo_deblur = 1'b1;
 
 
 // some pre-assignments and definitions
 
 wire   [1:0] data_cnt = deblurparams_i[5:4];
-wire         n64_480i = deblurparams_i[  3];
-wire            vmode = deblurparams_i[  2];
+wire            vmode = deblurparams_i[  3];
+wire         n64_480i = deblurparams_i[  2];
 wire     nForceDeBlur = deblurparams_i[  1];
 wire       nDeBlurMan = deblurparams_i[  0];
 
