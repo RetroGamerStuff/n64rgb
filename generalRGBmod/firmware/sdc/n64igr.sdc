@@ -38,7 +38,6 @@ set_time_format -unit ns -decimal_places 3
 # Create Clock
 #**************************************************************
 
-create_clock -name {CTRL_i} -period 2000.000 -waveform { 0.000 1000.000 } [get_ports { CTRL_nAutoDB }]
 
 
 #**************************************************************

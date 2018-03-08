@@ -63,7 +63,6 @@ set_location_assignment PIN_7 -to D_i[5]
 set_location_assignment PIN_6 -to D_i[6]
 
 set_instance_assignment -name GLOBAL_SIGNAL GLOBAL_CLOCK -to VCLK
-set_instance_assignment -name GLOBAL_SIGNAL GLOBAL_CLOCK -to nDSYNC
 
 
 ## Controller and Reset
