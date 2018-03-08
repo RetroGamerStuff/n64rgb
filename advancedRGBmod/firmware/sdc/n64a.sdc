@@ -77,6 +77,8 @@ set_input_delay -clock { VCLK } -max 6.4  [get_ports {D_i[*]}]
 # Set Output Delay
 #**************************************************************
 
+set_output_delay -clock { n64a_linedbl:linedoubler|altpll_0:vid_pll|altpll:altpll_component|altpll_0_altpll:auto_generated|wire_pll1_clk[0] } -max 0.2 [get_ports {V1_o* V2_o* V3_o* nCSYNC_ADV712x}] -add
+set_output_delay -clock { n64a_linedbl:linedoubler|altpll_0:vid_pll|altpll:altpll_component|altpll_0_altpll:auto_generated|wire_pll1_clk[0] } -min -1.5 [get_ports {V1_o* V2_o* V3_o* nCSYNC_ADV712x}] -add
 
 
 #**************************************************************
