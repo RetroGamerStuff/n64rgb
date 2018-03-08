@@ -80,7 +80,8 @@ int main()
   alt_u32 ctrl_data;
   alt_u8  info_data;
 
-  static alt_u8  info_data_pre = 0;
+  static alt_u8 ctrl_update = 1;
+  static alt_u8 info_data_pre = 0;
 
   static int message_cnt = 0;
 
@@ -106,10 +107,15 @@ int main()
 
   /* Event loop never exits. */
   while (1) {
-    ctrl_data = get_ctrl_data();
+    if (ctrl_update) {
+      ctrl_data = get_ctrl_data();
+      command = ctrl_data_to_cmd(&ctrl_data);
+    } else {
+      command = CMD_NON;
+    }
+
     info_data = get_info_data();
 
-    command = ctrl_data_to_cmd(&ctrl_data);
 
     if(cfg_get_value(&show_osd,0)) {
 
@@ -204,9 +210,9 @@ int main()
     cfg_apply_to_logic(&sysconfig);
 
     /* ToDo: use external interrupt to go on on nVSYNC */
-    while(!get_nvsync())                         {};  /* wait for nVSYNC goes high */
-    while( get_nvsync() && new_ctrl_available()) {};  /* wait for nVSYNC goes low and
-                                                         wait for new controller available */
+    while(!get_nvsync()){};  /* wait for nVSYNC goes high */
+    while( get_nvsync()){};  /* wait for nVSYNC goes low  */
+    ctrl_update = new_ctrl_available();
   }
 
   return 0;
