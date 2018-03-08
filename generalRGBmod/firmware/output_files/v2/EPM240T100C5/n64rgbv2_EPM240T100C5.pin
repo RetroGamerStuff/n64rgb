@@ -73,7 +73,7 @@ RESERVED_INPUT_WITH_BUS_HOLD : 8         :        :                   :         
 VCCIO1                       : 9         : power  :                   : 3.3V    : 1         :                
 GNDIO                        : 10        : gnd    :                   :         :           :                
 GNDINT                       : 11        : gnd    :                   :         :           :                
-nCLK                         : 12        : input  : 3.3-V LVTTL       :         : 1         : Y              
+VCLK                         : 12        : input  : 3.3-V LVTTL       :         : 1         : Y              
 VCCINT                       : 13        : power  :                   : 2.5V/3.3V :           :                
 nDSYNC                       : 14        : input  : 3.3-V LVTTL       :         : 1         : Y              
 D_i[4]                       : 15        : input  : 3.3-V LVTTL       :         : 1         : Y              
