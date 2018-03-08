@@ -192,7 +192,6 @@ set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files/10cl006ye144
 
 ## Current Strength
 ## ================
-
 set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to SYS_CLKen
 set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to nRST
 
@@ -231,8 +230,10 @@ set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to nHSYNC_
 
 ## Assignments for Synthesis and Fitter
 ## ====================================
-
+set_global_assignment -name SMART_RECOMPILE ON
 set_global_assignment -name OPTIMIZE_HOLD_TIMING "ALL PATHS"
+set_global_assignment -name TIMEQUEST_MULTICORNER_ANALYSIS ON
+
 
 ## Additions by Quartus Prime
 ## ==========================
