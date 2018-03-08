@@ -134,6 +134,7 @@ set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to install_type
 
 ## Files
 ## =====
+set_global_assignment -name TOP_LEVEL_ENTITY n64rgbv1_top
 set_global_assignment -name VERILOG_FILE rtl/n64rgbv1_top.v
 set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64rgb_params.vh
 set_global_assignment -name VERILOG_FILE rtl/n64_igr.v
@@ -148,7 +149,7 @@ set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files/v1/5M240ZT100C
 
 ## Synthesis and Fitter Settings
 ## =============================
-set_global_assignment -name TOP_LEVEL_ENTITY n64rgbv1_top
+set_global_assignment -name SMART_RECOMPILE ON
 set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED WITH BUS-HOLD"
 
 
