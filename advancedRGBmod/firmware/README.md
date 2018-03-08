@@ -61,7 +61,11 @@
 Everytime the HDL code has been compiled or the NIOS II core has been adapted, the BSP has to be generated.
 - right click on the bsp project
 - For the **first time** select _NIOS II_ -> _BSP Editor..._
-  - check **_enable\_small\_c\_library_** and **_enable\_reduced\_device\_drivers_**
+  - in section **Settings -> Common**:
+    - check **_enable\_small\_c\_library_** and **_enable\_reduced\_device\_drivers_**
+    - write _"-O2"_ into the field for **bsp_cflag_optimization**
+  - in section **Settings -> Advanced**:
+    - uncheck **enable\_exit** and **enable\_clean\_exit**
   - click on _Generate_ and _Exit_ 
 - Every other time it is sufficient to select _NIOS II_ -> _Generate BSP_
 
