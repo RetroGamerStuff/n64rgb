@@ -39,7 +39,6 @@ set_time_format -unit ns -decimal_places 3
 #**************************************************************
 
 create_clock -name {VCLK} -period 20.000 -waveform { 0.000 10.000 } [get_ports { VCLK }]
-create_clock -name {nDSYNC} -period 80.000 -waveform { 0.000 60.000 } [get_ports { nDSYNC }]
 
 
 #**************************************************************
@@ -68,8 +67,6 @@ set_input_delay -clock { VCLK } -min 5.4 [get_ports {nDSYNC}]
 set_input_delay -clock { VCLK } -max 6.4 [get_ports {nDSYNC}]
 set_input_delay -clock { VCLK } -min 5.4 [get_ports {D_i[*]}]
 set_input_delay -clock { VCLK } -max 6.4  [get_ports {D_i[*]}]
-set_input_delay -clock { nDSYNC } -min -1 -add_delay [get_ports {D_i[*]}]
-set_input_delay -clock { nDSYNC } -max 1 -add_delay [get_ports {D_i[*]}]
 
 
 #**************************************************************
