@@ -228,7 +228,7 @@ n64_vdemux video_demux(
 
 wire VCLK_out;
 
-wire n64_480i = vinfo_pass[1];
+wire n64_480i = vinfo_pass[0];
 
 wire       nENABLE_linedbl = (n64_480i & n480i_bob) | ~n240p_active | ~nRST;
 wire [1:0] SL_str_dbl      =  n64_480i ? 2'b11 : SL_str;
