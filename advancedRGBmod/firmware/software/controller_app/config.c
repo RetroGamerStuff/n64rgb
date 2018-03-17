@@ -34,7 +34,7 @@
 #include "flash.h"
 
 #define FWCFG_MAIN  0 // 0 = test; 1 = master
-#define FWCFG_SUB   1 // running number
+#define FWCFG_SUB   2 // running number
 
 typedef struct {
   alt_u8  vers_cfg_main;
@@ -146,23 +146,27 @@ int cfg_load_n64defaults(configuration_t* sysconfig)
 
   sysconfig->cfg_word_def[MISC]->cfg_word_val &= N64_MISC_CLR_MASK;
   sysconfig->cfg_word_def[MISC]->cfg_word_val |= N64_DEFAULT_MISC_CFG;
-  sysconfig->cfg_word_def[IMAGE]->cfg_word_val &= N64_IMAGE_CLR_MASK;
-  sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= N64_DEFAULT_IMAGE_CFG;
+  sysconfig->cfg_word_def[IMAGE2]->cfg_word_val &= N64_IMAGE2_CLR_MASK;
+  sysconfig->cfg_word_def[IMAGE2]->cfg_word_val |= N64_DEFAULT_IMAGE2_CFG;
+  sysconfig->cfg_word_def[IMAGE1]->cfg_word_val &= N64_IMAGE1_CLR_MASK;
+//  sysconfig->cfg_word_def[IMAGE1]->cfg_word_val |= N64_DEFAULT_IMAGE1_CFG;
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val &= N64_VIDEO_CLR_MASK;
-  sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= N64_DEFAULT_VIDEO_CFG;
+//  sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= N64_DEFAULT_VIDEO_CFG;
 
   return 0;
 }
 
 int cfg_load_jumperset(configuration_t* sysconfig)
 {
-  alt_u8 jumper_word = cfg_get_jumper();
+  alt_u8 jumper_word = cfgopt_get_jumper();
 
   sysconfig->cfg_word_def[MISC]->cfg_word_val  &= JUMPER_MISC_CLR_MASK;
-  sysconfig->cfg_word_def[IMAGE]->cfg_word_val &= JUMPER_IMAGE_CLR_MASK;
-  sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= (N64_DEFAULT_IMAGE_CFG);
+  sysconfig->cfg_word_def[IMAGE2]->cfg_word_val &= JUMPER_IMAGE2_CLR_MASK;
+  sysconfig->cfg_word_def[IMAGE2]->cfg_word_val |= (N64_DEFAULT_IMAGE2_CFG);
+  sysconfig->cfg_word_def[IMAGE1]->cfg_word_val &= JUMPER_IMAGE1_CLR_MASK;
+  sysconfig->cfg_word_def[IMAGE1]->cfg_word_val |= ((N64_DEFAULT_IMAGE1_CFG) | CFG_SL_ID_SETMASK | CFG_SL_EN_SETMASK);
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val &= JUMPER_VIDEO_CLR_MASK;
-  sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= ((jumper_word & JUMPER_VCFG_GETALL_MASK) | CFG_SL_ID_SETMASK | CFG_SL_EN_SETMASK);
+  sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= (jumper_word & JUMPER_VCFG_GETALL_MASK);
 
   if (use_filteraddon) {
     if (jumper_word & JUMPER_MCFG_FILTER_GETMASK)
@@ -173,28 +177,28 @@ int cfg_load_jumperset(configuration_t* sysconfig)
 
   switch ((jumper_word & JUMPER_ICFG_SLSTR_GETMASK) >> JUMPER_SLSTR_OFFSET) {
     case 1:
-      sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= (0x3<<CFG_SLSTR_OFFSET);  // 25%
+      sysconfig->cfg_word_def[IMAGE2]->cfg_word_val |= (0x3<<CFG_SLSTR_OFFSET); // 25%
       break;
     case 2:
-      sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= (0x7<<CFG_SLSTR_OFFSET);  // 50%
+      sysconfig->cfg_word_def[IMAGE2]->cfg_word_val |= (0x7<<CFG_SLSTR_OFFSET); // 50%
       break;
     case 3:
-      sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= (0xF<<CFG_SLSTR_OFFSET);  // 100%
+      sysconfig->cfg_word_def[IMAGE2]->cfg_word_val |= (0xF<<CFG_SLSTR_OFFSET); // 100%
       break;
-    default:                                                                    // 0%
-      sysconfig->cfg_word_def[VIDEO]->cfg_word_val &= CFG_SL_EN_CLRMASK;
+    default:
+      sysconfig->cfg_word_def[IMAGE1]->cfg_word_val &= CFG_SL_EN_CLRMASK;       // 0%
       break;
   }
 
   return 0;
 }
 
-void cfg_apply_to_logic(configuration_t* sysconfig)
+void cfgopt_apply_to_logic(configuration_t* sysconfig)
 {
   int idx;
   alt_u32 wr_word = 0;
-  for (idx = 0; idx < NUM_CFG_WORDS; idx++)
-    wr_word |= (sysconfig->cfg_word_def[idx]->cfg_word_val << (8*sysconfig->cfg_word_def[idx]->cfg_word_type));
+  for (idx = 0; idx < NUM_OPT_WORDS; idx++)
+    wr_word |= ((sysconfig->cfg_word_def[idx]->cfg_word_val & sysconfig->cfg_word_def[idx]->cfg_word_mask) << (8*sysconfig->cfg_word_def[idx]->cfg_word_type));
   IOWR_ALTERA_AVALON_PIO_DATA(CFG_SET_OUT_BASE,wr_word);
 }
 
@@ -205,11 +209,11 @@ void cfg_clear_words(configuration_t* sysconfig)
     sysconfig->cfg_word_def[idx]->cfg_word_val = 0;
 }
 
-void cfg_load_from_ios(configuration_t* sysconfig)
+void cfgopt_load_from_ios(configuration_t* sysconfig)
 {
   int idx;
-  alt_u32 rd_word = IORD_ALTERA_AVALON_PIO_DATA(CFG_SET_OUT_BASE);
-  for (idx = 0; idx < NUM_CFG_WORDS; idx++)
+  alt_u32 rd_word = cfgopt_get_from_logic();
+  for (idx = 0; idx < NUM_OPT_WORDS; idx++)
     sysconfig->cfg_word_def[idx]->cfg_word_val = (rd_word >> (8*sysconfig->cfg_word_def[idx]->cfg_word_type)) & sysconfig->cfg_word_def[idx]->cfg_word_mask;
 }
 

@@ -53,8 +53,9 @@
 extern alt_u8 use_flash;
 
 inline alt_u8 is_cfg_screen (menu_t *menu)  /* ugly hack (ToDo on updates: check for validity, i.e. is this property still unique) */
-  {  return ((menu->leaves[0].config_value->flag_masks.clrflag_mask == CFG_LINEX2_CLRMASK) ||
-             (menu->leaves[0].config_value->flag_masks.clrflag_mask == CFG_SL_EN_CLRMASK )  ); }
+  {  return (menu->leaves[0].config_value->flag_masks.clrflag_mask == CFG_LINEX2_CLRMASK); }
+inline alt_u8 is_cfg_sl_screen (menu_t *menu)
+  { return  (menu->leaves[0].config_value->flag_masks.clrflag_mask == CFG_SL_EN_CLRMASK ); }
 inline alt_u8 is_misc_screen (menu_t *menu) /* ugly hack (ToDo on updates: check for validity, i.e. is this property still unique) */
   {  return (menu->leaves[0].config_value->flag_masks.clrflag_mask == CFG_USEIGR_CLRMASK); }
 
@@ -98,7 +99,7 @@ menu_t home_menu, vinfo_screen, cfg_screen, cfg_sl_subscreen, misc_screen,
        rwdata_screen, about_screen, thanks_screen, license_screen;
 
 extern config_t linex2, deint480ibob, sl_str, vformat, deblur, mode15bit, gamma_lut;
-extern config_t sl_en, sl_id, sl_str;
+extern config_t sl_en, sl_id, sl_str, slhyb_str;
 extern config_t igr_reset, igr_quickchange, filteraddon_cutoff;
 
 menu_t home_menu = {
@@ -149,11 +150,12 @@ menu_t cfg_sl_subscreen = {
     .overlay = &cfg_sl_overlay,
     .parent = &cfg_screen,
     .current_selection = 0,
-    .number_selections = 3,
+    .number_selections = 4,
     .leaves = {
-        {.id = CFG_SL_EN_V_OFFSET , .arrow_desc = &cfg_sl_opt_arrow, .leavetype = ICONFIG, .config_value = &sl_en},
-        {.id = CFG_SL_ID_V_OFFSET , .arrow_desc = &cfg_sl_opt_arrow, .leavetype = ICONFIG, .config_value = &sl_id},
-        {.id = CFG_SL_STR_V_OFFSET, .arrow_desc = &cfg_sl_opt_arrow, .leavetype = ICONFIG, .config_value = &sl_str}
+        {.id = CFG_SL_EN_V_OFFSET    , .arrow_desc = &cfg_sl_opt_arrow, .leavetype = ICONFIG, .config_value = &sl_en},
+        {.id = CFG_SL_ID_V_OFFSET    , .arrow_desc = &cfg_sl_opt_arrow, .leavetype = ICONFIG, .config_value = &sl_id},
+        {.id = CFG_SL_STR_V_OFFSET   , .arrow_desc = &cfg_sl_opt_arrow, .leavetype = ICONFIG, .config_value = &sl_str},
+        {.id = CFG_SLHYB_STR_V_OFFSET, .arrow_desc = &cfg_sl_opt_arrow, .leavetype = ICONFIG, .config_value = &slhyb_str}
     }
 };
 
@@ -258,6 +260,8 @@ updateaction_t apply_command(cmd_t command, menu_t* *current_menu, configuration
       if (sel == 1) (*current_menu)->current_selection = 3;
       if (sel == 2) (*current_menu)->current_selection = 0;
     }
+    if (is_cfg_sl_screen(*current_menu) && (!cfg_get_value((*current_menu)->leaves[0].config_value,0)))
+      (*current_menu)->current_selection = 0;
     if (is_misc_screen(*current_menu) && sel == 2 && !use_filteraddon)
       (*current_menu)->current_selection = (command == CMD_MENU_UP) ? 1 : 0;
 
@@ -448,8 +452,8 @@ int update_cfg_screen(menu_t* current_menu)
 
     if (current_menu->leaves[v_run].leavetype == ISUBMENU) {
       font_color = FONTCOLOR_WHITE;
-      if (is_cfg_screen(current_menu) && ((v_run == 1) || (v_run == 2)) &&
-                (!cfg_get_value(current_menu->leaves[0].config_value,0))    )
+      if ( ( is_cfg_screen(current_menu) && (v_run == 2) ) &&
+           !cfg_get_value(current_menu->leaves[0].config_value,0) )
         font_color = FONTCOLOR_GREY;
       vd_print_string(h_l_offset,v_offset,background_color,font_color,EnterSubMenu);
     }
@@ -465,8 +469,9 @@ int update_cfg_screen(menu_t* current_menu)
         font_color = (val_select == ref_val_select) ? FONTCOLOR_WHITE : FONTCOLOR_YELLOW;
 //      }
 
-      if (is_cfg_screen(current_menu) && ((v_run == 1) || (v_run == 2)) &&
-          (!cfg_get_value(current_menu->leaves[0].config_value,0))    )
+      if ( ( ( is_cfg_screen(current_menu)    && (v_run == 1) ) ||
+             ( is_cfg_sl_screen(current_menu) && (v_run != 0) )    ) &&
+           !cfg_get_value(current_menu->leaves[0].config_value,0))
         font_color = (val_select == ref_val_select) ? FONTCOLOR_GREY : FONTCOLOR_DARKORANGE;
 
       if (v_run == current_menu->current_selection)

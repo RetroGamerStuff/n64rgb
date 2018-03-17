@@ -68,10 +68,11 @@ int main()
   char szText[VD_WIDTH];
 
   configuration_t sysconfig = {
-      .cfg_word_def[VIDEO] = &cfg_data_video,
-      .cfg_word_def[IMAGE] = &cfg_data_image,
-      .cfg_word_def[MISC]  = &cfg_data_misc,
-      .cfg_word_def[MENU]  = &cfg_data_menu
+      .cfg_word_def[VIDEO]  = &cfg_data_video,
+      .cfg_word_def[IMAGE1] = &cfg_data_image1,
+      .cfg_word_def[IMAGE2] = &cfg_data_image2,
+      .cfg_word_def[MISC]   = &cfg_data_misc,
+      .cfg_word_def[MENU]   = &cfg_data_menu
   };
 
   cfg_clear_words(&sysconfig);
@@ -103,7 +104,7 @@ int main()
 //    cfg_save_to_flash(&sysconfig);
   }
 
-  cfg_apply_to_logic(&sysconfig);
+  cfgopt_apply_to_logic(&sysconfig);
 
   /* Event loop never exits. */
   while (1) {
@@ -207,7 +208,8 @@ int main()
 
     info_data_pre = info_data;
 
-    cfg_apply_to_logic(&sysconfig);
+    cfgopt_apply_to_logic(&sysconfig);
+    cfgmenu_apply_to_logic(&sysconfig);
 
     /* ToDo: use external interrupt to go on on nVSYNC */
     while(!get_nvsync()){};  /* wait for nVSYNC goes high */

@@ -78,6 +78,7 @@
 #define CFG_SL_EN_V_OFFSET        ( 0 + CFG_SL_VALS_V_OFFSET)
 #define CFG_SL_ID_V_OFFSET        ( 1 + CFG_SL_VALS_V_OFFSET)
 #define CFG_SL_STR_V_OFFSET       ( 2 + CFG_SL_VALS_V_OFFSET)
+#define CFG_SLHYB_STR_V_OFFSET    ( 3 + CFG_SL_VALS_V_OFFSET)
 
 #define MISC_OVERLAY_H_OFFSET     OVERLAY_H_OFFSET
 #define MISC_OVERLAY_V_OFFSET     OVERLAY_V_OFFSET_WH
@@ -159,7 +160,8 @@ static const char *cfg_sl_header =
 static const char *cfg_sl_overlay =
     "* Use Scanlines:\n"
     "* Scanline ID:\n"
-    "* Scanline Strength:";
+    "* Scanline Strength:\n"
+    "* Hybrid Strength:";
 
 static const char *misc_header =
     "N64 Advanced - Miscellaneous";
@@ -231,19 +233,29 @@ static const char *home_overlay =
 
 const char *EnterSubMenu = "[Enter submenu]";
 
-const char *OffOn[]        = {"Off","On"};
-const char *EvenOdd[]      = {"Even","Odd"};
-const char *VideoMode[]    = {"240p60","480i60","288p50","576i50","480p60","576p50"};
-const char *VideoColor[]   = {"21bit","15bit"};
-const char *VideoFormat[]  = {"RGBS","RGBS/RGsB","YPbPr"};
-const char *DeBlur[]       = {"(estimated)","(forced)","(480i/576i)"};
-const char *DeBlurCfg[]    = {"Auto","Off","Always"};
-const char *FilterAddOn[]  = {"Auto","9.5MHz","18MHz","(bypassed)","(not installed)"};
-const char *SLStrength[]   = {"  6.25%"," 12.50%"," 18.75%"," 25.00%",
-                              " 31.25%"," 37.50%"," 43,75%"," 50.00%",
-                              " 56.25%"," 62.50%"," 68.75%"," 75.00%",
-                              " 81.25%"," 87.50%"," 93,75%","100.00%"};
-const char *GammaValue[]   = {"0.75","0.80","0.85","0.90","0.95","1.00","1.05","1.10","1.15"};
-const char *QuickChange[]  = {"Off","DeBlur","15bit mode","All"};
+const char *OffOn[]         = {"Off","On"};
+const char *EvenOdd[]       = {"Even","Odd"};
+const char *VideoMode[]     = {"240p60","480i60","288p50","576i50","480p60","576p50"};
+const char *VideoColor[]    = {"21bit","15bit"};
+const char *VideoFormat[]   = {"RGBS","RGBS/RGsB","YPbPr"};
+const char *DeBlur[]        = {"(estimated)","(forced)","(480i/576i)"};
+const char *DeBlurCfg[]     = {"Auto","Off","Always"};
+const char *FilterAddOn[]   = {"Auto","9.5MHz","18MHz","(bypassed)","(not installed)"};
+
+/* ToDo: replace by functions (calculating values for SLStr and SLHybDepth) */
+const char *SLStrength[] = {"  6.25%"," 12.50%"," 18.75%"," 25.00%",
+                            " 31.25%"," 37.50%"," 43.75%"," 50.00%",
+                            " 56.25%"," 62.50%"," 68.75%"," 75.00%",
+                            " 81.25%"," 87.50%"," 93.75%","100.00%"};
+const char *SLHybDepth[] = {"  0.00%","  6.25%"," 12.50%"," 18.75%",
+                            " 25.00%"," 31.25%"," 37.50%"," 43.75%",
+                            " 50.00%"," 56.25%"," 62.50%"," 68.75%",
+                            " 75.00%"," 81.25%"," 87.50%"," 93.75%",
+                            "100.00%","106.25%","112.50%","118.75%",
+                            "125.00%","131.25%","137.50%","143.75%",
+                            "150.00%"};
+
+const char *GammaValue[]    = {"0.75","0.80","0.85","0.90","0.95","1.00","1.05","1.10","1.15"};
+const char *QuickChange[]   = {"Off","DeBlur","15bit mode","All"};
 
 #endif /* MENU_TEXT_TEXTDEFS_P_H_ */

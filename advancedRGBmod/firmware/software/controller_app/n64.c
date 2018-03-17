@@ -33,7 +33,7 @@
 #include "n64.h"
 
 
-#define COMMAND_HISTORY_LENGTH 3
+#define COMMAND_HISTORY_LENGTH 2
 
 alt_u8 use_filteraddon;
 

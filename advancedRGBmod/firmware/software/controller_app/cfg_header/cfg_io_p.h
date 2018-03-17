@@ -35,9 +35,9 @@
 #include "system.h"
 #include "../config.h"
 
-
 extern const char *OffOn[], *EvenOdd[], *VideoFormat[], *DeBlurCfg[],
-                  *SLStrength[], *GammaValue[], *QuickChange[], *FilterAddOn[];
+                  *SLStrength[], *SLHybDepth[], *GammaValue[],
+                  *QuickChange[], *FilterAddOn[];
 
 // video
 cfg_word_t cfg_data_video =
@@ -69,28 +69,6 @@ config_t deint480ibob = {
     .value_string = &OffOn
 };
 
-config_t sl_id = {
-    .cfg_word = &cfg_data_video,
-    .cfg_word_offset = CFG_SL_ID_OFFSET,
-    .cfg_type        = FLAG,
-    .flag_masks      = {
-        .setflag_mask = CFG_SL_ID_SETMASK,
-        .clrflag_mask = CFG_SL_ID_CLRMASK
-    },
-    .value_string = &EvenOdd
-};
-
-config_t sl_en = {
-    .cfg_word = &cfg_data_video,
-    .cfg_word_offset = CFG_SL_EN_OFFSET,
-    .cfg_type        = FLAG,
-    .flag_masks      = {
-        .setflag_mask = CFG_SL_EN_SETMASK,
-        .clrflag_mask = CFG_SL_EN_CLRMASK
-    },
-    .value_string = &OffOn
-};
-
 config_t vformat = {
     .cfg_word        = &cfg_data_video,
     .cfg_word_offset = CFG_VFORMAT_OFFSET,
@@ -102,16 +80,57 @@ config_t vformat = {
     .value_string = &VideoFormat
 };
 
-// image
-cfg_word_t cfg_data_image =
-  { .cfg_word_type    = IMAGE,
-    .cfg_word_mask    = CFG_IMAGE_GETALL_MASK,
+// image1
+cfg_word_t cfg_data_image1 =
+  { .cfg_word_type    = IMAGE1,
+    .cfg_word_mask    = CFG_IMAGE2_GETALL_MASK,
+    .cfg_word_val     = 0x00,
+    .cfg_ref_word_val = 0x00
+  };
+
+config_t slhyb_str = {
+    .cfg_word        = &cfg_data_image1,
+    .cfg_word_offset = CFG_SLHYBDEP_OFFSET,
+    .cfg_type        = VALUE,
+    .value_details   = {
+        .max_value     = CFG_SLHYBDEP_MAX_VALUE,
+        .getvalue_mask = CFG_SLHYBDEP_GETMASK
+    },
+    .value_string = &SLHybDepth
+};
+
+config_t sl_id = {
+    .cfg_word        = &cfg_data_image1,
+    .cfg_word_offset = CFG_SL_ID_OFFSET,
+    .cfg_type        = FLAG,
+    .flag_masks      = {
+        .setflag_mask = CFG_SL_ID_SETMASK,
+        .clrflag_mask = CFG_SL_ID_CLRMASK
+    },
+    .value_string = &EvenOdd
+};
+
+config_t sl_en = {
+    .cfg_word = &cfg_data_image1,
+    .cfg_word_offset = CFG_SL_EN_OFFSET,
+    .cfg_type        = FLAG,
+    .flag_masks      = {
+        .setflag_mask = CFG_SL_EN_SETMASK,
+        .clrflag_mask = CFG_SL_EN_CLRMASK
+    },
+    .value_string = &OffOn
+};
+
+// image2
+cfg_word_t cfg_data_image2 =
+  { .cfg_word_type    = IMAGE2,
+    .cfg_word_mask    = CFG_IMAGE2_GETALL_MASK,
     .cfg_word_val     = 0x00,
     .cfg_ref_word_val = 0x00
   };
 
 config_t gamma_lut = {
-    .cfg_word        = &cfg_data_image,
+    .cfg_word        = &cfg_data_image2,
     .cfg_word_offset = CFG_GAMMA_OFFSET,
     .cfg_type        = VALUE,
     .value_details   = {
@@ -122,7 +141,7 @@ config_t gamma_lut = {
 };
 
 config_t sl_str = {
-    .cfg_word        = &cfg_data_image,
+    .cfg_word        = &cfg_data_image2,
     .cfg_word_offset = CFG_SLSTR_OFFSET,
     .cfg_type        = VALUE,
     .value_details   = {

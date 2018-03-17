@@ -37,12 +37,14 @@
 
 typedef enum {
   VIDEO = 0,
-  IMAGE,
+  IMAGE1,
+  IMAGE2,
   MISC,
   MENU
 } cfg_word_type_t;
 
-#define NUM_CFG_WORDS 4
+#define NUM_OPT_WORDS 4
+#define NUM_CFG_WORDS 5
 
 typedef struct {
   const cfg_word_type_t cfg_word_type;
@@ -85,21 +87,20 @@ typedef struct {
 #define CFG_FLASH_NOT_USED  101
 
 // the overall masks
-#define CFG_VIDEO_GETALL_MASK 0x3F
-#define CFG_IMAGE_GETALL_MASK 0xFF
+#define CFG_VIDEO_GETALL_MASK 0x33
+#define CFG_IMAGE1_GETALL_MASK 0x7F
+#define CFG_IMAGE2_GETALL_MASK 0xFF
 #define CFG_MISC_GETALL_MASK  0xFF
 #define CFG_MENU_GETALL_MASK  0x08
 
-#define CFG_GETALL_MASK       ((CFG_VIDEO_GETALL_MASK << (8*VIDEO)) | \
-                               (CFG_IMAGE_GETALL_MASK << (8*IMAGE)) | \
-                               (CFG_MISC_GETALL_MASK  << (8*MISC) ) | \
-                               (CFG_MENU_GETALL_MASK  << (8*MENU) )   )
+#define CFG_GETALLOPT_MASK     ((CFG_VIDEO_GETALL_MASK  << (8*VIDEO))  | \
+                                (CFG_IMAGE1_GETALL_MASK << (8*IMAGE1)) | \
+                                (CFG_IMAGE2_GETALL_MASK << (8*IMAGE2)) | \
+                                (CFG_MISC_GETALL_MASK   << (8*MISC) )    )
 
 // video
 #define CFG_LINEX2_OFFSET   5
 #define CFG_480IBOB_OFFSET  4
-#define CFG_SL_ID_OFFSET    3
-#define CFG_SL_EN_OFFSET    2
 #define CFG_VFORMAT_OFFSET  0
   #define CFG_YPBPR_OFFSET    1
   #define CFG_RGSB_OFFSET     0
@@ -110,12 +111,6 @@ typedef struct {
 #define CFG_480IBOB_GETMASK       (1<<CFG_480IBOB_OFFSET)
 #define CFG_480IBOB_SETMASK       (1<<CFG_480IBOB_OFFSET)
 #define CFG_480IBOB_CLRMASK       (CFG_VIDEO_GETALL_MASK & ~CFG_480IBOB_SETMASK)
-#define CFG_SL_ID_GETMASK         (1<<CFG_SL_ID_OFFSET)
-#define CFG_SL_ID_SETMASK         (1<<CFG_SL_ID_OFFSET)
-#define CFG_SL_ID_CLRMASK         (CFG_VIDEO_GETALL_MASK & ~CFG_SL_ID_SETMASK)
-#define CFG_SL_EN_GETMASK         (1<<CFG_SL_EN_OFFSET)
-#define CFG_SL_EN_SETMASK         (1<<CFG_SL_EN_OFFSET)
-#define CFG_SL_EN_CLRMASK         (CFG_VIDEO_GETALL_MASK & ~CFG_SL_EN_SETMASK)
 #define CFG_VFORMAT_GETMASK       (3<<CFG_VFORMAT_OFFSET)
 #define CFG_VFORMAT_RSTMASK       (CFG_VIDEO_GETALL_MASK & ~CFG_VFORMAT_GETMASK)
 #define CFG_VFORMAT_CLRMASK       (CFG_VIDEO_GETALL_MASK & ~CFG_VFORMAT_GETMASK)
@@ -126,18 +121,36 @@ typedef struct {
   #define CFG_RGSB_SETMASK          (1<<CFG_RGSB_OFFSET)
   #define CFG_RGSB_CLRMASK          (CFG_GETALL_MASK & ~CFG_RGSB_SETMASK)
 
-// image
-#define CFG_GAMMA_OFFSET  4
-#define CFG_SLSTR_OFFSET  0
-  #define CFG_SLMSB_OFFSET  1
-  #define CFG_SLLSB_OFFSET  0
+// image1
+#define CFG_SLHYBDEP_OFFSET     2
+  #define CFG_SLHYBDEPMSB_OFFSET  6
+  #define CFG_SLHYBDEPLSB_OFFSET  2
+#define CFG_SL_ID_OFFSET        1
+#define CFG_SL_EN_OFFSET        0
+
+#define CFG_SLHYBDEP_GETMASK      (0x1F<<CFG_SLHYBDEP_OFFSET)
+  #define CFG_SLHYBDEP_RSTMASK      (CFG_IMAGE1_GETALL_MASK & ~CFG_SLHYBDEP_GETMASK)
+#define CFG_SLHYBDEP_CLRMASK        (CFG_IMAGE1_GETALL_MASK & ~CFG_SLHYBDEP_GETMASK)
+#define CFG_SL_ID_GETMASK         (1<<CFG_SL_ID_OFFSET)
+#define CFG_SL_ID_SETMASK         (1<<CFG_SL_ID_OFFSET)
+#define CFG_SL_ID_CLRMASK         (CFG_IMAGE1_GETALL_MASK & ~CFG_SL_ID_SETMASK)
+#define CFG_SL_EN_GETMASK         (1<<CFG_SL_EN_OFFSET)
+#define CFG_SL_EN_SETMASK         (1<<CFG_SL_EN_OFFSET)
+#define CFG_SL_EN_CLRMASK         (CFG_IMAGE1_GETALL_MASK & ~CFG_SL_EN_SETMASK)
+
+// image2
+#define CFG_GAMMA_OFFSET    4
+#define CFG_SLSTR_OFFSET    0
+  #define CFG_SLSTRMSB_OFFSET 3
+  #define CFG_SLSTRLSB_OFFSET 0
 
 #define CFG_GAMMA_GETMASK         (0xF<<CFG_GAMMA_OFFSET)
-  #define CFG_GAMMASEL_RSTMASK      (CFG_IMAGE_GETALL_MASK & ~CFG_GAMMA_GETMASK)
-#define CFG_GAMMA_CLRMASK         (CFG_IMAGE_GETALL_MASK & ~CFG_GAMMA_GETMASK)
+  #define CFG_GAMMASEL_RSTMASK      (CFG_IMAGE2_GETALL_MASK & ~CFG_GAMMA_GETMASK)
+#define CFG_GAMMA_CLRMASK         (CFG_IMAGE2_GETALL_MASK & ~CFG_GAMMA_GETMASK)
 #define CFG_SLSTR_GETMASK         (0xF<<CFG_SLSTR_OFFSET)
-  #define CFG_SLSTR_RSTMASK         (CFG_IMAGE_GETALL_MASK & ~CFG_SLSTR_GETMASK)
-#define CFG_SLSTR_CLRMASK         (CFG_IMAGE_GETALL_MASK & ~CFG_SLSTR_GETMASK)
+  #define CFG_SLSTR_RSTMASK         (CFG_IMAGE2_GETALL_MASK & ~CFG_SLSTR_GETMASK)
+#define CFG_SLSTR_CLRMASK         (CFG_IMAGE2_GETALL_MASK & ~CFG_SLSTR_GETMASK)
+
 
 // misc
 #define CFG_USEIGR_OFFSET         7
@@ -185,6 +198,7 @@ typedef struct {
 #define CFG_QUICKCHANGE_MAX_VALUE  3
 #define CFG_GAMMA_MAX_VALUE        8
 #define CFG_SLSTR_MAX_VALUE       15
+#define CFG_SLHYBDEP_MAX_VALUE    24
 #define CFG_VFORMAT_MAX_VALUE      2
 #define CFG_DEBLUR_MAX_VALUE       2
 #define CFG_FILTER_MAX_VALUE       3
@@ -195,15 +209,20 @@ typedef struct {
 
 
 // now the N64 default
-#define N64_MISC_CLR_MASK  (CFG_USEIGR_CLRMASK      & CFG_QUDEBLUR_CLRMASK   & \
-                            CFG_QU15BITMODE_CLRMASK & CFG_DEBLUR_CLRMASK     & \
-                            CFG_15BITMODE_CLRMASK   )
-#define N64_IMAGE_CLR_MASK (CFG_GAMMA_CLRMASK       & CFG_SLSTR_CLRMASK    )
-#define N64_VIDEO_CLR_MASK (CFG_LINEX2_CLRMASK      & CFG_480IBOB_CLRMASK  )
+#define N64_MISC_CLR_MASK    (CFG_USEIGR_CLRMASK      & CFG_QUDEBLUR_CLRMASK   & \
+                              CFG_QU15BITMODE_CLRMASK & CFG_DEBLUR_CLRMASK     & \
+                              CFG_15BITMODE_CLRMASK   )
+#define N64_IMAGE2_CLR_MASK  (CFG_GAMMA_CLRMASK       & CFG_SLSTR_CLRMASK      )
+#define N64_IMAGE1_CLR_MASK  (CFG_SLHYBDEP_CLRMASK    & CFG_SL_ID_CLRMASK      & \
+                              CFG_SL_EN_CLRMASK       )
+#define N64_VIDEO_CLR_MASK   (CFG_LINEX2_CLRMASK      & CFG_480IBOB_CLRMASK    )
 
-#define N64_DEFAULT_MISC_CFG  (CFG_MISC_GETALL_MASK  & CFG_DEBLUR_OFF_SETMASK    & CFG_FILTER_AUTO_SETMASK)
-#define N64_DEFAULT_IMAGE_CFG (CFG_IMAGE_GETALL_MASK & CFG_GAMMA_DEFAULT_SETMASK & CFG_SLSTR_CLRMASK      )
-#define N64_DEFAULT_VIDEO_CFG (CFG_VIDEO_GETALL_MASK & 0x00                      )
+#define N64_DEFAULT_MISC_CFG    (CFG_MISC_GETALL_MASK   & CFG_DEBLUR_OFF_SETMASK    & \
+                                 CFG_FILTER_AUTO_SETMASK)
+#define N64_DEFAULT_IMAGE2_CFG  (CFG_IMAGE2_GETALL_MASK & CFG_GAMMA_DEFAULT_SETMASK & \
+                                 CFG_SLSTR_CLRMASK      )
+#define N64_DEFAULT_IMAGE1_CFG  (CFG_IMAGE1_GETALL_MASK & 0x00                      )
+#define N64_DEFAULT_VIDEO_CFG   (CFG_VIDEO_GETALL_MASK  & 0x00                      )
 
 // the jumper
 #define JUMPER_GETALL_MASK  0x7F
@@ -216,7 +235,8 @@ typedef struct {
 
 #define JUMPER_SLSTR_OFFSET 2
 
-#define JUMPER_IMAGE_CLR_MASK       N64_IMAGE_CLR_MASK
+#define JUMPER_IMAGE2_CLR_MASK      N64_IMAGE2_CLR_MASK
+#define JUMPER_IMAGE1_CLR_MASK      N64_IMAGE1_CLR_MASK
 #define JUMPER_ICFG_GETALL_MASK     (3<<JUMPER_SLSTR_OFFSET)
 #define JUMPER_ICFG_SLSTR_GETMASK   JUMPER_ICFG_GETALL_MASK
 
@@ -243,13 +263,15 @@ int cfg_save_to_flash(configuration_t* sysconfig);
 int cfg_load_from_flash(configuration_t* sysconfig);
 int cfg_load_n64defaults(configuration_t* sysconfig);
 int cfg_load_jumperset(configuration_t* sysconfig);
-void cfg_apply_to_logic(configuration_t* sysconfig);
-inline alt_u32 cfg_get_from_logic()
-  {  return IORD_ALTERA_AVALON_PIO_DATA(CFG_SET_OUT_BASE) & CFG_GETALL_MASK;  };
-inline alt_u8 cfg_get_jumper()
+void cfgopt_apply_to_logic(configuration_t* sysconfig);
+inline void cfgmenu_apply_to_logic(configuration_t* sysconfig)
+  {  IOWR_ALTERA_AVALON_PIO_DATA(OSD_INFO_OUT_BASE,sysconfig->cfg_word_def[MENU]->cfg_word_val & sysconfig->cfg_word_def[MENU]->cfg_word_mask);  };
+inline alt_u32 cfgopt_get_from_logic()
+  {  return IORD_ALTERA_AVALON_PIO_DATA(CFG_SET_OUT_BASE) & CFG_GETALLOPT_MASK;  };
+inline alt_u8 cfgopt_get_jumper()
   {  return (IORD_ALTERA_AVALON_PIO_DATA(JUMPER_CFG_SET_IN_BASE) & JUMPER_GETALL_MASK);  };
 void cfg_clear_words(configuration_t* sysconfig);
-void cfg_load_from_ios(configuration_t* sysconfig);
+void cfgopt_load_from_ios(configuration_t* sysconfig);
 void cfg_update_reference(configuration_t* sysconfig);
 
 #endif /* CONFIG_H_ */

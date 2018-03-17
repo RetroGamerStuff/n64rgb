@@ -71,7 +71,7 @@ input CTRL;
 
 input      [ 3:0] InfoSet;
 input      [ 6:0] JumperCfgSet;
-output reg [20:0] OutConfigSet;
+output reg [28:0] OutConfigSet;
 
 input VCLK;
 input nDSYNC;
@@ -85,6 +85,9 @@ output reg [`VDATA_I_FU_SLICE] video_data_o;
 
 wire nHSYNC_cur = video_data_i[3*color_width_i+1];
 wire nVSYNC_cur = video_data_i[3*color_width_i+3];
+
+wire negedge_nHSYNC =  nHSYNC_pre & !nHSYNC_cur;
+wire negedge_nVSYNC =  nVSYNC_pre & !nVSYNC_cur;
 
 
 // Part 1: Connect PLL
@@ -125,37 +128,39 @@ wire [ 1:0] vd_wrctrl;
 wire [12:0] vd_wrdata;
 
 wire [31:0] SysConfigSet;
-
-// general structur: [31:24] menu, [23:16] misc, [15:8] image, [7:0] video
-// [31:28] (reserved)
-// [27:24] {show_osd,(3bits reserve)}
-// [23:21] use_igr and (quick_access 15bit mode and deblur (not used in logic))
-// [20:16] {FilterSet (2bit),VI-DeBlur (2bit), 15bit mode}
-// [15: 8] {gamma (4bits),(2bits reserve),Scanline_str (2bits)}
-// [ 7: 6] (reserved)
-// [ 5: 0] {lineX2,480I-DeInt,Scanline_ID,Scanline_En,RGsB,YPbPr}
+// general structure: [31:24] misc, [23:16] image2, [15:8] image1, [7:0] video
+// [31:29] use_igr and (quick_access 15bit mode and deblur (not used in logic))
+// [28:24] {FilterSet (2bit),VI-DeBlur (2bit), 15bit mode}
+// [23:16] {gamma (4bits),Scanline_str (4bits)}
+// [15: 8] {(1bit reserve),Sl_hybrid_depth (5bits),Scanline_ID,Scanline_En}
+// [ 7: 0] {(2bits reserved),lineX2,480I-DeInt,(2bits reserve),RGsB,YPbPr}
+wire [ 7:0] OSDInfo;
+// general structur:
+// [7:4] (reserved)
+// [3:0] {show_osd,(3bits reserve)}
 
 system system_u(
   .clk_clk(CLK_25M),
   .reset_reset_n(nRST_pll),
+  .sync_in_export({new_ctrl_data[1],nVSYNC_cur}),
   .vd_wraddr_export(vd_wraddr),
   .vd_wrctrl_export(vd_wrctrl),
   .vd_wrdata_export(vd_wrdata),
   .ctrl_data_in_export(serial_data[1]),
   .jumper_cfg_set_in_export({1'b0,JumperCfgSet}),
-  .cfg_set_out_export(SysConfigSet),
   .info_set_in_export({3'b000,InfoSet,FallbackMode}),
-  .sync_in_export({new_ctrl_data[1],nVSYNC_cur})
+  .cfg_set_out_export(SysConfigSet),
+  .osd_info_out_export(OSDInfo)
 );
 
 reg show_osd = 1'b0;
 reg  use_igr = 1'b0;
 
 always @(posedge VCLK)
-  if (&{~nDSYNC,nVSYNC_pre,~nVSYNC_cur} | ~nRST) begin
-    show_osd     <= SysConfigSet[27];
-    use_igr      <= SysConfigSet[23];
-    OutConfigSet <= SysConfigSet[20:0];
+  if ((!nDSYNC & negedge_nVSYNC) | !nRST) begin
+    show_osd     <= OSDInfo[3];
+    use_igr      <= SysConfigSet[31];
+    OutConfigSet <= SysConfigSet[28:0];
   end
 
 
@@ -323,7 +328,7 @@ always @(posedge VCLK) begin
   if (!nDSYNC) begin
     h_cnt <= ~&h_cnt ? h_cnt + 1'b1 : h_cnt;
 
-    if (nHSYNC_pre & ~nHSYNC_cur) begin
+    if (negedge_nHSYNC) begin
       h_cnt <= 10'h0;
       v_cnt <= ~&v_cnt ? v_cnt + 1'b1 : v_cnt;
       if (v_cnt <= `OSD_HEADER_V_STOP | v_cnt >= `OSD_FOOTER_V_START) begin
@@ -336,7 +341,7 @@ always @(posedge VCLK) begin
           txt_v_cnt <= txt_v_cnt + 1'b1;
       end
     end
-    if (nVSYNC_pre & ~nVSYNC_cur)
+    if (negedge_nVSYNC)
       v_cnt <= 8'h0;
 
     if (en_txtrd[0]) begin
@@ -427,7 +432,7 @@ wire [7:0] font_word;
 
 rom1port_1 font_mem_u(
   .address({font_addr_msb[7:4],font_addr_lsb}),
-  .clock(~VCLK),
+  .clock(VCLK),
   .rden(en_txtrd[2]),
   .q(font_word)
 );
