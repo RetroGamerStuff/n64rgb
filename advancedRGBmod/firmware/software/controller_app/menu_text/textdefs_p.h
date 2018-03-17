@@ -43,20 +43,20 @@
 #define HOMEOVERLAY_H_OFFSET  3
 
 #define COPYRIGHT_SIGN          0x0A
-#define COPYRIGHT_H_OFFSET      (VD_WIDTH - 15)
+#define COPYRIGHT_H_OFFSET      (VD_WIDTH - 14)
 #define COPYRIGHT_V_OFFSET      (VD_HEIGHT - 1)
 #define COPYRIGHT_SIGN_H_OFFSET (COPYRIGHT_H_OFFSET - 2)
 
-#define CR_SIGN_LICENSE_H_OFFSET  17
+#define CR_SIGN_LICENSE_H_OFFSET  18
 #define CR_SIGN_LICENSE_V_OFFSET   2
 
 #define VERSION_H_OFFSET 20
 #define VERSION_V_OFFSET  5
 
 
-#define BTN_OVERLAY_0_H_OFFSET  (VD_WIDTH - 12)
+#define BTN_OVERLAY_0_H_OFFSET  (VD_WIDTH - 11)
 #define BTN_OVERLAY_0_V_OFFSET  (VD_HEIGHT - 4)
-#define BTN_OVERLAY_1_H_OFFSET  (VD_WIDTH - 12)
+#define BTN_OVERLAY_1_H_OFFSET  (VD_WIDTH - 11)
 #define BTN_OVERLAY_1_V_OFFSET  (VD_HEIGHT - 3)
 
 #define CFG_OVERLAY_H_OFFSET  OVERLAY_H_OFFSET
@@ -161,7 +161,7 @@ static const char *cfg_sl_overlay =
     "* Use Scanlines:\n"
     "* Scanline ID:\n"
     "* Scanline Strength:\n"
-    "* Hybrid Strength:";
+    "* Hybrid Depth:";
 
 static const char *misc_header =
     "N64 Advanced - Miscellaneous";
@@ -208,16 +208,16 @@ static const char *about_overlay =
   /* 1234567890123456789012345678901234567890123456789012 */
 
 static const char *license_overlay =
-    "The N64Advanced is part of the\n"
-    "N64 RGB/YPbPr DAC project\n"
-    "       Copyright   2015 - 2018 Peter Bartmann\n"
-    "This project is published under GNU GPL v3.0 or\n"
-    "later. You should have received a copy of the GNU\n"
-    "General Public License along with this project.\n"
-    "If not, see\n"
-    "        <http://www.gnu.org/licenses/>.\n\n"
-    "What ever you do, also respect licenses of third\n"
-    "party vendors providing the design tools...";
+    " The N64Advanced is part of the\n"
+    " N64 RGB/YPbPr DAC project\n"
+    "        Copyright   2015 - 2018 Peter Bartmann\n"
+    " This project is published under GNU GPL v3.0 or\n"
+    " later. You should have received a copy of the GNU\n"
+    " General Public License along with this project.\n"
+    " If not, see\n"
+    "         <http://www.gnu.org/licenses/>.\n\n"
+    " What ever you do, also respect licenses of third\n"
+    " party vendors providing the design tools...";
   /* 1234567890123456789012345678901234567890123456789012 */
 
 static const char *home_header =
