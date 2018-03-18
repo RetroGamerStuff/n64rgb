@@ -99,7 +99,7 @@ menu_t home_menu, vinfo_screen, cfg_screen, cfg_sl_subscreen, misc_screen,
        rwdata_screen, about_screen, thanks_screen, license_screen;
 
 extern config_t linex2, deint480ibob, sl_str, vformat, deblur, mode15bit, gamma_lut;
-extern config_t sl_en, sl_id, sl_str, slhyb_str;
+extern config_t sl_en, sl_id, sl_str, slhyb_str, show_sl_in_osd;
 extern config_t igr_reset, igr_quickchange, filteraddon_cutoff;
 
 menu_t home_menu = {
@@ -150,12 +150,13 @@ menu_t cfg_sl_subscreen = {
     .overlay = &cfg_sl_overlay,
     .parent = &cfg_screen,
     .current_selection = 0,
-    .number_selections = 4,
+    .number_selections = 5,
     .leaves = {
         {.id = CFG_SL_EN_V_OFFSET    , .arrow_desc = &cfg_sl_opt_arrow, .leavetype = ICONFIG, .config_value = &sl_en},
         {.id = CFG_SL_ID_V_OFFSET    , .arrow_desc = &cfg_sl_opt_arrow, .leavetype = ICONFIG, .config_value = &sl_id},
         {.id = CFG_SL_STR_V_OFFSET   , .arrow_desc = &cfg_sl_opt_arrow, .leavetype = ICONFIG, .config_value = &sl_str},
-        {.id = CFG_SLHYB_STR_V_OFFSET, .arrow_desc = &cfg_sl_opt_arrow, .leavetype = ICONFIG, .config_value = &slhyb_str}
+        {.id = CFG_SLHYB_STR_V_OFFSET, .arrow_desc = &cfg_sl_opt_arrow, .leavetype = ICONFIG, .config_value = &slhyb_str},
+        {.id = CFG_SLOSD_V_OFFSET    , .arrow_desc = &cfg_sl_opt_arrow, .leavetype = ICONFIG, .config_value = &show_sl_in_osd}
     }
 };
 

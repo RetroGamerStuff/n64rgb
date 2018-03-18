@@ -132,7 +132,7 @@ wire [31:0] SysConfigSet;
 // [31:29] use_igr and (quick_access 15bit mode and deblur (not used in logic))
 // [28:24] {FilterSet (2bit),VI-DeBlur (2bit), 15bit mode}
 // [23:16] {gamma (4bits),Scanline_str (4bits)}
-// [15: 8] {(1bit reserve),Sl_hybrid_depth (5bits),Scanline_ID,Scanline_En}
+// [15: 8] {Sl_hybrid_depth (5bits),(1bit reserve),Scanline_ID,Scanline_En}
 // [ 7: 0] {(2bits reserved),lineX2,480I-DeInt,(2bits reserve),RGsB,YPbPr}
 wire [ 7:0] OSDInfo;
 // general structur:
@@ -158,9 +158,10 @@ reg  use_igr = 1'b0;
 
 always @(posedge VCLK)
   if ((!nDSYNC & negedge_nVSYNC) | !nRST) begin
-    show_osd     <= OSDInfo[3];
-    use_igr      <= SysConfigSet[31];
-    OutConfigSet <= SysConfigSet[28:0];
+    show_osd         <= OSDInfo[3];
+    use_igr          <= SysConfigSet[31];
+    OutConfigSet     <= SysConfigSet[28:0];
+    OutConfigSet[10] <= OSDInfo[4] | !OSDInfo[3]; // cfg_OSD_SL considers if OSD is shown or not
   end
 
 

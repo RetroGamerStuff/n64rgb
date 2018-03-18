@@ -76,9 +76,10 @@
 #define CFG_SL_VALS_H_OFFSET      (25 + CFG_SL_OVERLAY_H_OFFSET)
 #define CFG_SL_VALS_V_OFFSET      CFG_SL_OVERLAY_V_OFFSET
 #define CFG_SL_EN_V_OFFSET        ( 0 + CFG_SL_VALS_V_OFFSET)
-#define CFG_SL_ID_V_OFFSET        ( 1 + CFG_SL_VALS_V_OFFSET)
-#define CFG_SL_STR_V_OFFSET       ( 2 + CFG_SL_VALS_V_OFFSET)
-#define CFG_SLHYB_STR_V_OFFSET    ( 3 + CFG_SL_VALS_V_OFFSET)
+#define CFG_SL_ID_V_OFFSET        ( 2 + CFG_SL_VALS_V_OFFSET)
+#define CFG_SL_STR_V_OFFSET       ( 3 + CFG_SL_VALS_V_OFFSET)
+#define CFG_SLHYB_STR_V_OFFSET    ( 4 + CFG_SL_VALS_V_OFFSET)
+#define CFG_SLOSD_V_OFFSET        ( 6 + CFG_SL_VALS_V_OFFSET)
 
 #define MISC_OVERLAY_H_OFFSET     OVERLAY_H_OFFSET
 #define MISC_OVERLAY_V_OFFSET     OVERLAY_V_OFFSET_WH
@@ -158,10 +159,11 @@ static const char *cfg_overlay =
 static const char *cfg_sl_header =
     "N64 Advanced - Scanline configuration";
 static const char *cfg_sl_overlay =
-    "* Use Scanlines:\n"
+    "* Use Scanlines:\n\n"
     "* Scanline ID:\n"
     "* Scanline Strength:\n"
-    "* Hybrid Depth:";
+    "* Hybrid Depth:\n\n"
+    "* Show sl. in OSD:";
 
 static const char *misc_header =
     "N64 Advanced - Miscellaneous";

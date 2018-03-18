@@ -150,7 +150,8 @@ wire       nForceDeBlur  = ~|OutConfigSet[26:25];
 wire       n15bit_mode   =  ~OutConfigSet[24];
 wire [3:0] cfg_gamma     =   OutConfigSet[23:20];
 wire [3:0] cfg_SL_str    =   OutConfigSet[19:16];
-wire [4:0] cfg_SLHyb_str =   OutConfigSet[14:10];
+wire [4:0] cfg_SLHyb_str =   OutConfigSet[15:11];
+wire       cfg_OSD_SL    =   OutConfigSet[10];
 wire       cfg_SL_id     =   OutConfigSet[ 9];
 wire       cfg_SL_en     =   OutConfigSet[ 8];
 wire       cfg_lineX2    =   OutConfigSet[ 5];
@@ -235,7 +236,7 @@ wire VCLK_out;
 wire nENABLE_linedbl = (n64_480i & cfg_n480i_bob) | ~cfg_lineX2 | ~nRST;
 wire SL_en           =  ~n64_480i  & cfg_SL_en;
 
-wire [13:0] vinfo_dbl = {nENABLE_linedbl,cfg_SLHyb_str,cfg_SL_str,cfg_SL_id,SL_en,vinfo_pass[1:0]};
+wire [14:0] vinfo_dbl = {nENABLE_linedbl,cfg_OSD_SL,cfg_SLHyb_str,cfg_SL_str,cfg_SL_id,SL_en,vinfo_pass[1:0]};
 
 wire [vdata_width_o-1:0] vdata_tmp;
 
