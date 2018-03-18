@@ -274,17 +274,17 @@ reg [1:0] nVS_cnt = 2'b0;
 
 wire CSen_lineend = ((rdhcnt + 2'b11) > (line_width[rdline] - nHS_width));
 
-reg               [3:0] S_ldb;
-reg [color_width_i-1:0] R_ldb, G_ldb, B_ldb;
-reg [color_width_i+1:0] Y_ldb;
+reg               [3:0] S_dbl;
+reg [color_width_i-1:0] R_dbl, G_dbl, B_dbl;
+reg [color_width_i+1:0] Y_dbl;
 
 reg [7:0] SL_rval;
 
 always @(posedge PX_CLK_4x) begin
   if (rdcnt_buf ^ rdcnt) begin
-    S_ldb[0] <= 1'b0;
-    S_ldb[1] <= 1'b0;
-    S_ldb[2] <= 1'b1; // dummy
+    S_dbl[0] <= 1'b0;
+    S_dbl[1] <= 1'b0;
+    S_dbl[2] <= 1'b1; // dummy
 
     nHS_cnt <= nHS_width;
 
@@ -296,34 +296,34 @@ always @(posedge PX_CLK_4x) begin
     end else if (|nVS_cnt) begin
       nVS_cnt <= nVS_cnt - 1'b1;
     end else begin
-      S_ldb[3] <= 1'b1;
+      S_dbl[3] <= 1'b1;
     end
   end else begin
     if (|nHS_cnt) begin
       nHS_cnt <= nHS_cnt - 1'b1;
     end else begin
-      S_ldb[1] <= 1'b1;
-      if (S_ldb[3])
-        S_ldb[0] <= 1'b1;
+      S_dbl[1] <= 1'b1;
+      if (S_dbl[3])
+        S_dbl[0] <= 1'b1;
     end
     
     if (CSen_lineend) begin
-      S_ldb[0] <= 1'b1;
+      S_dbl[0] <= 1'b1;
     end
   end
 
   rdcnt_buf <= rdcnt;
 
   if (rden[2]) begin
-	  R_ldb <= R_buf;
-	  G_ldb <= G_buf;
-	  B_ldb <= B_buf;
-	  Y_ldb <= {2'b00,R_buf} + {1'b0,G_buf,1'b0} + {2'b00,B_buf};
+    R_dbl <= R_buf;
+    G_dbl <= G_buf;
+    B_dbl <= B_buf;
+    Y_dbl <= {2'b00,R_buf} + {1'b0,G_buf,1'b0} + {2'b00,B_buf};
   end else begin
-	  R_ldb <= { color_width_i   {1'b0}};
-	  G_ldb <= { color_width_i   {1'b0}};;
-	  B_ldb <= { color_width_i   {1'b0}};;
-	  Y_ldb <= {(color_width_i+2){1'b0}};;
+    R_dbl <= { color_width_i   {1'b0}};
+    G_dbl <= { color_width_i   {1'b0}};;
+    B_dbl <= { color_width_i   {1'b0}};;
+    Y_dbl <= {(color_width_i+2){1'b0}};;
   end
 
 end
@@ -337,7 +337,7 @@ reg [color_width_o-1:0] R_o, G_o, B_o /* synthesis ramstyle = "logic" */;
 wire [8:0] Y_ref_pre;
 lpm_mult_0 calc_SLHyb_ref_pre(
   .clock(PX_CLK_4x),
-  .dataa(Y_ldb),
+  .dataa(Y_dbl),
   .datab(SLHyb_depth),
   .result(Y_ref_pre),
   .aclr(nENABLE_linedbl)
@@ -385,15 +385,15 @@ lpm_mult_2 calc_B_sl(
 integer pp_idx;
 
 always @(posedge PX_CLK_4x) begin
-  S_pp[0] <= S_ldb;
-  R_pp[0] <= R_ldb;
-  G_pp[0] <= G_ldb;
-  B_pp[0] <= B_ldb;
+    S_pp[0] <= S_dbl;
+    R_pp[0] <= R_dbl;
+    G_pp[0] <= G_dbl;
+    B_pp[0] <= B_dbl;
   for (pp_idx = 0; pp_idx < 4; pp_idx = pp_idx + 1) begin
-    S_pp[pp_idx+1] <= S_pp[pp_idx];
-    R_pp[pp_idx+1] <= R_pp[pp_idx];
-    G_pp[pp_idx+1] <= G_pp[pp_idx];
-    B_pp[pp_idx+1] <= B_pp[pp_idx];
+      S_pp[pp_idx+1] <=   S_pp[pp_idx];
+      R_pp[pp_idx+1] <=   R_pp[pp_idx];
+      G_pp[pp_idx+1] <=   G_pp[pp_idx];
+      B_pp[pp_idx+1] <=   B_pp[pp_idx];
   end
   S_o <= S_pp[4];
 
@@ -413,7 +413,7 @@ always @(posedge PX_CLK_4x) begin
   end else begin
     R_o <= {R_pp[4],R_pp[4][color_width_i-1]};
     G_o <= {G_pp[4],G_pp[4][color_width_i-1]};
-	 B_o <= {B_pp[4],B_pp[4][color_width_i-1]};
+    B_o <= {B_pp[4],B_pp[4][color_width_i-1]};
   end
 
   // use standard input if no line-doubling

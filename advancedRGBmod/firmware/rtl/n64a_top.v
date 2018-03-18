@@ -283,7 +283,7 @@ assign nCSYNC_ADV712x = cfg_nEN_RGsB & cfg_nEN_YPbPr ? 1'b0  : Sync_o[0];
 //      1   |     0    |  HD filter (36.0MHz)
 //      1   |     1    | FHD filter (72.0MHz)
 //
-// (Bypass SF is hard wired to 0)
+// (Bypass SF is hard wired to 1)
 
 reg [1:2] Filter;
 
