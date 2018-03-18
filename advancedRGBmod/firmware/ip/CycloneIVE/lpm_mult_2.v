@@ -46,7 +46,7 @@ module lpm_mult_2 (
 	input	  aclr;
 	input	  clock;
 	input	[6:0]  dataa;
-	input	[8:0]  datab;
+	input	[7:0]  datab;
 	output	[7:0]  result;
 
 	wire [7:0] sub_wire0;
@@ -67,7 +67,7 @@ module lpm_mult_2 (
 		lpm_mult_component.lpm_representation = "UNSIGNED",
 		lpm_mult_component.lpm_type = "LPM_MULT",
 		lpm_mult_component.lpm_widtha = 7,
-		lpm_mult_component.lpm_widthb = 9,
+		lpm_mult_component.lpm_widthb = 8,
 		lpm_mult_component.lpm_widthp = 8;
 
 
@@ -79,7 +79,7 @@ endmodule
 // Retrieval info: PRIVATE: AutoSizeResult NUMERIC "0"
 // Retrieval info: PRIVATE: B_isConstant NUMERIC "0"
 // Retrieval info: PRIVATE: ConstantB NUMERIC "0"
-// Retrieval info: PRIVATE: INTENDED_DEVICE_FAMILY STRING "Cyclone 10 LP"
+// Retrieval info: PRIVATE: INTENDED_DEVICE_FAMILY STRING "Cyclone IV E"
 // Retrieval info: PRIVATE: LPM_PIPELINE NUMERIC "1"
 // Retrieval info: PRIVATE: Latency NUMERIC "1"
 // Retrieval info: PRIVATE: SYNTH_WRAPPER_GEN_POSTFIX STRING "0"
@@ -87,7 +87,7 @@ endmodule
 // Retrieval info: PRIVATE: USE_MULT NUMERIC "1"
 // Retrieval info: PRIVATE: ValidConstant NUMERIC "0"
 // Retrieval info: PRIVATE: WidthA NUMERIC "7"
-// Retrieval info: PRIVATE: WidthB NUMERIC "9"
+// Retrieval info: PRIVATE: WidthB NUMERIC "8"
 // Retrieval info: PRIVATE: WidthP NUMERIC "8"
 // Retrieval info: PRIVATE: aclr NUMERIC "1"
 // Retrieval info: PRIVATE: clken NUMERIC "0"
@@ -99,17 +99,17 @@ endmodule
 // Retrieval info: CONSTANT: LPM_REPRESENTATION STRING "UNSIGNED"
 // Retrieval info: CONSTANT: LPM_TYPE STRING "LPM_MULT"
 // Retrieval info: CONSTANT: LPM_WIDTHA NUMERIC "7"
-// Retrieval info: CONSTANT: LPM_WIDTHB NUMERIC "9"
+// Retrieval info: CONSTANT: LPM_WIDTHB NUMERIC "8"
 // Retrieval info: CONSTANT: LPM_WIDTHP NUMERIC "8"
 // Retrieval info: USED_PORT: aclr 0 0 0 0 INPUT NODEFVAL "aclr"
 // Retrieval info: USED_PORT: clock 0 0 0 0 INPUT NODEFVAL "clock"
 // Retrieval info: USED_PORT: dataa 0 0 7 0 INPUT NODEFVAL "dataa[6..0]"
-// Retrieval info: USED_PORT: datab 0 0 9 0 INPUT NODEFVAL "datab[8..0]"
+// Retrieval info: USED_PORT: datab 0 0 8 0 INPUT NODEFVAL "datab[7..0]"
 // Retrieval info: USED_PORT: result 0 0 8 0 OUTPUT NODEFVAL "result[7..0]"
 // Retrieval info: CONNECT: @aclr 0 0 0 0 aclr 0 0 0 0
 // Retrieval info: CONNECT: @clock 0 0 0 0 clock 0 0 0 0
 // Retrieval info: CONNECT: @dataa 0 0 7 0 dataa 0 0 7 0
-// Retrieval info: CONNECT: @datab 0 0 9 0 datab 0 0 9 0
+// Retrieval info: CONNECT: @datab 0 0 8 0 datab 0 0 8 0
 // Retrieval info: CONNECT: result 0 0 8 0 @result 0 0 8 0
 // Retrieval info: GEN_FILE: TYPE_NORMAL lpm_mult_2.v TRUE
 // Retrieval info: GEN_FILE: TYPE_NORMAL lpm_mult_2.inc FALSE
