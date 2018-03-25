@@ -36,8 +36,7 @@
 #include "../config.h"
 
 extern const char *OffOn[], *EvenOdd[], *VideoFormat[], *DeBlurCfg[],
-                  *SLStrength[], *SLHybDepth[], *GammaValue[],
-                  *QuickChange[], *FilterAddOn[];
+                  *SLDesc[], *GammaValue[], *QuickChange[], *FilterAddOn[];
 
 // video
 cfg_word_t cfg_data_video =
@@ -96,7 +95,7 @@ config_t slhyb_str = {
         .max_value     = CFG_SLHYBDEP_MAX_VALUE,
         .getvalue_mask = CFG_SLHYBDEP_GETMASK
     },
-    .value_string = &SLHybDepth
+    .value_string = &SLDesc
 };
 
 config_t sl_id = {
@@ -148,7 +147,7 @@ config_t sl_str = {
         .max_value     = CFG_SLSTR_MAX_VALUE,
         .getvalue_mask = CFG_SLSTR_GETMASK
     },
-    .value_string = &SLStrength
+    .value_string = &SLDesc
 };
 
 // misc

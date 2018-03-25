@@ -65,8 +65,6 @@ int main()
   updateaction_t todo;
   menu_t *menu = &home_menu;
 
-  char szText[VD_WIDTH];
-
   configuration_t sysconfig = {
       .cfg_word_def[VIDEO]  = &cfg_data_video,
       .cfg_word_def[IMAGE1] = &cfg_data_image1,

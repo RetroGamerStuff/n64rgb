@@ -40,24 +40,17 @@
 #include "menu_text/textdefs_p.h"
 #include "vd_driver.h"
 
-
-
-#define OPT_WINDOWCOLOR_BG    BACKGROUNDCOLOR_WHITE
-#define OPT_WINDOWCOLOR_FONT  FONTCOLOR_BLACK
-
-#define SUBMENU_ARROW_L   ARROW_RIGHT
-#define OPT_ARROW_L       TRIANGLE_LEFT
-#define OPT_ARROW_R       TRIANGLE_RIGHT
-#define OPT_WINDOW_WIDTH  13
-
+char szText[VD_WIDTH];
 extern alt_u8 use_flash;
 
 inline alt_u8 is_cfg_screen (menu_t *menu)  /* ugly hack (ToDo on updates: check for validity, i.e. is this property still unique) */
   {  return (menu->leaves[0].config_value->flag_masks.clrflag_mask == CFG_LINEX2_CLRMASK); }
-inline alt_u8 is_cfg_sl_screen (menu_t *menu)
+inline alt_u8 is_cfg_sl_screen (menu_t *menu) /* ugly hack (ToDo on updates: check for validity, i.e. is this property still unique) */
   { return  (menu->leaves[0].config_value->flag_masks.clrflag_mask == CFG_SL_EN_CLRMASK ); }
 inline alt_u8 is_misc_screen (menu_t *menu) /* ugly hack (ToDo on updates: check for validity, i.e. is this property still unique) */
   {  return (menu->leaves[0].config_value->flag_masks.clrflag_mask == CFG_USEIGR_CLRMASK); }
+inline alt_u8 is_sl_str_val (config_t *config_value) /* ugly hack (ToDo on updates: check for validity, i.e. is this property still unique) */
+  {  return (config_value->value_details.getvalue_mask == CFG_SLSTR_GETMASK); }
 
 
 static const arrow_t selection_arrow = {
@@ -477,6 +470,8 @@ int update_cfg_screen(menu_t* current_menu)
 
       if (v_run == current_menu->current_selection)
         vd_clear_area(h_l_offset,h_r_offset,v_offset,v_offset);
+
+      if (is_sl_str_val(current_menu->leaves[v_run].config_value)) val_select++;
 
       if (is_misc_screen(current_menu) && v_run == 2 && !use_filteraddon)
         vd_print_string(h_l_offset-2,v_offset - 1,background_color,FONTCOLOR_GREY,FilterAddOn[4]);

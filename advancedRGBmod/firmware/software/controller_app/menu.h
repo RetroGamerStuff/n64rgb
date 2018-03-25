@@ -35,6 +35,16 @@
 #include "config.h"
 
 
+#define OPT_WINDOWCOLOR_BG    BACKGROUNDCOLOR_WHITE
+#define OPT_WINDOWCOLOR_FONT  FONTCOLOR_BLACK
+
+#define SUBMENU_ARROW_L   ARROW_RIGHT
+#define OPT_ARROW_L       TRIANGLE_LEFT
+#define OPT_ARROW_R       TRIANGLE_RIGHT
+#define OPT_WINDOW_WIDTH  13
+
+extern char szText[];
+
 typedef enum {
   NON = 0,
   MENU_OPEN,
