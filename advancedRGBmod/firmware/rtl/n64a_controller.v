@@ -153,15 +153,17 @@ system system_u(
   .osd_info_out_export(OSDInfo)
 );
 
-reg show_osd = 1'b0;
-reg  use_igr = 1'b0;
+reg show_osd_logo    = 1'b0;
+reg show_osd         = 1'b0;
+reg  use_igr         = 1'b0;
 
 always @(posedge VCLK)
   if ((!nDSYNC & negedge_nVSYNC) | !nRST) begin
+    show_osd_logo    <= &OSDInfo[4:3];  // show logo only in OSD
     show_osd         <= OSDInfo[3];
     use_igr          <= SysConfigSet[31];
     OutConfigSet     <= SysConfigSet[28:0];
-    OutConfigSet[10] <= OSDInfo[4] | !OSDInfo[3]; // cfg_OSD_SL considers if OSD is shown or not
+    OutConfigSet[10] <= OSDInfo[5] | !OSDInfo[3]; // cfg_OSD_SL considers if OSD is shown or not
   end
 
 
@@ -317,12 +319,16 @@ reg nVSYNC_pre = 1'b0;
 reg [9:0] h_cnt = 10'h0;
 reg [7:0] v_cnt =  8'h0;
 
+reg [7:0] logo_h_cnt = 8'h0;
+reg [3:0] logo_v_cnt = 4'h0;
+
 reg [8:0] txt_h_cnt = 9'h0; // 2:0 - font width reservation (allows for max 8p wide font); used for pixel selection
                             // 8:3 - indexing the char in each row
 reg [7:0] txt_v_cnt = 8'h0; // 3:0 - font hight reservation (allows for max 16p hight font); used for addr. font pixel row
                             // 7:4 - selects the row of chars
 
 reg [4:0] draw_osd_window = 5'b00000; // font and char memory
+reg [4:0]       draw_logo = 5'b00000; // show logo
 reg [4:0]        en_txtrd = 5'b00000; // introduce four delay taps
 
 always @(posedge VCLK) begin
@@ -332,10 +338,18 @@ always @(posedge VCLK) begin
     if (negedge_nHSYNC) begin
       h_cnt <= 10'h0;
       v_cnt <= ~&v_cnt ? v_cnt + 1'b1 : v_cnt;
-      if (v_cnt <= `OSD_HEADER_V_STOP | v_cnt >= `OSD_FOOTER_V_START) begin
+
+      if (v_cnt <= `OSD_LOGO_V_START | v_cnt >= `OSD_LOGO_V_STOP)
+        logo_v_cnt <= 3'h0;
+      else if (~&logo_v_cnt)
+        logo_v_cnt <= logo_v_cnt + 1'b1;
+
+      logo_h_cnt <= 8'h0;
+
+      if (v_cnt <= `OSD_TXT_V_START | v_cnt >= `OSD_TXT_V_STOP) begin
         txt_v_cnt <= 7'h0;
       end else if (~&txt_v_cnt[7:4]) begin
-        if (txt_v_cnt[3:0] == `OSD_FONT_HIGHT) begin
+        if (txt_v_cnt[3:0] == `OSD_FONT_HEIGHT) begin
           txt_v_cnt[3:0] <= 4'h0;
           txt_v_cnt[7:4] <= txt_v_cnt[7:4] + 1'b1;
         end else
@@ -344,6 +358,11 @@ always @(posedge VCLK) begin
     end
     if (negedge_nVSYNC)
       v_cnt <= 8'h0;
+
+    if (draw_logo[0]) begin
+      if (~&logo_h_cnt)
+        logo_h_cnt <= logo_h_cnt + 1'b1;
+    end
 
     if (en_txtrd[0]) begin
       if (txt_h_cnt[2:0] == `OSD_FONT_WIDTH) begin
@@ -363,20 +382,40 @@ always @(posedge VCLK) begin
   draw_osd_window[  0] <= (h_cnt > `OSD_WINDOW_H_START) && (h_cnt < `OSD_WINDOW_H_STOP) &&
                           (v_cnt > `OSD_WINDOW_V_START) && (v_cnt < `OSD_WINDOW_V_STOP);
 
+  draw_logo[4:1] <= draw_logo[3:0];
+  draw_logo[  0] <= show_osd_logo &&
+                    (h_cnt > `OSD_LOGO_H_START) && (~&logo_h_cnt) &&
+                    (v_cnt > `OSD_LOGO_V_START) && (v_cnt < `OSD_LOGO_V_STOP);
+
   en_txtrd[4:1] <= en_txtrd[3:0];
-  en_txtrd[  0] <=(h_cnt > `OSD_TXT_H_START)   && (h_cnt < `OSD_TXT_H_STOP)     &&
-                  (v_cnt > `OSD_HEADER_V_STOP) && (v_cnt < `OSD_FOOTER_V_START);
+  en_txtrd[  0] <= (h_cnt > `OSD_TXT_H_START) && (h_cnt < `OSD_TXT_H_STOP) &&
+                   (v_cnt > `OSD_TXT_V_START) && (v_cnt < `OSD_TXT_V_STOP);
 
   if (!nRST) begin
     h_cnt <= 10'h0;
     v_cnt <=  8'h0;
 
-    txt_h_cnt <= 9'h0;
-    txt_v_cnt <= 8'h0;
+    logo_h_cnt <= 8'h0;
+    logo_v_cnt <= 4'h0;
+    txt_h_cnt  <= 9'h0;
+    txt_v_cnt  <= 8'h0;
 
+    draw_logo       <= 5'b00000;
     draw_osd_window <= 5'b00000;
     en_txtrd        <= 5'b00000;
   end
+end
+
+localparam [1023:0] logo = 1024'h1FF7FCFF9C1B033FE7FD8180300FF3833FF7FEFFDE1B037FEFFD8180301FFBC330300600DF1B03606C0D8180FFD81BE33037FE00DB9BFF606C0DFF80FFDFFB733037FE00D9DBFF606C0DFF8030CFFB3B30300600D8FB03606C0D818030C01B1F3FF7FEFFD87BFF606FFDFF8030CFFB0F1FF7FCFF9839FE6067FCFF0030CFF307;
+
+reg [3:0] act_logo_px = 4'b0000;
+
+always @(posedge VCLK) begin
+  act_logo_px[3:1] <= act_logo_px[2:0];
+  act_logo_px[  0] <= logo[{logo_v_cnt[3:1],logo_h_cnt[7:1]}];
+
+  if (!nRST)
+    act_logo_px <= 4'b0000;
 end
 
 wire [5:0] txt_xrdaddr = txt_h_cnt[8:3];  // allows for max 64 chars each row
@@ -447,7 +486,7 @@ always @(posedge VCLK) begin
     font_pixel_select  <= 12'h0;
 end
 
-wire pixel_is_set = font_word[font_pixel_select[11:9]];
+wire act_char_px = font_word[font_pixel_select[11:9]];
 
 wire [8:0] window_bg_color = (background_color == `OSD_BACKGROUND_WHITE) ? `OSD_WINDOW_BGCOLOR_WHITE   :
                              (background_color == `OSD_BACKGROUND_GREY)  ? `OSD_WINDOW_BGCOLOR_GREY    :
@@ -479,8 +518,10 @@ always @(posedge VCLK) begin
 
   // draw menu window if needed
   if (show_osd & draw_osd_window[4]) begin
-    if (en_txtrd[4]) begin
-      if (|font_color & pixel_is_set) begin
+    if (draw_logo[4] & act_logo_px[3]) begin
+      video_data_o[`VDATA_I_CO_SLICE] <= `OSD_LOGO_COLOR;
+    end else if (en_txtrd[4] & !draw_logo[4]) begin
+      if (|font_color & act_char_px) begin
         video_data_o[`VDATA_I_CO_SLICE] <= txt_color;
       end else begin
       // modify red

@@ -114,8 +114,8 @@ parameter vdata_width_o = 4 + 3*color_width_o;
   // ======================
 
   // define font size (every value - 1)
-  `define OSD_FONT_WIDTH 3'd7
-  `define OSD_FONT_HIGHT 4'd11
+  `define OSD_FONT_WIDTH  3'd7
+  `define OSD_FONT_HEIGHT 4'd11
 
   // define text window size (every value - 1)
   `define MAX_CHARS_PER_ROW 6'd51
@@ -124,17 +124,20 @@ parameter vdata_width_o = 4 + 3*color_width_o;
   // positioning of OSD window (not linedoubled)
   `define OSD_WINDOW_H_START 10'd160
   `define OSD_WINDOW_H_STOP  10'd591  // 7 pixels left margin + 416 (8x52) pixels free text + 7 pixel right margin + 2 unequality comparision
-//  `define OSD_WINDOW_V_START  8'd32
-//  `define OSD_WINDOW_V_STOP   8'd227  // 25 lines header + 144 (12x12) lines free text + 25 line footer + 2 unequality comparision
   `define OSD_WINDOW_V_START  8'd50
-  `define OSD_WINDOW_V_STOP   8'd209  // 7 lines header + 144 (12x12) lines free text + 7 line footer + 2 unequality comparision
+  `define OSD_WINDOW_V_STOP   8'd205  // 10 lines header + 144 (12x12) lines free text + 7 line footer + 2 unequality comparision
 
 
   // define some areas in the OSD windows
   `define OSD_TXT_H_START    10'd167
   `define OSD_TXT_H_STOP     10'd584
-  `define OSD_HEADER_V_STOP   8'd57
-  `define OSD_FOOTER_V_START  8'd202
+  `define OSD_TXT_V_START     8'd57
+  `define OSD_TXT_V_STOP      8'd202
+
+  `define OSD_LOGO_H_START   `OSD_TXT_H_START
+  `define OSD_LOGO_H_STOP    (`OSD_TXT_H_START + 10'd127)
+  `define OSD_LOGO_V_START   (`OSD_TXT_V_START - 8'd4)
+  `define OSD_LOGO_V_STOP    (`OSD_TXT_V_START + 8'd13)
 
   // define OSD background window color (three bits each color)
   `define OSD_BACKGROUND_WHITE        2'b11
@@ -159,7 +162,7 @@ parameter vdata_width_o = 4 + 3*color_width_o;
   `define FONTCOLOR_YELLOW           4'h8
   `define FONTCOLOR_CYAN             4'h9
   `define FONTCOLOR_MAGENTA          4'hA
-  `define FONTCOLOR_DARKORANGE       4'hD
+  `define FONTCOLOR_DARKORANGE       4'hB
   `define FONTCOLOR_TOMATO           4'hC
   `define FONTCOLOR_DARKMAGENTA      4'hD
   `define FONTCOLOR_NAVAJOWHITE      4'hE
@@ -180,6 +183,8 @@ parameter vdata_width_o = 4 + 3*color_width_o;
   `define OSD_TXT_COLOR_DARKMAGENTA 21'h114045
   `define OSD_TXT_COLOR_NAVAJOWHITE 21'h1FF7D6
   `define OSD_TXT_COLOR_DARKGOLD    21'h1DEB07
+
+  `define OSD_LOGO_COLOR `OSD_TXT_COLOR_DARKORANGE
 
 
   // In-game reset command

@@ -55,7 +55,6 @@ const char   *RW_Message[] = {"< Success >","< Failed >"};
  * - Warning display messages
  * - Confirm to load or to save
  * - HW and FW version display
- * - Header logo
  * - Additional windows (Ctrl. input, Video Output as OSD without menu)
  */
 
@@ -131,6 +130,8 @@ int main()
           break;
         case NEW_OVERLAY:
           print_overlay(menu);
+          if (menu->header) cfg_set_flag(&show_logo);
+          else              cfg_clear_flag(&show_logo);
           print_selection_arrow(menu);
           message_cnt = 0;
           break;
@@ -164,6 +165,7 @@ int main()
       if (command == CMD_OPEN_MENU) {
         cfg_set_flag(&show_osd);
         print_overlay(menu);
+        cfg_set_flag(&show_logo);
         print_selection_arrow(menu);
       }
 

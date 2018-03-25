@@ -35,12 +35,13 @@
 
 #define HEADER_UNDERLINE      0x08
 #define HOME_LOWSEC_UNDERLINE 0x01
-#define HEADER_H_OFFSET       0
-#define OVERLAY_H_OFFSET      2
-#define OVERLAY_V_OFFSET      0
-#define OVERLAY_V_OFFSET_WH   2
-#define TEXTOVERLAY_H_OFFSET  0
-#define HOMEOVERLAY_H_OFFSET  3
+#define HEADER_H_OFFSET       24
+#define HEADER_V_OFFSET        0
+#define OVERLAY_H_OFFSET       2
+#define OVERLAY_V_OFFSET       0
+#define OVERLAY_V_OFFSET_WH    2
+#define TEXTOVERLAY_H_OFFSET   0
+#define HOMEOVERLAY_H_OFFSET   3
 
 #define COPYRIGHT_SIGN          0x0A
 #define COPYRIGHT_H_OFFSET      (VD_WIDTH - 14)
@@ -134,7 +135,7 @@ static const char *btn_overlay_1 =
     "B ... Back";
 
 static const char *vinfo_header =
-    "N64 Advanced - Video-Info";
+    "Video-Info";
 static const char *vinfo_overlay =
     "* Video\n"
     "  - Input:\n"
@@ -145,7 +146,7 @@ static const char *vinfo_overlay =
     "* Filter AddOn:";
 
 static const char *cfg_header =
-    "N64 Advanced - Configuration";
+    "Configuration";
 static const char *cfg_overlay =
     "* Linedoubling:\n"
     "  - LineX2:\n"
@@ -157,7 +158,7 @@ static const char *cfg_overlay =
     "* Gamma Value:";
 
 static const char *cfg_sl_header =
-    "N64 Advanced - Scanline configuration";
+    "Scanline conf.";
 static const char *cfg_sl_overlay =
     "* Use Scanlines:\n"
     "  - Scanline ID:\n"
@@ -166,7 +167,7 @@ static const char *cfg_sl_overlay =
     "* Show Sl. in OSD:";
 
 static const char *misc_header =
-    "N64 Advanced - Miscellaneous";
+    "Miscellaneous";
 static const char *misc_overlay =
     "* In-Game Routines:\n"
     "  - Reset:\n"
@@ -175,7 +176,7 @@ static const char *misc_overlay =
     "  - Filter Cut-Off:";
 
 static const char *rwdata_header =
-    "N64 Advanced - Load/Save";
+    "Load/Save";
 static const char *rwdata_overlay =
     "Save:\n"
     " - Configuration\n"
@@ -192,7 +193,8 @@ static const char *thanks_overlay =
     " - Ikari_01 : Initial implementation of PAL/NTSC\n"
     "              as well as 480i/576i detection\n"
     " - sftwninja: Pushing me to the N64A project\n"
-    " - Xenogears: Sponsoring of prototypes\n\n"
+    " - Xenogears: Sponsoring of prototypes\n"
+    " - ArcadeTV:  Logo design\n"
     "Visit the GitHub project:\n"
     "      <https://github.com/borti4938/n64rgb>\n"
     "Any contribution in any kind is highly welcomed!";
@@ -223,7 +225,7 @@ static const char *license_overlay =
   /* 1234567890123456789012345678901234567890123456789012 */
 
 static const char *home_header =
-    "N64 Advanced - Main Menu";
+    "Main Menu";
 static const char *home_overlay =
     "[Video-Info]\n"
     "[Configuration]\n"

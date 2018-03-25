@@ -232,6 +232,16 @@ config_t show_sl_in_osd = {
     .value_string = &OffOn
 };
 
+config_t show_logo = {
+    .cfg_word        = &cfg_data_menu,
+    .cfg_word_offset = CFG_SHOWLOGO_OFFSET,
+    .cfg_type        = FLAG,
+    .flag_masks      = {
+        .setflag_mask = CFG_SHOWLOGO_SETMASK,
+        .clrflag_mask = CFG_SHOWLOGO_CLRMASK
+    }
+};
+
 config_t show_osd = {
     .cfg_word        = &cfg_data_menu,
     .cfg_word_offset = CFG_SHOWOSD_OFFSET,

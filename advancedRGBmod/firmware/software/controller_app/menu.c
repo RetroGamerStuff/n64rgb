@@ -309,7 +309,7 @@ void print_overlay(menu_t* current_menu)
 
   if (current_menu->header) {
     overlay_v_offset = OVERLAY_V_OFFSET_WH;
-    vd_print_string(HEADER_H_OFFSET,0,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_DARKMAGENTA,*current_menu->header);
+    vd_print_string(VD_WIDTH-strlen(*current_menu->header),HEADER_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_DARKORANGE,*current_menu->header);
     for (h_run = 0; h_run < VD_WIDTH; h_run++)
       vd_print_char(h_run,1,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_NAVAJOWHITE,(char) HEADER_UNDERLINE);
   }
@@ -323,8 +323,8 @@ void print_overlay(menu_t* current_menu)
     case CONFIG:
     case VINFO:
     case RWDATA:
-      vd_print_string(COPYRIGHT_H_OFFSET,COPYRIGHT_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_DARKMAGENTA,copyright_note);
-      vd_print_char(COPYRIGHT_SIGN_H_OFFSET,COPYRIGHT_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_DARKMAGENTA,(char) COPYRIGHT_SIGN);
+      vd_print_string(COPYRIGHT_H_OFFSET,COPYRIGHT_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_DARKORANGE,copyright_note);
+      vd_print_char(COPYRIGHT_SIGN_H_OFFSET,COPYRIGHT_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_DARKORANGE,(char) COPYRIGHT_SIGN);
       for (h_run = 0; h_run < VD_WIDTH; h_run++)
         vd_print_char(h_run,VD_HEIGHT-2,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_NAVAJOWHITE,(char) HOME_LOWSEC_UNDERLINE);
       break;
@@ -466,7 +466,7 @@ int update_cfg_screen(menu_t* current_menu)
       if ( ( ( is_cfg_screen(current_menu)    && (v_run == 1) ) ||
              ( is_cfg_sl_screen(current_menu) && (v_run != 0) )    ) &&
            !cfg_get_value(current_menu->leaves[0].config_value,0))
-        font_color = (val_select == ref_val_select) ? FONTCOLOR_GREY : FONTCOLOR_DARKORANGE;
+        font_color = (val_select == ref_val_select) ? FONTCOLOR_GREY : FONTCOLOR_DARKGOLD;
 
       if (v_run == current_menu->current_selection)
         vd_clear_area(h_l_offset,h_r_offset,v_offset,v_offset);
