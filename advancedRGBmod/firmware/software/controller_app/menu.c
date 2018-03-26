@@ -201,7 +201,7 @@ menu_t license_screen = {
 };
 
 
-updateaction_t apply_command(cmd_t command, menu_t* *current_menu, configuration_t* sysconfig)
+updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t* sysconfig)
 {
   if (command == CMD_MUTE_MENU) {
     return MENU_MUTE;

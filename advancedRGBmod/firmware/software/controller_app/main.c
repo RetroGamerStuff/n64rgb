@@ -122,7 +122,7 @@ int main()
         message_cnt--;
       }
 
-      todo = apply_command(command,&menu,&sysconfig);
+      todo = modify_menu(command,&menu,&sysconfig);
 
       switch (todo) {
         case MENU_MUTE:
