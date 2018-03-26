@@ -252,5 +252,14 @@ config_t show_osd = {
     }
 };
 
+config_t mute_osd_tmp = {
+    .cfg_word        = &cfg_data_menu,
+    .cfg_word_offset = CFG_MUTEOSDTMP_OFFSET,
+    .cfg_type        = FLAG,
+    .flag_masks      = {
+        .setflag_mask = CFG_MUTEOSDTMP_SETMASK,
+        .clrflag_mask = CFG_MUTEOSDTMP_CLRMASK
+    }
+};
 
 #endif /* CFG_HEADER_CFG_IO_P_H_ */

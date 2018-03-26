@@ -52,6 +52,9 @@ cmd_t ctrl_data_to_cmd(alt_u32* ctrl_data)
     case BTN_CLOSE_OSDMENU:
       cmd_new = CMD_CLOSE_MENU;
       break;
+    case BTN_MUTE_OSDMENU:
+      cmd_new = CMD_MUTE_MENU;
+      break;
     case BTN_DEBLUR_QUICK_ON:
       cmd_new = CMD_DEBLUR_QUICK_ON;
       break;
@@ -90,6 +93,8 @@ cmd_t ctrl_data_to_cmd(alt_u32* ctrl_data)
 
   if (cmd_pre != cmd_new) {
     if (cmd_history_cnt == 0) {
+      if (cmd_pre == CMD_MUTE_MENU && cmd_new == CMD_NON)
+        cmd_new = CMD_UNMUTE_MENU;
       cmd_pre = cmd_new;
       cmd_history_cnt = COMMAND_HISTORY_LENGTH;
       return cmd_new;

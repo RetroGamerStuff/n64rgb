@@ -48,6 +48,8 @@ extern char szText[];
 typedef enum {
   NON = 0,
   MENU_OPEN,
+  MENU_MUTE,
+  MENU_UNMUTE,
   MENU_CLOSE,
   NEW_OVERLAY,
   NEW_SELECTION,

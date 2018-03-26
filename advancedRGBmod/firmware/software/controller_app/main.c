@@ -125,6 +125,12 @@ int main()
       todo = apply_command(command,&menu,&sysconfig);
 
       switch (todo) {
+        case MENU_MUTE:
+          cfg_set_flag(&mute_osd_tmp);
+          break;
+        case MENU_UNMUTE:
+          cfg_clear_flag(&mute_osd_tmp);
+          break;
         case MENU_CLOSE:
           cfg_clear_flag(&show_osd);
           break;
