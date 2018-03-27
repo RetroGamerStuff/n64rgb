@@ -18,6 +18,9 @@ A collection of RGB mods for the N64. This repository includes:
   * pin breakout from 0.8mm pitch to 1.27mm pitch
   * PCB files provided
   * folder: misc/MAV-NUS-BreakOut
+- additional power supply PCB for viletime N64RGB DAC and N64RGBv1
+  * PCB files provided
+  * folder: misc/PowerReg
 - Filter AddOn for N64RGBv2 and N64 Advanced:
   * used to filter the video signal comming out of the ADV7125 or to adjust signal levels such that one can use SNES PAL RGB cables
   * PCB files provided
