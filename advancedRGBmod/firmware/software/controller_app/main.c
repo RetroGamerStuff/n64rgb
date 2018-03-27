@@ -169,10 +169,11 @@ int main()
     } else { /* END OF if(cfg_get_value(&show_osd)) */
 
       if (command == CMD_OPEN_MENU) {
-        cfg_set_flag(&show_osd);
         print_overlay(menu);
         cfg_set_flag(&show_logo);
         print_selection_arrow(menu);
+        cfg_set_flag(&show_osd);
+        cfg_clear_flag(&mute_osd_tmp);
       }
 
       if ((cfg_get_value(&igr_quickchange,0) & CFG_QUDEBLUR_GETMASK))

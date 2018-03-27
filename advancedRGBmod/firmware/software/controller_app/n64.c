@@ -33,7 +33,7 @@
 #include "n64.h"
 
 
-#define COMMAND_HISTORY_LENGTH 2
+#define COMMAND_HISTORY_LENGTH 1
 
 alt_u8 use_filteraddon;
 
@@ -101,7 +101,7 @@ cmd_t ctrl_data_to_cmd(alt_u32* ctrl_data)
     } else
       cmd_history_cnt--;
   } else
-    cmd_history_cnt = COMMAND_HISTORY_LENGTH;
+    cmd_history_cnt = cmd_new == CMD_NON ? 0 : COMMAND_HISTORY_LENGTH;
 
   return CMD_NON;
 };

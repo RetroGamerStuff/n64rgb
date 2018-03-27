@@ -136,8 +136,8 @@ wire [31:0] SysConfigSet;
 // [ 7: 0] {(2bits reserved),lineX2,480I-DeInt,(2bits reserve),RGsB,YPbPr}
 wire [ 7:0] OSDInfo;
 // general structur:
-// [7:4] (reserved)
-// [3:0] {show_osd,(3bits reserve)}
+// [7:5] (reserved)
+// [4:0] {show_osd_logo,show_osd,(2bits reserve),mute_osd}
 
 system system_u(
   .clk_clk(CLK_25M),
@@ -486,7 +486,7 @@ always @(posedge VCLK) begin
     font_pixel_select  <= 12'h0;
 end
 
-wire act_char_px = font_word[font_pixel_select[11:9]];
+wire act_char_px = (font_color == `FONTCOLOR_NON) ? 1'b0 : font_word[font_pixel_select[11:9]];
 
 wire [8:0] window_bg_color = (background_color == `OSD_BACKGROUND_WHITE) ? `OSD_WINDOW_BGCOLOR_WHITE   :
                              (background_color == `OSD_BACKGROUND_GREY)  ? `OSD_WINDOW_BGCOLOR_GREY    :
@@ -494,6 +494,8 @@ wire [8:0] window_bg_color = (background_color == `OSD_BACKGROUND_WHITE) ? `OSD_
                                                                            `OSD_WINDOW_BGCOLOR_DARKBLUE;
 
 wire [8:0] window_bg_color_default = `OSD_WINDOW_BGCOLOR_DARKBLUE;
+
+wire [8:0] window_bg_color_cur = (en_txtrd[4] & !draw_logo[4]) ? window_bg_color : window_bg_color_default;
 
 wire [`VDATA_I_CO_SLICE] txt_color = (font_color == `FONTCOLOR_WHITE)       ? `OSD_TXT_COLOR_WHITE       :
                                      (font_color == `FONTCOLOR_BLACK)       ? `OSD_TXT_COLOR_BLACK       :
@@ -518,31 +520,19 @@ always @(posedge VCLK) begin
 
   // draw menu window if needed
   if (show_osd & draw_osd_window[4]) begin
-    if (draw_logo[4] & act_logo_px[3]) begin
+    if (draw_logo[4] & act_logo_px[3])
       video_data_o[`VDATA_I_CO_SLICE] <= `OSD_LOGO_COLOR;
-    end else if (en_txtrd[4] & !draw_logo[4]) begin
-      if (|font_color & act_char_px) begin
+    else if (&{en_txtrd[4],!draw_logo[4],|font_color,act_char_px})
         video_data_o[`VDATA_I_CO_SLICE] <= txt_color;
-      end else begin
-      // modify red
-        video_data_o[3*color_width_i-1:3*color_width_i-3] <= window_bg_color[8:6];
-        video_data_o[3*color_width_i-4:2*color_width_i  ] <= video_data_i[3*color_width_i-1:2*color_width_i+3];
-      // modify green
-        video_data_o[2*color_width_i-1:2*color_width_i-3] <= window_bg_color[5:3];
-        video_data_o[2*color_width_i-4:  color_width_i  ] <= video_data_i[2*color_width_i-1:color_width_i+3];
-      // modify blue
-        video_data_o[color_width_i-1:color_width_i-3] <= window_bg_color[2:0];
-        video_data_o[color_width_i-4:              0] <= video_data_i[color_width_i-1:3];
-      end
-    end else begin
+    else begin
     // modify red
-      video_data_o[3*color_width_i-1:3*color_width_i-3] <= window_bg_color_default[8:6];
+      video_data_o[3*color_width_i-1:3*color_width_i-3] <= window_bg_color_cur[8:6];
       video_data_o[3*color_width_i-4:2*color_width_i  ] <= video_data_i[3*color_width_i-1:2*color_width_i+3];
     // modify green
-      video_data_o[2*color_width_i-1:2*color_width_i-3] <= window_bg_color_default[5:3];
+      video_data_o[2*color_width_i-1:2*color_width_i-3] <= window_bg_color_cur[5:3];
       video_data_o[2*color_width_i-4:  color_width_i  ] <= video_data_i[2*color_width_i-1:color_width_i+3];
     // modify blue
-      video_data_o[color_width_i-1:color_width_i-3] <= window_bg_color_default[2:0];
+      video_data_o[color_width_i-1:color_width_i-3] <= window_bg_color_cur[2:0];
       video_data_o[color_width_i-4:              0] <= video_data_i[color_width_i-1:3];
     end
   end else begin

@@ -109,6 +109,11 @@ parameter vdata_width_o = 4 + 3*color_width_o;
   `define Cl 16'h4000 // C-button left
   `define Cr 16'h8000 // C-button right
 
+  // In-game reset command
+  // =====================
+
+  `define IGR_RESET (`A + `B + `Z + `St + `R)
+
 
   // OSD menu window sizing
   // ======================
@@ -122,17 +127,17 @@ parameter vdata_width_o = 4 + 3*color_width_o;
   `define MAX_TEXT_ROWS     4'd11
 
   // positioning of OSD window (not linedoubled)
-  `define OSD_WINDOW_H_START 10'd160
-  `define OSD_WINDOW_H_STOP  10'd591  // 7 pixels left margin + 416 (8x52) pixels free text + 7 pixel right margin + 2 unequality comparision
+  `define OSD_WINDOW_H_START  10'd160
+  `define OSD_WINDOW_H_STOP   (`OSD_WINDOW_H_START + 4'd15 + (`MAX_CHARS_PER_ROW + 1'd1)*(`OSD_FONT_WIDTH + 1'd1))
   `define OSD_WINDOW_V_START  8'd50
-  `define OSD_WINDOW_V_STOP   8'd205  // 10 lines header + 144 (12x12) lines free text + 7 line footer + 2 unequality comparision
+  `define OSD_WINDOW_V_STOP   (`OSD_WINDOW_V_START + 4'd13 + (`MAX_TEXT_ROWS + 1'd1)*(`OSD_FONT_HEIGHT + 1'd1))
 
 
   // define some areas in the OSD windows
-  `define OSD_TXT_H_START    10'd167
-  `define OSD_TXT_H_STOP     10'd584
-  `define OSD_TXT_V_START     8'd57
-  `define OSD_TXT_V_STOP      8'd202
+  `define OSD_TXT_H_START (`OSD_WINDOW_H_START + 3'd7)
+  `define OSD_TXT_H_STOP  (`OSD_TXT_H_START + (`MAX_CHARS_PER_ROW + 1'd1)*(`OSD_FONT_WIDTH + 1'd1) + 1'd1)
+  `define OSD_TXT_V_START (`OSD_WINDOW_V_START + 4'd8)
+  `define OSD_TXT_V_STOP  (`OSD_TXT_V_START + (`MAX_TEXT_ROWS + 1'd1)*(`OSD_FONT_HEIGHT + 1'd1) + 1'd1)
 
   `define OSD_LOGO_H_START   `OSD_TXT_H_START
   `define OSD_LOGO_H_STOP    (`OSD_TXT_H_START + 10'd127)
@@ -185,11 +190,5 @@ parameter vdata_width_o = 4 + 3*color_width_o;
   `define OSD_TXT_COLOR_DARKGOLD    21'h1DEB07
 
   `define OSD_LOGO_COLOR `OSD_TXT_COLOR_DARKORANGE
-
-
-  // In-game reset command
-  // =====================
-
-  `define IGR_RESET           (`A + `B + `Z + `St + `R)
 
 `endif
