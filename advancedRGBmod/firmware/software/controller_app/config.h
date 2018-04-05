@@ -83,8 +83,12 @@ typedef struct {
   const char*         *value_string;
 } config_t;
 
-#define CFG_VERSION_INVALID 100
-#define CFG_FLASH_NOT_USED  101
+#define CFG_VERSION_INVALID   100
+#define CFG_FLASH_NOT_USED    101
+#define CFG_FLASH_SAVE_ABORT  102
+#define CFG_FLASH_LOAD_ABORT  CFG_FLASH_SAVE_ABORT
+#define CFG_N64DEF_LOAD_ABORT CFG_FLASH_SAVE_ABORT
+#define CFG_JUMPER_LOAD_ABORT CFG_FLASH_SAVE_ABORT
 
 // the overall masks
 #define CFG_VIDEO_GETALL_MASK   0x33
@@ -260,6 +264,12 @@ typedef struct {
 #define JUMPER_VCFG_RGSB_GETMASK    (1<<CFG_RGSB_OFFSET)
 
 
+#define RWM_H_OFFSET 5
+#define RWM_V_OFFSET (VD_HEIGHT - 3)
+#define RWM_LENGTH   10
+#define RWM_SHOW_CNT 256
+
+
 
 inline void cfg_toggle_flag(config_t* cfg_data)
   {  if (cfg_data->cfg_type == FLAG) cfg_data->cfg_word->cfg_word_val ^= cfg_data->flag_masks.setflag_mask;  };
@@ -271,10 +281,10 @@ void cfg_inc_value(config_t* cfg_data);
 void cfg_dec_value(config_t* cfg_data);
 alt_u8 cfg_get_value(config_t* cfg_data,alt_u8 get_reference);
 void cfg_set_value(config_t* cfg_data, alt_u8 value);
-int cfg_save_to_flash(configuration_t* sysconfig);
-int cfg_load_from_flash(configuration_t* sysconfig);
-int cfg_load_n64defaults(configuration_t* sysconfig);
-int cfg_load_jumperset(configuration_t* sysconfig);
+int cfg_save_to_flash(configuration_t* sysconfig, alt_u8 need_confirm);
+int cfg_load_from_flash(configuration_t* sysconfig, alt_u8 need_confirm);
+int cfg_load_n64defaults(configuration_t* sysconfig, alt_u8 need_confirm);
+int cfg_load_jumperset(configuration_t* sysconfig, alt_u8 need_confirm);
 void cfgopt_apply_to_logic(configuration_t* sysconfig);
 inline void cfgmenu_apply_to_logic(configuration_t* sysconfig)
   {  IOWR_ALTERA_AVALON_PIO_DATA(OSD_INFO_OUT_BASE,sysconfig->cfg_word_def[MENU]->cfg_word_val & sysconfig->cfg_word_def[MENU]->cfg_word_mask);  };

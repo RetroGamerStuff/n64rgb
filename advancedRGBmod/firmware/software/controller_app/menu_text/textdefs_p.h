@@ -55,11 +55,6 @@
 #define VERSION_V_OFFSET  5
 
 
-#define BTN_OVERLAY_0_H_OFFSET  (VD_WIDTH - 11)
-#define BTN_OVERLAY_0_V_OFFSET  (VD_HEIGHT - 4)
-#define BTN_OVERLAY_1_H_OFFSET  (VD_WIDTH - 11)
-#define BTN_OVERLAY_1_V_OFFSET  (VD_HEIGHT - 3)
-
 #define CFG_OVERLAY_H_OFFSET  OVERLAY_H_OFFSET
 #define CFG_OVERLAY_V_OFFSET  OVERLAY_V_OFFSET_WH
 #define CFG_VALS_H_OFFSET     (27 + CFG_OVERLAY_H_OFFSET)
@@ -126,13 +121,17 @@
 static const char *copyright_note =
     "2018 borti4938"; /* 14 chars */
 
-static const char *btn_overlay_0 =
+const char *btn_overlay_0 =
     "A ... Enter\n"
     "B ... Close";
 
-static const char *btn_overlay_1 =
+const char *btn_overlay_1 =
     "A ... Enter\n"
     "B ... Back";
+
+const char *btn_overlay_2 =
+    "A ... Confirm\n"
+    "B ... Cancel";
 
 static const char *vinfo_header =
     "Video-Info";
@@ -244,7 +243,7 @@ const char *VideoColor[]    = {"21bit","15bit"};
 const char *VideoFormat[]   = {"RGBS","RGBS/RGsB","YPbPr"};
 const char *DeBlur[]        = {"(estimated)","(forced)","(480i/576i)"};
 const char *DeBlurCfg[]     = {"Auto","Off","Always"};
-const char *FilterAddOn[]   = {"Auto","9.5MHz","18MHz","(bypassed)","(not installed)"};
+const char *FilterAddOn[]   = {"Auto"," 9.5MHz","18.0MHz","(bypassed)","(not installed)"};
 const char *SLDesc[] = {"  0.00%","  6.25%"," 12.50%"," 18.75%",
                         " 25.00%"," 31.25%"," 37.50%"," 43.75%",
                         " 50.00%"," 56.25%"," 62.50%"," 68.75%",

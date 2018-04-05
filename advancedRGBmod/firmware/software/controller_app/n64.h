@@ -146,6 +146,7 @@ typedef enum {
 
 extern alt_u8 use_filteraddon;
 
+void print_ctrl_data(alt_u32 *ctrl_data);
 cmd_t ctrl_data_to_cmd();
 inline alt_u32 get_ctrl_data()
   {  return IORD_ALTERA_AVALON_PIO_DATA(CTRL_DATA_IN_BASE);  };

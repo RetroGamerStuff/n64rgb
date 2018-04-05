@@ -298,8 +298,10 @@ updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t
 
   if ((*current_menu)->leaves[sel].leavetype == IFUNC) {
     if ((command == CMD_MENU_RIGHT) || (command == CMD_MENU_ENTER)) {
-      int retval = (*current_menu)->leaves[sel].load_fun(sysconfig);
-      return (retval == 0 ? RW_DONE : RW_FAILED);
+      int retval = (*current_menu)->leaves[sel].load_fun(sysconfig,1);
+      return (retval == 0                     ? RW_DONE  :
+              retval == -CFG_FLASH_SAVE_ABORT ? RW_ABORT :
+                                                RW_FAILED);
     }
   }
 
@@ -322,8 +324,8 @@ void print_overlay(menu_t* current_menu)
   }
   vd_print_string(overlay_h_offset,overlay_v_offset,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,*current_menu->overlay);
 
-  if (current_menu->type == HOME) vd_print_string(BTN_OVERLAY_0_H_OFFSET,BTN_OVERLAY_0_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_GREEN,btn_overlay_0);
-  if (current_menu->type == RWDATA) vd_print_string(BTN_OVERLAY_0_H_OFFSET,BTN_OVERLAY_0_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_GREEN,btn_overlay_1);
+  if (current_menu->type == HOME) vd_print_string(BTN_OVERLAY_H_OFFSET,BTN_OVERLAY_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_GREEN,btn_overlay_0);
+  if (current_menu->type == RWDATA) vd_print_string(BTN_OVERLAY_H_OFFSET,BTN_OVERLAY_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_GREEN,btn_overlay_1);
 
   switch (current_menu->type) {
     case HOME:

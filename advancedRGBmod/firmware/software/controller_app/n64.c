@@ -27,17 +27,28 @@
  ********************************************************************************/
 
 
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 #include "alt_types.h"
 #include "altera_avalon_pio_regs.h"
 #include "system.h"
 #include "n64.h"
+#include "vd_driver.h"
 
 
 #define COMMAND_HISTORY_LENGTH 1
 
+extern char szText[];
+
 alt_u8 use_filteraddon;
 
-// ToDo: export function into logic to save some memory space
+void print_ctrl_data(alt_u32* ctrl_data) {
+  sprintf(szText,"Ctrl.Data: 0x%08x",(uint) *ctrl_data);
+  vd_print_string(0, VD_HEIGHT-1, BACKGROUNDCOLOR_STANDARD, FONTCOLOR_NAVAJOWHITE, &szText[0]);
+}
+
+// ToDo: export function into logic to save some memory space if needed
 cmd_t ctrl_data_to_cmd(alt_u32* ctrl_data)
 {
   cmd_t cmd_new = CMD_NON;

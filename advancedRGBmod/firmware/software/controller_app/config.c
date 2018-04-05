@@ -31,16 +31,22 @@
 #include "system.h"
 #include "n64.h"
 #include "config.h"
+#include "menu.h"
 #include "flash.h"
+
 
 #define FWCFG_MAIN  0 // 0 = test; 1 = master
 #define FWCFG_SUB   2 // running number
+
 
 typedef struct {
   alt_u8  vers_cfg_main;
   alt_u8  vers_cfg_sub;
   alt_u8  cfg_words[NUM_CFG_WORDS];
 } cfg4flash_t;
+
+static const char *confirm_message = "< Really? >";
+extern const char *btn_overlay_1, *btn_overlay_2;
 
 void cfg_inc_value(config_t* cfg_data)
 {
@@ -99,9 +105,41 @@ void cfg_set_value(config_t* cfg_data, alt_u8 value)
   }
 };
 
-int cfg_save_to_flash(configuration_t* sysconfig)
+alt_u8 confirmation_routine()
+{
+  cmd_t command;
+  alt_u8 abort = 0;
+  alt_u32 ctrl_data = get_ctrl_data();
+
+  vd_print_string(RWM_H_OFFSET,RWM_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_NAVAJOWHITE,confirm_message);
+  vd_print_string(BTN_OVERLAY_H_OFFSET,BTN_OVERLAY_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_GREEN,btn_overlay_2);
+
+  while(1) {
+    print_ctrl_data(&ctrl_data);
+
+    while(!get_nvsync()){};                          /* wait for nVSYNC goes high */
+    while( get_nvsync() && new_ctrl_available()){};  /* wait for nVSYNC goes low and
+-                                                       wait for new controller available  */
+    ctrl_data = get_ctrl_data();
+    command = ctrl_data_to_cmd(&ctrl_data);
+
+    if ((command == CMD_MENU_ENTER) || (command == CMD_MENU_RIGHT)) break;
+    if ((command == CMD_MENU_BACK)  || (command == CMD_MENU_LEFT))  {abort = 1; break;};
+  }
+  vd_clear_lineend (BTN_OVERLAY_H_OFFSET,BTN_OVERLAY_V_OFFSET);
+  vd_clear_lineend (BTN_OVERLAY_H_OFFSET,BTN_OVERLAY_V_OFFSET+1);
+  vd_print_string(BTN_OVERLAY_H_OFFSET,BTN_OVERLAY_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_GREEN,btn_overlay_1);
+  return abort;
+}
+
+int cfg_save_to_flash(configuration_t* sysconfig, alt_u8 need_confirm)
 {
   if (!use_flash) return -CFG_FLASH_NOT_USED;
+
+  if (need_confirm) {
+    alt_u8 abort = confirmation_routine();
+    if (abort) return -CFG_FLASH_SAVE_ABORT;
+  }
 
   alt_u8 databuf[PAGESIZE];
   int idx;
@@ -116,9 +154,14 @@ int cfg_save_to_flash(configuration_t* sysconfig)
   return write_flash_page((alt_u8*) databuf, sizeof(cfg4flash_t), USERDATA_OFFSET/PAGESIZE);
 };
 
-int cfg_load_from_flash(configuration_t* sysconfig)
+int cfg_load_from_flash(configuration_t* sysconfig, alt_u8 need_confirm)
 {
   if (!use_flash) return -CFG_FLASH_NOT_USED;
+
+  if (need_confirm) {
+    alt_u8 abort = confirmation_routine();
+    if (abort) return -CFG_FLASH_LOAD_ABORT;
+  }
 
   alt_u8 databuf[PAGESIZE];
   int idx, retval;
@@ -140,9 +183,14 @@ int cfg_load_from_flash(configuration_t* sysconfig)
   return 0;
 };
 
-int cfg_load_n64defaults(configuration_t* sysconfig)
+int cfg_load_n64defaults(configuration_t* sysconfig, alt_u8 need_confirm)
 {
-  cfg_load_jumperset(sysconfig); // to get vmode and set filter addon (if applied)
+  if (need_confirm) {
+    alt_u8 abort = confirmation_routine();
+    if (abort) return -CFG_N64DEF_LOAD_ABORT;
+  }
+
+  cfg_load_jumperset(sysconfig,0); // to get vmode and set filter addon (if applied)
 
   sysconfig->cfg_word_def[MISC]->cfg_word_val &= N64_MISC_CLR_MASK;
   sysconfig->cfg_word_def[MISC]->cfg_word_val |= N64_DEFAULT_MISC_CFG;
@@ -156,8 +204,13 @@ int cfg_load_n64defaults(configuration_t* sysconfig)
   return 0;
 }
 
-int cfg_load_jumperset(configuration_t* sysconfig)
+int cfg_load_jumperset(configuration_t* sysconfig, alt_u8 need_confirm)
 {
+  if (need_confirm) {
+    alt_u8 abort = confirmation_routine();
+    if (abort) return -CFG_JUMPER_LOAD_ABORT;
+  }
+
   alt_u8 jumper_word = cfgopt_get_jumper();
 
   sysconfig->cfg_word_def[MISC]->cfg_word_val  &= JUMPER_MISC_CLR_MASK;

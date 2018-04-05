@@ -42,18 +42,12 @@
 #define DEBLUR_FORCE_OFF 1
 #define DEBLUR_FORCE_ON  2
 
-#define RWM_H_OFFSET 5
-#define RWM_V_OFFSET (VD_HEIGHT - 3)
-#define RWM_LENGTH   10
-#define RWM_SHOW_CNT 512
-
-const alt_u8 RW_Message_FontColor[] = {FONTCOLOR_GREEN,FONTCOLOR_RED};
-const char   *RW_Message[] = {"< Success >","< Failed >"};
+const alt_u8 RW_Message_FontColor[] = {FONTCOLOR_GREEN,FONTCOLOR_RED,FONTCOLOR_MAGENTA};
+const char   *RW_Message[] = {"< Success >","< Failed >","< Aborted >"};
 
 
 /* ToDo's:
- * - Warning display messages
- * - Confirm to load or to save
+ * - Display warning messages
  * - HW and FW version display
  * - Additional windows (Ctrl. input, Video Output as OSD without menu)
  */
@@ -89,16 +83,16 @@ int main()
   int load_from_jumperset = 1;
 
   if (use_flash) {
-    load_from_jumperset = cfg_load_from_flash(&sysconfig);
+    load_from_jumperset = cfg_load_from_flash(&sysconfig,0);
     cfg_clear_flag(&show_osd);
   }
 
   if (info_data & INFO_FALLBACKMODE_GETMASK)
-    cfg_load_n64defaults(&sysconfig);
+    cfg_load_n64defaults(&sysconfig,0);
   else if (load_from_jumperset != 0) {
     cfg_clear_words(&sysconfig);  // just in case anything went wrong while loading from flash
-    cfg_load_jumperset(&sysconfig);
-//    cfg_save_to_flash(&sysconfig);
+    cfg_load_jumperset(&sysconfig,0);
+//    cfg_save_to_flash(&sysconfig,0);
   }
 
   cfgopt_apply_to_logic(&sysconfig);
@@ -118,6 +112,10 @@ int main()
     if(cfg_get_value(&show_osd,0)) {
 
       if (message_cnt > 0) {
+        if (command != CMD_NON) {
+          command = CMD_NON;
+          message_cnt = 1;
+        }
         if (message_cnt == 1) vd_clear_area(RWM_H_OFFSET,RWM_H_OFFSET+RWM_LENGTH,RWM_V_OFFSET,RWM_V_OFFSET);
         message_cnt--;
       }
@@ -145,11 +143,9 @@ int main()
           print_selection_arrow(menu);
           break;
         case RW_DONE:
-          vd_print_string(RWM_H_OFFSET,RWM_V_OFFSET,BACKGROUNDCOLOR_STANDARD,RW_Message_FontColor[0],RW_Message[0]);
-          message_cnt = RWM_SHOW_CNT;
-          break;
         case RW_FAILED:
-          vd_print_string(RWM_H_OFFSET,RWM_V_OFFSET,BACKGROUNDCOLOR_STANDARD,RW_Message_FontColor[1],RW_Message[1]);
+        case RW_ABORT:
+          vd_print_string(RWM_H_OFFSET,RWM_V_OFFSET,BACKGROUNDCOLOR_STANDARD,RW_Message_FontColor[todo-RW_DONE],RW_Message[todo-RW_DONE]);
           message_cnt = RWM_SHOW_CNT;
           break;
         default:
@@ -207,11 +203,7 @@ int main()
     } /* END OF if(!cfg_get_value(&show_osd)) */
 
 
-    if (menu->type != TEXT) {
-      sprintf(szText,"Ctrl.Data: 0x%08x",(uint) ctrl_data);
-      vd_print_string(0, VD_HEIGHT-1, BACKGROUNDCOLOR_STANDARD, FONTCOLOR_NAVAJOWHITE, &szText[0]);
-    }
-
+    if (menu->type != TEXT) print_ctrl_data(&ctrl_data);
 
     info_data_pre = info_data;
 

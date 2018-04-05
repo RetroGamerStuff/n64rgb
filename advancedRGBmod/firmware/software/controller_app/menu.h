@@ -33,6 +33,7 @@
 #include "altera_avalon_pio_regs.h"
 #include "system.h"
 #include "config.h"
+#include "vd_driver.h"
 
 
 #define OPT_WINDOWCOLOR_BG    BACKGROUNDCOLOR_WHITE
@@ -42,6 +43,9 @@
 #define OPT_ARROW_L       TRIANGLE_LEFT
 #define OPT_ARROW_R       TRIANGLE_RIGHT
 #define OPT_WINDOW_WIDTH  13
+
+#define BTN_OVERLAY_H_OFFSET  (VD_WIDTH - 13)
+#define BTN_OVERLAY_V_OFFSET  (VD_HEIGHT - 4)
 
 extern char szText[];
 
@@ -55,7 +59,8 @@ typedef enum {
   NEW_SELECTION,
   NEW_CONF_VALUE,
   RW_DONE,
-  RW_FAILED
+  RW_FAILED,
+  RW_ABORT
 } updateaction_t;
 
 typedef enum {
@@ -79,8 +84,8 @@ typedef struct {
   alt_u8  rarrow_hpos;
 } arrow_t;
 
-typedef int (*save_call)(configuration_t*);
-typedef int (*load_call)(configuration_t*);
+typedef int (*save_call)(configuration_t*,alt_u8);
+typedef int (*load_call)(configuration_t*,alt_u8);
 
 typedef struct {
   alt_u8        id;
