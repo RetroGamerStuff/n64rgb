@@ -125,6 +125,12 @@
 #define NVSYNC_IN_MASK        0x01
 #define NEW_CTRL_DATA_IN_MASK 0x02
 
+#define HDL_FW_MAIN_OFFSET  8
+#define HDL_FW_SUB_OFFSET   0
+#define HDL_FW_GETALL_MASK  0xFFF
+  #define HDL_FW_GETMAIN_MASK (0xF << HDL_FW_MAIN_OFFSET)
+  #define HDL_FW_GETSUB_MASK  (0x0FF << HDL_FW_SUB_OFFSET)
+
 typedef enum {
   CMD_NON = 0,
   CMD_OPEN_MENU,
@@ -158,5 +164,7 @@ inline alt_u8 get_nvsync()
   {  return (IORD_ALTERA_AVALON_PIO_DATA(SYNC_IN_BASE) & NVSYNC_IN_MASK);  };
 inline alt_u8 new_ctrl_available()
   {  return (IORD_ALTERA_AVALON_PIO_DATA(SYNC_IN_BASE) & NEW_CTRL_DATA_IN_MASK);  };
+inline alt_u16 get_hdl_version()
+  {  return (IORD_ALTERA_AVALON_PIO_DATA(HDL_FW_IN_BASE) & HDL_FW_GETALL_MASK);  };
 
 #endif /* N64_H_ */

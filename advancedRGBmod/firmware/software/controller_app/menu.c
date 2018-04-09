@@ -39,6 +39,7 @@
 
 #include "menu_text/textdefs_p.h"
 #include "vd_driver.h"
+#include "fw.h"
 
 char szText[VD_WIDTH];
 extern alt_u8 use_flash;
@@ -308,6 +309,17 @@ updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t
   return NON;
 }
 
+inline void print_fw_version()
+{
+  alt_u16 hdl_fw = get_hdl_version();
+  sprintf(szText,"%1d.%02d",((hdl_fw & HDL_FW_GETMAIN_MASK) >> HDL_FW_MAIN_OFFSET),
+                         ((hdl_fw & HDL_FW_GETSUB_MASK) >> HDL_FW_SUB_OFFSET));
+  vd_print_string(VERSION_H_OFFSET,VERSION_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,&szText[0]);
+
+  sprintf(szText,"%1d.%02d",SW_FW_MAIN,SW_FW_SUB);
+  vd_print_string(VERSION_H_OFFSET,VERSION_V_OFFSET+1,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,&szText[0]);
+}
+
 void print_overlay(menu_t* current_menu)
 {
   alt_u8 h_run;
@@ -338,6 +350,8 @@ void print_overlay(menu_t* current_menu)
         vd_print_char(h_run,VD_HEIGHT-2,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_NAVAJOWHITE,(char) HOME_LOWSEC_UNDERLINE);
       break;
     case TEXT:
+      if (&(*current_menu->overlay) == &about_overlay)
+        print_fw_version();
       if (&(*current_menu->overlay) == &license_overlay)
         vd_print_char(CR_SIGN_LICENSE_H_OFFSET,CR_SIGN_LICENSE_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,(char) COPYRIGHT_SIGN);
       break;

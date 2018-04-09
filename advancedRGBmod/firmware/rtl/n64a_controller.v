@@ -61,6 +61,8 @@ module n64a_controller (
   video_data_o
 );
 
+parameter [11:0] hdl_fw = 12'h000; // number is a dummy; defined in and passed from top module
+
 `include "vh/n64a_params.vh"
 
 
@@ -150,7 +152,8 @@ system system_u(
   .jumper_cfg_set_in_export({1'b0,JumperCfgSet}),
   .info_set_in_export({3'b000,InfoSet,FallbackMode}),
   .cfg_set_out_export(SysConfigSet),
-  .osd_info_out_export(OSDInfo)
+  .osd_info_out_export(OSDInfo),
+  .hdl_fw_in_export(hdl_fw)
 );
 
 reg show_osd_logo    = 1'b0;

@@ -33,10 +33,7 @@
 #include "config.h"
 #include "menu.h"
 #include "flash.h"
-
-
-#define FWCFG_MAIN  0 // 0 = test; 1 = master
-#define FWCFG_SUB   2 // running number
+#include "fw.h"
 
 
 typedef struct {
@@ -144,8 +141,8 @@ int cfg_save_to_flash(configuration_t* sysconfig, alt_u8 need_confirm)
   alt_u8 databuf[PAGESIZE];
   int idx;
 
-  ((cfg4flash_t*) databuf)->vers_cfg_main = FWCFG_MAIN;
-  ((cfg4flash_t*) databuf)->vers_cfg_sub = FWCFG_SUB;
+  ((cfg4flash_t*) databuf)->vers_cfg_main = CFG_FW_MAIN;
+  ((cfg4flash_t*) databuf)->vers_cfg_sub = CFG_FW_SUB;
   for (idx = 0; idx < NUM_CFG_WORDS; idx++) {
     ((cfg4flash_t*) databuf)->cfg_words[idx] = sysconfig->cfg_word_def[idx]->cfg_word_val;
     sysconfig->cfg_word_def[idx]->cfg_ref_word_val = sysconfig->cfg_word_def[idx]->cfg_word_val;
@@ -170,8 +167,8 @@ int cfg_load_from_flash(configuration_t* sysconfig, alt_u8 need_confirm)
 
   if (retval != 0) return retval;
 
-  if ((((cfg4flash_t*) databuf)->vers_cfg_main != FWCFG_MAIN) ||
-      (((cfg4flash_t*) databuf)->vers_cfg_sub  != FWCFG_SUB)   ) return -CFG_VERSION_INVALID;
+  if ((((cfg4flash_t*) databuf)->vers_cfg_main != CFG_FW_MAIN) ||
+      (((cfg4flash_t*) databuf)->vers_cfg_sub  != CFG_FW_SUB)   ) return -CFG_VERSION_INVALID;
 
   for (idx = 0; idx < NUM_CFG_WORDS; idx++) {
     sysconfig->cfg_word_def[idx]->cfg_word_val     = ((cfg4flash_t*) databuf)->cfg_words[idx];

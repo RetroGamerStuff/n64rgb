@@ -48,7 +48,6 @@ const char   *RW_Message[] = {"< Success >","< Failed >","< Aborted >"};
 
 /* ToDo's:
  * - Display warning messages
- * - HW and FW version display
  * - Additional windows (Ctrl. input, Video Output as OSD without menu)
  */
 

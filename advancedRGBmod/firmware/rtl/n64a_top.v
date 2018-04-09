@@ -85,6 +85,9 @@ module n64a_top (
 
 );
 
+parameter [3:0] hdl_fw_main = 4'd2;
+parameter [7:0] hdl_fw_sub  = 8'd0;
+
 `include "vh/n64a_params.vh"
 
 input                     VCLK;
@@ -131,7 +134,7 @@ wire [ 3:0] InfoSet = {vmode,n64_480i,~ndo_deblur,UseVGA_HVSync};
 wire [ 6:0] JumperCfgSet = {nFilterBypass,n240p,~n480i_bob,~SL_str,~nEN_YPbPr,(nEN_YPbPr & ~nEN_RGsB)}; // (~nEN_YPbPr | nEN_RGsB) ensures that not both jumpers are set and passed through the NIOS II
 wire [28:0] OutConfigSet;
 
-n64a_controller controller_u(
+n64a_controller #({hdl_fw_main,hdl_fw_sub}) controller_u(
   .SYS_CLK(SYS_CLK),
   .nRST(nRST),
   .CTRL(CTRL_i),
