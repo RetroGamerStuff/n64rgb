@@ -29,11 +29,11 @@
 #ifndef FW_H_
 #define FW_H_
 
-#define SW_FW_MAIN   0
-#define SW_FW_SUB   10
+#define SW_FW_MAIN  1
+#define SW_FW_SUB   0
 
 #define CFG_FW_MAIN SW_FW_MAIN
-#define CFG_FW_SUB   2
+#define CFG_FW_SUB  0
 
 
 
