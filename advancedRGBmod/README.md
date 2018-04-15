@@ -10,9 +10,7 @@ This is a complete DIY modding project. So everybody is on his own here.
 ## Features
 
 - Supporting for different FPGAs [1] on a common PCB design:
-  * (Cyclone IV EP4CE6E22)
   * Cyclone IV EP4CE10E22
-  * (Cyclone 10 LP 10CL006YE144)
   * Cyclone 10 LP 10CL010YE144
 - Video DAC ADV7125 (or ADV7123)
 - Detection of 240p/288p vs. 480i/576i together with detection of NTSC vs. PAL mode
@@ -33,7 +31,7 @@ The following shortly describes the main features of the firmware and how to use
 
 #### Notes
 ##### [1]
-For now, all FPGAs seems to be fine. However, it might be the case that the 6k LEs FPGAs (EP4CE6E22 and 10CL006YE144) are to small for an OSD menu implementation due to the small amount of block RAM.
+For now, support for 6k LEs FPGAs (EP4CE6E22 and 10CL006YE144) has been discontinued. They are to small for an OSD menu implementation due to the small amount of block RAM. I will try to get it fit in future.
 
 ##### [2]
 Heuristic for de-blur function highly depends on the image content. So it might be the case that de-blur is switched on and off rapidly even on small content changes. In any case you can override the heuristic by forcing de-blur on or off.  

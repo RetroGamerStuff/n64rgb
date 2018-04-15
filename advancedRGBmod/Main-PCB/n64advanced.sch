@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="8.6.0">
+<eagle version="8.7.1">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -11774,22 +11774,20 @@ Based on Cypress-EZ-usb-8051.pdf</description>
 <text x="101.6" y="88.9" size="1.778" layer="97">IO22 = GND
 -&gt; Backward compatibility to CycloneIV</text>
 <text x="147.32" y="63.5" size="1.778" layer="97">Supported Devices:
-- EP4CE6E22
 - EP4CE10E22
-- 10CL006YE144
 - 10CL010YE144</text>
 <wire x1="146.304" y1="62.484" x2="169.672" y2="62.484" width="0.1524" layer="97"/>
-<wire x1="169.672" y1="62.484" x2="169.672" y2="76.962" width="0.1524" layer="97"/>
-<wire x1="169.672" y1="76.962" x2="146.304" y2="76.962" width="0.1524" layer="97"/>
-<wire x1="146.304" y1="76.962" x2="146.304" y2="62.484" width="0.1524" layer="97"/>
+<wire x1="169.672" y1="62.484" x2="169.672" y2="71.882" width="0.1524" layer="97"/>
+<wire x1="169.672" y1="71.882" x2="146.304" y2="71.882" width="0.1524" layer="97"/>
+<wire x1="146.304" y1="71.882" x2="146.304" y2="62.484" width="0.1524" layer="97"/>
 <wire x1="146.304" y1="62.484" x2="145.542" y2="61.722" width="0.1524" layer="97"/>
 <wire x1="145.542" y1="61.722" x2="170.434" y2="61.722" width="0.1524" layer="97"/>
 <wire x1="169.672" y1="62.484" x2="170.434" y2="61.722" width="0.1524" layer="97"/>
-<wire x1="170.434" y1="61.722" x2="170.434" y2="77.724" width="0.1524" layer="97"/>
-<wire x1="169.672" y1="76.962" x2="170.434" y2="77.724" width="0.1524" layer="97"/>
-<wire x1="170.434" y1="77.724" x2="145.542" y2="77.724" width="0.1524" layer="97"/>
-<wire x1="146.304" y1="76.962" x2="145.542" y2="77.724" width="0.1524" layer="97"/>
-<wire x1="145.542" y1="77.724" x2="145.542" y2="61.722" width="0.1524" layer="97"/>
+<wire x1="170.434" y1="61.722" x2="170.434" y2="72.644" width="0.1524" layer="97"/>
+<wire x1="169.672" y1="71.882" x2="170.434" y2="72.644" width="0.1524" layer="97"/>
+<wire x1="170.434" y1="72.644" x2="145.542" y2="72.644" width="0.1524" layer="97"/>
+<wire x1="146.304" y1="71.882" x2="145.542" y2="72.644" width="0.1524" layer="97"/>
+<wire x1="145.542" y1="72.644" x2="145.542" y2="61.722" width="0.1524" layer="97"/>
 <text x="2.54" y="2.54" size="1.778" layer="97" font="vector">PCB Design (c) 2017-2018 Peter Bartmann</text>
 </plain>
 <instances>
