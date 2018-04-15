@@ -81,6 +81,7 @@ wire [2:0] Rcmp_cur = D_i[color_width_i-1:color_width_i-3];
 wire [2:0] Gcmp_cur = D_i[color_width_i-1:color_width_i-3];
 wire [2:0] Bcmp_cur = D_i[color_width_i-1:color_width_i-3];
 
+
 // some more definitions for the heuristics
 
 `define TREND_RANGE    8:0  // width of the trend filter
@@ -130,8 +131,7 @@ always @(posedge VCLK) begin // estimation of blur effect
           nblur_n64 <= nblur_n64_trend[`NBLUR_TH_BIT];
         end
 
-        nblur_est_cnt <= 2'b00;
-
+        nblur_est_cnt  <= 2'b00;
         run_estimation <= 1'b1;
       end
 
@@ -153,9 +153,9 @@ always @(posedge VCLK) begin // estimation of blur effect
         endcase
       end else begin
         case(data_cnt)
-            2'b01: if ( &(gradient[2] ^ {(Rcmp_pre < Rcmp_cur),(Rcmp_pre > Rcmp_cur)})) gradient_changes[0] <= 1'b1;
-            2'b10: if (~&(gradient[1] ^ {(Gcmp_pre < Gcmp_cur),(Gcmp_pre > Gcmp_cur)})) gradient_changes[0] <= 1'b0;
-            2'b11: if ( &(gradient[0] ^ {(Bcmp_pre < Bcmp_cur),(Bcmp_pre > Bcmp_cur)})) gradient_changes[1] <= 1'b1;
+          2'b01: if ( &(gradient[2] ^ {(Rcmp_pre < Rcmp_cur),(Rcmp_pre > Rcmp_cur)})) gradient_changes[0] <= 1'b1;
+          2'b10: if (~&(gradient[1] ^ {(Gcmp_pre < Gcmp_cur),(Gcmp_pre > Gcmp_cur)})) gradient_changes[0] <= 1'b0;
+          2'b11: if ( &(gradient[0] ^ {(Bcmp_pre < Bcmp_cur),(Bcmp_pre > Bcmp_cur)})) gradient_changes[1] <= 1'b1;
         endcase
       end
     end

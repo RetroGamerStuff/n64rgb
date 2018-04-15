@@ -10,6 +10,8 @@
 *.qdf
 *.qws
 *_description.txt
+*.map
+*.objdump
 db/
 incremental_db/
 .DS_Store

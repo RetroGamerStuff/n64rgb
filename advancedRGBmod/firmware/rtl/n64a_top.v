@@ -30,11 +30,11 @@
 // Description:
 //
 // Dependencies: vh/n64a_params.vh
-//               rtl/n64_igr.v        (Rev. 3.0)
-//               rtl/n64_vinfo_ext.v  (Rev. 1.0)
-//               rtl/n64_deblur.v     (Rev. 1.1)
-//               rtl/n64a_linedbl.v   (Rev. 1.1)
-//               rtl/n64a_video.v     (Rev. 1.0)
+//               rtl/n64a_controller.v (Rev. 1.0)
+//               rtl/n64_vinfo_ext.v   (Rev. 1.0)
+//               rtl/n64_deblur.v      (Rev. 1.1)
+//               rtl/n64a_linedbl.v    (Rev. 1.1)
+//               rtl/n64a_video.v      (Rev. 1.0)
 // (more dependencies may appear in other files)
 //
 // Revision: 1.2
@@ -85,6 +85,9 @@ module n64a_top (
 
 );
 
+parameter [3:0] hdl_fw_main = 4'd2;
+parameter [7:0] hdl_fw_sub  = 8'd0;
+
 `include "vh/n64a_params.vh"
 
 input                     VCLK;
@@ -119,42 +122,45 @@ input       n480i_bob;
 
 // start of rtl
 
-// Part 0: determine jumper set
-// ============================
-
-reg nfirstboot = 1'b0;
-reg UseJumperSet;
-
-always @(posedge VCLK) begin
-  if (~nfirstboot) begin
-    UseJumperSet <= nRST;  // fallback if reset pressed on power cycle
-    nfirstboot   <= 1'b1;
-  end
-end
-
-// fallback only to 240p and RGB
-// (sync output on G/Y in any case to see at least something even with a component cable)
-
-wire nEN_YPbPr_active = UseJumperSet ? nEN_YPbPr : 1'b1;
-wire n240p_active     = UseJumperSet ? n240p     : 1'b0;
-
-// Part 1: connect IGR module
-// ==========================
+// Part 1: connect controller module
+// =================================
 
 assign SYS_CLKen = 1'b1;
 
-wire nForceDeBlur, nDeBlurMan, n15bit_mode;
+wire vmode    = vinfo_pass[1];
+wire n64_480i = vinfo_pass[0];
 
-n64a_igr igr(
+wire [ 3:0] InfoSet = {vmode,n64_480i,~ndo_deblur,UseVGA_HVSync};
+wire [ 6:0] JumperCfgSet = {nFilterBypass,n240p,~n480i_bob,~SL_str,~nEN_YPbPr,(nEN_YPbPr & ~nEN_RGsB)}; // (~nEN_YPbPr | nEN_RGsB) ensures that not both jumpers are set and passed through the NIOS II
+wire [28:0] OutConfigSet;
+
+n64a_controller #({hdl_fw_main,hdl_fw_sub}) controller_u(
   .SYS_CLK(SYS_CLK),
   .nRST(nRST),
   .CTRL(CTRL_i),
-  .Default_DeBlur(1'b1),
-  .Default_nForceDeBlur(1'b1),
-  .nForceDeBlur(nForceDeBlur),
-  .nDeBlur(nDeBlurMan),
-  .n15bit_mode(n15bit_mode)
+  .InfoSet(InfoSet),
+  .JumperCfgSet(JumperCfgSet),
+  .OutConfigSet(OutConfigSet),
+  .VCLK(VCLK),
+  .nDSYNC(nDSYNC),
+  .video_data_i(vdata_r[2]),
+  .video_data_o(vdata_r[3])
 );
+
+wire [1:0] FilterSetting =   OutConfigSet[28:27];
+wire       nDeBlurMan    =  ~OutConfigSet[26];
+wire       nForceDeBlur  = ~|OutConfigSet[26:25];
+wire       n15bit_mode   =  ~OutConfigSet[24];
+wire [3:0] cfg_gamma     =   OutConfigSet[23:20];
+wire [3:0] cfg_SL_str    =   OutConfigSet[19:16];
+wire [4:0] cfg_SLHyb_str =   OutConfigSet[15:11];
+wire       cfg_OSD_SL    =   OutConfigSet[10];
+wire       cfg_SL_id     =   OutConfigSet[ 9];
+wire       cfg_SL_en     =   OutConfigSet[ 8];
+wire       cfg_lineX2    =   OutConfigSet[ 5];
+wire       cfg_n480i_bob =  ~OutConfigSet[ 4];
+wire       cfg_nEN_YPbPr =  ~OutConfigSet[ 1];
+wire       cfg_nEN_RGsB  =  ~OutConfigSet[ 0];
 
 
 // Part 2 - 4: RGB Demux with De-Blur Add-On
@@ -183,7 +189,7 @@ wire [3:0] vinfo_pass;
 n64_vinfo_ext get_vinfo(
   .VCLK(VCLK),
   .nDSYNC(nDSYNC),
-  .Sync_pre(vdata_ir[0][`VDATA_I_SY_SLICE]),
+  .Sync_pre(vdata_r[0][`VDATA_I_SY_SLICE]),
   .Sync_cur(D_i[3:0]),
   .vinfo_o(vinfo_pass)
 );
@@ -198,7 +204,7 @@ n64_deblur deblur_management(
   .VCLK(VCLK),
   .nDSYNC(nDSYNC),
   .nRST(nRST),
-  .vdata_pre(vdata_ir[0]),
+  .vdata_pre(vdata_r[0]),
   .D_i(D_i),
   .deblurparams_i({vinfo_pass,nForceDeBlur,nDeBlurMan}),
   .ndo_deblur(ndo_deblur)
@@ -208,17 +214,19 @@ n64_deblur deblur_management(
 // Part 4: data demux
 // ==================
 
-wire [`VDATA_I_FU_SLICE] vdata_ir[0:1];
+wire [`VDATA_I_FU_SLICE] vdata_r[0:3];
 
 n64_vdemux video_demux(
   .VCLK(VCLK),
   .nDSYNC(nDSYNC),
+  .nRST(nRST),
   .D_i(D_i),
   .demuxparams_i({vinfo_pass[3:1],ndo_deblur,n15bit_mode}),
-  .vdata_r_0(vdata_ir[0]),
-  .vdata_r_1(vdata_ir[1])
+  .gammaparams_i(cfg_gamma),
+  .vdata_r_0(vdata_r[0]),
+  .vdata_r_1(vdata_r[1]),
+  .vdata_r_6(vdata_r[2])
 );
-
 
 // Part 5: Post-Processing
 // =======================
@@ -228,12 +236,10 @@ n64_vdemux video_demux(
 
 wire VCLK_out;
 
-wire n64_480i = vinfo_pass[0];
+wire nENABLE_linedbl = (n64_480i & cfg_n480i_bob) | ~cfg_lineX2 | ~nRST;
+wire SL_en           =  ~n64_480i  & cfg_SL_en;
 
-wire       nENABLE_linedbl = (n64_480i & n480i_bob) | ~n240p_active | ~nRST;
-wire [1:0] SL_str_dbl      =  n64_480i ? 2'b11 : SL_str;
-
-wire [4:0] vinfo_dbl = {nENABLE_linedbl,SL_str_dbl,vinfo_pass[1:0]};
+wire [14:0] vinfo_dbl = {nENABLE_linedbl,cfg_OSD_SL,cfg_SLHyb_str,cfg_SL_str,cfg_SL_id,SL_en,vinfo_pass[1:0]};
 
 wire [vdata_width_o-1:0] vdata_tmp;
 
@@ -242,7 +248,7 @@ n64a_linedbl linedoubler(
   .VCLK_out(VCLK_out),
   .nRST(nRST),
   .vinfo_dbl(vinfo_dbl),
-  .vdata_i(vdata_ir[1]),
+  .vdata_i(vdata_r[3]),
   .vdata_o(vdata_tmp)
 );
 
@@ -254,21 +260,25 @@ wire [3:0] Sync_o;
 
 n64a_vconv video_converter(
   .VCLK(VCLK_out),
-  .nEN_YPbPr(nEN_YPbPr_active),    // enables color transformation on '0'
+  .nEN_YPbPr(cfg_nEN_YPbPr),    // enables color transformation on '0'
   .vdata_i(vdata_tmp),
   .vdata_o({Sync_o,V1_o,V2_o,V3_o})
 );
 
 // Part 5.3: assign final outputs
-// ==============================
-
+// ===========================
 assign    CLK_ADV712x = VCLK_out;
-assign nCSYNC_ADV712x = nEN_RGsB & nEN_YPbPr ? 1'b0  : Sync_o[0]; // output sync on G even in fallback mode
-//assign nBLANK_ADV712x = 1'b1;
-
+assign nCSYNC_ADV712x = cfg_nEN_RGsB & cfg_nEN_YPbPr ? 1'b0  : Sync_o[0];
+// assign nBLANK_ADV712x = Sync_o[2];
 
 // Filter Add On:
 // =============================
+//
+// Filter setting from NIOS II core:
+// - 00: Auto
+// - 01: 9.5MHz
+// - 10: 18.0MHz
+// - 11: Bypassed (i.e. 72MHz)
 //
 // FILTER 1 | FILTER 2 | DESCRIPTION
 // ---------+----------+--------------------
@@ -277,12 +287,19 @@ assign nCSYNC_ADV712x = nEN_RGsB & nEN_YPbPr ? 1'b0  : Sync_o[0]; // output sync
 //      1   |     0    |  HD filter (36.0MHz)
 //      1   |     1    | FHD filter (72.0MHz)
 //
-// (Bypass SF is hard wired to 0)
+// (Bypass SF is hard wired to 1)
+
+reg [1:2] Filter;
+
+always @(posedge VCLK_out)
+  Filter <= FilterSetting   == 2'b11 ? 2'b11 :        // bypassed
+            FilterSetting   == 2'b10 ? 2'b01 :        // 18.0MHz
+            FilterSetting   == 2'b01 ? 2'b00 :        // 9.5MHz
+            nENABLE_linedbl == 1'b0  ? 2'b01 : 2'b00; // Auto (18.0MHz in LineX2 and 9.5MHz else)
+
 assign nCSYNC       = Sync_o[0];
 
-assign nVSYNC_or_F2 = UseVGA_HVSync                     ? Sync_o[3] :
-                      (nFilterBypass & nENABLE_linedbl) ? 1'b0 : 1'b1;
-assign nHSYNC_or_F1 = UseVGA_HVSync                     ? Sync_o[1] :
-                      nFilterBypass                     ? 1'b0 : 1'b1;
+assign nVSYNC_or_F2 = UseVGA_HVSync ? Sync_o[3] : Filter[2];
+assign nHSYNC_or_F1 = UseVGA_HVSync ? Sync_o[1] : Filter[1];
 
 endmodule

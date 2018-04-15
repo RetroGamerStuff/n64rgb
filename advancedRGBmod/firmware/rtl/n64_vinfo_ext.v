@@ -116,9 +116,8 @@ end
 
 
 // pack vinfo_o vector
-// =================
+// ===================
 
 assign vinfo_o = {data_cnt,vmode,n64_480i};
-
 
 endmodule 

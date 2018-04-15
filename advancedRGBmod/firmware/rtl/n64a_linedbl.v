@@ -59,7 +59,7 @@ input  VCLK_in;
 output VCLK_out;
 input  nRST;
 
-input [4:0] vinfo_dbl; // [nLinedbl,SL_str (2bits),PAL,interlaced]
+input [14:0] vinfo_dbl; // [nLinedbl,SL_in_osd,SLhyb_str (5bits),SL_str (4bits),SL_id,SL_en,PAL,interlaced]
 
 input  [`VDATA_I_FU_SLICE] vdata_i;
 output [`VDATA_O_FU_SLICE] vdata_o;
@@ -74,14 +74,17 @@ wire [color_width_i-1:0] R_i = vdata_i[`VDATA_I_RE_SLICE];
 wire [color_width_i-1:0] G_i = vdata_i[`VDATA_I_GR_SLICE];
 wire [color_width_i-1:0] B_i = vdata_i[`VDATA_I_BL_SLICE];
 
-wire nENABLE_linedbl = vinfo_dbl[4] | ~rdrun[1];
-wire [1:0]    SL_str = vinfo_dbl[3:2];
-
-wire pal_mode = vinfo_dbl[1];
-wire n64_480i = vinfo_dbl[0];
-
+wire nENABLE_linedbl   = vinfo_dbl[14] | ~rdrun[1];
+wire       SL_in_osd   = vinfo_dbl[13];
+wire [4:0] SLHyb_depth = vinfo_dbl[12:8];
+wire [3:0] SL_str      = vinfo_dbl[ 7:4];
+wire       SL_id       = vinfo_dbl[ 3];
+wire       SL_en       = vinfo_dbl[ 2];
+wire       pal_mode    = vinfo_dbl[ 1];
+wire       n64_480i    = vinfo_dbl[ 0];
 
 // start of rtl
+
 
 reg div_2x = 1'b0;
 
@@ -213,7 +216,7 @@ always @(posedge PX_CLK_4x) begin
     if (rdhcnt == line_width[rdline]) begin
       rdhcnt   <= {ram_depth{1'b0}};
       if (rdcnt)
-        rdline <= ~wrline;
+        rdline <= wrline;
       rdcnt <= ~rdcnt;
     end else begin
       rdhcnt <= rdhcnt + 1'b1;
@@ -233,7 +236,7 @@ always @(posedge PX_CLK_4x) begin
     end
   end else if (rdrun[0] && wrhcnt[3]) begin
     rdrun[1] <= 1'b1;
-    rdcnt    <= 1'b0;
+    rdcnt    <= 1'b1;
     rdline   <= ~wrline;
     rdhcnt   <= {ram_depth{1'b0}};
   end else if (^start_rdproc) begin
@@ -252,119 +255,185 @@ always @(posedge PX_CLK_4x) begin
 end
 
 
-wire [color_width_i-1:0] R_buf[0:1], G_buf[0:1], B_buf[0:1];
+wire [color_width_i-1:0] R_buf, G_buf, B_buf;
 
 ram2port_0 videobuffer_0(
   .data({R_i,G_i,B_i}),
   .rdaddress(rdaddr),
   .rdclock(PX_CLK_4x),
-  .rden(&{rden[0],~rdline}),
+  .rden(rden[0]),
   .wraddress(wraddr),
   .wrclock(VCLK_in),
-  .wren(&{wren,~wrline,~line_overflow,~div_2x}),
-  .q({R_buf[0],G_buf[0],B_buf[0]})
-);
-
-ram2port_0 videobuffer_1(
-  .data({R_i,G_i,B_i}),
-  .rdaddress(rdaddr),
-  .rdclock(PX_CLK_4x),
-  .rden(&{rden[0],rdline}),
-  .wraddress(wraddr),
-  .wrclock(VCLK_in),
-  .wren(&{wren,wrline,~line_overflow,~div_2x}),
-  .q({R_buf[1],G_buf[1],B_buf[1]})
+  .wren(&{wren,~line_overflow,~div_2x}),
+  .q({R_buf,G_buf,B_buf})
 );
 
 
-reg     rdcnt_buf = 1'b0;
-reg [7:0] nHS_cnt = 8'd0;
-reg [1:0] nVS_cnt = 2'b0;
+reg      rdcnt_buf =  1'b0;
+reg  [8:0] vcnt_dbl = 9'd0;
+reg  [7:0]  nHS_cnt = 8'd0;
+reg  [1:0]  nVS_cnt = 2'b0;
 
 wire CSen_lineend = ((rdhcnt + 2'b11) > (line_width[rdline] - nHS_width));
 
-reg               [3:0] S_o;
-reg [color_width_o-1:0] R_o;
-reg [color_width_o-1:0] G_o;
-reg [color_width_o-1:0] B_o;
+wire is_OSD_area = (rdhcnt[ram_depth-1:1] > (`OSD_WINDOW_H_START+2'b10)) && (rdhcnt[ram_depth-1:1] < (`OSD_WINDOW_H_STOP+2'b10)) &&
+                   (vcnt_dbl[8:1] > (`OSD_WINDOW_V_START+2'b11)) && (vcnt_dbl[8:1] < (`OSD_WINDOW_V_STOP+2'b01));
+
+reg                     drawSL;
+reg               [3:0] S_dbl;
+reg [color_width_i-1:0] R_dbl, G_dbl, B_dbl;
+reg [color_width_i+1:0] Y_dbl;
+
+reg [7:0] SL_rval;
 
 always @(posedge PX_CLK_4x) begin
-
   if (rdcnt_buf ^ rdcnt) begin
-    S_o[0] <= 1'b0;
-    S_o[1] <= 1'b0;
-    S_o[2] <= 1'b1; // dummy
+    S_dbl[0] <= 1'b0;
+    S_dbl[1] <= 1'b0;
+    S_dbl[2] <= 1'b1; // dummy
 
+   vcnt_dbl <= ~&vcnt_dbl ? vcnt_dbl + 1'b1 : vcnt_dbl;
     nHS_cnt <= nHS_width;
 
     if (^newFrame) begin
-      nVS_cnt  <= `VS_WIDTH;
-      S_o[3]   <= 1'b0;
+      vcnt_dbl    <= 9'd0;
+      nVS_cnt     <= `VS_WIDTH;
+      S_dbl[3]    <= 1'b0;
       newFrame[1] <= newFrame[0];
+      SL_rval <= ((SL_str+8'h01)<<4)-1'b1;
     end else if (|nVS_cnt) begin
       nVS_cnt <= nVS_cnt - 1'b1;
     end else begin
-      S_o[3] <= 1'b1;
+      S_dbl[3] <= 1'b1;
     end
   end else begin
     if (|nHS_cnt) begin
       nHS_cnt <= nHS_cnt - 1'b1;
     end else begin
-      S_o[1] <= 1'b1;
-      if (S_o[3])
-        S_o[0] <= 1'b1;
+      S_dbl[1] <= 1'b1;
+      if (S_dbl[3])
+        S_dbl[0] <= 1'b1;
     end
     
     if (CSen_lineend) begin
-      S_o[0] <= 1'b1;
+      S_dbl[0] <= 1'b1;
     end
   end
 
-    rdcnt_buf <= rdcnt;
+  rdcnt_buf <= rdcnt;
+  drawSL <= (is_OSD_area ? SL_in_osd : 1'b1) && SL_en && (rdcnt ^ (!SL_id));
 
-    if (rden[2]) begin
-      if (rdcnt) begin
-        case (SL_str)
-          2'b11: begin
-            R_o <= {R_buf[rdline],1'b0};
-            G_o <= {G_buf[rdline],1'b0};
-            B_o <= {B_buf[rdline],1'b0};
-          end
-          2'b10: begin
-            R_o <= {1'b0 ,R_buf[rdline][color_width_i-1:0]} +
-                   {2'b00,R_buf[rdline][color_width_i-1:1]};
-            G_o <= {1'b0 ,G_buf[rdline][color_width_i-1:0]} +
-                   {2'b00,G_buf[rdline][color_width_i-1:1]};
-            B_o <= {1'b0 ,B_buf[rdline][color_width_i-1:0]} +
-                   {2'b00,B_buf[rdline][color_width_i-1:1]};
-          end
-          2'b01: begin
-            R_o <= {1'b0,R_buf[rdline][color_width_i-1:0]};
-            G_o <= {1'b0,G_buf[rdline][color_width_i-1:0]};
-            B_o <= {1'b0,B_buf[rdline][color_width_i-1:0]};
-          end
-          2'b00: begin
-            R_o <= {color_width_o{1'b0}};
-            G_o <= {color_width_o{1'b0}};
-            B_o <= {color_width_o{1'b0}};
-          end
-        endcase
-      end else begin
-        R_o <= {R_buf[rdline],1'b0};
-        G_o <= {G_buf[rdline],1'b0};
-        B_o <= {B_buf[rdline],1'b0};
-      end
-    end else begin
-      R_o <= {color_width_o{1'b0}};
-      G_o <= {color_width_o{1'b0}};
-      B_o <= {color_width_o{1'b0}};
-    end
+  if (rden[2]) begin
+    R_dbl <= R_buf;
+    G_dbl <= G_buf;
+    B_dbl <= B_buf;
+    Y_dbl <= {2'b00,R_buf} + {1'b0,G_buf,1'b0} + {2'b00,B_buf};
+  end else begin
+    R_dbl <= { color_width_i   {1'b0}};
+    G_dbl <= { color_width_i   {1'b0}};;
+    B_dbl <= { color_width_i   {1'b0}};;
+    Y_dbl <= {(color_width_i+2){1'b0}};;
+  end
 
+end
+
+// post-processing (scanline generation)
+
+reg                     dSL_pp[0:4]                     /* synthesis ramstyle = "logic" */;
+reg               [3:0] S_pp[0:4], S_o                  /* synthesis ramstyle = "logic" */;
+reg [color_width_i-1:0] R_pp[0:4], G_pp[0:4], B_pp[0:4] /* synthesis ramstyle = "logic" */;
+reg [color_width_o-1:0] R_o, G_o, B_o                   /* synthesis ramstyle = "logic" */;
+
+wire [8:0] Y_ref_pre;
+lpm_mult_0 calc_SLHyb_ref_pre(
+  .clock(PX_CLK_4x),
+  .dataa(Y_dbl),
+  .datab(SLHyb_depth),
+  .result(Y_ref_pre),
+  .aclr(nENABLE_linedbl)
+);
+
+wire [8:0] Y_ref;
+lpm_mult_1 calc_SLHyb_ref(
+  .clock(PX_CLK_4x),
+  .dataa(Y_ref_pre),
+  .datab(SL_rval),
+  .result(Y_ref),
+  .aclr(nENABLE_linedbl)
+);
+
+reg [7:0] SLHyb_rval;
+reg [7:0] SLHyb_str;
+
+wire [color_width_o-1:0] R_sl, G_sl, B_sl;
+
+lpm_mult_2 calc_R_sl(
+  .clock(PX_CLK_4x),
+  .dataa(R_pp[3]),
+  .datab(SLHyb_str),
+  .result(R_sl),
+  .aclr(nENABLE_linedbl)
+);
+
+lpm_mult_2 calc_G_sl(
+  .clock(PX_CLK_4x),
+  .dataa(G_pp[3]),
+  .datab(SLHyb_str),
+  .result(G_sl),
+  .aclr(nENABLE_linedbl)
+);
+
+lpm_mult_2 calc_B_sl(
+  .clock(PX_CLK_4x),
+  .dataa(B_pp[3]),
+  .datab(SLHyb_str),
+  .result(B_sl),
+  .aclr(nENABLE_linedbl)
+);
+
+
+integer pp_idx;
+
+always @(posedge PX_CLK_4x) begin
+  dSL_pp[0] <= drawSL;
+    S_pp[0] <= S_dbl;
+    R_pp[0] <= R_dbl;
+    G_pp[0] <= G_dbl;
+    B_pp[0] <= B_dbl;
+  for (pp_idx = 0; pp_idx < 4; pp_idx = pp_idx + 1) begin
+    dSL_pp[pp_idx+1] <= dSL_pp[pp_idx];
+      S_pp[pp_idx+1] <=   S_pp[pp_idx];
+      R_pp[pp_idx+1] <=   R_pp[pp_idx];
+      G_pp[pp_idx+1] <=   G_pp[pp_idx];
+      B_pp[pp_idx+1] <=   B_pp[pp_idx];
+  end
+  S_o <= S_pp[4];
+
+  // hybrid strength reference (2 pp stages)
+  
+  // adaptation of sl_str. (2 pp stages)
+  SLHyb_rval <= {1'b0,SL_rval} < Y_ref ? 8'h0 : SL_rval - Y_ref[7:0];
+  SLHyb_str  <= 8'hff - SLHyb_rval;
+  
+  // calculate SL (1 pp stage)
+  
+  // set scanline
+  if (dSL_pp[4]) begin
+    R_o <= R_sl;
+    G_o <= G_sl;
+    B_o <= B_sl;
+  end else begin
+    R_o <= {R_pp[4],R_pp[4][color_width_i-1]};
+    G_o <= {G_pp[4],G_pp[4][color_width_i-1]};
+    B_o <= {B_pp[4],B_pp[4][color_width_i-1]};
+  end
+
+  // use standard input if no line-doubling
   if (nENABLE_linedbl) begin
     S_o <= vdata_i[`VDATA_I_SY_SLICE];
-    R_o <= {R_i,1'b0};
-    G_o <= {G_i,1'b0};
-    B_o <= {B_i,1'b0};
+    R_o <= {R_i,R_i[color_width_i-1]};
+    G_o <= {G_i,G_i[color_width_i-1]};
+    B_o <= {B_i,B_i[color_width_i-1]};
   end
 end
 
