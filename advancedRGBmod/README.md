@@ -129,6 +129,10 @@ A complete installation and setup guide to this modding kit is provided in the m
 
 ### Jumpers
 
+**IMPORTANT NOTE**  
+Since HDL version 2.0 the jumpers are used as fallback if the software is unable to load a valid configuration from flash device U5.  
+The only exception is J1.2 - this jumper is still used to show the software whether the _Filter AddOn_ is installed or not.
+
 There are some jumpers spreaded over the PCB, namely _J1_, _J2_, _J3_, _J4_, _J5_ and _J6_. _J1 - J4_ have to parts, let's say _.1_ and _.2_, where _.1_ is marked with the _dot_ on the PCB.
 
 #### J1 (Filter AddOn)
@@ -207,11 +211,10 @@ For flashing you need:
 #### Firmware Revision Numbering
 
 - 1.0: initially commited version
+- 2.0 (HDL) / 1.0 (SW): initial version with OSD driven menu
 
 #### Road Map / New Ideas
 
-- Gamma boost
-- On Screen Display menu to get rid of the jumpers
 - improve de-blur heuristic, e.g. by
   * de-blur estimation in the Y-domain
   * dynamic de-blur: decide on demand wether a pixel is used for a blurry effect or not (possible for the N64 to decide on demand? (e.g. background gaming with blur, front text without blur))
