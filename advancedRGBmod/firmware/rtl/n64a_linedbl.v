@@ -24,18 +24,21 @@
 //
 // Module Name:    n64a_linedbl
 // Project Name:   N64 Advanced RGB/YPbPr DAC Mod
-// Target Devices: Max10, Cyclone IV and Cyclone 10 LP devices
+// Target Devices: Cyclone IV and Cyclone 10 LP devices
 // Tool versions:  Altera Quartus Prime
 // Description:    simple line-multiplying
 //
 // Dependencies: vh/n64a_params.vh
-//               ip/altpll_0.qip
-//               ip/ram2port_0.qip
+//               ip/fpga_family/altpll_0.qip
+//               ip/fpga_family/ram2port_0.qip
+//               ip/fpga_family/lpm_mult_0.qip
+//               ip/fpga_family/lpm_mult_1.qip
+//               ip/fpga_family/lpm_mult_2.qip
 //
-// Revision: 1.2
+// Revision: 2.0
 // Features: linebuffer for - NTSC 240p -> 480p rate conversion
 //                          - PAL  288p -> 576p rate conversion
-//           injection of scanlines on demand in three selectable intensities
+//           injection of scanlines
 //
 //////////////////////////////////////////////////////////////////////////////////
 

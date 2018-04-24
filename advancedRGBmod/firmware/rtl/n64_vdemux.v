@@ -24,13 +24,15 @@
 //
 // Module Name:    n64_vdemux
 // Project Name:   N64 Advanced RGB/YPbPr DAC Mod
-// Target Devices: universial
+// Target Devices: Cyclone IV and Cyclone 10 LP devices
 // Tool versions:  Altera Quartus Prime
 // Description:    demux the video data from the input data stream
 //
 // Dependencies: vh/n64a_params.vh
+//               ip/fpga_family/rom1port_0.qip
 //
-// Revision: 2.1
+// Revision: 2.0
+// Features: Gamma correction via lookup table
 //
 //////////////////////////////////////////////////////////////////////////////////
 

@@ -24,15 +24,15 @@
 //
 // Module Name:    n64a_vconv
 // Project Name:   N64 Advanced RGB/YPbPr DAC Mod
-// Target Devices: Max10, Cyclone IV and Cyclone 10 LP devices
+// Target Devices: Cyclone IV and Cyclone 10 LP devices
 // Tool versions:  Altera Quartus Prime
 // Description:
 //
 // Dependencies: vh/n64a_params.vh
-//               ip/altmult_add3_0.qip
-//               ip/altmult_add2_0.qip
+//               ip/fpga_family/altmult_add3_0.qip
+//               ip/fpga_family/altmult_add2_0.qip
 //
-// Revision: 1.0
+// Revision: 2.0
 // Features: conversion RGB to YPbPr on demand
 //           outputs 8bit vectors for ADV7125 / ADV7123
 //

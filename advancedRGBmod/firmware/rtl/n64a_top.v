@@ -29,7 +29,7 @@
 // Tool versions:  Altera Quartus Prime
 // Description:
 //
-// Dependencies: vh/n64a_params.vh
+// Dependencies: vh/n64a_params.vh     (Rev. 2.0)
 //               rtl/n64a_controller.v (Rev. 1.0)
 //               rtl/n64_vinfo_ext.v   (Rev. 1.0)
 //               rtl/n64_deblur.v      (Rev. 1.1)
@@ -37,7 +37,7 @@
 //               rtl/n64a_video.v      (Rev. 1.0)
 // (more dependencies may appear in other files)
 //
-// Revision: 1.2
+// Revision: 2.0 (inital HDL release)
 // Features: based on n64rgb version 2.5
 //           selectable RGB, RGsB or YPbPr
 //           linebuffer for - NTSC 240p (480i optional) -> 480p rate conversion

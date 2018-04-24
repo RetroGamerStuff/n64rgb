@@ -29,17 +29,15 @@
 // Description:
 //
 // Dependencies: vh/n64a_params.vh
-//               vh/n64a_controller_params.vh
-//               ip/altpll_1.qip
+//               ip/fpga_family/altpll_1.qip
+//               system.qsys
+//               ip/fpga_family/rom1port_1.qip
+//               ip/fpga_family/ram2port_1.qip
+//               ip/fpga_family/ram2port_2.qip
 //
-// Revision: 1.0
-// Features: console reset
-//           override heuristic for deblur (resets on each reset and power cycle)
-//           activate / deactivate de-blur in 240p (a change overrides heuristic for de-blur)
-//           activate / deactivate 15bit mode (no selectable default since 2.6)
-//           selectable defaults
-//           defaults set on each power cycle and on each reset
-//           OSD menu (NIOSII driven)
+// Revision: 2.0
+// Features: OSD menu configuration (NIOSII driven)
+//           console reset
 //
 //////////////////////////////////////////////////////////////////////////////////
 
