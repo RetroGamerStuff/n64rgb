@@ -30,13 +30,14 @@
 //
 // Dependencies: vh/igr_params.vh
 //
-// Revision: 2.6
+// Revision: 2.7
 // Features: console reset
 //           override heuristic for deblur (resets on each reset and power cycle)
 //           activate / deactivate de-blur in 240p (a change overrides heuristic for de-blur)
 //           activate / deactivate 15bit mode
 //           selectable defaults
 //           defaults set on each power cycle and on each reset
+//           third party pad support
 //
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -94,11 +95,13 @@ localparam ST_WAIT4N64 = 2'b00; // wait for N64 sending request to controller
 localparam ST_N64_RD   = 2'b01; // N64 request sniffing
 localparam ST_CTRL_RD  = 2'b10; // controller response
 
-reg [7:0] wait_cnt     = 8'h0;  // counter for wait state (needs appr. 64us at CLK_4M clock to fill up from 0 to 255)
+reg [5:0] wait_cnt     = 6'h0;  // counter for wait state (needs appr. 16us at CLK_4M clock to fill up from 0 to 63)
 reg [2:0] ctrl_hist    = 3'h7;
 wire      ctrl_negedge =  ctrl_hist[2] & !ctrl_hist[1];
 wire      ctrl_posedge = !ctrl_hist[2] &  ctrl_hist[1];
-wire      ctrl_bit     = !wait_cnt[3];
+
+reg [5:0] ctrl_low_cnt = 6'h0;
+wire      ctrl_bit     = ctrl_low_cnt < wait_cnt;
 
 reg [15:0] serial_data = 16'h0;
 reg  [3:0] data_cnt    =  4'h0;
@@ -129,24 +132,25 @@ always @(posedge CLK_4M) begin
         data_cnt <= 4'h0;
       end
     ST_N64_RD: begin
-      if (ctrl_posedge) begin
-        if (!data_cnt[3]) begin // still reading
+      if (ctrl_posedge)       // sample data part 1
+        ctrl_low_cnt <= wait_cnt;
+      if (ctrl_negedge) begin // sample data part 2
+        if (!data_cnt[3]) begin  // eight bits read
           serial_data[13:6] <= {ctrl_bit,serial_data[13:7]};
           data_cnt          <= data_cnt + 1'b1;
-        end else begin          // eight bits read
-          if (ctrl_bit & (serial_data[13:6] == 8'b10000000)) begin // check command and stop bit
-          // trick: the 2 LSB command bits lies where controller produces unused constant values
-          //         -> (hopefully) no exchange with controller response
-            rd_state <= ST_CTRL_RD;
-            data_cnt <= 4'h0;
-          end else
-            rd_state <= ST_WAIT4N64;
+        end else if (serial_data[13:6] == 8'b10000000) begin // check command
+          rd_state <= ST_CTRL_RD;
+          data_cnt <=  4'h0;
+        end else begin
+          rd_state <= ST_WAIT4N64;
         end
       end
     end
     ST_CTRL_RD: begin
-      if (ctrl_posedge) begin
-        if (~&data_cnt) begin // still reading
+      if (ctrl_posedge)       // sample data part 1
+        ctrl_low_cnt <= wait_cnt;
+      if (ctrl_negedge) begin // sample data part 2
+        if (~&data_cnt) begin  // still reading
           data_cnt    <= data_cnt + 1'b1;
           serial_data <= {ctrl_bit,serial_data[15:1]};
         end else begin        // sixteen bits read (analog values of stick not point of interest)
@@ -192,8 +196,8 @@ always @(posedge CLK_4M) begin
     end
   endcase
 
-  if (ctrl_negedge) begin    // counter resets on neg. edge
-    wait_cnt <= 8'h0;
+  if (ctrl_negedge | ctrl_posedge) begin // counter reset
+    wait_cnt <= 6'h0;
   end else begin
     if (~&wait_cnt) // saturate counter if needed
       wait_cnt <= wait_cnt + 1'b1;
@@ -211,7 +215,7 @@ always @(posedge CLK_4M) begin
     nForceDeBlur <= Default_nForceDeBlur;
 
     rd_state      <= ST_WAIT4N64;
-    wait_cnt      <= 8'h0;
+    wait_cnt      <= 6'h0;
     ctrl_hist     <= 3'h7;
     initiate_nrst <= 1'b0;
   end

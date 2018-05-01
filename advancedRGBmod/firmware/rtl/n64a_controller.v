@@ -35,9 +35,10 @@
 //               ip/fpga_family/ram2port_1.qip
 //               ip/fpga_family/ram2port_2.qip
 //
-// Revision: 2.0
+// Revision: 2.1
 // Features: OSD menu configuration (NIOSII driven)
 //           console reset
+// Latest change: Hori-Pad (and probably other third party controller) support
 //
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -173,21 +174,21 @@ always @(posedge VCLK)
 // ===========================
 
 reg [1:0]      rd_state  = 2'b0; // state machine
-reg [1:0] next_rd_state  = 2'b0; // next state
 
 localparam ST_WAIT4N64 = 2'b00; // wait for N64 sending request to controller
 localparam ST_N64_RD   = 2'b01; // N64 request sniffing
 localparam ST_CTRL_RD  = 2'b10; // controller response
 
-reg [7:0] wait_cnt      = 8'h0; // counter for wait state (needs appr. 64us at CLK_4M clock to fill up from 0 to 1023)
+reg [5:0] wait_cnt      = 6'h0; // counter for wait state (needs appr. 16us at CLK_4M clock to fill up from 0 to 63)
 reg [2:0] ctrl_hist     = 3'h7;
 wire      ctrl_negedge  =  ctrl_hist[2] & !ctrl_hist[1];
 wire      ctrl_posedge  = !ctrl_hist[2] &  ctrl_hist[1];
-wire      ctrl_bit      = !wait_cnt[3];
-wire      ctrl_rd_valid = (wait_cnt > 8'h5) && (wait_cnt < 8'h10);
+
+reg [5:0] ctrl_low_cnt = 6'h0;
+wire      ctrl_bit     = ctrl_low_cnt < wait_cnt;
 
 reg [31:0] serial_data[0:1];
-reg [ 5:0] ctrl_data_cnt    = 6'h0;
+reg [ 4:0] ctrl_data_cnt    = 5'h0;
 reg [ 1:0] new_ctrl_data    = 2'b00;
 
 initial begin
@@ -209,51 +210,52 @@ reg initiate_nrst = 1'b0;
 always @(posedge CLK_4M) begin
   case (rd_state)
     ST_WAIT4N64:
-      if (&wait_cnt) begin // waiting duration ends (exit wait state only if CTRL was high for a certain duration)
-        next_rd_state  <= ST_N64_RD;
+      if (&wait_cnt & ctrl_negedge) begin // waiting duration ends (exit wait state only if CTRL was high for a certain duration)
+        rd_state       <= ST_N64_RD;
         serial_data[0] <= 32'h0;
-        ctrl_data_cnt  <=  6'h0;
+        ctrl_data_cnt  <=  5'h0;
       end
     ST_N64_RD: begin
-      if (ctrl_posedge) begin // sample data
+      if (ctrl_posedge)       // sample data part 1
+        ctrl_low_cnt <= wait_cnt;
+      if (ctrl_negedge) begin // sample data part 2
         if (!ctrl_data_cnt[3]) begin  // eight bits read
           serial_data[0][29:22] <= {ctrl_bit,serial_data[0][29:23]};
           ctrl_data_cnt         <=  ctrl_data_cnt + 1'b1;
-        end else if (ctrl_bit & (serial_data[0][29:22] == 8'b10000000)) begin // check command and last stop bit
-          next_rd_state  <= ST_CTRL_RD;
+        end else if (serial_data[0][29:22] == 8'b10000000) begin // check command
+          rd_state       <= ST_CTRL_RD;
           serial_data[0] <= 32'h0;
-          ctrl_data_cnt  <=  6'h0;
+          ctrl_data_cnt  <=  5'h0;
         end else begin
-          next_rd_state <= ST_WAIT4N64;
+          rd_state <= ST_WAIT4N64;
         end
       end
     end
     ST_CTRL_RD: begin
-      if (ctrl_posedge) begin // sample data
-        if (!ctrl_data_cnt[5]) begin  // still reading
+      if (ctrl_posedge)       // sample data part 1
+        ctrl_low_cnt <= wait_cnt;
+      if (ctrl_negedge) begin // sample data part 2
+        if (~&ctrl_data_cnt) begin  // still reading
           serial_data[0] <= {ctrl_bit,serial_data[0][31:1]};
           ctrl_data_cnt  <=  ctrl_data_cnt + 1'b1;
-        end else if (ctrl_data_cnt[5]) begin  // thirtytwo bits read
-          next_rd_state    <= ST_WAIT4N64;
-          new_ctrl_data[0] <= ctrl_rd_valid;  // last posedge is at 50/50 duty
-        end else begin
-          next_rd_state <= ST_WAIT4N64;
+        end else begin  // thirtytwo bits read
+          rd_state         <= ST_WAIT4N64;
+          serial_data[1]   <= {ctrl_bit,serial_data[0][31:1]};
+          new_ctrl_data[0] <= 1'b1;  // signalling new controller data available
         end
       end
     end
     default: begin
-           rd_state <= ST_WAIT4N64;
-      next_rd_state <= ST_WAIT4N64;
+      rd_state <= ST_WAIT4N64;
     end
   endcase
 
-  if (ctrl_negedge) begin    // counter resets on neg. edge
-    rd_state <= next_rd_state;
-    wait_cnt <= 8'h0;
+  if (ctrl_negedge | ctrl_posedge) begin // counter reset
+    wait_cnt <= 5'h0;
   end else begin
     if (~&wait_cnt) // saturate counter if needed
       wait_cnt <= wait_cnt + 1'b1;
-    else            // counter saturated
+    else  // counter saturated
       rd_state <= ST_WAIT4N64;
   end
 
@@ -261,9 +263,7 @@ always @(posedge CLK_4M) begin
 
   if (new_ctrl_data[0]) begin
     new_ctrl_data  <= 2'b10;
-    serial_data[1] <= serial_data[0];
-    
-    if (use_igr & (serial_data[0][15:0] == `IGR_RESET))
+    if (use_igr & (serial_data[1][15:0] == `IGR_RESET))
       initiate_nrst <= 1'b1;
   end
 
@@ -271,9 +271,8 @@ always @(posedge CLK_4M) begin
     new_ctrl_data[1] <= 1'b0;
 
   if (!nRST) begin
-         rd_state <= ST_WAIT4N64;
-    next_rd_state <= ST_WAIT4N64;
-    wait_cnt      <= 8'h0;
+    rd_state      <= ST_WAIT4N64;
+    wait_cnt      <= 5'h0;
     ctrl_hist     <= 3'h7;
     initiate_nrst <= 1'b0;
 

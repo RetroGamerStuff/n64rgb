@@ -30,14 +30,14 @@
 // Description:
 //
 // Dependencies: vh/n64a_params.vh     (Rev. 2.0)
-//               rtl/n64a_controller.v (Rev. 1.0)
-//               rtl/n64_vinfo_ext.v   (Rev. 1.0)
-//               rtl/n64_deblur.v      (Rev. 1.1)
-//               rtl/n64a_linedbl.v    (Rev. 1.1)
-//               rtl/n64a_video.v      (Rev. 1.0)
+//               rtl/n64a_controller.v (Rev. 2.1)
+//               rtl/n64_vinfo_ext.v   (Rev. 2.0)
+//               rtl/n64_deblur.v      (Rev. 2.0)
+//               rtl/n64a_linedbl.v    (Rev. 2.0)
+//               rtl/n64a_video.v      (Rev. 2.0)
 // (more dependencies may appear in other files)
 //
-// Revision: 2.0 (inital HDL release)
+// Revision: 2.01
 // Features: based on n64rgb version 2.5
 //           selectable RGB, RGsB or YPbPr
 //           linebuffer for - NTSC 240p (480i optional) -> 480p rate conversion
@@ -86,7 +86,7 @@ module n64a_top (
 );
 
 parameter [3:0] hdl_fw_main = 4'd2;
-parameter [7:0] hdl_fw_sub  = 8'd0;
+parameter [7:0] hdl_fw_sub  = 8'd1;
 
 `include "vh/n64a_params.vh"
 
