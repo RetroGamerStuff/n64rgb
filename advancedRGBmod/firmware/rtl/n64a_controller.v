@@ -32,13 +32,11 @@
 //               ip/fpga_family/altpll_1.qip
 //               system.qsys
 //               ip/fpga_family/rom1port_1.qip
-//               ip/fpga_family/ram2port_1.qip
-//               ip/fpga_family/ram2port_2.qip
 //
-// Revision: 2.1
+// Revision: 2.2
 // Features: OSD menu configuration (NIOSII driven)
 //           console reset
-// Latest change: Hori-Pad (and probably other third party controller) support
+// Latest change: ip independet implementation of RAM
 //
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -428,27 +426,28 @@ wire [6:0] font_addr_lsb;
 
 
 
-ram2port_1 vd_text_u(
-  .data(vd_wrdata[6:0]),
-  .rdaddress({txt_xrdaddr,txt_yrdaddr}),
-  .rdclock(VCLK),
-  .rden(en_txtrd[0]),
-  .wraddress(vd_wraddr),
-  .wrclock(CLK_25M),
+n64a_ram2port #(.ram_depth(10), .data_width(7)) vd_text_u(
+  .wrCLK(CLK_25M),
   .wren(vd_wrctrl[0]),
-  .q(font_addr_lsb)
+  .wraddr(vd_wraddr),
+  .wrdata(vd_wrdata[6:0]),
+  .rdCLK(VCLK),
+  .rden(en_txtrd[0]),
+  .rdaddr({txt_xrdaddr,txt_yrdaddr}),
+  .rddata(font_addr_lsb)
 );
 
-ram2port_2 vd_color_u(
-  .data(vd_wrdata[12:7]),
-  .rdaddress({txt_xrdaddr,txt_yrdaddr}),
-  .rdclock(VCLK),
-  .rden(en_txtrd[0]),
-  .wraddress(vd_wraddr),
-  .wrclock(CLK_25M),
+n64a_ram2port #(.ram_depth(10), .data_width(6)) vd_color_u(
+  .wrCLK(CLK_25M),
   .wren(vd_wrctrl[1]),
-  .q({background_tmp,font_color_tmp})
+  .wraddr(vd_wraddr),
+  .wrdata(vd_wrdata[12:7]),
+  .rdCLK(VCLK),
+  .rden(en_txtrd[0]),
+  .rdaddr({txt_xrdaddr,txt_yrdaddr}),
+  .rddata({background_tmp,font_color_tmp})
 );
+
 
 reg [3:0] background_color_del = 4'h0;
 reg [7:0] font_addr_msb        = 8'h0;
@@ -476,6 +475,14 @@ rom1port_1 font_mem_u(
   .rden(en_txtrd[2]),
   .q(font_word)
 );
+
+//n64a_font_rom font_mem_u(
+//  .CLK(VCLK),
+//  .char_addr(font_addr_lsb),
+//  .char_line(font_addr_msb[7:4]),
+//  .rden(en_txtrd[2]),
+//  .rddata(font_word)
+//);
 
 reg [11:0] font_pixel_select = 12'h0;
 

@@ -37,7 +37,7 @@
 //               rtl/n64a_video.v      (Rev. 2.0)
 // (more dependencies may appear in other files)
 //
-// Revision: 2.01
+// Revision: 2.05
 // Features: based on n64rgb version 2.5
 //           selectable RGB, RGsB or YPbPr
 //           linebuffer for - NTSC 240p (480i optional) -> 480p rate conversion
@@ -86,7 +86,7 @@ module n64a_top (
 );
 
 parameter [3:0] hdl_fw_main = 4'd2;
-parameter [7:0] hdl_fw_sub  = 8'd1;
+parameter [7:0] hdl_fw_sub  = 8'd5;
 
 `include "vh/n64a_params.vh"
 

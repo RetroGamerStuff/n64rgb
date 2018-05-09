@@ -62,13 +62,17 @@ parameter vdata_width_o = 4 + 3*color_width_o;
 
   `define GAMMA_TABLE_OFF   4'b0101
 
-  `define HSTART_NTSC_240P  11'd240
-  `define HSTART_NTSC_480I  11'd230
-  `define HSTOP_NTSC        11'd1496
+//  `define HSTART_NTSC_240P  11'd240
+//  `define HSTART_NTSC_480I  11'd230
+//  `define HSTOP_NTSC        11'd1496
+  `define HSTART_NTSC 11'd0225
+  `define HSTOP_NTSC  11'd1500
 
-  `define HSTART_PAL_288P   11'd284
-  `define HSTART_PAL_576I   11'd278
-  `define HSTOP_PAL         11'd1536
+//  `define HSTART_PAL_288P   11'd284
+//  `define HSTART_PAL_576I   11'd278
+//  `define HSTOP_PAL         11'd1536
+  `define HSTART_PAL 11'd0275
+  `define HSTOP_PAL  11'd1550
 
   `define HS_WIDTH_NTSC_240P  7'd115
   `define HS_WIDTH_NTSC_480I  7'd111
