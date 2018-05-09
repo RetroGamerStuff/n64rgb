@@ -1,4 +1,4 @@
- -- Copyright (C) 2017  Intel Corporation. All rights reserved.
+ -- Copyright (C) 2018  Intel Corporation. All rights reserved.
  -- Your use of Intel Corporation's design tools, logic functions 
  -- and other software and tools, and its AMPP partner logic 
  -- functions, and any output files from any of the foregoing 
@@ -63,7 +63,7 @@
  -- Pin directions (input, output or bidir) are based on device operating in user mode.
  ---------------------------------------------------------------------------------
 
-Quartus Prime Version 17.1.1 Internal Build 593 12/11/2017 SJ Lite Edition
+Quartus Prime Version 18.0.0 Build 614 04/24/2018 SJ Lite Edition
 CHIP  "n64a_10cl010ye144"  ASSIGNED TO AN: 10CL010YE144C8G
 
 Pin Name/Usage               : Location  : Dir.   : I/O Standard      : Voltage : I/O Bank  : User Assignment
@@ -73,14 +73,14 @@ RESERVED_INPUT_WITH_WEAK_PULLUP : 2         :        :                   :      
 RESERVED_INPUT_WITH_WEAK_PULLUP : 3         :        :                   :         : 1         :                
 GND                          : 4         : gnd    :                   :         :           :                
 VCCINT                       : 5         : power  :                   : 1.2V    :           :                
-n64a_controller:controller_u|system:system_u|system_epcq_controller_0:epcq_controller_0|altera_asmi_parallel_system_epcq_controller_0:asmi_parallel_inst|system_epcq_controller_0_altera_asmi_parallel_system_epcq_controller_0_altera_asmi_parallel_system_epcq_controller_0:altera_asmi_parallel_system_epcq_controller_0|cyclone_asmiblock3~ALTERA_SDO : 6         : output : 3.3-V LVTTL       :         : 1         : N              
+n64a_controller:controller_u|system:system_u|system_epcq_controller_0:epcq_controller_0|system_epcq_controller_0_asmi_parallel_instance_name:asmi_parallel_inst|system_epcq_controller_0_asmi_parallel_instance_name_asmi_parallel_instance_name:asmi_parallel_instance_name|cyclone_asmiblock3~ALTERA_SDO : 6         : output : 3.3-V LVTTL       :         : 1         : N              
 RESERVED_INPUT_WITH_WEAK_PULLUP : 7         :        :                   :         : 1         :                
-n64a_controller:controller_u|system:system_u|system_epcq_controller_0:epcq_controller_0|altera_asmi_parallel_system_epcq_controller_0:asmi_parallel_inst|system_epcq_controller_0_altera_asmi_parallel_system_epcq_controller_0_altera_asmi_parallel_system_epcq_controller_0:altera_asmi_parallel_system_epcq_controller_0|cyclone_asmiblock3~ALTERA_SCE : 8         : output : 3.3-V LVTTL       :         : 1         : N              
+n64a_controller:controller_u|system:system_u|system_epcq_controller_0:epcq_controller_0|system_epcq_controller_0_asmi_parallel_instance_name:asmi_parallel_inst|system_epcq_controller_0_asmi_parallel_instance_name_asmi_parallel_instance_name:asmi_parallel_instance_name|cyclone_asmiblock3~ALTERA_SCE : 8         : output : 3.3-V LVTTL       :         : 1         : N              
 nSTATUS                      : 9         :        :                   :         : 1         :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : 10        :        :                   :         : 1         :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : 11        :        :                   :         : 1         :                
-n64a_controller:controller_u|system:system_u|system_epcq_controller_0:epcq_controller_0|altera_asmi_parallel_system_epcq_controller_0:asmi_parallel_inst|system_epcq_controller_0_altera_asmi_parallel_system_epcq_controller_0_altera_asmi_parallel_system_epcq_controller_0:altera_asmi_parallel_system_epcq_controller_0|cyclone_asmiblock3~ALTERA_DCLK : 12        : output : 3.3-V LVTTL       :         : 1         : N              
-n64a_controller:controller_u|system:system_u|system_epcq_controller_0:epcq_controller_0|altera_asmi_parallel_system_epcq_controller_0:asmi_parallel_inst|system_epcq_controller_0_altera_asmi_parallel_system_epcq_controller_0_altera_asmi_parallel_system_epcq_controller_0:altera_asmi_parallel_system_epcq_controller_0|cyclone_asmiblock3~ALTERA_DATA0 : 13        : input  : 3.3-V LVTTL       :         : 1         : N              
+n64a_controller:controller_u|system:system_u|system_epcq_controller_0:epcq_controller_0|system_epcq_controller_0_asmi_parallel_instance_name:asmi_parallel_inst|system_epcq_controller_0_asmi_parallel_instance_name_asmi_parallel_instance_name:asmi_parallel_instance_name|cyclone_asmiblock3~ALTERA_DCLK : 12        : output : 3.3-V LVTTL       :         : 1         : N              
+n64a_controller:controller_u|system:system_u|system_epcq_controller_0:epcq_controller_0|system_epcq_controller_0_asmi_parallel_instance_name:asmi_parallel_inst|system_epcq_controller_0_asmi_parallel_instance_name_asmi_parallel_instance_name:asmi_parallel_instance_name|cyclone_asmiblock3~ALTERA_DATA0 : 13        : input  : 3.3-V LVTTL       :         : 1         : N              
 nCONFIG                      : 14        :        :                   :         : 1         :                
 altera_reserved_tdi          : 15        : input  : 3.3-V LVTTL       :         : 1         : N              
 altera_reserved_tck          : 16        : input  : 3.3-V LVTTL       :         : 1         : N              
