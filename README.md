@@ -10,7 +10,7 @@ A collection of RGB mods for the N64. This repository includes:
   * PCB files (common for all supported devices) and firmware (separate programming files) are provided
   * folder: generalRGBmod
 - an advanced RGB digital-to-analog converter with optional YPbPr conversion
-  * supported FPGA: Cyclone IV (EP4CE6E22 and EP4CE10E22) and Cyclone 10 LP (10CL006YE144 and 10CL010YE144)
+  * supported FPGA: Cyclone IV EP4CE10E22 and Cyclone 10 LP 10CL010YE144
   * PCB files (common for all supported devices) and firmware (separate programming files) are provided
   * additional Filter board for the outputted video signal if you need that
   * folder: advancedRGBmod
