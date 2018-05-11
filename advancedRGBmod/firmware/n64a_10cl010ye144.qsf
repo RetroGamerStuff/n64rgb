@@ -87,10 +87,12 @@ set_location_assignment PLL_1 -to "n64a_linedbl:linedoubler|altpll_0:vid_pll|alt
 set_location_assignment PIN_24 -to SYS_CLK
 set_location_assignment PIN_28 -to SYS_CLKen
 set_location_assignment PIN_127 -to CTRL_i
+set_location_assignment PIN_128 -to nCOLD
 set_location_assignment PIN_129 -to nRST
 
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to SYS_CLKen
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to CTRL_i
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to nCOLD
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to nRST
 
 
