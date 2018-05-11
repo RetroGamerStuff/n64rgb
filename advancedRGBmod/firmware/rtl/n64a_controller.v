@@ -43,7 +43,6 @@
 
 module n64a_controller (
   SYS_CLK,
-  nCOLD,
   nRST,
 
   CTRL,
@@ -65,7 +64,6 @@ parameter [11:0] hdl_fw = 12'h000; // number is a dummy; defined in and passed f
 
 
 input SYS_CLK;
-input nCOLD;
 inout nRST;
 
 input CTRL;
@@ -301,7 +299,7 @@ always @(posedge CLK_16k) begin
     drv_rst <= 1'b0; // end of reset
 end
 
-assign nRST = (drv_rst | !nCOLD) ? 1'b0 : 1'bz;
+assign nRST = drv_rst ? 1'b0 : 1'bz;
 
 
 // Part 5: Display OSD Menu

@@ -57,7 +57,6 @@ module n64a_top (
   SYS_CLK,
   SYS_CLKen,
   CTRL_i,
-  nCOLD,
   nRST,
 
   // Video Output to ADV712x
@@ -99,7 +98,6 @@ input [color_width_i-1:0] D_i;
 input  SYS_CLK;
 output SYS_CLKen;
 input  CTRL_i;
-input  nCOLD;
 inout  nRST;
 
 output                        CLK_ADV712x;
@@ -139,7 +137,6 @@ wire [28:0] OutConfigSet;
 
 n64a_controller #({hdl_fw_main,hdl_fw_sub}) controller_u(
   .SYS_CLK(SYS_CLK),
-  .nCOLD(nCOLD),
   .nRST(nRST),
   .CTRL(CTRL_i),
   .InfoSet(InfoSet),
