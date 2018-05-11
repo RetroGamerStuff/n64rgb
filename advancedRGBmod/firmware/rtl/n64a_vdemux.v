@@ -22,7 +22,7 @@
 // Company:  Circuit-Board.de
 // Engineer: borti4938
 //
-// Module Name:    n64_vdemux
+// Module Name:    n64a_vdemux
 // Project Name:   N64 Advanced RGB/YPbPr DAC Mod
 // Target Devices: Cyclone IV and Cyclone 10 LP devices
 // Tool versions:  Altera Quartus Prime
@@ -37,7 +37,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module n64_vdemux(
+module n64a_vdemux(
   VCLK,
   nDSYNC,
   nRST,

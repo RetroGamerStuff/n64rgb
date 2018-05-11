@@ -177,7 +177,7 @@ set_global_assignment -name QIP_FILE ip/CycloneIVE/rom1port_1.qip
 # set_global_assignment -name VERILOG_FILE rtl/n64a_font_rom.v
 set_global_assignment -name VERILOG_FILE rtl/n64_vinfo_ext.v
 set_global_assignment -name VERILOG_FILE rtl/n64_deblur.v
-set_global_assignment -name VERILOG_FILE rtl/n64_vdemux.v
+set_global_assignment -name VERILOG_FILE rtl/n64a_vdemux.v
 set_global_assignment -name VERILOG_FILE rtl/n64a_gamma_table.v
 set_global_assignment -name VERILOG_FILE rtl/n64a_linedbl.v
 set_global_assignment -name QIP_FILE ip/CycloneIVE/altpll_0.qip

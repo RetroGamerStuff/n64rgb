@@ -216,7 +216,7 @@ n64_deblur deblur_management(
 
 wire [`VDATA_I_FU_SLICE] vdata_r[0:3];
 
-n64_vdemux video_demux(
+n64a_vdemux video_demux(
   .VCLK(VCLK),
   .nDSYNC(nDSYNC),
   .nRST(nRST),
