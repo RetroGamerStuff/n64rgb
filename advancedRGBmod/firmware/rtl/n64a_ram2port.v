@@ -28,7 +28,7 @@
 // Tool versions:  Altera Quartus Prime
 // Description:    simple line-multiplying
 //
-// Revision: 1.0
+// Revision: 1.1
 // Features: ip independent implementation of a ram (two port)
 //
 //////////////////////////////////////////////////////////////////////////////////
@@ -37,66 +37,77 @@
 module n64a_ram2port(
   wrCLK,
   wren,
+  wrpage,
   wraddr,
   wrdata,
   
   rdCLK,
   rden,
+  rdpage,
   rdaddr,
   rddata
 );
 
-parameter ram_depth = 10;
+parameter num_of_pages = 1;
+parameter pagesize = 1024;
 parameter data_width = 32;
 
-input wrCLK;
-input wren;
-input [ram_depth-1:0] wraddr;
-input [data_width-1:0] wrdata;
+`define PAGE_WIDTH  $clog2(num_of_pages)
+`define ADDR_WIDTH  $clog2(pagesize)
+`define MEM_SPACE   num_of_pages*pagesize
+`define MEM_WIDTH   $clog2(`MEM_SPACE)
 
-input rdCLK;
-input rden;
-input [ram_depth-1:0] rdaddr;
-output reg [data_width-1:0] rddata;
+input                   wrCLK;
+input                   wren;
+input [`PAGE_WIDTH-1:0] wrpage;
+input [`ADDR_WIDTH-1:0] wraddr;
+input [ data_width-1:0] wrdata;
+
+input                        rdCLK;
+input                        rden;
+input      [`PAGE_WIDTH-1:0] rdpage;
+input      [`ADDR_WIDTH-1:0] rdaddr;
+output reg [ data_width-1:0] rddata;
 
 
-reg [data_width-1:0] data_buf[0:(2**ram_depth-1)];
+reg [data_width-1:0] data_buf[0:`MEM_SPACE-1];
 
 
-reg                  wren_r   = 1'b0;
-reg [ ram_depth-1:0] wraddr_r = {ram_depth{1'b0}};
+wire [31:0] wrpageoffset = (pagesize * wrpage);
+
+reg                    wren_r = 1'b0;
+reg [`MEM_WIDTH-1:0]  wrmem_r = {`MEM_WIDTH{1'b0}};
 reg [data_width-1:0] wrdata_r = {data_width{1'b0}};
 
 always @(posedge wrCLK) begin
-  wren_r <= wren;
-  wraddr_r <= wraddr;
+  if ((wrpage < num_of_pages) && (wraddr < pagesize))
+    wren_r <= wren;
+  else
+    wren_r <= 1'b0;  // do not write to invalid input pages or addresses
+
+  wrmem_r  <= wrpageoffset[`MEM_WIDTH-1:0] + wraddr;
   wrdata_r <= wrdata;
 
   if (wren_r)
-    data_buf[wraddr_r] <= wrdata_r;
+    data_buf[wrmem_r] <= wrdata_r;
 end
 
 
-//reg                  wren_rd_r   = 1'b0;
-//reg [ ram_depth-1:0] wraddr_rd_r = {ram_depth{1'b0}};
-//reg [data_width-1:0] wrdata_rd_r = {data_width{1'b0}};
+wire [31:0] rdpageoffset = (pagesize * rdpage);
 
-reg                 rden_r   = 1'b0;
-reg [ram_depth-1:0] rdaddr_r = {ram_depth{1'b0}};
+reg                   rden_r = 1'b0;
+reg [`MEM_WIDTH-1:0] rdmem_r = {`MEM_WIDTH{1'b0}};
 
 always @(posedge rdCLK) begin
-//  wren_rd_r <= wren;
-//  wraddr_rd_r <= wraddr;
-//  wrdata_rd_r <= wrdata;
+  if ((rdpage < num_of_pages) && (rdaddr < pagesize))
+    rden_r <= rden;
+  else
+    rden_r <= 1'b0;  // do not read from invalid input pages or addresses
 
-  rden_r <= rden;
-  rdaddr_r <= rdaddr;
+  rdmem_r <= rdpageoffset[`MEM_WIDTH-1:0] + rdaddr;
 
   if (rden_r) begin
-//    if (wren_rd_r && (rdaddr_r == wraddr_rd_r))
-//      rddata <= wrdata_rd_r;
-//    else
-      rddata <= data_buf[rdaddr_r];
+      rddata <= data_buf[rdmem_r];
   end
 end
 

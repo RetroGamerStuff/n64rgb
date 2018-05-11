@@ -33,7 +33,7 @@
 //               system.qsys
 //               ip/fpga_family/rom1port_1.qip
 //
-// Revision: 2.2
+// Revision: 2.3
 // Features: OSD menu configuration (NIOSII driven)
 //           console reset
 // Latest change: ip independet implementation of RAM
@@ -426,27 +426,38 @@ wire [1:0] background_tmp;
 wire [3:0] font_color_tmp;
 wire [6:0] font_addr_lsb;
 
-
-
-n64a_ram2port #(.ram_depth(10), .data_width(7)) vd_text_u(
+n64a_ram2port #(
+  .num_of_pages(`MAX_CHARS_PER_ROW+1),
+  .pagesize(`MAX_TEXT_ROWS+1),
+  .data_width(7)
+)
+vd_text_u(
   .wrCLK(CLK_25M),
   .wren(vd_wrctrl[0]),
-  .wraddr(vd_wraddr),
+  .wrpage(vd_wraddr[9:4]),
+  .wraddr(vd_wraddr[3:0]),
   .wrdata(vd_wrdata[6:0]),
   .rdCLK(VCLK),
   .rden(en_txtrd[0]),
-  .rdaddr({txt_xrdaddr,txt_yrdaddr}),
+  .rdpage(txt_xrdaddr),
+  .rdaddr(txt_yrdaddr),
   .rddata(font_addr_lsb)
 );
 
-n64a_ram2port #(.ram_depth(10), .data_width(6)) vd_color_u(
+n64a_ram2port #(
+  .num_of_pages(`MAX_CHARS_PER_ROW+1),
+  .pagesize(`MAX_TEXT_ROWS+1),
+  .data_width(6)
+)vd_color_u(
   .wrCLK(CLK_25M),
   .wren(vd_wrctrl[1]),
-  .wraddr(vd_wraddr),
+  .wrpage(vd_wraddr[9:4]),
+  .wraddr(vd_wraddr[3:0]),
   .wrdata(vd_wrdata[12:7]),
   .rdCLK(VCLK),
   .rden(en_txtrd[0]),
-  .rdaddr({txt_xrdaddr,txt_yrdaddr}),
+  .rdpage(txt_xrdaddr),
+  .rdaddr(txt_yrdaddr),
   .rddata({background_tmp,font_color_tmp})
 );
 

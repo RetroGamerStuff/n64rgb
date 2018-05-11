@@ -32,7 +32,7 @@
 //               ip/fpga_family/altpll_0.qip
 //               rtl/n64a_ram2port.v
 //
-// Revision: 2.1
+// Revision: 2.2
 // Features: linebuffer for - NTSC 240p -> 480p rate conversion
 //                          - PAL  288p -> 576p rate conversion
 //           injection of scanlines
@@ -53,7 +53,8 @@ module n64a_linedbl(
 
 `include "vh/n64a_params.vh"
 
-localparam ram_depth   = 11;
+localparam buf_pages   = 1;
+localparam hcnt_witdh  = $clog2(`PIXEL_PER_LINE_2x_MAX);
 localparam Y_width     = color_width_o+1;
 localparam SLHyb_width = 8; // do not change this localparam!
 
@@ -98,7 +99,7 @@ end
 wire PX_CLK_4x, PLL_locked;
 altpll_0 vid_pll(
   .inclk0(VCLK_in),
-  .areset(~nRST),
+  .areset(!nRST),
   .locked(PLL_locked),
   .c0(PX_CLK_4x)
 );
@@ -106,25 +107,25 @@ altpll_0 vid_pll(
 wire RST = ~(nRST && PLL_locked);
 
 
-reg [ram_depth-1:0] hstart = `HSTART_NTSC;
-reg [ram_depth-1:0] hstop  = `HSTOP_NTSC;
+reg [hcnt_witdh-1:0] hstart = `HSTART_NTSC;
+reg [hcnt_witdh-1:0] hstop  = `HSTOP_NTSC;
 
 reg [6:0] nHS_width = `HS_WIDTH_NTSC_480I;
 
 
-reg                 wren   = 1'b0;
-reg                 wrline = 1'b0;
-reg [ram_depth-1:0] wrhcnt = {ram_depth{1'b1}};
-reg [ram_depth-1:0] wraddr = {ram_depth{1'b0}};
+reg                      wren   = 1'b0;
+reg                      wrline = 1'b0;
+reg [hcnt_witdh-1:0] wrhcnt = {hcnt_witdh{1'b1}};
+reg [hcnt_witdh-1:0] wraddr = {hcnt_witdh{1'b0}};
 
-wire line_overflow = &{wrhcnt[ram_depth-1],wrhcnt[ram_depth-2],wrhcnt[ram_depth-5]};  // close approach for NTSC and PAL (equals 1600)
-wire valid_line    = wrhcnt > hstop;                                                  // for evaluation
+wire line_overflow = wrhcnt == `PIXEL_PER_LINE_2x_MAX;  // close approach for NTSC and PAL (equals 1600)
+wire valid_line    = wrhcnt > hstop;                    // for evaluation
 
 
-reg [ram_depth-1:0] line_width[0:1];
+reg [hcnt_witdh-1:0] line_width[0:1];
 initial begin
-  line_width[1] = {ram_depth{1'b0}};
-  line_width[0] = {ram_depth{1'b0}};
+  line_width[1] = {hcnt_witdh{1'b0}};
+  line_width[0] = {hcnt_witdh{1'b0}};
 end
 
 reg  nVS_i_buf = 1'b0;
@@ -183,7 +184,7 @@ always @(posedge VCLK_in) begin
     if (nHS_i_buf & !nHS_i) begin // negedge nHSYNC -> reset wrhcnt and toggle wrline
       line_width[wrline] <= wrhcnt;
 
-      wrhcnt <= {ram_depth{1'b0}};
+      wrhcnt <= {hcnt_witdh{1'b0}};
       wrline <= ~wrline;
     end else if (~line_overflow) begin
       wrhcnt <= wrhcnt + 1'b1;
@@ -191,12 +192,12 @@ always @(posedge VCLK_in) begin
 
     if (wrhcnt == hstart) begin
       wren   <= 1'b1;
-      wraddr <= {ram_depth{1'b0}};
+      wraddr <= {hcnt_witdh{1'b0}};
     end else if (wrhcnt > hstart && wrhcnt < hstop) begin
       wraddr <= wraddr + 1'b1;
     end else begin
       wren   <= 1'b0;
-      wraddr <= {ram_depth{1'b0}};
+      wraddr <= {hcnt_witdh{1'b0}};
     end
 
     nVS_i_buf <= nVS_i;
@@ -210,7 +211,7 @@ always @(posedge VCLK_in) begin
 
     wren   <= 1'b0;
     wrline <= 1'b0;
-    wrhcnt <= {ram_depth{1'b1}};
+    wrhcnt <= {hcnt_witdh{1'b1}};
   end
 end
 
@@ -219,13 +220,13 @@ reg           [2:0] rden     = 3'b0;
 reg           [1:0] rdrun    = 2'b00;
 reg                 rdcnt    = 1'b0;
 reg                 rdline   = 1'b0;
-reg [ram_depth-1:0] rdhcnt   = {ram_depth{1'b1}};
-reg [ram_depth-1:0] rdaddr   = {ram_depth{1'b0}};
+reg [hcnt_witdh-1:0] rdhcnt   = {hcnt_witdh{1'b1}};
+reg [hcnt_witdh-1:0] rdaddr   = {hcnt_witdh{1'b0}};
 
 always @(posedge PX_CLK_4x) begin
   if (rdrun[1]) begin
     if (rdhcnt == line_width[rdline]) begin
-      rdhcnt   <= {ram_depth{1'b0}};
+      rdhcnt   <= {hcnt_witdh{1'b0}};
       if (rdcnt)
         rdline <= wrline;
       rdcnt <= ~rdcnt;
@@ -238,18 +239,18 @@ always @(posedge PX_CLK_4x) begin
 
     if (rdhcnt == hstart) begin
       rden[0] <= 1'b1;
-      rdaddr  <= {ram_depth{1'b0}};
+      rdaddr  <= {hcnt_witdh{1'b0}};
     end else if (rdhcnt > hstart && rdhcnt < hstop) begin
       rdaddr <= rdaddr + 1'b1;
     end else begin
       rden[0] <= 1'b0;
-      rdaddr  <= {ram_depth{1'b0}};
+      rdaddr  <= {hcnt_witdh{1'b0}};
     end
   end else if (rdrun[0] && wrhcnt[3]) begin
     rdrun[1] <= 1'b1;
     rdcnt    <= 1'b1;
     rdline   <= ~wrline;
-    rdhcnt   <= {ram_depth{1'b0}};
+    rdhcnt   <= {hcnt_witdh{1'b0}};
   end else if (^start_rdproc) begin
     rdrun[0] <= 1'b1;
   end
@@ -268,13 +269,20 @@ end
 
 wire [color_width_i-1:0] R_buf, G_buf, B_buf;
 
-n64a_ram2port #(.ram_depth(ram_depth), .data_width(3*color_width_i)) videobuffer_0(
+n64a_ram2port #(
+  .num_of_pages(1),
+  .pagesize(`BUF_DEPTH_PER_PAGE),
+//  .pagesize(`PIXEL_PER_LINE_2x_MAX),
+  .data_width(3*color_width_i)
+) videobuffer_0(
   .wrCLK(VCLK_in),
   .wren(|{!wren,line_overflow,div_2x}), //  .wren(&{wren,!line_overflow,!div_2x}),
+  .wrpage(1'b0),
   .wraddr(wraddr),
   .wrdata({R_i,G_i,B_i}),
   .rdCLK(PX_CLK_4x),
   .rden(rden[0] && rdaddr[0]),
+  .rdpage(1'b0),
   .rdaddr(rdaddr),
   .rddata({R_buf,G_buf,B_buf})
 );
@@ -287,7 +295,7 @@ reg [1:0]  nVS_cnt = 2'b0;
 
 wire CSen_lineend = ((rdhcnt + 2'b11) > (line_width[rdline] - nHS_width));
 
-wire is_OSD_area = (rdhcnt[ram_depth-1:1] > (`OSD_WINDOW_H_START+2'b10)) && (rdhcnt[ram_depth-1:1] < (`OSD_WINDOW_H_STOP+2'b10)) &&
+wire is_OSD_area = (rdhcnt[hcnt_witdh-1:1] > (`OSD_WINDOW_H_START+2'b10)) && (rdhcnt[hcnt_witdh-1:1] < (`OSD_WINDOW_H_STOP+2'b10)) &&
                    (vcnt_dbl[8:1] > (`OSD_WINDOW_V_START+2'b11)) && (vcnt_dbl[8:1] < (`OSD_WINDOW_V_STOP+2'b01));
 
 reg                     drawSL;
@@ -356,18 +364,18 @@ reg               [3:0] S_pp[0:4], S_o                  /* synthesis ramstyle = 
 reg [color_width_i-1:0] R_pp[0:4], G_pp[0:4], B_pp[0:4] /* synthesis ramstyle = "logic" */;
 reg [color_width_o-1:0] R_o, G_o, B_o                   /* synthesis ramstyle = "logic" */;
 
-wire [Y_width+4:0] Y_ref_pre_full = Y_dbl * SLHyb_depth;
+wire [Y_width+4:0] Y_ref_pre_full = Y_dbl * (* multstyle = "dsp" *) SLHyb_depth;
 reg  [Y_width-1:0] Y_ref_pre;
 
-wire [Y_width+SLHyb_width-1:0] Y_ref_full = Y_ref_pre * SL_rval;
+wire [Y_width+SLHyb_width-1:0] Y_ref_full = Y_ref_pre * (* multstyle = "dsp" *) SL_rval;
 reg  [Y_width-1:0] Y_ref;
 
 reg [SLHyb_width-1:0] SLHyb_rval;
 reg [SLHyb_width-1:0] SLHyb_str;
 
-wire [color_width_o+SLHyb_width-2:0] R_sl_full = R_pp[3] * SLHyb_str;
-wire [color_width_o+SLHyb_width-2:0] G_sl_full = G_pp[3] * SLHyb_str;
-wire [color_width_o+SLHyb_width-2:0] B_sl_full = B_pp[3] * SLHyb_str;
+wire [color_width_o+SLHyb_width-2:0] R_sl_full = R_pp[3] * (* multstyle = "dsp" *) SLHyb_str;
+wire [color_width_o+SLHyb_width-2:0] G_sl_full = G_pp[3] * (* multstyle = "dsp" *) SLHyb_str;
+wire [color_width_o+SLHyb_width-2:0] B_sl_full = B_pp[3] * (* multstyle = "dsp" *) SLHyb_str;
 reg  [color_width_o-1:0]             R_sl, G_sl, B_sl;
 
 integer pp_idx;

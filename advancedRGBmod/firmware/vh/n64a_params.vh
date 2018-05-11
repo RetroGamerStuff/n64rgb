@@ -28,7 +28,7 @@
 // Tool versions:  Altera Quartus Prime
 // Description:
 //
-// Revision: 2.0
+// Revision: 2.1
 //
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -73,6 +73,12 @@ parameter vdata_width_o = 4 + 3*color_width_o;
 //  `define HSTOP_PAL         11'd1536
   `define HSTART_PAL 11'd0275
   `define HSTOP_PAL  11'd1550
+
+  `define BUF_DEPTH_PER_PAGE  (`HSTOP_NTSC - `HSTART_NTSC)
+  
+  `define PIXEL_PER_LINE_2x_NTSC  1545
+  `define PIXEL_PER_LINE_2x_PAL   1587
+  `define PIXEL_PER_LINE_2x_MAX   1600
 
   `define HS_WIDTH_NTSC_240P  7'd115
   `define HS_WIDTH_NTSC_480I  7'd111
