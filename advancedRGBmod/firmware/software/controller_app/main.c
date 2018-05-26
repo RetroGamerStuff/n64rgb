@@ -84,6 +84,7 @@ int main()
   if (use_flash) {
     load_from_jumperset = cfg_load_from_flash(&sysconfig,0);
     cfg_clear_flag(&show_osd);
+    cfg_clear_flag(&show_osdwarn);
   }
 
   if (info_data & INFO_FALLBACKMODE_GETMASK)

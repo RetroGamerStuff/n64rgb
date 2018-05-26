@@ -158,12 +158,16 @@ system system_u(
 
 reg show_osd_logo    = 1'b0;
 reg show_osd         = 1'b0;
+reg show_osd_warning = 1'b0;
+reg show_osd_info    = 1'b0;
 reg  use_igr         = 1'b0;
 
 always @(posedge VCLK)
   if ((!nDSYNC & negedge_nVSYNC) | !nRST) begin
     show_osd_logo    <= &{OSDInfo[4:3],!OSDInfo[0]};  // show logo only in OSD
     show_osd         <= OSDInfo[3] & !OSDInfo[0];
+    show_osd_warning <= OSDInfo[2];
+    show_osd_info    <= OSDInfo[1];
     use_igr          <= SysConfigSet[31];
     OutConfigSet     <= SysConfigSet[28:0];
     OutConfigSet[10] <= OSDInfo[5] | !OSDInfo[3] | OSDInfo[0];  // cfg_OSD_SL considers if OSD is shown or not

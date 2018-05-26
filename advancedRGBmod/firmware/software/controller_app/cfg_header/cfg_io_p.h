@@ -252,6 +252,26 @@ config_t show_osd = {
     }
 };
 
+config_t show_osdwarn = {
+    .cfg_word        = &cfg_data_menu,
+    .cfg_word_offset = CFG_SHOWOSDWARN_OFFSET,
+    .cfg_type        = FLAG,
+    .flag_masks      = {
+        .setflag_mask = CFG_SHOWOSDWARN_SETMASK,
+        .clrflag_mask = CFG_SHOWOSDWARN_CLRMASK
+    }
+};
+
+config_t show_osdinfo = {
+    .cfg_word        = &cfg_data_menu,
+    .cfg_word_offset = CFG_SHOWOSDINFO_OFFSET,
+    .cfg_type        = FLAG,
+    .flag_masks      = {
+        .setflag_mask = CFG_SHOWOSDINFO_SETMASK,
+        .clrflag_mask = CFG_SHOWOSDINFO_CLRMASK
+    }
+};
+
 config_t mute_osd_tmp = {
     .cfg_word        = &cfg_data_menu,
     .cfg_word_offset = CFG_MUTEOSDTMP_OFFSET,
