@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="9.0.0">
+<eagle version="9.0.1">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -138,6 +138,12 @@
 <wire x1="0.1" y1="9.5" x2="0" y2="9.4" width="0" layer="20"/>
 <rectangle x1="11.05" y1="-3.6" x2="16.65" y2="12.55" layer="101"/>
 <text x="16.8" y="4.55" size="1.27" layer="1" font="vector" ratio="15" rot="R90" align="bottom-center">Pinout v3</text>
+<text x="2.606" y="-3.638" size="0.8128" layer="21" font="vector" ratio="15">6</text>
+<text x="2.606" y="-1.038" size="0.8128" layer="21" font="vector" ratio="15">10</text>
+<text x="2.606" y="2.212" size="0.8128" layer="21" font="vector" ratio="15">15</text>
+<text x="2.606" y="5.462" size="0.8128" layer="21" font="vector" ratio="15">20</text>
+<text x="2.606" y="8.712" size="0.8128" layer="21" font="vector" ratio="15">25</text>
+<text x="2.606" y="10.662" size="0.8128" layer="21" font="vector" ratio="15">28</text>
 </plain>
 <libraries>
 <library name="resistor-net" urn="urn:adsk.eagle:library:343">
