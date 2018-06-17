@@ -65,8 +65,8 @@
 # Set Output Delay
 #**************************************************************
 
-set_output_delay -clock { VCLK } -max 0.2 [get_ports {R_o* G_o* B_o* ADV712x_SYNC}] -add
-set_output_delay -clock { VCLK } -min -1.5 [get_ports {R_o* G_o* B_o* ADV712x_SYNC}] -add
+set_output_delay -clock { VCLK } -max 0.5 [get_ports {R_o* G_o* B_o* ADV712x_nSYNC ADV712x_nBLANK}] -add
+set_output_delay -clock { VCLK } -min -1.5 [get_ports {R_o* G_o* B_o* ADV712x_nSYNC ADV712x_nBLANK}] -add
 
 
 #**************************************************************

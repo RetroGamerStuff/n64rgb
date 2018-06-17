@@ -63,10 +63,10 @@ create_clock -name {VCLK} -period 20.000 -waveform { 0.000 12.500 } [get_ports {
 # Set Input Delay
 #**************************************************************
 
-set_input_delay -clock { VCLK } -min 5.4 [get_ports {nDSYNC}]
-set_input_delay -clock { VCLK } -max 6.4 [get_ports {nDSYNC}]
-set_input_delay -clock { VCLK } -min 5.4 [get_ports {D_i[*]}]
-set_input_delay -clock { VCLK } -max 6.4 [get_ports {D_i[*]}]
+set_input_delay -clock { VCLK } -min 0.0 [get_ports {nDSYNC}]
+set_input_delay -clock { VCLK } -max 6.5 [get_ports {nDSYNC}]
+set_input_delay -clock { VCLK } -min 0.0 [get_ports {D_i[*]}]
+set_input_delay -clock { VCLK } -max 6.5 [get_ports {D_i[*]}]
 
 
 #**************************************************************

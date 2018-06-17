@@ -86,7 +86,8 @@ module n64rgbv2_top (
   B_o,     // blue data vector
 
   ADV712x_CLK,
-  ADV712x_SYNC
+  ADV712x_nSYNC,
+  ADV712x_nBLANK
 );
 
 `include "vh/n64rgb_params.vh"
@@ -108,17 +109,18 @@ input Default_nForceDeBlur;
 input Default_DeBlur;
 input Default_n15bit_mode;
 
-output nHSYNC;
-output nVSYNC;
-output nCSYNC;
-output nCLAMP;
+output reg nHSYNC;
+output reg nVSYNC;
+output reg nCSYNC;
+output reg nCLAMP;
 
-output [color_width:0] R_o;
-output [color_width:0] G_o;
-output [color_width:0] B_o;
+output reg [color_width:0] R_o;
+output reg [color_width:0] G_o;
+output reg [color_width:0] B_o;
 
-output ADV712x_CLK;
-output ADV712x_SYNC;
+output reg ADV712x_CLK;
+output reg ADV712x_nSYNC;
+output reg ADV712x_nBLANK;
 
 
 `define SWITCH_INSTALL  !install_type
@@ -240,12 +242,15 @@ n64_vdemux video_demux(
 // assign final outputs
 // --------------------
 
-assign {nVSYNC,nCLAMP,nHSYNC,nCSYNC} =  vdata_r[1][`VDATA_SY_SLICE];
-assign  R_o                          = {vdata_r[1][`VDATA_RE_SLICE],vdata_r[1][3*color_width-1]};
-assign  G_o                          = {vdata_r[1][`VDATA_GR_SLICE],vdata_r[1][2*color_width-1]};
-assign  B_o                          = {vdata_r[1][`VDATA_BL_SLICE],vdata_r[1][  color_width-1]};
+always @(*) begin
+  {nVSYNC,nCLAMP,nHSYNC,nCSYNC} <=  vdata_r[1][`VDATA_SY_SLICE];
+   R_o                          <= {vdata_r[1][`VDATA_RE_SLICE],vdata_r[1][3*color_width-1]};
+   G_o                          <= {vdata_r[1][`VDATA_GR_SLICE],vdata_r[1][2*color_width-1]};
+   B_o                          <= {vdata_r[1][`VDATA_BL_SLICE],vdata_r[1][  color_width-1]};
 
-assign ADV712x_SYNC = nSYNC_ON_GREEN ? 1'b0 : vdata_r[1][vdata_width-4];
-assign ADV712x_CLK  = VCLK;
+  ADV712x_CLK    <= VCLK;
+  ADV712x_nSYNC  <= nSYNC_ON_GREEN ? 1'b0 : vdata_r[1][vdata_width-4];
+  ADV712x_nBLANK <= 1'b1;
+end
 
 endmodule

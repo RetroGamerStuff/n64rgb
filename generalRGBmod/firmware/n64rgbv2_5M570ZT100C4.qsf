@@ -47,7 +47,7 @@ set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
 set_global_assignment -name DEVICE_FILTER_PACKAGE TQFP
 set_global_assignment -name DEVICE_FILTER_PIN_COUNT 100
 set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR "-1"
-set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "3.3-V LVTTL"
+set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "3.3-V LVCMOS"
 
 
 ## N64 Video Input
@@ -107,7 +107,8 @@ set_location_assignment PIN_42 -to nVSYNC
 set_location_assignment PIN_41 -to nHSYNC
 
 set_location_assignment PIN_47 -to ADV712x_CLK
-set_location_assignment PIN_56 -to ADV712x_SYNC
+set_location_assignment PIN_56 -to ADV712x_nSYNC
+set_location_assignment PIN_57 -to ADV712x_nBLANK
 
 set_instance_assignment -name SLOW_SLEW_RATE ON -to nCSYNC
 set_instance_assignment -name SLOW_SLEW_RATE ON -to nHSYNC

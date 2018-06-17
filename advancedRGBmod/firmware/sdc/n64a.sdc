@@ -70,17 +70,17 @@ derive_clock_uncertainty
 # Set Input Delay
 #**************************************************************
 
-set_input_delay -clock { VCLK } -min 5.4 [get_ports {nDSYNC}]
-set_input_delay -clock { VCLK } -max 6.4 [get_ports {nDSYNC}]
-set_input_delay -clock { VCLK } -min 5.4 [get_ports {D_i[*]}]
-set_input_delay -clock { VCLK } -max 6.4  [get_ports {D_i[*]}]
+set_input_delay -clock { VCLK } -min 0.0 [get_ports {nDSYNC}]
+set_input_delay -clock { VCLK } -max 6.5 [get_ports {nDSYNC}]
+set_input_delay -clock { VCLK } -min 0.0 [get_ports {D_i[*]}]
+set_input_delay -clock { VCLK } -max 6.5  [get_ports {D_i[*]}]
 
 
 #**************************************************************
 # Set Output Delay
 #**************************************************************
 
-set_output_delay -clock { PX_CLK_4x } -max 0.2 [get_ports {V1_o* V2_o* V3_o* nCSYNC_ADV712x}] -add
+set_output_delay -clock { PX_CLK_4x } -max 0.5 [get_ports {V1_o* V2_o* V3_o* nCSYNC_ADV712x}] -add
 set_output_delay -clock { PX_CLK_4x } -min -1.5 [get_ports {V1_o* V2_o* V3_o* nCSYNC_ADV712x}] -add
 
 
