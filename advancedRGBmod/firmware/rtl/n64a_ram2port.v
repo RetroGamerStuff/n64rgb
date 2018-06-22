@@ -72,89 +72,40 @@ output reg [ data_width-1:0] rddata;
 
 reg [data_width-1:0] data_buf[0:`MEM_SPACE-1];
 
+
+wire [31:0] wrpageoffset = (pagesize * wrpage);
+
 reg                    wren_r = 1'b0;
 reg [`MEM_WIDTH-1:0]  wrmem_r = {`MEM_WIDTH{1'b0}};
 reg [data_width-1:0] wrdata_r = {data_width{1'b0}};
 
-generate if ((num_of_pages != 2**`PAGE_WIDTH) && (pagesize != 2**`ADDR_WIDTH))
-  always @(posedge wrCLK)
-    if ((wrpage < num_of_pages) && (wraddr < pagesize))
-      wren_r <= wren;
-    else
-      wren_r <= 1'b0;  // do not write to invalid input pages or addresses
-else if (num_of_pages != 2**`PAGE_WIDTH)
-  always @(posedge wrCLK)
-    if (wrpage < num_of_pages)
-      wren_r <= wren;
-    else
-      wren_r <= 1'b0;  // do not write to invalid input pages or addresses
-else if (pagesize != 2**`ADDR_WIDTH)
-  always @(posedge wrCLK)
-    if (wraddr < pagesize)
-      wren_r <= wren;
-    else
-      wren_r <= 1'b0;  // do not write to invalid input pages or addresses
-
-else
-  always @(posedge wrCLK)
-    wren_r <= wren;
-endgenerate
-
-generate if (pagesize != 2**`ADDR_WIDTH) begin
-  wire [31:0] wrpageoffset = (pagesize * wrpage);
-
-  always @(posedge wrCLK)
-    wrmem_r  <= wrpageoffset[`MEM_WIDTH-1:0] + wraddr;
-end else
-  always @(posedge wrCLK)
-    wrmem_r  <= {wrpage,wraddr};
-endgenerate
-
 always @(posedge wrCLK) begin
+  if ((wrpage < num_of_pages) && (wraddr < pagesize))
+    wren_r <= wren;
+  else
+    wren_r <= 1'b0;  // do not write to invalid input pages or addresses
+
+  wrmem_r  <= wrpageoffset[`MEM_WIDTH-1:0] + wraddr;
   wrdata_r <= wrdata;
+
   if (wren_r)
     data_buf[wrmem_r] <= wrdata_r;
 end
 
 
+wire [31:0] rdpageoffset = (pagesize * rdpage);
+
 reg                   rden_r = 1'b0;
 reg [`MEM_WIDTH-1:0] rdmem_r = {`MEM_WIDTH{1'b0}};
 
-generate if ((num_of_pages != 2**`PAGE_WIDTH) && (pagesize != 2**`ADDR_WIDTH))
-  always @(posedge wrCLK)
-    if ((rdpage < num_of_pages) && (rdaddr < pagesize))
-      rden_r <= rden;
-    else
-      rden_r <= 1'b0;  // do not read from invalid input pages or addresses
-else if (num_of_pages != 2**`PAGE_WIDTH)
-  always @(posedge wrCLK)
-    if (rdpage < num_of_pages)
-      rden_r <= rden;
-    else
-      rden_r <= 1'b0;  // do not write to invalid input pages or addresses
-else if (pagesize != 2**`ADDR_WIDTH)
-  always @(posedge wrCLK)
-    if ((rdpage < num_of_pages) && (rdaddr < pagesize))
-      rden_r <= rden;
-    else
-      rden_r <= 1'b0;  // do not read from invalid input pages or addresses
-else
-  always @(posedge wrCLK)
-    rden_r <= rden;
-endgenerate
-
-
-generate if (pagesize != 2**`ADDR_WIDTH) begin
-  wire [31:0] rdpageoffset = (pagesize * wrpage);
-
-  always @(posedge wrCLK)
-    rdmem_r <= rdpageoffset[`MEM_WIDTH-1:0] + rdaddr;
-end else
-  always @(posedge wrCLK)
-    rdmem_r  <= {rdpage,rdaddr};
-endgenerate
-
 always @(posedge rdCLK) begin
+  if ((rdpage < num_of_pages) && (rdaddr < pagesize))
+    rden_r <= rden;
+  else
+    rden_r <= 1'b0;  // do not read from invalid input pages or addresses
+
+  rdmem_r <= rdpageoffset[`MEM_WIDTH-1:0] + rdaddr;
+
   if (rden_r) begin
       rddata <= data_buf[rdmem_r];
   end
