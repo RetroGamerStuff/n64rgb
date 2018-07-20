@@ -135,28 +135,6 @@ always @(posedge VCLK) begin
         start_rdproc[0] <= ~start_rdproc[1];
 
       // set new info
-//      case({pal_mode,n64_480i})
-//        2'b00: begin
-//            hstart    <= `HSTART_NTSC_240P;
-//            hstop     <= `HSTOP_NTSC;
-//            nHS_width <= `HS_WIDTH_NTSC_240P;
-//          end
-//        2'b01: begin
-//            hstart    <= `HSTART_NTSC_480I;
-//            hstop     <= `HSTOP_NTSC;
-//            nHS_width <= `HS_WIDTH_NTSC_480I;
-//          end
-//        2'b10: begin
-//            hstart    <= `HSTART_PAL_288P;
-//            hstop     <= `HSTOP_PAL;
-//            nHS_width <= `HS_WIDTH_PAL_288P;
-//          end
-//        2'b11: begin
-//            hstart    <= `HSTART_PAL_576I;
-//            hstop     <= `HSTOP_PAL;
-//            nHS_width <= `HS_WIDTH_PAL_576I;
-//          end
-//      endcase
       if (pal_mode) begin
         hstart    <= `HSTART_PAL;
         hstop     <= `HSTOP_PAL;

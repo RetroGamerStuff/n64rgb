@@ -309,7 +309,7 @@
    internal="osd_info_out.external_connection"
    type="conduit"
    dir="end" />
- <interface name="reset" internal="clk_0.clk_in_reset" type="reset" dir="end" />
+ <interface name="rst" internal="clk_0.clk_in_reset" type="reset" dir="end" />
  <interface
    name="sync_in"
    internal="sync_in.external_connection"
@@ -1011,11 +1011,6 @@
    kind="reset"
    version="18.0"
    start="clk_0.clk_reset"
-   end="epcq_controller_0.reset" />
- <connection
-   kind="reset"
-   version="18.0"
-   start="clk_0.clk_reset"
    end="osd_info_out.reset" />
  <connection
    kind="reset"
@@ -1026,6 +1021,81 @@
    kind="reset"
    version="18.0"
    start="clk_0.clk_reset"
+   end="epcq_controller_0.reset" />
+ <connection
+   kind="reset"
+   version="18.0"
+   start="clk_0.clk_reset"
+   end="onchip_memory2_0.reset1" />
+ <connection
+   kind="reset"
+   version="18.0"
+   start="nios2_gen2_0.debug_reset_request"
+   end="cfg_set_out.reset" />
+ <connection
+   kind="reset"
+   version="18.0"
+   start="nios2_gen2_0.debug_reset_request"
+   end="ctrl_data_in.reset" />
+ <connection
+   kind="reset"
+   version="18.0"
+   start="nios2_gen2_0.debug_reset_request"
+   end="epcq_controller_0.reset" />
+ <connection
+   kind="reset"
+   version="18.0"
+   start="nios2_gen2_0.debug_reset_request"
+   end="hdl_fw_in.reset" />
+ <connection
+   kind="reset"
+   version="18.0"
+   start="nios2_gen2_0.debug_reset_request"
+   end="info_set_in.reset" />
+ <connection
+   kind="reset"
+   version="18.0"
+   start="nios2_gen2_0.debug_reset_request"
+   end="jtag_uart_0.reset" />
+ <connection
+   kind="reset"
+   version="18.0"
+   start="nios2_gen2_0.debug_reset_request"
+   end="jumper_cfg_set_in.reset" />
+ <connection
+   kind="reset"
+   version="18.0"
+   start="nios2_gen2_0.debug_reset_request"
+   end="nios2_gen2_0.reset" />
+ <connection
+   kind="reset"
+   version="18.0"
+   start="nios2_gen2_0.debug_reset_request"
+   end="osd_info_out.reset" />
+ <connection
+   kind="reset"
+   version="18.0"
+   start="nios2_gen2_0.debug_reset_request"
+   end="sync_in.reset" />
+ <connection
+   kind="reset"
+   version="18.0"
+   start="nios2_gen2_0.debug_reset_request"
+   end="vd_wraddr.reset" />
+ <connection
+   kind="reset"
+   version="18.0"
+   start="nios2_gen2_0.debug_reset_request"
+   end="vd_wrctrl.reset" />
+ <connection
+   kind="reset"
+   version="18.0"
+   start="nios2_gen2_0.debug_reset_request"
+   end="vd_wrdata.reset" />
+ <connection
+   kind="reset"
+   version="18.0"
+   start="nios2_gen2_0.debug_reset_request"
    end="onchip_memory2_0.reset1" />
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
  <interconnectRequirement for="$system" name="qsys_mm.enableEccProtection" value="FALSE" />

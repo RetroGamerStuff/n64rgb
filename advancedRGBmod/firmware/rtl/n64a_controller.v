@@ -140,7 +140,7 @@ wire [ 7:0] OSDInfo;
 
 system system_u(
   .clk_clk(CLK_25M),
-  .reset_reset_n(nRST_pll),
+  .rst_reset_n(nRST_pll),
   .sync_in_export({new_ctrl_data[1],nVSYNC_cur}),
   .vd_wraddr_export(vd_wraddr),
   .vd_wrctrl_export(vd_wrctrl),
