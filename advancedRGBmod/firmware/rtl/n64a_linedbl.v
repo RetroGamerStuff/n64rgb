@@ -41,8 +41,7 @@
 
 
 module n64a_linedbl(
-  VCLK_in,
-  VCLK_out,
+  VCLK,
   nRST,
 
   vinfo_dbl,
@@ -58,9 +57,8 @@ localparam hcnt_witdh  = $clog2(`PIXEL_PER_LINE_2x_MAX);
 localparam Y_width     = color_width_o+1;
 localparam SLHyb_width = 8; // do not change this localparam!
 
-input  VCLK_in;
-output VCLK_out;
-input  nRST;
+input VCLK;
+input nRST;
 
 input [14:0] vinfo_dbl; // [nLinedbl,SL_in_osd,SLhyb_str (5bits),SL_str (4bits),SL_id,SL_en,PAL,interlaced]
 
@@ -91,20 +89,9 @@ wire       n64_480i    = vinfo_dbl[ 0];
 
 reg div_2x = 1'b0;
 
-always @(posedge VCLK_in) begin
+always @(posedge VCLK) begin
   div_2x <= ~div_2x;
 end
-
-
-wire PX_CLK_4x, PLL_locked;
-altpll_0 vid_pll(
-  .inclk0(VCLK_in),
-  .areset(!nRST),
-  .locked(PLL_locked),
-  .c0(PX_CLK_4x)
-);
-
-wire RST = ~(nRST && PLL_locked);
 
 
 reg [hcnt_witdh-1:0] hstart = `HSTART_NTSC;
@@ -137,7 +124,7 @@ reg [1:0] start_rdproc = 2'b00;
 reg [1:0]  stop_rdproc = 2'b00;
 
 
-always @(posedge VCLK_in) begin
+always @(posedge VCLK) begin
   if (!div_2x) begin
     if (nVS_i_buf & !nVS_i) begin
       // trigger new frame
@@ -204,7 +191,7 @@ always @(posedge VCLK_in) begin
     nHS_i_buf <= nHS_i;
   end
 
-  if (RST) begin
+  if (!nRST) begin
         newFrame[0] <= newFrame[1];
     start_rdproc[0] <= start_rdproc[1];
      stop_rdproc[0] <= ~stop_rdproc[1];
@@ -223,7 +210,7 @@ reg                 rdline   = 1'b0;
 reg [hcnt_witdh-1:0] rdhcnt   = {hcnt_witdh{1'b1}};
 reg [hcnt_witdh-1:0] rdaddr   = {hcnt_witdh{1'b0}};
 
-always @(posedge PX_CLK_4x) begin
+always @(posedge VCLK) begin
   if (rdrun[1]) begin
     if (rdhcnt == line_width[rdline]) begin
       rdhcnt   <= {hcnt_witdh{1'b0}};
@@ -272,15 +259,14 @@ wire [color_width_i-1:0] R_buf, G_buf, B_buf;
 n64a_ram2port #(
   .num_of_pages(1),
   .pagesize(`BUF_DEPTH_PER_PAGE),
-//  .pagesize(`PIXEL_PER_LINE_2x_MAX),
   .data_width(3*color_width_i)
 ) videobuffer_0(
-  .wrCLK(VCLK_in),
+  .wrCLK(VCLK),
   .wren(|{!wren,line_overflow,div_2x}), //  .wren(&{wren,!line_overflow,!div_2x}),
   .wrpage(1'b0),
   .wraddr(wraddr),
   .wrdata({R_i,G_i,B_i}),
-  .rdCLK(PX_CLK_4x),
+  .rdCLK(VCLK),
   .rden(rden[0] && rdaddr[0]),
   .rdpage(1'b0),
   .rdaddr(rdaddr),
@@ -305,7 +291,7 @@ reg [Y_width-1:0] Y_dbl;
 
 reg [SLHyb_width-1:0] SL_rval;
 
-always @(posedge PX_CLK_4x) begin
+always @(posedge VCLK) begin
   if (rdcnt_buf ^ rdcnt) begin
     S_dbl[0] <= 1'b0;
     S_dbl[1] <= 1'b0;
@@ -380,7 +366,7 @@ reg  [color_width_o-1:0]             R_sl, G_sl, B_sl;
 
 integer pp_idx;
 
-always @(posedge PX_CLK_4x) begin
+always @(posedge VCLK) begin
   dSL_pp[0] <= drawSL;
     S_pp[0] <= S_dbl;
     R_pp[0] <= R_dbl;
@@ -431,7 +417,6 @@ end
 
 // post-assignment
 
-assign VCLK_out = PX_CLK_4x;
 assign vdata_o = {S_o,R_o,G_o,B_o};
 
 endmodule 

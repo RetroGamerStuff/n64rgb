@@ -47,7 +47,6 @@ create_clock -name {SYS_CLK} -period 20.000 -waveform { 0.000 10.000 } [get_port
 # Create Generated Clock
 #**************************************************************
 
-create_generated_clock -name PX_CLK_4x -source [get_ports {VCLK}] -divide_by 1 -multiply_by 1 [get_nets {linedoubler|vid_pll|altpll_component|auto_generated|wire_pll1_clk[0]}]
 create_generated_clock -name CLK_4M -source [get_ports {SYS_CLK}] -divide_by 25 -multiply_by 2 [get_nets {controller_u|sys_pll|altpll_component|auto_generated|wire_pll1_clk[0]}]
 create_generated_clock -name CLK_16k -source [get_ports {SYS_CLK}] -divide_by 3125 -multiply_by 1 [get_nets {controller_u|sys_pll|altpll_component|auto_generated|wire_pll1_clk[1]}]
 create_generated_clock -name CLK_25M -source [get_ports {SYS_CLK}] -divide_by 2 -multiply_by 1 [get_nets {controller_u|sys_pll|altpll_component|auto_generated|wire_pll1_clk[2]}]
@@ -80,8 +79,8 @@ set_input_delay -clock { VCLK } -max 6.5  [get_ports {D_i[*]}]
 # Set Output Delay
 #**************************************************************
 
-set_output_delay -clock { PX_CLK_4x } -max 0.5 [get_ports {V1_o* V2_o* V3_o* nCSYNC_ADV712x}] -add
-set_output_delay -clock { PX_CLK_4x } -min -1.5 [get_ports {V1_o* V2_o* V3_o* nCSYNC_ADV712x}] -add
+set_output_delay -clock { VCLK } -max 0.5 [get_ports {V1_o* V2_o* V3_o* nCSYNC_ADV712x}] -add
+set_output_delay -clock { VCLK } -min -1.5 [get_ports {V1_o* V2_o* V3_o* nCSYNC_ADV712x}] -add
 
 
 #**************************************************************

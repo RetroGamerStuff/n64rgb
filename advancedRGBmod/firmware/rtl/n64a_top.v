@@ -235,8 +235,6 @@ n64a_vdemux video_demux(
 // Part 5.1: Line Multiplier
 // =========================
 
-wire VCLK_out;
-
 wire nENABLE_linedbl = (n64_480i & cfg_n480i_bob) | ~cfg_lineX2 | ~nRST;
 wire SL_en           =  ~n64_480i  & cfg_SL_en;
 
@@ -245,8 +243,7 @@ wire [14:0] vinfo_dbl = {nENABLE_linedbl,cfg_OSD_SL,cfg_SLHyb_str,cfg_SL_str,cfg
 wire [vdata_width_o-1:0] vdata_tmp;
 
 n64a_linedbl linedoubler(
-  .VCLK_in(VCLK),
-  .VCLK_out(VCLK_out),
+  .VCLK(VCLK),
   .nRST(nRST),
   .vinfo_dbl(vinfo_dbl),
   .vdata_i(vdata_r[3]),
@@ -260,7 +257,7 @@ n64a_linedbl linedoubler(
 wire [3:0] Sync_o;
 
 n64a_vconv video_converter(
-  .VCLK(VCLK_out),
+  .VCLK(VCLK),
   .nEN_YPbPr(cfg_nEN_YPbPr),    // enables color transformation on '0'
   .vdata_i(vdata_tmp),
   .vdata_o({Sync_o,V1_o,V2_o,V3_o})
@@ -268,7 +265,7 @@ n64a_vconv video_converter(
 
 // Part 5.3: assign final outputs
 // ===========================
-assign    CLK_ADV712x = VCLK_out;
+assign    CLK_ADV712x = VCLK;
 assign nCSYNC_ADV712x = cfg_nEN_RGsB & cfg_nEN_YPbPr ? 1'b0  : Sync_o[0];
 // assign nBLANK_ADV712x = Sync_o[2];
 
@@ -292,7 +289,7 @@ assign nCSYNC_ADV712x = cfg_nEN_RGsB & cfg_nEN_YPbPr ? 1'b0  : Sync_o[0];
 
 reg [1:2] Filter;
 
-always @(posedge VCLK_out)
+always @(posedge VCLK)
   Filter <= FilterSetting   == 2'b11 ? 2'b11 :        // bypassed
             FilterSetting   == 2'b10 ? 2'b01 :        // 18.0MHz
             FilterSetting   == 2'b01 ? 2'b00 :        // 9.5MHz
