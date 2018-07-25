@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="8.7.1">
+<eagle version="9.0.1">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -11592,6 +11592,54 @@ Based on Cypress-EZ-usb-8051.pdf</description>
 </deviceset>
 </devicesets>
 </library>
+<library name="snes_div">
+<packages>
+<package name="PADS">
+<smd name="P$1" x="0" y="0" dx="3.81" dy="1.9304" layer="1" rot="R270"/>
+<text x="-1.27" y="-1.905" size="1.27" layer="21" rot="R90">&gt;Name</text>
+<text x="2.54" y="-1.905" size="1.27" layer="27" rot="R90">&gt;Value</text>
+</package>
+<package name="GND_FINGER_PAD">
+<smd name="P$1" x="0" y="0" dx="4.5" dy="3" layer="1"/>
+<text x="-5.08" y="2.54" size="1.016" layer="25" font="vector" ratio="15">&gt;NAME</text>
+<text x="1.27" y="-3.81" size="1.016" layer="27" font="vector" ratio="15">&gt;VALUE</text>
+</package>
+</packages>
+<symbols>
+<symbol name="PADS">
+<pin name="P$1" x="-2.54" y="0" length="middle"/>
+<wire x1="1.27" y1="1.27" x2="3.81" y2="-1.27" width="0.254" layer="94"/>
+<wire x1="1.27" y1="-1.27" x2="3.81" y2="1.27" width="0.254" layer="94"/>
+<text x="-2.54" y="2.54" size="1.778" layer="95">&gt;Name</text>
+<text x="-2.54" y="-5.08" size="1.778" layer="96">&gt;Value</text>
+</symbol>
+</symbols>
+<devicesets>
+<deviceset name="PAD">
+<gates>
+<gate name="G$1" symbol="PADS" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="PADS">
+<connects>
+<connect gate="G$1" pin="P$1" pad="P$1"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+<device name="SHIELD_FINGER" package="GND_FINGER_PAD">
+<connects>
+<connect gate="G$1" pin="P$1" pad="P$1"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+</devicesets>
+</library>
 </libraries>
 <attributes>
 </attributes>
@@ -11746,7 +11794,6 @@ Based on Cypress-EZ-usb-8051.pdf</description>
 <part name="FB3" library="rcl" deviceset="R-EU_" device="R0603" value="MPZ1608S221A"/>
 <part name="CTRL" library="wirepad@1" deviceset="SMD2" device=""/>
 <part name="/RST" library="wirepad@1" deviceset="SMD2" device=""/>
-<part name="/COLD" library="wirepad@1" deviceset="SMD2" device=""/>
 <part name="GND1" library="supply1" deviceset="GND" device=""/>
 <part name="C801" library="rcl" deviceset="C-EU" device="C0603" value="0.01u"/>
 <part name="FB4" library="rcl" deviceset="R-EU_" device="R0603" value="MPZ1608S221A"/>
@@ -11763,6 +11810,8 @@ Based on Cypress-EZ-usb-8051.pdf</description>
 <part name="+3V11" library="supply1" deviceset="+3V3" device=""/>
 <part name="+3V12" library="supply1" deviceset="+3V3" device=""/>
 <part name="P_GND4" library="wirepad@1" deviceset="SMD2" device=""/>
+<part name="P_GND_SF1" library="snes_div" deviceset="PAD" device="SHIELD_FINGER" value=""/>
+<part name="P_GND_SF2" library="snes_div" deviceset="PAD" device="SHIELD_FINGER" value=""/>
 </parts>
 <sheets>
 <sheet>
@@ -11880,7 +11929,6 @@ Based on Cypress-EZ-usb-8051.pdf</description>
 <instance part="+3V9" gate="G$1" x="238.76" y="104.14" rot="R270"/>
 <instance part="CTRL" gate="1" x="144.78" y="208.28" rot="R270"/>
 <instance part="/RST" gate="1" x="139.7" y="223.52" rot="R270"/>
-<instance part="/COLD" gate="1" x="142.24" y="215.9" rot="R270"/>
 <instance part="GND1" gate="1" x="17.78" y="71.12"/>
 <instance part="RN23" gate="G$1" x="398.78" y="17.78" rot="R270"/>
 <instance part="AGND2" gate="1" x="401.32" y="7.62"/>
@@ -12980,13 +13028,6 @@ Based on Cypress-EZ-usb-8051.pdf</description>
 <pinref part="U1" gate="G$1" pin="IO129"/>
 </segment>
 </net>
-<net name="N$56" class="0">
-<segment>
-<pinref part="RN12" gate="G$1" pin="7"/>
-<wire x1="142.24" y1="190.5" x2="142.24" y2="167.64" width="0.1524" layer="91"/>
-<pinref part="U1" gate="G$1" pin="IO128"/>
-</segment>
-</net>
 <net name="N$57" class="0">
 <segment>
 <pinref part="RN12" gate="G$1" pin="8"/>
@@ -13062,13 +13103,6 @@ Based on Cypress-EZ-usb-8051.pdf</description>
 <pinref part="RN12" gate="G$1" pin="1"/>
 <pinref part="CTRL" gate="1" pin="P"/>
 <wire x1="144.78" y1="203.2" x2="144.78" y2="205.74" width="0.1524" layer="91"/>
-</segment>
-</net>
-<net name="N$67" class="0">
-<segment>
-<pinref part="/COLD" gate="1" pin="P"/>
-<pinref part="RN12" gate="G$1" pin="2"/>
-<wire x1="142.24" y1="213.36" x2="142.24" y2="203.2" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$70" class="0">
@@ -13180,6 +13214,8 @@ Based on Cypress-EZ-usb-8051.pdf</description>
 <instance part="C801" gate="G$1" x="208.28" y="93.98"/>
 <instance part="FB4" gate="G$1" x="193.04" y="96.52"/>
 <instance part="P_GND4" gate="1" x="154.94" y="33.02"/>
+<instance part="P_GND_SF1" gate="G$1" x="137.16" y="48.26" rot="R180"/>
+<instance part="P_GND_SF2" gate="G$1" x="137.16" y="40.64" rot="R180"/>
 </instances>
 <busses>
 </busses>
@@ -13202,6 +13238,14 @@ Based on Cypress-EZ-usb-8051.pdf</description>
 <wire x1="157.48" y1="33.02" x2="165.1" y2="33.02" width="0.1524" layer="91"/>
 <wire x1="165.1" y1="33.02" x2="165.1" y2="38.1" width="0.1524" layer="91"/>
 <junction x="165.1" y="38.1"/>
+<pinref part="P_GND_SF1" gate="G$1" pin="P$1"/>
+<wire x1="139.7" y1="48.26" x2="144.78" y2="48.26" width="0.1524" layer="91"/>
+<wire x1="144.78" y1="48.26" x2="165.1" y2="48.26" width="0.1524" layer="91"/>
+<wire x1="165.1" y1="48.26" x2="165.1" y2="43.18" width="0.1524" layer="91"/>
+<pinref part="P_GND_SF2" gate="G$1" pin="P$1"/>
+<wire x1="139.7" y1="40.64" x2="144.78" y2="40.64" width="0.1524" layer="91"/>
+<wire x1="144.78" y1="40.64" x2="144.78" y2="48.26" width="0.1524" layer="91"/>
+<junction x="144.78" y="48.26"/>
 </segment>
 <segment>
 <pinref part="C111" gate="G$1" pin="2"/>
