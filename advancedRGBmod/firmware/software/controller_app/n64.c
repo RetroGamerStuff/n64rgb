@@ -37,7 +37,12 @@
 #include "vd_driver.h"
 
 
-#define COMMAND_HISTORY_LENGTH 1
+#define HOLD_CNT_LOW	5
+#define HOLD_CNT_MID0	8
+#define HOLD_CNT_MID1	12
+#define HOLD_CNT_HIGH	17
+
+#define HOLD_CNT_REP	2
 
 extern char szText[];
 
@@ -52,9 +57,9 @@ void print_ctrl_data(alt_u32* ctrl_data) {
 cmd_t ctrl_data_to_cmd(alt_u32* ctrl_data)
 {
   cmd_t cmd_new = CMD_NON;
-  static cmd_t cmd_pre = CMD_NON;
+  static cmd_t cmd_pre_int = CMD_NON, cmd_pre = CMD_NON;
 
-  static alt_u8 cmd_history_cnt = COMMAND_HISTORY_LENGTH;
+  static alt_u8 rep_cnt = 0, hold_cnt = HOLD_CNT_HIGH;
 
   switch (*ctrl_data & CTRL_GETALL_DIGITAL_MASK) {
     case BTN_OPEN_OSDMENU:
@@ -102,17 +107,29 @@ cmd_t ctrl_data_to_cmd(alt_u32* ctrl_data)
       break;
   };
 
+  if (cmd_pre_int != cmd_new) {
+    cmd_pre_int = cmd_new;
+    rep_cnt = 0;
+    hold_cnt = HOLD_CNT_HIGH;
+  } else {
+    if (hold_cnt == 0) {
+      if (rep_cnt < 255) rep_cnt++;
+      hold_cnt = HOLD_CNT_LOW;
+      if (rep_cnt < 3*HOLD_CNT_REP) hold_cnt = HOLD_CNT_MID1;
+      if (rep_cnt < 2*HOLD_CNT_REP) hold_cnt = HOLD_CNT_MID0;
+      if (rep_cnt <   HOLD_CNT_REP) hold_cnt = HOLD_CNT_HIGH;
+      cmd_pre = CMD_NON;
+    } else {
+      hold_cnt--;
+    }
+  }
+
   if (cmd_pre != cmd_new) {
-    if (cmd_history_cnt == 0) {
-      if (cmd_pre == CMD_MUTE_MENU && cmd_new == CMD_NON)
-        cmd_new = CMD_UNMUTE_MENU;
-      cmd_pre = cmd_new;
-      cmd_history_cnt = COMMAND_HISTORY_LENGTH;
-      return cmd_new;
-    } else
-      cmd_history_cnt--;
-  } else
-    cmd_history_cnt = cmd_new == CMD_NON ? 0 : COMMAND_HISTORY_LENGTH;
+    if (cmd_pre == CMD_MUTE_MENU && cmd_new == CMD_NON)
+      cmd_new = CMD_UNMUTE_MENU;
+    cmd_pre = cmd_new;
+    return cmd_new;
+  }
 
   return CMD_NON;
 };
