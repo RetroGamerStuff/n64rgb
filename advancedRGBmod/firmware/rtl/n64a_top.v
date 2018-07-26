@@ -163,6 +163,14 @@ wire       cfg_n480i_bob =  ~OutConfigSet[ 4];
 wire       cfg_nEN_YPbPr =  ~OutConfigSet[ 1];
 wire       cfg_nEN_RGsB  =  ~OutConfigSet[ 0];
 
+reg nVRST_pre = 1'b0;
+reg nVRST = 1'b0;
+
+always @(posedge VCLK) begin
+  nVRST <= nVRST_pre;
+  nVRST_pre <= nRST;
+end
+
 
 // Part 2 - 4: RGB Demux with De-Blur Add-On
 // =========================================
@@ -204,7 +212,7 @@ wire ndo_deblur;
 n64_deblur deblur_management(
   .VCLK(VCLK),
   .nDSYNC(nDSYNC),
-  .nRST(nRST),
+  .nRST(nVRST),
   .vdata_pre(vdata_r[0]),
   .D_i(D_i),
   .deblurparams_i({vinfo_pass,nForceDeBlur,nDeBlurMan}),
@@ -220,7 +228,7 @@ wire [`VDATA_I_FU_SLICE] vdata_r[0:3];
 n64a_vdemux video_demux(
   .VCLK(VCLK),
   .nDSYNC(nDSYNC),
-  .nRST(nRST),
+  .nRST(nVRST),
   .D_i(D_i),
   .demuxparams_i({vinfo_pass[3:1],ndo_deblur,n15bit_mode}),
   .gammaparams_i(cfg_gamma),
@@ -244,7 +252,7 @@ wire [vdata_width_o-1:0] vdata_tmp;
 
 n64a_linedbl linedoubler(
   .VCLK(VCLK),
-  .nRST(nRST),
+  .nRST(nVRST),
   .vinfo_dbl(vinfo_dbl),
   .vdata_i(vdata_r[3]),
   .vdata_o(vdata_tmp)
