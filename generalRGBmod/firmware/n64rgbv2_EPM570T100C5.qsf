@@ -108,9 +108,9 @@ set_location_assignment PIN_43 -to nCSYNC
 set_location_assignment PIN_42 -to nVSYNC
 set_location_assignment PIN_41 -to nHSYNC
 
-set_location_assignment PIN_47 -to ADV712x_CLK
-set_location_assignment PIN_56 -to ADV712x_nSYNC
-set_location_assignment PIN_57 -to ADV712x_nBLANK
+set_location_assignment PIN_47 -to CLK_ADV712x
+set_location_assignment PIN_56 -to nCSYNC_ADV712x
+set_location_assignment PIN_57 -to nBLANK_ADV712x
 
 set_instance_assignment -name SLOW_SLEW_RATE ON -to nCSYNC
 set_instance_assignment -name SLOW_SLEW_RATE ON -to nHSYNC
@@ -143,9 +143,7 @@ set_global_assignment -name VERILOG_FILE rtl/n64_vinfo_ext.v
 set_global_assignment -name VERILOG_FILE rtl/n64_deblur.v
 set_global_assignment -name VERILOG_FILE rtl/n64_vdemux.v
 set_global_assignment -name VERILOG_INCLUDE_FILE vh/igr_params.vh
-set_global_assignment -name SDC_FILE sdc/n64rgb.sdc
-set_global_assignment -name SDC_FILE sdc/n64rgbv2_adds.sdc
-set_global_assignment -name SDC_FILE sdc/n64igr.sdc
+set_global_assignment -name SDC_FILE sdc/n64rgbv2.sdc
 set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files/v2/EPM570T100C5
 
 

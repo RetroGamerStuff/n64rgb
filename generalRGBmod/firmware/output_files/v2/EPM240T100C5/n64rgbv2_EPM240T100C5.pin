@@ -108,7 +108,7 @@ nCSYNC                       : 43        : output : 3.3-V LVCMOS      :         
 nCLAMP                       : 44        : output : 3.3-V LVCMOS      :         : 1         : Y              
 VCCIO1                       : 45        : power  :                   : 3.3V    : 1         :                
 GNDIO                        : 46        : gnd    :                   :         :           :                
-ADV712x_CLK                  : 47        : output : 3.3-V LVCMOS      :         : 1         : Y              
+CLK_ADV712x                  : 47        : output : 3.3-V LVCMOS      :         : 1         : Y              
 B_o[7]                       : 48        : output : 3.3-V LVCMOS      :         : 1         : Y              
 B_o[6]                       : 49        : output : 3.3-V LVCMOS      :         : 1         : Y              
 B_o[5]                       : 50        : output : 3.3-V LVCMOS      :         : 1         : Y              
@@ -117,8 +117,8 @@ B_o[3]                       : 52        : output : 3.3-V LVCMOS      :         
 B_o[2]                       : 53        : output : 3.3-V LVCMOS      :         : 2         : Y              
 B_o[1]                       : 54        : output : 3.3-V LVCMOS      :         : 2         : Y              
 nSYNC_ON_GREEN               : 55        : input  : 3.3-V LVCMOS      :         : 2         : Y              
-ADV712x_nSYNC                : 56        : output : 3.3-V LVCMOS      :         : 2         : Y              
-ADV712x_nBLANK               : 57        : output : 3.3-V LVCMOS      :         : 2         : Y              
+nCSYNC_ADV712x               : 56        : output : 3.3-V LVCMOS      :         : 2         : Y              
+nBLANK_ADV712x               : 57        : output : 3.3-V LVCMOS      :         : 2         : Y              
 G_o[7]                       : 58        : output : 3.3-V LVCMOS      :         : 2         : Y              
 VCCIO2                       : 59        : power  :                   : 3.3V    : 2         :                
 GNDIO                        : 60        : gnd    :                   :         :           :                

@@ -85,9 +85,9 @@ module n64rgbv2_top (
   G_o,     // green data vector
   B_o,     // blue data vector
 
-  ADV712x_CLK,
-  ADV712x_nSYNC,
-  ADV712x_nBLANK
+  CLK_ADV712x,
+  nCSYNC_ADV712x,
+  nBLANK_ADV712x
 );
 
 `include "vh/n64rgb_params.vh"
@@ -118,9 +118,9 @@ output reg [color_width:0] R_o;
 output reg [color_width:0] G_o;
 output reg [color_width:0] B_o;
 
-output reg ADV712x_CLK;
-output reg ADV712x_nSYNC;
-output reg ADV712x_nBLANK;
+output reg CLK_ADV712x;
+output reg nCSYNC_ADV712x;
+output reg nBLANK_ADV712x;
 
 
 `define SWITCH_INSTALL  !install_type
@@ -248,9 +248,9 @@ always @(*) begin
    G_o                          <= {vdata_r[1][`VDATA_GR_SLICE],vdata_r[1][2*color_width-1]};
    B_o                          <= {vdata_r[1][`VDATA_BL_SLICE],vdata_r[1][  color_width-1]};
 
-  ADV712x_CLK    <= VCLK;
-  ADV712x_nSYNC  <= nSYNC_ON_GREEN ? 1'b0 : vdata_r[1][vdata_width-4];
-  ADV712x_nBLANK <= 1'b1;
+  CLK_ADV712x    <= VCLK;
+  nCSYNC_ADV712x  <= nSYNC_ON_GREEN ? 1'b0 : vdata_r[1][vdata_width-4];
+  nBLANK_ADV712x <= 1'b1;
 end
 
 endmodule
