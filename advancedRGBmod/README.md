@@ -21,10 +21,10 @@ This is a complete DIY modding project. So everybody is on his own here.
   * full control on de-blur and 15bit mode with the controller
 - Advanced features:
   * output of RGsB or YPBPr on demand
-  * linedoubling of 240p/288p video to 480p/576p [3]
-  * selectable scanline strength: 0% (i.e. sl off), 25%, 50% and 100% [4]
-  * optional bob de-interlace of 480i/576i to 480p/576p [3]
-  * VGA output [5]
+  * linedoubling of 240p/288p video to 480p/576p incl. optional bob de-interlace of 480i/576i to 480p/576p
+  * selectable scanline strength incl hybrid depth
+  * possible VGA output [3]
+  * on-screen menu for configuration
 
 
 The following shortly describes the main features of the firmware and how to use / control them.
@@ -38,12 +38,6 @@ Heuristic for de-blur function highly depends on the image content. So it might 
 If you observe something like that or where do you think that de-blur is not correctly guessed, please take a note (PAL / NTSC N64, game, ROM, situation), where I can check that and can try to further improve the heuristic algorithm. Send me your observation vie email or open an issue here on GitHub.
 
 ##### [3]
-can be switched off
-
-##### [4]
-no scanlines are available in this mode
-
-##### [5]
 Not available if the filter adddon is used as HSYNC and VSYNC are shared outputs with F1 and F2 (filter selection)
 
 ### In-Game Routines (IGR)
@@ -52,12 +46,10 @@ Three functunalities are implemented: toggle de-blur feature / override heuristi
 
 The button combination are as follows:
 
-- reset the console: Z + Start + R + A + B
-- (de)activate de-blur / override heuristic for de-blur: (see description above)
-- (de)activate 15bit mode: (see description above)
-
-_Modifiying the IGR Button Combinations_:  
-It's difficult to make everybody happy with it. Third party controllers, which differ from the original ones by design, make it even more difficult. So it is possible to generate your own firmware with **your own** preferred **button combinations** implemented. Please refere to the document **IGR.README.md** located in the top folder of this repository for further information.
+- open on-screen menu: D-pad ri + L + R + C-ri
+- reset the console: Z + Start + R + A + B (must be enabled in menu)
+- (de)activate de-blur / override heuristic for de-blur: (must be enabled in menu, see description above)
+- (de)activate 15bit mode: (must be enabled in menu, see description above)
 
 _Final remark on IGR_:  
 However, as the communication between N64 and the controller goes over a single wire, sniffing the input is not an easy task (and probably my solution is not the best one). This together with the lack of an exhaustive testing (many many games out there as well my limited time), I'm looking forward to any incomming issue report to furhter improve this feature :)
@@ -68,10 +60,8 @@ However, as the communication between N64 and the controller goes over a single 
 De-blur of the picture information is only be done in 240p/288p. This is be done by simply blanking every second pixel. Normally, the blanked pixels are used to introduce blur by the N64 in 240p/288p mode. However, some games like Mario Tennis, 007 Goldeneye, and some others use these pixel for additional information rather than for bluring effects. In other words this means that these games uses full horizontal resolution even in 240p/288p output mode. Hence, the picture looks more blurry in this case if de-blur feature is activated.
 
 - **By default heuristic is activated on every power cycle and on every reset!** However, as the heuristic guess might be not reliable, the guess can be overriden.
-- Press Z + Start + R + C-le to deactivate de-blur (overrides the guess)
-- Press Z + Start + R + C-ri to activate de-blur (overrides the guess)
-
-_(Button combinations can be modified according to your needs - see note below @ **In-Game Routines (IGR)**)_
+- Press Z + Start + R + C-le to deactivate de-blur (overrides the guess, quick access function must be enabled in menu)
+- Press Z + Start + R + C-ri to activate de-blur (overrides the guess, quick access function must be enabled in menu)
 
 
 ### Heuristic for De-Blur
@@ -88,10 +78,8 @@ The heuristic algorithm estimates whether a game uses the first or the second me
 The 15bit color mode reduces the color depth from 21bit (7bit for each color) downto 15bits (5bit for each color). Some very few games just use the five MSBs of the color information and the two LSBs for some kind of gamma dither. The 15bit color mode simply sets the two LSBs to '0'.
 
 - By default the 15bit mode is *off*! The default is set on each power cycle but not on a reset.
-- to deactivate 15bit mode press Z + Start + R + C-up.
-- to (re)activate 15bit mode press Z + Start + R + C-dw.
-
-_(Button combinations can be modified according to your needs - see note below @ **In-Game Routines (IGR)**)_
+- to deactivate 15bit mode press Z + Start + R + C-up. (quick access function must be enabled in menu)
+- to (re)activate 15bit mode press Z + Start + R + C-dw. (quick access function must be enabled in menu)
 
 
 ### Low Pass Filtering of the Video Output
@@ -121,7 +109,7 @@ A complete installation and setup guide to this modding kit is provided in the m
   * Installation description is part of the guide located in the top folder.
   * However an installation guide of a simalar product made by viletim is provided [here](http://etim.net.au/n64rgb/). The minor differences / extra pads are as follows:
     * decide on you own whether you want to use the analog part with 5V (connect 5V to the appropriate pad) or with 3.3V (short jumper _J6_). **Don't connect 5V and close J5.**
-	* Pad *C*: currently unused. Leave it unconnected
+    * Pad *C*: discontinued; leave it unconnected
     * Pad *Rst#*: connect this pad to the PIF-NUS pin 27
     * Pad *Ctrl*: connect this pin to the middle pin of the controller port you want to use for the IGR functions (controller port 1 is probably connected to PIF-NUS pin 16; check that before soldering a wire)
   * You have to be aware of the pinout of your video-encoder build into your N64. Pads on the DIY modding board are labeled.
