@@ -173,8 +173,8 @@ set_global_assignment -name VERILOG_FILE rtl/n64a_controller.v
 set_global_assignment -name QIP_FILE ip/Cyclone10LP/altpll_1.qip
 set_global_assignment -name QIP_FILE system/synthesis/system.qip
 set_global_assignment -name VERILOG_FILE rtl/n64a_ram2port.v
-set_global_assignment -name QIP_FILE ip/Cyclone10LP/rom1port_1.qip
-# set_global_assignment -name VERILOG_FILE rtl/n64a_font_rom.v
+# set_global_assignment -name QIP_FILE ip/Cyclone10LP/rom1port_1.qip
+set_global_assignment -name VERILOG_FILE rtl/n64a_font_rom.v
 set_global_assignment -name VERILOG_FILE rtl/n64_vinfo_ext.v
 set_global_assignment -name VERILOG_FILE rtl/n64_deblur.v
 set_global_assignment -name VERILOG_FILE rtl/n64a_vdemux.v

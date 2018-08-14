@@ -480,20 +480,20 @@ wire [1:0] background_color = background_color_del[3:2];
 wire [3:0] font_color       = font_color_del[7:4];
 wire [7:0] font_word;
 
-rom1port_1 font_mem_u(
-  .address({font_addr_msb[7:4],font_addr_lsb}),
-  .clock(VCLK),
-  .rden(en_txtrd[2]),
-  .q(font_word)
-);
-
-//n64a_font_rom font_mem_u(
-//  .CLK(VCLK),
-//  .char_addr(font_addr_lsb),
-//  .char_line(font_addr_msb[7:4]),
+//rom1port_1 font_mem_u(
+//  .address({font_addr_msb[7:4],font_addr_lsb}),
+//  .clock(VCLK),
 //  .rden(en_txtrd[2]),
-//  .rddata(font_word)
+//  .q(font_word)
 //);
+
+n64a_font_rom font_mem_u(
+  .CLK(VCLK),
+  .char_addr(font_addr_lsb),
+  .char_line(font_addr_msb[7:4]),
+  .rden(en_txtrd[2]),
+  .rddata(font_word)
+);
 
 reg [11:0] font_pixel_select = 12'h0;
 

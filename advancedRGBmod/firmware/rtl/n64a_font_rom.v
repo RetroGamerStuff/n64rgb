@@ -49,7 +49,7 @@ input [6:0] char_addr;
 input [3:0] char_line;
 input       rden;
 
-(* romstyle = "M9K" *) output reg [7:0] rddata;
+output reg [7:0] rddata;
 
 
 reg [10:0] addr_r = 11'h00;

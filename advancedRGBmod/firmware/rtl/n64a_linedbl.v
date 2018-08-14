@@ -100,8 +100,8 @@ reg [hcnt_witdh-1:0] hstop  = `HSTOP_NTSC;
 reg [6:0] nHS_width = `HS_WIDTH_NTSC_480I;
 
 
-reg                      wren   = 1'b0;
-reg                      wrline = 1'b0;
+reg                  wren   = 1'b0;
+reg            [1:0] wrpage = 1'b0;
 reg [hcnt_witdh-1:0] wrhcnt = {hcnt_witdh{1'b1}};
 reg [hcnt_witdh-1:0] wraddr = {hcnt_witdh{1'b0}};
 
@@ -109,8 +109,10 @@ wire line_overflow = wrhcnt == `PIXEL_PER_LINE_2x_MAX;  // close approach for NT
 wire valid_line    = wrhcnt > hstop;                    // for evaluation
 
 
-reg [hcnt_witdh-1:0] line_width[0:1];
+reg [hcnt_witdh-1:0] line_width[0:3];
 initial begin
+  line_width[3] = {hcnt_witdh{1'b0}};
+  line_width[2] = {hcnt_witdh{1'b0}};
   line_width[1] = {hcnt_witdh{1'b0}};
   line_width[0] = {hcnt_witdh{1'b0}};
 end
@@ -146,11 +148,11 @@ always @(posedge VCLK) begin
       end
     end
 
-    if (nHS_i_buf & !nHS_i) begin // negedge nHSYNC -> reset wrhcnt and toggle wrline
-      line_width[wrline] <= wrhcnt;
+    if (nHS_i_buf & !nHS_i) begin // negedge nHSYNC -> reset wrhcnt and inc. wrpage
+      line_width[wrpage] <= wrhcnt;
 
       wrhcnt <= {hcnt_witdh{1'b0}};
-      wrline <= ~wrline;
+      wrpage <= wrpage + 1'b1;
     end else if (~line_overflow) begin
       wrhcnt <= wrhcnt + 1'b1;
     end
@@ -175,25 +177,25 @@ always @(posedge VCLK) begin
      stop_rdproc[0] <= ~stop_rdproc[1];
 
     wren   <= 1'b0;
-    wrline <= 1'b0;
+    wrpage <= 2'b00;
     wrhcnt <= {hcnt_witdh{1'b1}};
   end
 end
 
 
-reg           [2:0] rden     = 3'b0;
-reg           [1:0] rdrun    = 2'b00;
-reg                 rdcnt    = 1'b0;
-reg                 rdline   = 1'b0;
-reg [hcnt_witdh-1:0] rdhcnt   = {hcnt_witdh{1'b1}};
-reg [hcnt_witdh-1:0] rdaddr   = {hcnt_witdh{1'b0}};
+reg            [2:0] rden    = 3'b0;
+reg            [1:0] rdrun   = 2'b00;
+reg                  rdcnt   = 1'b0;
+reg            [1:0] rdpage  = 2'b00;
+reg [hcnt_witdh-1:0] rdhcnt  = {hcnt_witdh{1'b1}};
+reg [hcnt_witdh-1:0] rdaddr  = {hcnt_witdh{1'b0}};
 
 always @(posedge VCLK) begin
   if (rdrun[1]) begin
-    if (rdhcnt == line_width[rdline]) begin
+    if (rdhcnt == line_width[rdpage]) begin
       rdhcnt   <= {hcnt_witdh{1'b0}};
       if (rdcnt)
-        rdline <= wrline;
+        rdpage <= rdpage + 1'b1;
       rdcnt <= ~rdcnt;
     end else begin
       rdhcnt <= rdhcnt + 1'b1;
@@ -211,10 +213,10 @@ always @(posedge VCLK) begin
       rden[0] <= 1'b0;
       rdaddr  <= {hcnt_witdh{1'b0}};
     end
-  end else if (rdrun[0] && wrhcnt[3]) begin
+  end else if (&{rdrun[0],!div_2x,wrhcnt[3]} && wrpage == 2'b10) begin  // synchronize with writing process
     rdrun[1] <= 1'b1;
     rdcnt    <= 1'b1;
-    rdline   <= ~wrline;
+    rdpage   <= 2'b00;
     rdhcnt   <= {hcnt_witdh{1'b0}};
   end else if (^start_rdproc) begin
     rdrun[0] <= 1'b1;
@@ -235,19 +237,19 @@ end
 wire [color_width_i-1:0] R_buf, G_buf, B_buf;
 
 n64a_ram2port #(
-  .num_of_pages(1),
-  .pagesize(`BUF_DEPTH_PER_PAGE),
+  .num_of_pages(4),
+  .pagesize(`BUF_DEPTH_PER_PAGE/2),
   .data_width(3*color_width_i)
 ) videobuffer_0(
   .wrCLK(VCLK),
-  .wren(|{!wren,line_overflow,div_2x}), //  .wren(&{wren,!line_overflow,!div_2x}),
-  .wrpage(1'b0),
-  .wraddr(wraddr),
+  .wren(|{!wren,line_overflow,div_2x,wraddr[0]}), //  .wren(&{wren,!line_overflow,!div_2x,!wraddr[0]}),
+  .wrpage(wrpage),
+  .wraddr(wraddr[hcnt_witdh-1:1]),
   .wrdata({R_i,G_i,B_i}),
   .rdCLK(VCLK),
-  .rden(rden[0] && rdaddr[0]),
-  .rdpage(1'b0),
-  .rdaddr(rdaddr),
+  .rden(rden[0] && !rdaddr[0]),
+  .rdpage(rdpage),
+  .rdaddr(rdaddr[hcnt_witdh-1:1]),
   .rddata({R_buf,G_buf,B_buf})
 );
 
@@ -257,7 +259,7 @@ reg [8:0] vcnt_dbl = 9'd0;
 reg [7:0]  nHS_cnt = 8'd0;
 reg [1:0]  nVS_cnt = 2'b0;
 
-wire CSen_lineend = ((rdhcnt + 2'b11) > (line_width[rdline] - nHS_width));
+wire CSen_lineend = ((rdhcnt + 2'b11) > (line_width[rdpage] - nHS_width));
 
 wire is_OSD_area = (rdhcnt[hcnt_witdh-1:1] > (`OSD_WINDOW_H_START+2'b10)) && (rdhcnt[hcnt_witdh-1:1] < (`OSD_WINDOW_H_STOP+2'b10)) &&
                    (vcnt_dbl[8:1] > (`OSD_WINDOW_V_START+2'b11)) && (vcnt_dbl[8:1] < (`OSD_WINDOW_V_STOP+2'b01));
@@ -307,10 +309,12 @@ always @(posedge VCLK) begin
   drawSL <= (is_OSD_area ? SL_in_osd : 1'b1) && SL_en && (rdcnt ^ (!SL_id));
 
   if (rden[2]) begin
-    R_dbl <= R_buf;
-    G_dbl <= G_buf;
-    B_dbl <= B_buf;
-    Y_dbl <= {2'b00,R_buf} + {1'b0,G_buf,1'b0} + {2'b00,B_buf};
+    if (div_2x) begin
+      R_dbl <= R_buf;
+      G_dbl <= G_buf;
+      B_dbl <= B_buf;
+      Y_dbl <= {2'b00,R_buf} + {1'b0,G_buf,1'b0} + {2'b00,B_buf};
+    end
   end else begin
     R_dbl <= { color_width_i   {1'b0}};
     G_dbl <= { color_width_i   {1'b0}};;
