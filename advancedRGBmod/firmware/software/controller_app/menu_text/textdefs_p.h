@@ -237,7 +237,7 @@ static const char *home_overlay =
 const char *EnterSubMenu = "[Enter submenu]";
 
 const char *OffOn[]         = {"Off","On"};
-const char *EvenOdd[]       = {"Even","Odd"};
+const char *EvenOdd[]       = {"Even","Odd","Even (adv)","Odd (adv)"};
 const char *VideoMode[]     = {"240p60","480i60","288p50","576i50","480p60","576p50"};
 const char *VideoColor[]    = {"21bit","15bit"};
 const char *VideoFormat[]   = {"RGBS","RGBS/RGsB","YPbPr"};

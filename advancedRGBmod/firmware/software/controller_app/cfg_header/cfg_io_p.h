@@ -101,10 +101,10 @@ config_t slhyb_str = {
 config_t sl_id = {
     .cfg_word        = &cfg_data_image1,
     .cfg_word_offset = CFG_SL_ID_OFFSET,
-    .cfg_type        = FLAG,
-    .flag_masks      = {
-        .setflag_mask = CFG_SL_ID_SETMASK,
-        .clrflag_mask = CFG_SL_ID_CLRMASK
+    .cfg_type        = VALUE,
+    .value_details   = {
+        .max_value     = CFG_SL_ID_MAX_VALUE,
+        .getvalue_mask = CFG_SL_ID_GETMASK
     },
     .value_string = &EvenOdd
 };
