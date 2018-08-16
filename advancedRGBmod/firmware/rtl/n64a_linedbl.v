@@ -248,7 +248,7 @@ wire [color_width_i-1:0] R_buf, G_buf, B_buf;
 
 n64a_ram2port #(
   .num_of_pages(`BUF_NUM_OF_PAGES),
-  .pagesize(`BUF_DEPTH_PER_PAGE/2),
+  .pagesize(`BUF_DEPTH_PER_PAGE),
   .data_width(3*color_width_i)
 ) videobuffer_0(
   .wrCLK(VCLK),
