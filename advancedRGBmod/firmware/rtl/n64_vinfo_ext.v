@@ -53,7 +53,7 @@ input nDSYNC;
 input  [3:0] Sync_pre;
 input  [3:0] Sync_cur;
 
-output [3:0] vinfo_o;   // order: data_cnt,n64_480i,vmode
+output [3:0] vinfo_o;   // order: data_cnt,vmode,n64_480i
 
 
 // some pre-assignments
@@ -89,7 +89,7 @@ always @(posedge VCLK) begin
       if (negedge_nHSYNC) begin  // negedge at nHSYNC, too -> odd frame
         n64_480i <= ~FrameID;
         FrameID  <= 1'b1;
-      end else begin                    // no negedge at nHSYNC -> even frame
+      end else begin             // no negedge at nHSYNC -> even frame
         n64_480i <= FrameID;
         FrameID  <= 1'b0;
       end
