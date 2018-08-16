@@ -67,8 +67,8 @@ parameter vdata_width_o = 4 + 3*color_width_o;
   `define HSTART_PAL 11'd0275
   `define HSTOP_PAL  11'd1550
 
-  `define BUF_NUM_OF_PAGES  4
   `define BUF_DEPTH_PER_PAGE  (`HSTOP_NTSC - `HSTART_NTSC)
+  `define BUF_NUM_OF_PAGES    5
   
   `define PIXEL_PER_LINE_2x_NTSC  1545
   `define PIXEL_PER_LINE_2x_PAL   1587

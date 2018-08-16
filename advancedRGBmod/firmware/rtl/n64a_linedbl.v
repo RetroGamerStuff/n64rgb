@@ -222,7 +222,7 @@ always @(posedge VCLK) begin
     end
   end else if (&{rdrun[0],!div_2x,wrhcnt[3]} && wrpage == `BUF_NUM_OF_PAGES-2) begin  // synchronize with writing process
     rdrun[1] <= 1'b1;
-    rdcnt    <= 1'b1;
+    rdcnt    <= 1'b0;
     rdpage   <= 2'b00;
     rdhcnt   <= {hcnt_witdh{1'b0}};
   end else if (^start_rdproc) begin
