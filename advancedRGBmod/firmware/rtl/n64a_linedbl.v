@@ -100,8 +100,10 @@ reg [hcnt_witdh-1:0] hstop  = `HSTOP_NTSC;
 reg [6:0] nHS_width = `HS_WIDTH_NTSC_480I;
 
 
+localparam pcnt_width = $clog2(`BUF_NUM_OF_PAGES);
+
 reg                  wren   = 1'b0;
-reg            [1:0] wrpage = 1'b0;
+reg [pcnt_width-1:0] wrpage = {pcnt_width{1'b0}};
 reg [hcnt_witdh-1:0] wrhcnt = {hcnt_witdh{1'b1}};
 reg [hcnt_witdh-1:0] wraddr = {hcnt_witdh{1'b0}};
 
@@ -109,12 +111,11 @@ wire line_overflow = wrhcnt == `PIXEL_PER_LINE_2x_MAX;  // close approach for NT
 wire valid_line    = wrhcnt > hstop;                    // for evaluation
 
 
-reg [hcnt_witdh-1:0] line_width[0:3];
+reg [hcnt_witdh-1:0] line_width[0:`BUF_NUM_OF_PAGES-1];
+integer int_idx;
 initial begin
-  line_width[3] = {hcnt_witdh{1'b0}};
-  line_width[2] = {hcnt_witdh{1'b0}};
-  line_width[1] = {hcnt_witdh{1'b0}};
-  line_width[0] = {hcnt_witdh{1'b0}};
+  for (int_idx = 0; int_idx < `BUF_NUM_OF_PAGES; int_idx = int_idx+1)
+    line_width[int_idx] = {hcnt_witdh{1'b0}};
 end
 
 reg  nVS_i_buf = 1'b0;
@@ -152,7 +153,10 @@ always @(posedge VCLK) begin
       line_width[wrpage] <= wrhcnt;
 
       wrhcnt <= {hcnt_witdh{1'b0}};
-      wrpage <= wrpage + 1'b1;
+      if (wrpage == `BUF_NUM_OF_PAGES-1)
+        wrpage = {pcnt_width{1'b0}};
+      else
+        wrpage <= wrpage + 1'b1;
     end else if (~line_overflow) begin
       wrhcnt <= wrhcnt + 1'b1;
     end
@@ -186,7 +190,7 @@ end
 reg            [2:0] rden    = 3'b0;
 reg            [1:0] rdrun   = 2'b00;
 reg                  rdcnt   = 1'b0;
-reg            [1:0] rdpage  = 2'b00;
+reg [pcnt_width-1:0] rdpage  = {pcnt_width{1'b0}};
 reg [hcnt_witdh-1:0] rdhcnt  = {hcnt_witdh{1'b1}};
 reg [hcnt_witdh-1:0] rdaddr  = {hcnt_witdh{1'b0}};
 
@@ -195,7 +199,10 @@ always @(posedge VCLK) begin
     if (rdhcnt == line_width[rdpage]) begin
       rdhcnt   <= {hcnt_witdh{1'b0}};
       if (rdcnt)
-        rdpage <= rdpage + 1'b1;
+        if (rdpage == `BUF_NUM_OF_PAGES-1)
+          rdpage = {pcnt_width{1'b0}};
+        else
+          rdpage <= rdpage + 1'b1;
       rdcnt <= ~rdcnt;
     end else begin
       rdhcnt <= rdhcnt + 1'b1;
@@ -213,7 +220,7 @@ always @(posedge VCLK) begin
       rden[0] <= 1'b0;
       rdaddr  <= {hcnt_witdh{1'b0}};
     end
-  end else if (&{rdrun[0],!div_2x,wrhcnt[3]} && wrpage == 2'b10) begin  // synchronize with writing process
+  end else if (&{rdrun[0],!div_2x,wrhcnt[3]} && wrpage == `BUF_NUM_OF_PAGES-2) begin  // synchronize with writing process
     rdrun[1] <= 1'b1;
     rdcnt    <= 1'b1;
     rdpage   <= 2'b00;
@@ -240,7 +247,7 @@ wire [1:0] rdpage_corrected = !nDSYNC_dbl ? rdpage :
 wire [color_width_i-1:0] R_buf, G_buf, B_buf;
 
 n64a_ram2port #(
-  .num_of_pages(4),
+  .num_of_pages(`BUF_NUM_OF_PAGES),
   .pagesize(`BUF_DEPTH_PER_PAGE/2),
   .data_width(3*color_width_i)
 ) videobuffer_0(
