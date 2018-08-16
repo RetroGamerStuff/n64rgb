@@ -54,7 +54,7 @@ void print_ctrl_data(alt_u32* ctrl_data) {
 }
 
 // ToDo: export function into logic to save some memory space if needed
-cmd_t ctrl_data_to_cmd(alt_u32* ctrl_data)
+cmd_t ctrl_data_to_cmd(alt_u32* ctrl_data, alt_u8 no_fast_skip)
 {
   cmd_t cmd_new = CMD_NON;
   static cmd_t cmd_pre_int = CMD_NON, cmd_pre = CMD_NON;
@@ -118,7 +118,7 @@ cmd_t ctrl_data_to_cmd(alt_u32* ctrl_data)
       if (rep_cnt < 3*HOLD_CNT_REP) hold_cnt = HOLD_CNT_MID1;
       if (rep_cnt < 2*HOLD_CNT_REP) hold_cnt = HOLD_CNT_MID0;
       if (rep_cnt <   HOLD_CNT_REP) hold_cnt = HOLD_CNT_HIGH;
-      cmd_pre = CMD_NON;
+      if (!no_fast_skip) cmd_pre = CMD_NON;
     } else {
       hold_cnt--;
     }

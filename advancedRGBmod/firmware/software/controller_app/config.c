@@ -118,7 +118,7 @@ alt_u8 confirmation_routine()
     while( get_nvsync() && new_ctrl_available()){};  /* wait for nVSYNC goes low and
 -                                                       wait for new controller available  */
     ctrl_data = get_ctrl_data();
-    command = ctrl_data_to_cmd(&ctrl_data);
+    command = ctrl_data_to_cmd(&ctrl_data,1);
 
     if ((command == CMD_MENU_ENTER) || (command == CMD_MENU_RIGHT)) break;
     if ((command == CMD_MENU_BACK)  || (command == CMD_MENU_LEFT))  {abort = 1; break;};

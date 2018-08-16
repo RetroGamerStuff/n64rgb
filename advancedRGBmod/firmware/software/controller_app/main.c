@@ -100,7 +100,7 @@ int main()
   while (1) {
     if (ctrl_update) {
       ctrl_data = get_ctrl_data();
-      command = ctrl_data_to_cmd(&ctrl_data);
+      command = ctrl_data_to_cmd(&ctrl_data,0);
     } else {
       command = CMD_NON;
     }
