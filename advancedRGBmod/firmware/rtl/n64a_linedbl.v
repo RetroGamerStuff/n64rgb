@@ -249,7 +249,7 @@ end
 wire [pcnt_width-1:0] rdpage_pp0 = FrameID ? rdpage : rdpage - !rdcnt;
 wire [pcnt_width-1:0] rdpage_pp1 = rdpage_pp0 >= `BUF_NUM_OF_PAGES ? `BUF_NUM_OF_PAGES-1 : rdpage_pp0;
 wire [pcnt_width-1:0] rdpage_pp2 = !nDSYNC_dbl ? rdpage_pp1 :
-                                   !SL_id[1] ? rdpage_pp1 :
+                                   (!SL_id[1] | n64_480i) ? rdpage_pp1 :  // do not allow advanced scanlines in 480i linex2 mode
                                    !SL_id[0] ? rdpage_pp1 - 1'b1 : rdpage_pp1 + 1'b1;
 wire [pcnt_width-1:0] rdpage_pp3 = !SL_id[0] ? (rdpage_pp2 >= `BUF_NUM_OF_PAGES ? `BUF_NUM_OF_PAGES-1 : rdpage_pp2) :
                                                (rdpage_pp2 == `BUF_NUM_OF_PAGES ?  {pcnt_width{1'b0}} : rdpage_pp2);
