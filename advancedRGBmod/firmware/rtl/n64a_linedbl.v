@@ -300,7 +300,7 @@ always @(posedge VCLK) begin
    vcnt_dbl <= ~&vcnt_dbl ? vcnt_dbl + 1'b1 : vcnt_dbl;
     nHS_cnt <= nHS_width;
     
-    if (newFrame_delay[0]) begin
+    if (newFrame_delay == 2'b11) begin
       vcnt_dbl    <= 9'd0;
       nVS_cnt     <= `VS_WIDTH;
       S_dbl[3]    <= 1'b0;
@@ -311,10 +311,11 @@ always @(posedge VCLK) begin
       S_dbl[3] <= 1'b1;
     end
 
-    newFrame_delay <= {1'b0,newFrame_delay[1]};
+    if (|newFrame_delay)
+      newFrame_delay <= newFrame_delay + 1'b1;
     if (^newFrame) begin
-      newFrame_delay[1] <= 1'b1;
-      newFrame[1] <= newFrame[0];
+        newFrame_delay <= 1'b1;
+        newFrame[1] <= newFrame[0];
     end
   end else begin
     if (|nHS_cnt) begin
