@@ -123,6 +123,7 @@ reg  nHS_i_buf = 1'b0;
 
 
 reg [1:0]     newFrame = 2'b00;
+reg            FrameID = 1'b0;
 reg [1:0] start_rdproc = 2'b00;
 reg [1:0]  stop_rdproc = 2'b00;
 
@@ -132,6 +133,10 @@ always @(posedge VCLK) begin
     if (nVS_i_buf & !nVS_i) begin
       // trigger new frame
       newFrame[0] <= ~newFrame[1];
+      if (nHS_i_buf & !nHS_i) // negedge at nHSYNC, too -> odd frame
+        FrameID <= 1'b1;
+      else                    // else -> even Frame
+        FrameID <= 1'b0;
 
       // trigger read start
       if (&{nHS_i_buf,!nHS_i,!line_overflow,valid_line})
@@ -177,6 +182,7 @@ always @(posedge VCLK) begin
 
   if (!nRST) begin
         newFrame[0] <= newFrame[1];
+            FrameID <= 1'b0;
     start_rdproc[0] <= start_rdproc[1];
      stop_rdproc[0] <= ~stop_rdproc[1];
 
@@ -196,7 +202,7 @@ reg [hcnt_witdh-1:0] rdaddr  = {hcnt_witdh{1'b0}};
 
 always @(posedge VCLK) begin
   if (rdrun[1]) begin
-    if (rdhcnt == line_width[rdpage]) begin
+    if (rdhcnt == line_width[rdpage_pp1]) begin
       rdhcnt   <= {hcnt_witdh{1'b0}};
       if (rdcnt)
         if (rdpage == `BUF_NUM_OF_PAGES-1)
@@ -240,9 +246,13 @@ always @(posedge VCLK) begin
    stop_rdproc[1] <=  stop_rdproc[0];
 end
 
-wire [1:0] rdpage_corrected = !nDSYNC_dbl ? rdpage :
-                                !SL_id[1] ? rdpage :
-                                !SL_id[0] ? rdpage - 1'b1 : rdpage + 1'b1;
+wire [pcnt_width-1:0] rdpage_pp0 = FrameID ? rdpage : rdpage - !rdcnt;
+wire [pcnt_width-1:0] rdpage_pp1 = rdpage_pp0 >= `BUF_NUM_OF_PAGES ? `BUF_NUM_OF_PAGES-1 : rdpage_pp0;
+wire [pcnt_width-1:0] rdpage_pp2 = !nDSYNC_dbl ? rdpage_pp1 :
+                                   !SL_id[1] ? rdpage_pp1 :
+                                   !SL_id[0] ? rdpage_pp1 - 1'b1 : rdpage_pp1 + 1'b1;
+wire [pcnt_width-1:0] rdpage_pp3 = !SL_id[0] ? (rdpage_pp2 >= `BUF_NUM_OF_PAGES ? `BUF_NUM_OF_PAGES-1 : rdpage_pp2) :
+                                               (rdpage_pp2 == `BUF_NUM_OF_PAGES ?  {pcnt_width{1'b0}} : rdpage_pp2);
 
 wire [color_width_i-1:0] R_buf, G_buf, B_buf;
 
@@ -258,7 +268,7 @@ n64a_ram2port #(
   .wrdata({R_i,G_i,B_i}),
   .rdCLK(VCLK),
   .rden(rden[0]),
-  .rdpage(rdpage_corrected),
+  .rdpage(rdpage_pp3),
   .rdaddr(rdaddr[hcnt_witdh-1:1]),
   .rddata({R_buf,G_buf,B_buf})
 );
