@@ -53,7 +53,6 @@ void print_ctrl_data(alt_u32* ctrl_data) {
   vd_print_string(0, VD_HEIGHT-1, BACKGROUNDCOLOR_STANDARD, FONTCOLOR_NAVAJOWHITE, &szText[0]);
 }
 
-// ToDo: export function into logic to save some memory space if needed
 cmd_t ctrl_data_to_cmd(alt_u32* ctrl_data, alt_u8 no_fast_skip)
 {
   cmd_t cmd_new = CMD_NON;
