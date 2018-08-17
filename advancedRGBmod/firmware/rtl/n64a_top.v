@@ -87,7 +87,7 @@ module n64a_top (
 );
 
 parameter [3:0] hdl_fw_main = 4'd2;
-parameter [7:0] hdl_fw_sub  = 8'd12;
+parameter [7:0] hdl_fw_sub  = 8'd20;
 
 `include "vh/n64a_params.vh"
 
