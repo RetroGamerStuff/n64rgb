@@ -87,7 +87,7 @@ module n64a_top (
 );
 
 parameter [3:0] hdl_fw_main = 4'd2;
-parameter [7:0] hdl_fw_sub  = 8'd20;
+parameter [7:0] hdl_fw_sub  = 8'd21;
 
 `include "vh/n64a_params.vh"
 
@@ -133,7 +133,12 @@ wire n64_480i = vinfo_pass[0];
 
 wire [ 3:0] InfoSet = {vmode,n64_480i,~ndo_deblur,UseVGA_HVSync};
 wire [ 6:0] JumperCfgSet = {nFilterBypass,n240p,~n480i_bob,~SL_str,~nEN_YPbPr,(nEN_YPbPr & ~nEN_RGsB)}; // (~nEN_YPbPr | nEN_RGsB) ensures that not both jumpers are set and passed through the NIOS II
-wire [28:0] OutConfigSet;
+wire [47:0] OutConfigSet;
+// general structure [47:32] video settings, [31:16] 240p settings, [15:0] 480i settings
+// [47:40] {sl_in_osd,(3bits reserve),FilterSet (2bit),YPbPr,RGsB}
+// [39:32] {gamma (4bits),(1bit reserve),VI-DeBlur (2bit), 15bit mode}
+// [31:16] {(2bits reserve),lineX2,Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_Method,Sl_ID,Sl_En}
+// [15: 0] {(2bits reserve),lineX2,Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_link,Sl_ID,Sl_En}
 
 n64a_controller #({hdl_fw_main,hdl_fw_sub}) controller_u(
   .SYS_CLK(SYS_CLK),
@@ -148,20 +153,26 @@ n64a_controller #({hdl_fw_main,hdl_fw_sub}) controller_u(
   .video_data_o(vdata_r[3])
 );
 
-wire [1:0] FilterSetting =   OutConfigSet[28:27];
-wire       nDeBlurMan    =  ~OutConfigSet[26];
-wire       nForceDeBlur  = ~|OutConfigSet[26:25];
-wire       n15bit_mode   =  ~OutConfigSet[24];
-wire [3:0] cfg_gamma     =   OutConfigSet[23:20];
-wire [3:0] cfg_SL_str    =   OutConfigSet[19:16];
-wire [4:0] cfg_SLHyb_str =   OutConfigSet[15:11];
-wire [1:0] cfg_SL_id     =   OutConfigSet[10:9];
-wire       cfg_SL_en     =   OutConfigSet[ 8];
-wire       cfg_OSD_SL    =   OutConfigSet[ 7];
-wire       cfg_lineX2    =   OutConfigSet[ 5];
-wire       cfg_n480i_bob =  ~OutConfigSet[ 4];
-wire       cfg_nEN_YPbPr =  ~OutConfigSet[ 1];
-wire       cfg_nEN_RGsB  =  ~OutConfigSet[ 0];
+
+
+wire       cfg_OSD_SL    =  OutConfigSet[47];
+wire [1:0] FilterSetting =  OutConfigSet[43:42];
+wire       cfg_nEN_YPbPr = ~OutConfigSet[41];
+wire       cfg_nEN_RGsB  = ~OutConfigSet[40];
+wire [3:0] cfg_gamma     =  OutConfigSet[39:36];
+wire       nDeBlurMan    = ~OutConfigSet[34];
+wire       nForceDeBlur  = ~|OutConfigSet[34:33];
+wire       n15bit_mode   = ~OutConfigSet[32];
+
+wire       cfg_lineX2    =       ~n64_480i ? OutConfigSet[29   ] : OutConfigSet[13   ];
+wire [4:0] cfg_SLHyb_str =       ~n64_480i ? OutConfigSet[28:24] :
+                           OutConfigSet[2] ? OutConfigSet[28:24] : OutConfigSet[12: 8];
+wire [3:0] cfg_SL_str    =       ~n64_480i ? OutConfigSet[23:20] :
+                           OutConfigSet[2] ? OutConfigSet[23:20] : OutConfigSet[ 7: 4];
+wire       cfg_SL_method =       ~n64_480i ? OutConfigSet[18   ] : 1'b0;
+wire       cfg_SL_id     =       ~n64_480i ? OutConfigSet[17   ] :
+                           OutConfigSet[2] ? OutConfigSet[17   ] : OutConfigSet[ 1   ] ;
+wire       cfg_SL_en     =       ~n64_480i ? OutConfigSet[16   ] : OutConfigSet[ 0   ] ;
 
 reg nVRST_pre = 1'b0;
 reg nVRST = 1'b0;
@@ -243,9 +254,9 @@ n64a_vdemux video_demux(
 // Part 5.1: Line Multiplier
 // =========================
 
-wire nENABLE_linedbl = (n64_480i & cfg_n480i_bob) | ~cfg_lineX2 | ~nRST;
+wire nENABLE_linedbl = ~cfg_lineX2 | ~nRST;
 
-wire [15:0] vinfo_dbl = {nENABLE_linedbl,cfg_OSD_SL,cfg_SLHyb_str,cfg_SL_str,cfg_SL_id,cfg_SL_en,vinfo_pass[1:0]};
+wire [15:0] vinfo_dbl = {nENABLE_linedbl,cfg_OSD_SL,cfg_SLHyb_str,cfg_SL_str,cfg_SL_method,cfg_SL_id,cfg_SL_en,vinfo_pass[1:0]};
 
 wire [vdata_width_o-1:0] vdata_tmp;
 

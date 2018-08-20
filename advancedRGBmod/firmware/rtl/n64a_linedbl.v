@@ -60,7 +60,7 @@ localparam SLHyb_width = 8; // do not change this localparam!
 input VCLK;
 input nRST;
 
-input [15:0] vinfo_dbl; // [nLinedbl,SL_in_osd,SLhyb_str (5bits),SL_str (4bits),SL_id (2bits),SL_en,PAL,interlaced]
+input [15:0] vinfo_dbl; // [nLinedbl,SL_in_osd,SLhyb_str (5bits),SL_str (4bits),SL_method,SL_id,SL_en,PAL,interlaced]
 
 input  [`VDATA_I_FU_SLICE] vdata_i;
 output [`VDATA_O_FU_SLICE] vdata_o;
@@ -79,7 +79,8 @@ wire nENABLE_linedbl   = vinfo_dbl[15] | ~rdrun[1];
 wire       SL_in_osd   = vinfo_dbl[14];
 wire [4:0] SLHyb_depth = vinfo_dbl[13:9];
 wire [3:0] SL_str      = vinfo_dbl[ 8:5];
-wire [1:0] SL_id       = vinfo_dbl[ 4:3];
+wire       SL_method   = vinfo_dbl[ 4];
+wire       SL_id       = vinfo_dbl[ 3];
 wire       SL_en       = vinfo_dbl[ 2];
 wire       pal_mode    = vinfo_dbl[ 1];
 wire       n64_480i    = vinfo_dbl[ 0];
@@ -249,9 +250,9 @@ end
 wire [pcnt_width-1:0] rdpage_pp0 = FrameID ? rdpage : rdpage - !rdcnt;
 wire [pcnt_width-1:0] rdpage_pp1 = rdpage_pp0 >= `BUF_NUM_OF_PAGES ? `BUF_NUM_OF_PAGES-1 : rdpage_pp0;
 wire [pcnt_width-1:0] rdpage_pp2 = !nDSYNC_dbl ? rdpage_pp1 :
-                                   (!SL_id[1] | n64_480i) ? rdpage_pp1 :  // do not allow advanced scanlines in 480i linex2 mode
-                                   !SL_id[0] ? rdpage_pp1 - 1'b1 : rdpage_pp1 + 1'b1;
-wire [pcnt_width-1:0] rdpage_pp3 = !SL_id[0] ? (rdpage_pp2 >= `BUF_NUM_OF_PAGES ? `BUF_NUM_OF_PAGES-1 : rdpage_pp2) :
+                                   (!SL_method | n64_480i) ? rdpage_pp1 :  // do not allow advanced scanlines in 480i linex2 mode
+                                   !SL_id ? rdpage_pp1 - 1'b1 : rdpage_pp1 + 1'b1;
+wire [pcnt_width-1:0] rdpage_pp3 = !SL_id ? (rdpage_pp2 >= `BUF_NUM_OF_PAGES ? `BUF_NUM_OF_PAGES-1 : rdpage_pp2) :
                                                (rdpage_pp2 == `BUF_NUM_OF_PAGES ?  {pcnt_width{1'b0}} : rdpage_pp2);
 
 wire [color_width_i-1:0] R_buf, G_buf, B_buf;
@@ -342,7 +343,7 @@ always @(posedge VCLK) begin
   end
 
   rdcnt_buf <= {rdcnt_buf[2:0],rdcnt};
-  drawSL <= (is_OSD_area ? SL_in_osd : 1'b1) && SL_en && (rdcnt ^ (!SL_id[0]));
+  drawSL <= (is_OSD_area ? SL_in_osd : 1'b1) && SL_en && (rdcnt ^ (!SL_id));
 
   if (rden[2]) begin
     if (!nDSYNC_dbl) begin

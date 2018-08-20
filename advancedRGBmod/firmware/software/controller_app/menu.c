@@ -44,16 +44,6 @@
 char szText[VD_WIDTH];
 extern alt_u8 use_flash;
 
-inline alt_u8 is_cfg_screen (menu_t *menu)  /* ugly hack (ToDo on updates: check for validity, i.e. is this property still unique) */
-  {  return (menu->leaves[0].config_value->flag_masks.clrflag_mask == CFG_LINEX2_CLRMASK); }
-inline alt_u8 is_cfg_sl_screen (menu_t *menu) /* ugly hack (ToDo on updates: check for validity, i.e. is this property still unique) */
-  { return  (menu->leaves[0].config_value->flag_masks.clrflag_mask == CFG_SL_EN_CLRMASK ); }
-inline alt_u8 is_misc_screen (menu_t *menu) /* ugly hack (ToDo on updates: check for validity, i.e. is this property still unique) */
-  {  return (menu->leaves[0].config_value->flag_masks.clrflag_mask == CFG_USEIGR_CLRMASK); }
-inline alt_u8 is_sl_str_val (config_t *config_value) /* ugly hack (ToDo on updates: check for validity, i.e. is this property still unique) */
-  {  return (config_value->value_details.getvalue_mask == CFG_SLSTR_GETMASK); }
-
-
 static const arrow_t selection_arrow = {
     .arrowshape_left  = SUBMENU_ARROW_L,
     .arrowshape_right = SUBMENU_ARROW_L,
@@ -75,11 +65,11 @@ static const arrow_t cfg_sel_arrow = {
     .rarrow_hpos = (CFG_VALS_H_OFFSET - 2)
 };
 
-static const arrow_t cfg_sl_opt_arrow = {
+static const arrow_t cfg_240p_opt_arrow = {
     .arrowshape_left  = OPT_ARROW_L,
     .arrowshape_right = OPT_ARROW_R,
-    .larrow_hpos = (CFG_SL_VALS_H_OFFSET - 2),
-    .rarrow_hpos = (CFG_SL_VALS_H_OFFSET + OPT_WINDOW_WIDTH - 2)
+    .larrow_hpos = (CFG_VSUB_VALS_H_OFFSET - 2),
+    .rarrow_hpos = (CFG_VSUB_VALS_H_OFFSET + OPT_WINDOW_WIDTH - 3)
 };
 
 static const arrow_t misc_screen_arrow = {
@@ -89,11 +79,12 @@ static const arrow_t misc_screen_arrow = {
     .rarrow_hpos = (MISC_VALS_H_OFFSET + OPT_WINDOW_WIDTH - 2)
 };
 
-menu_t home_menu, vinfo_screen, cfg_screen, cfg_sl_subscreen, misc_screen,
+menu_t home_menu, vinfo_screen, cfg_screen, cfg_240p_opt_subscreen, cfg_480i_opt_subscreen, misc_screen,
        rwdata_screen, about_screen, thanks_screen, license_screen;
 
-extern config_t linex2, deint480ibob, sl_str, vformat, deblur, mode15bit, gamma_lut;
-extern config_t sl_en, sl_id, sl_str, slhyb_str, show_sl_in_osd;
+extern config_t vformat, deblur, mode15bit, gamma_lut;
+extern config_t linex2, sl_en, sl_method, sl_id, sl_str, slhyb_str, show_sl_in_osd;
+extern config_t linex2_480i, sl_en_480i, sl_link_480i, sl_id_480i, sl_str_480i, slhyb_str_480i;
 extern config_t igr_reset, igr_quickchange, filteraddon_cutoff;
 
 menu_t home_menu = {
@@ -126,31 +117,51 @@ menu_t cfg_screen = {
     .overlay = &cfg_overlay,
     .parent = &home_menu,
     .current_selection = 0,
-    .number_selections = 7,
+    .number_selections = 6,
     .leaves = {
-        {.id = CFG_LINEX2_V_OFFSET , .arrow_desc = &cfg_opt_arrow, .leavetype = ICONFIG , .config_value = &linex2},
-        {.id = CFG_480IBOB_V_OFFSET, .arrow_desc = &cfg_opt_arrow, .leavetype = ICONFIG , .config_value = &deint480ibob},
-        {.id = CFG_SLOPTS_V_OFFSET , .arrow_desc = &cfg_sel_arrow, .leavetype = ISUBMENU, .submenu      = &cfg_sl_subscreen},
-        {.id = CFG_FORMAT_V_OFFSET , .arrow_desc = &cfg_opt_arrow, .leavetype = ICONFIG , .config_value = &vformat},
-        {.id = CFG_DEBLUR_V_OFFSET , .arrow_desc = &cfg_opt_arrow, .leavetype = ICONFIG , .config_value = &deblur},
-        {.id = CFG_15BIT_V_OFFSET  , .arrow_desc = &cfg_opt_arrow, .leavetype = ICONFIG , .config_value = &mode15bit},
-        {.id = CFG_GAMMA_V_OFFSET  , .arrow_desc = &cfg_opt_arrow, .leavetype = ICONFIG , .config_value = &gamma_lut}
+        {.id = CFG_240P_SET_V_OFFSET, .arrow_desc = &cfg_sel_arrow, .leavetype = ISUBMENU, .submenu      = &cfg_240p_opt_subscreen},
+        {.id = CFG_480I_SET_V_OFFSET, .arrow_desc = &cfg_sel_arrow, .leavetype = ISUBMENU, .submenu      = &cfg_480i_opt_subscreen},
+        {.id = CFG_FORMAT_V_OFFSET  , .arrow_desc = &cfg_opt_arrow, .leavetype = ICONFIG , .config_value = &vformat},
+        {.id = CFG_DEBLUR_V_OFFSET  , .arrow_desc = &cfg_opt_arrow, .leavetype = ICONFIG , .config_value = &deblur},
+        {.id = CFG_15BIT_V_OFFSET   , .arrow_desc = &cfg_opt_arrow, .leavetype = ICONFIG , .config_value = &mode15bit},
+        {.id = CFG_GAMMA_V_OFFSET   , .arrow_desc = &cfg_opt_arrow, .leavetype = ICONFIG , .config_value = &gamma_lut}
     }
 };
 
-menu_t cfg_sl_subscreen = {
+menu_t cfg_240p_opt_subscreen = {
     .type = CONFIG,
-    .header = &cfg_sl_header,
-    .overlay = &cfg_sl_overlay,
+    .header = &cfg_240p_opt_header,
+    .overlay = &cfg_240p_opt_overlay,
     .parent = &cfg_screen,
     .current_selection = 0,
-    .number_selections = 5,
+    .number_selections = 7,
     .leaves = {
-        {.id = CFG_SL_EN_V_OFFSET    , .arrow_desc = &cfg_sl_opt_arrow, .leavetype = ICONFIG, .config_value = &sl_en},
-        {.id = CFG_SL_ID_V_OFFSET    , .arrow_desc = &cfg_sl_opt_arrow, .leavetype = ICONFIG, .config_value = &sl_id},
-        {.id = CFG_SL_STR_V_OFFSET   , .arrow_desc = &cfg_sl_opt_arrow, .leavetype = ICONFIG, .config_value = &sl_str},
-        {.id = CFG_SLHYB_STR_V_OFFSET, .arrow_desc = &cfg_sl_opt_arrow, .leavetype = ICONFIG, .config_value = &slhyb_str},
-        {.id = CFG_SLOSD_V_OFFSET    , .arrow_desc = &cfg_sl_opt_arrow, .leavetype = ICONFIG, .config_value = &show_sl_in_osd}
+        {.id = CFG_VSUB_LINEX2_V_OFFSET   , .arrow_desc = &cfg_240p_opt_arrow, .leavetype = ICONFIG , .config_value = &linex2},
+        {.id = CFG_VSUB_SL_EN_V_OFFSET    , .arrow_desc = &cfg_240p_opt_arrow, .leavetype = ICONFIG , .config_value = &sl_en},
+        {.id = CFG_VSUB_SL_METHOD_V_OFFSET, .arrow_desc = &cfg_240p_opt_arrow, .leavetype = ICONFIG , .config_value = &sl_method},
+        {.id = CFG_VSUB_SL_ID_V_OFFSET    , .arrow_desc = &cfg_240p_opt_arrow, .leavetype = ICONFIG , .config_value = &sl_id},
+        {.id = CFG_VSUB_SL_STR_V_OFFSET   , .arrow_desc = &cfg_240p_opt_arrow, .leavetype = ICONFIG , .config_value = &sl_str},
+        {.id = CFG_VSUB_SLHYB_STR_V_OFFSET, .arrow_desc = &cfg_240p_opt_arrow, .leavetype = ICONFIG , .config_value = &slhyb_str},
+        {.id = CFG_VSUB_SLOSD_V_OFFSET    , .arrow_desc = &cfg_240p_opt_arrow, .leavetype = ICONFIG , .config_value = &show_sl_in_osd}
+    }
+};
+
+
+menu_t cfg_480i_opt_subscreen = {
+    .type = CONFIG,
+    .header = &cfg_480i_opt_header,
+    .overlay = &cfg_240p_opt_overlay,
+    .parent = &cfg_screen,
+    .current_selection = 0,
+    .number_selections = 7,
+    .leaves = {
+        {.id = CFG_VSUB_LINEX2_V_OFFSET   , .arrow_desc = &cfg_240p_opt_arrow, .leavetype = ICONFIG , .config_value = &linex2_480i},
+        {.id = CFG_VSUB_SL_EN_V_OFFSET    , .arrow_desc = &cfg_240p_opt_arrow, .leavetype = ICONFIG , .config_value = &sl_en_480i},
+        {.id = CFG_VSUB_SL_METHOD_V_OFFSET, .arrow_desc = &cfg_240p_opt_arrow, .leavetype = ICONFIG , .config_value = &sl_link_480i},
+        {.id = CFG_VSUB_SL_ID_V_OFFSET    , .arrow_desc = &cfg_240p_opt_arrow, .leavetype = ICONFIG , .config_value = &sl_id_480i},
+        {.id = CFG_VSUB_SL_STR_V_OFFSET   , .arrow_desc = &cfg_240p_opt_arrow, .leavetype = ICONFIG , .config_value = &sl_str_480i},
+        {.id = CFG_VSUB_SLHYB_STR_V_OFFSET, .arrow_desc = &cfg_240p_opt_arrow, .leavetype = ICONFIG , .config_value = &slhyb_str_480i},
+        {.id = CFG_VSUB_SLOSD_V_OFFSET    , .arrow_desc = &cfg_240p_opt_arrow, .leavetype = ICONFIG , .config_value = &show_sl_in_osd}
     }
 };
 
@@ -200,6 +211,17 @@ menu_t license_screen = {
    .overlay = &license_overlay,
    .parent = &home_menu
 };
+
+
+inline alt_u8 is_cfg_240p_screen (menu_t *menu)  /* ugly hack (ToDo on updates: check for validity, i.e. is this property still unique
+                                                               (this one shall be valid for 240p and 480i sub screen!!!)) */
+  {  return (menu->leaves[0].config_value->flag_masks.clrflag_mask == CFG_LINEX2_CLRMASK); }
+inline alt_u8 cfg_480i_sl_are_linked (menu_t *menu)  /* ugly hack (ToDo on updates: check for validity, i.e. is this property still unique) */
+  {  return ( is_cfg_240p_screen (menu) && menu->leaves[0].config_value == &linex2_480i && cfg_get_value(menu->leaves[2].config_value,0)); }
+inline alt_u8 is_misc_screen (menu_t *menu) /* ugly hack (ToDo on updates: check for validity, i.e. is this property still unique) */
+  {  return (menu->leaves[0].config_value->flag_masks.clrflag_mask == CFG_USEIGR_CLRMASK); }
+inline alt_u8 is_sl_str_val (config_t *config_value) /* ugly hack (ToDo on updates: check for validity, i.e. is this property still unique) */
+  {  return (config_value->value_details.max_value == CFG_SLSTR_MAX_VALUE); }
 
 
 updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t* sysconfig)
@@ -258,12 +280,14 @@ updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t
   alt_u8 sel = (*current_menu)->current_selection;
 
   if (todo == NEW_SELECTION) {
-    if (is_cfg_screen(*current_menu) && (!cfg_get_value((*current_menu)->leaves[0].config_value,0))) {
-      if (sel == 1) (*current_menu)->current_selection = 3;
-      if (sel == 2) (*current_menu)->current_selection = 0;
+    if (is_cfg_240p_screen(*current_menu)) {
+      if (!cfg_get_value((*current_menu)->leaves[0].config_value,0))
+        (*current_menu)->current_selection = 0;
+      else if (!cfg_get_value((*current_menu)->leaves[1].config_value,0))
+        (*current_menu)->current_selection = (*current_menu)->current_selection < 2 ? (*current_menu)->current_selection :
+            (command == CMD_MENU_UP) ? 1 : 0;
     }
-    if (is_cfg_sl_screen(*current_menu) && (!cfg_get_value((*current_menu)->leaves[0].config_value,0)))
-      (*current_menu)->current_selection = 0;
+
     if (is_misc_screen(*current_menu) && sel == 2 && !use_filteraddon)
       (*current_menu)->current_selection = (command == CMD_MENU_UP) ? 1 : 0;
 
@@ -287,10 +311,16 @@ updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t
   if ((*current_menu)->leaves[sel].leavetype == ICONFIG) {
     switch (command) {
       case CMD_MENU_RIGHT:
-        cfg_inc_value((*current_menu)->leaves[sel].config_value);
+	if (cfg_480i_sl_are_linked((*current_menu)) && (sel > 2))
+	  cfg_inc_value(cfg_240p_opt_subscreen.leaves[sel].config_value);
+	else
+          cfg_inc_value((*current_menu)->leaves[sel].config_value);
         return NEW_CONF_VALUE;
       case CMD_MENU_LEFT:
-        cfg_dec_value((*current_menu)->leaves[sel].config_value);
+	if (cfg_480i_sl_are_linked((*current_menu)) && (sel > 2))
+	  cfg_dec_value(cfg_240p_opt_subscreen.leaves[sel].config_value);
+	else
+          cfg_dec_value((*current_menu)->leaves[sel].config_value);
         return NEW_CONF_VALUE;
       default:
         break;
@@ -393,17 +423,20 @@ int update_vinfo_screen(menu_t* current_menu, configuration_t* sysconfig, alt_u8
   vd_print_string(INFO_VALS_H_OFFSET,INFO_VIN_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,VideoMode[str_select]);
 
   // Video Output
-  switch((((sysconfig->cfg_word_def[VIDEO]->cfg_word_val & (CFG_LINEX2_GETMASK | CFG_480IBOB_GETMASK)) >> (CFG_480IBOB_OFFSET - 2)) | str_select) & 0xF) {
-   /* order: lineX2, 480ibob, pal, 480i */
-    case 0xF: /* 1111 */
+  switch(((((sysconfig->cfg_word_def[IMAGE_240P]->cfg_word_val & CFG_LINEX2_GETMASK) >> CFG_LINEX2_OFFSET) << 3) |
+          (((sysconfig->cfg_word_def[IMAGE_480I]->cfg_word_val & CFG_LINEX2_GETMASK) >> CFG_LINEX2_OFFSET) << 2) | str_select) & 0xF) {
+   /* order: lineX2_240p, linex2_480i, pal, 480i */
     case 0xE: /* 1110 */
     case 0xA: /* 1010 */
+    case 0xF: /* 1111 */
+    case 0x7: /* 0111 */
       str_select  = 5;
       video_sd_ed = 1;
       break;
-    case 0xD: /* 1101 */
     case 0xC: /* 1100 */
     case 0x8: /* 1000 */
+    case 0xD: /* 1101 */
+    case 0x5: /* 0101 */
       str_select  = 4;
       video_sd_ed = 1;
       break;
@@ -415,7 +448,7 @@ int update_vinfo_screen(menu_t* current_menu, configuration_t* sysconfig, alt_u8
   vd_print_string(INFO_VALS_H_OFFSET,INFO_VOUT_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,VideoMode[str_select]);
 
   // Color Depth
-  str_select = (sysconfig->cfg_word_def[MISC]->cfg_word_val & CFG_15BITMODE_GETMASK) >> CFG_15BITMODE_OFFSET;
+  str_select = (sysconfig->cfg_word_def[VIDEO]->cfg_word_val & CFG_15BITMODE_GETMASK) >> CFG_15BITMODE_OFFSET;
   vd_clear_lineend(INFO_VALS_H_OFFSET,INFO_COL_V_OFFSET);
   vd_print_string(INFO_VALS_H_OFFSET,INFO_COL_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,VideoColor[str_select]);
 
@@ -435,7 +468,7 @@ int update_vinfo_screen(menu_t* current_menu, configuration_t* sysconfig, alt_u8
   } else {
     str_select = (info_data & INFO_DODEBLUR_GETMASK) >> INFO_DODEBLUR_OFFSET;
     vd_print_string(INFO_VALS_H_OFFSET, INFO_DEBLUR_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,OffOn[str_select]);
-    str_select = (((sysconfig->cfg_word_def[MISC]->cfg_word_val & CFG_DEBLUR_GETMASK) >> CFG_DEBLUR_OFFSET) > 0);
+    str_select = (((sysconfig->cfg_word_def[VIDEO]->cfg_word_val & CFG_DEBLUR_GETMASK) >> CFG_DEBLUR_OFFSET) > 0);
     vd_print_string(INFO_VALS_H_OFFSET + 4,INFO_DEBLUR_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,DeBlur[str_select]);
   }
 
@@ -444,7 +477,7 @@ int update_vinfo_screen(menu_t* current_menu, configuration_t* sysconfig, alt_u8
   if (!use_filteraddon)
     vd_print_string(INFO_VALS_H_OFFSET,INFO_FAO_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_GREY, FilterAddOn[4]);
   else {
-    str_select = ((sysconfig->cfg_word_def[MISC]->cfg_word_val & CFG_FILTERADDON_GETMASK) >> CFG_FILTERADDON_OFFSET);
+    str_select = ((sysconfig->cfg_word_def[VIDEO]->cfg_word_val & CFG_FILTERADDON_GETMASK) >> CFG_FILTERADDON_OFFSET);
     if (str_select == 0) str_select = video_sd_ed + 1;
     vd_print_string(INFO_VALS_H_OFFSET,INFO_FAO_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE, FilterAddOn[str_select]);
   }
@@ -469,14 +502,17 @@ int update_cfg_screen(menu_t* current_menu)
 
     if (current_menu->leaves[v_run].leavetype == ISUBMENU) {
       font_color = FONTCOLOR_WHITE;
-      if ( ( is_cfg_screen(current_menu) && (v_run == 2) ) &&
-           !cfg_get_value(current_menu->leaves[0].config_value,0) )
-        font_color = FONTCOLOR_GREY;
       vd_print_string(h_l_offset,v_offset,background_color,font_color,EnterSubMenu);
     }
     else if (current_menu->leaves[v_run].leavetype == ICONFIG) {
-      val_select     = cfg_get_value(current_menu->leaves[v_run].config_value,0);
-      ref_val_select = cfg_get_value(current_menu->leaves[v_run].config_value,use_flash);
+      alt_u8 use_240p_linked_values = cfg_480i_sl_are_linked(current_menu) && (v_run > 2);
+      if (use_240p_linked_values) {
+        val_select     = cfg_get_value(cfg_240p_opt_subscreen.leaves[v_run].config_value,0);
+        ref_val_select = cfg_get_value(cfg_240p_opt_subscreen.leaves[v_run].config_value,use_flash);
+      } else {
+        val_select     = cfg_get_value(current_menu->leaves[v_run].config_value,0);
+        ref_val_select = cfg_get_value(current_menu->leaves[v_run].config_value,use_flash);
+      }
 
 //      if (current_menu->current_selection == v_run) {
 //        background_color = OPT_WINDOWCOLOR_BG;
@@ -486,10 +522,10 @@ int update_cfg_screen(menu_t* current_menu)
         font_color = (val_select == ref_val_select) ? FONTCOLOR_WHITE : FONTCOLOR_YELLOW;
 //      }
 
-      if ( ( ( is_cfg_screen(current_menu)    && (v_run == 1) ) ||
-             ( is_cfg_sl_screen(current_menu) && (v_run != 0) )    ) &&
-           !cfg_get_value(current_menu->leaves[0].config_value,0))
-        font_color = (val_select == ref_val_select) ? FONTCOLOR_GREY : FONTCOLOR_DARKGOLD;
+      if (is_cfg_240p_screen(current_menu))
+	if ((!cfg_get_value(current_menu->leaves[0].config_value,0) && v_run > 0) ||
+	    (!cfg_get_value(current_menu->leaves[1].config_value,0) && v_run > 1))
+          font_color = (val_select == ref_val_select) ? FONTCOLOR_GREY : FONTCOLOR_DARKGOLD;
 
       if (v_run == current_menu->current_selection)
         vd_clear_area(h_l_offset,h_r_offset,v_offset,v_offset);
@@ -498,6 +534,8 @@ int update_cfg_screen(menu_t* current_menu)
 
       if (is_misc_screen(current_menu) && v_run == 2 && !use_filteraddon)
         vd_print_string(h_l_offset-2,v_offset - 1,background_color,FONTCOLOR_GREY,FilterAddOn[4]);
+      else if (use_240p_linked_values)
+	vd_print_string(h_l_offset,v_offset,background_color,font_color,cfg_240p_opt_subscreen.leaves[v_run].config_value->value_string[val_select]);
       else
         vd_print_string(h_l_offset,v_offset,background_color,font_color,current_menu->leaves[v_run].config_value->value_string[val_select]);
     }

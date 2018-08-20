@@ -70,7 +70,7 @@ input CTRL;
 
 input      [ 3:0] InfoSet;
 input      [ 6:0] JumperCfgSet;
-output reg [28:0] OutConfigSet;
+output reg [47:0] OutConfigSet;
 
 input VCLK;
 input nDSYNC;
@@ -126,17 +126,18 @@ wire [ 9:0] vd_wraddr;
 wire [ 1:0] vd_wrctrl;
 wire [12:0] vd_wrdata;
 
-wire [31:0] SysConfigSet;
-// general structure: [31:24] misc, [23:16] image2, [15:8] image1, [7:0] video
-// [31:29] use_igr and (quick_access 15bit mode and deblur (not used in logic))
-// [28:24] {FilterSet (2bit),VI-DeBlur (2bit), 15bit mode}
-// [23:16] {gamma (4bits),Scanline_str (4bits)}
-// [15: 8] {Sl_hybrid_depth (5bits),Scanline_ID (2bits),Scanline_En}
-// [ 7: 0] {(2bits reserved),lineX2,480I-DeInt,(2bits reserve),RGsB,YPbPr}
-wire [ 7:0] OSDInfo;
-// general structur:
-// [7:5] (reserved)
-// [4:0] {show_osd_logo,show_osd,(2bits reserve),mute_osd}
+wire [31:0] SysConfigSet0;
+// general structure [31:16] misc, [15:0] video
+// [31:24] {(4bits reserve),sl_in_osd,show_osd_logo,show_osd,mute_osd}
+// [23:16] {(5bits reserve),use_igr,igr for 15bit mode and deblur (not used in logic)}
+// [15: 8] {(4bits reserve),FilterSet (2bit),YPbPr,RGsB}
+// [ 7: 0] {gamma (4bits),(1bit reserve),VI-DeBlur (2bit), 15bit mode}
+wire [31:0] SysConfigSet1;
+// general structure [31:16] 240p settings, [15:0] 480i settings
+// [31:16] {(2bits reserve),lineX2,Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_Method,Sl_ID,Sl_En}
+// [15: 0] {(2bits reserve),lineX2,Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_link,Sl_ID,Sl_En}
+
+
 
 system system_u(
   .clk_clk(CLK_25M),
@@ -148,8 +149,8 @@ system system_u(
   .ctrl_data_in_export(serial_data[1]),
   .jumper_cfg_set_in_export({1'b0,JumperCfgSet}),
   .info_set_in_export({3'b000,InfoSet,FallbackMode}),
-  .cfg_set_out_export(SysConfigSet),
-  .osd_info_out_export(OSDInfo),
+  .cfg_set0_out_export(SysConfigSet0),
+  .cfg_set1_out_export(SysConfigSet1),
   .hdl_fw_in_export(hdl_fw)
 );
 
@@ -159,11 +160,11 @@ reg  use_igr         = 1'b0;
 
 always @(posedge VCLK)
   if ((!nDSYNC & negedge_nVSYNC) | !nRST) begin
-    show_osd_logo   <= &{OSDInfo[4:3],!OSDInfo[0]};  // show logo only in OSD
-    show_osd        <= OSDInfo[3] & !OSDInfo[0];
-    use_igr         <= SysConfigSet[31];
-    OutConfigSet    <= SysConfigSet[28:0];
-    OutConfigSet[7] <= OSDInfo[5] | !OSDInfo[3] | OSDInfo[0];  // cfg_OSD_SL considers if OSD is shown or not
+    show_osd_logo   <= &{SysConfigSet0[26:25],!SysConfigSet0[24]};  // show logo only in OSD
+    show_osd        <= SysConfigSet0[25] & !SysConfigSet0[24];
+    use_igr         <= SysConfigSet0[18];
+    OutConfigSet    <= {SysConfigSet0[15:0],SysConfigSet1};
+    OutConfigSet[47] <= SysConfigSet0[27] | !SysConfigSet0[25] | SysConfigSet0[24];  // cfg_OSD_SL considers if OSD is shown or not
   end
 
 

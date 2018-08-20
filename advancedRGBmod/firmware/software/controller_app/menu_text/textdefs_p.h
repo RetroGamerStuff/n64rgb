@@ -57,25 +57,26 @@
 
 #define CFG_OVERLAY_H_OFFSET  OVERLAY_H_OFFSET
 #define CFG_OVERLAY_V_OFFSET  OVERLAY_V_OFFSET_WH
-#define CFG_VALS_H_OFFSET     (27 + CFG_OVERLAY_H_OFFSET)
+#define CFG_VALS_H_OFFSET     (22 + CFG_OVERLAY_H_OFFSET)
 #define CFG_VALS_V_OFFSET     CFG_OVERLAY_V_OFFSET
-#define CFG_LINEX2_V_OFFSET   ( 1 + CFG_VALS_V_OFFSET)
-#define CFG_480IBOB_V_OFFSET  ( 2 + CFG_VALS_V_OFFSET)
-#define CFG_SLOPTS_V_OFFSET   ( 3 + CFG_VALS_V_OFFSET)
-#define CFG_FORMAT_V_OFFSET   ( 4 + CFG_VALS_V_OFFSET)
-#define CFG_DEBLUR_V_OFFSET   ( 5 + CFG_VALS_V_OFFSET)
-#define CFG_15BIT_V_OFFSET    ( 6 + CFG_VALS_V_OFFSET)
-#define CFG_GAMMA_V_OFFSET    ( 7 + CFG_VALS_V_OFFSET)
+#define CFG_240P_SET_V_OFFSET ( 1 + CFG_VALS_V_OFFSET)
+#define CFG_480I_SET_V_OFFSET ( 2 + CFG_VALS_V_OFFSET)
+#define CFG_FORMAT_V_OFFSET   ( 3 + CFG_VALS_V_OFFSET)
+#define CFG_DEBLUR_V_OFFSET   ( 4 + CFG_VALS_V_OFFSET)
+#define CFG_15BIT_V_OFFSET    ( 5 + CFG_VALS_V_OFFSET)
+#define CFG_GAMMA_V_OFFSET    ( 6 + CFG_VALS_V_OFFSET)
 
-#define CFG_SL_OVERLAY_H_OFFSET   OVERLAY_H_OFFSET
-#define CFG_SL_OVERLAY_V_OFFSET   OVERLAY_V_OFFSET_WH
-#define CFG_SL_VALS_H_OFFSET      (26 + CFG_SL_OVERLAY_H_OFFSET)
-#define CFG_SL_VALS_V_OFFSET      CFG_SL_OVERLAY_V_OFFSET
-#define CFG_SL_EN_V_OFFSET        ( 0 + CFG_SL_VALS_V_OFFSET)
-#define CFG_SL_ID_V_OFFSET        ( 1 + CFG_SL_VALS_V_OFFSET)
-#define CFG_SL_STR_V_OFFSET       ( 2 + CFG_SL_VALS_V_OFFSET)
-#define CFG_SLHYB_STR_V_OFFSET    ( 3 + CFG_SL_VALS_V_OFFSET)
-#define CFG_SLOSD_V_OFFSET        ( 5 + CFG_SL_VALS_V_OFFSET)
+#define CFG_VSUB_OVERLAY_H_OFFSET   OVERLAY_H_OFFSET
+#define CFG_VSUB_OVERLAY_V_OFFSET   OVERLAY_V_OFFSET_WH
+#define CFG_VSUB_VALS_H_OFFSET      (26 + CFG_VSUB_OVERLAY_H_OFFSET)
+#define CFG_VSUB_VALS_V_OFFSET      CFG_VSUB_OVERLAY_V_OFFSET
+#define CFG_VSUB_LINEX2_V_OFFSET    ( 0 + CFG_VSUB_OVERLAY_H_OFFSET)
+#define CFG_VSUB_SL_EN_V_OFFSET     ( 1 + CFG_VSUB_OVERLAY_H_OFFSET)
+#define CFG_VSUB_SL_METHOD_V_OFFSET ( 2 + CFG_VSUB_OVERLAY_H_OFFSET)
+#define CFG_VSUB_SL_ID_V_OFFSET     ( 3 + CFG_VSUB_OVERLAY_H_OFFSET)
+#define CFG_VSUB_SL_STR_V_OFFSET    ( 4 + CFG_VSUB_OVERLAY_H_OFFSET)
+#define CFG_VSUB_SLHYB_STR_V_OFFSET ( 5 + CFG_VSUB_OVERLAY_H_OFFSET)
+#define CFG_VSUB_SLOSD_V_OFFSET     ( 6 + CFG_VSUB_OVERLAY_H_OFFSET)
 
 #define MISC_OVERLAY_H_OFFSET     OVERLAY_H_OFFSET
 #define MISC_OVERLAY_V_OFFSET     OVERLAY_V_OFFSET_WH
@@ -148,22 +149,28 @@ static const char *cfg_header =
     "Configuration";
 static const char *cfg_overlay =
     "* Linedoubling:\n"
-    "  - LineX2:\n"
-    "  - 480i de-int. (bob):\n"
-    "  - Scanlines:\n"
+    "  - 240p settings:\n"
+    "  - 480i settings:\n"
     "* Output Format:\n"
     "* 240p-DeBlur:\n"
     "* 15bit Mode:\n"
     "* Gamma Value:";
 
-static const char *cfg_sl_header =
-    "Scanline conf.";
-static const char *cfg_sl_overlay =
+static const char *cfg_240p_opt_header =
+    "Config. (240p)";
+static const char *cfg_480i_opt_header =
+    "Config. (480i)";
+static const char *cfg_240p_opt_overlay =
+    "* Enable LineX2:\n"
     "* Use Scanlines:\n"
+    "  - Method:\n"
     "  - Scanline ID:\n"
     "  - Scanline Strength:\n"
-    "  - Hybrid Depth:\n\n"
-    "* Show Sl. in OSD:";
+    "  - Hybrid Depth:\n"
+    "  - Show Sl. in OSD:";
+
+
+
 
 static const char *misc_header =
     "Miscellaneous";
@@ -237,20 +244,22 @@ static const char *home_overlay =
 const char *EnterSubMenu = "[Enter submenu]";
 
 const char *OffOn[]         = {"Off","On"};
-const char *EvenOdd[]       = {"Even","Odd","Even (adv)","Odd (adv)"};
+const char *EvenOdd[]       = {"Even","Odd "};
+const char *AdvSL[]         = {"Simple","Advanced"};
+const char *LinkSL[]        = {"480i ind.","Link 240p"};
 const char *VideoMode[]     = {"240p60","480i60","288p50","576i50","480p60","576p50"};
 const char *VideoColor[]    = {"21bit","15bit"};
 const char *VideoFormat[]   = {"RGBS","RGBS/RGsB","YPbPr"};
 const char *DeBlur[]        = {"(estimated)","(forced)","(480i/576i)"};
 const char *DeBlurCfg[]     = {"Auto","Off","Always"};
 const char *FilterAddOn[]   = {"Auto"," 9.5MHz","18.0MHz","(bypassed)","(not installed)"};
-const char *SLDesc[] = {"  0.00%","  6.25%"," 12.50%"," 18.75%",
-                        " 25.00%"," 31.25%"," 37.50%"," 43.75%",
-                        " 50.00%"," 56.25%"," 62.50%"," 68.75%",
-                        " 75.00%"," 81.25%"," 87.50%"," 93.75%",
-                        "100.00%","106.25%","112.50%","118.75%",
-                        "125.00%","131.25%","137.50%","143.75%",
-                        "150.00%"};
+const char *SLDesc[]        = {"  0.00%","  6.25%"," 12.50%"," 18.75%",
+                               " 25.00%"," 31.25%"," 37.50%"," 43.75%",
+                               " 50.00%"," 56.25%"," 62.50%"," 68.75%",
+                               " 75.00%"," 81.25%"," 87.50%"," 93.75%",
+                               "100.00%","106.25%","112.50%","118.75%",
+                               "125.00%","131.25%","137.50%","143.75%",
+                               "150.00%"};
 
 const char *GammaValue[]    = {"0.75","0.80","0.85","0.90","0.95","1.00","1.05","1.10","1.15"};
 const char *QuickChange[]   = {"Off","DeBlur","15bit mode","All"};

@@ -58,11 +58,10 @@ int main()
   menu_t *menu = &home_menu;
 
   configuration_t sysconfig = {
-      .cfg_word_def[VIDEO]  = &cfg_data_video,
-      .cfg_word_def[IMAGE1] = &cfg_data_image1,
-      .cfg_word_def[IMAGE2] = &cfg_data_image2,
-      .cfg_word_def[MISC]   = &cfg_data_misc,
-      .cfg_word_def[MENU]   = &cfg_data_menu
+      .cfg_word_def[MISC_MENU]  = &cfg_data_misc,
+      .cfg_word_def[VIDEO]      = &cfg_data_video,
+      .cfg_word_def[IMAGE_240P] = &cfg_data_image240p,
+      .cfg_word_def[IMAGE_480I] = &cfg_data_image480i,
   };
 
   cfg_clear_words(&sysconfig);
@@ -94,7 +93,7 @@ int main()
 //    cfg_save_to_flash(&sysconfig,0);
   }
 
-  cfgopt_apply_to_logic(&sysconfig);
+  cfg_apply_to_logic(&sysconfig);
 
   /* Event loop never exits. */
   while (1) {
@@ -206,8 +205,7 @@ int main()
 
     info_data_pre = info_data;
 
-    cfgopt_apply_to_logic(&sysconfig);
-    cfgmenu_apply_to_logic(&sysconfig);
+    cfg_apply_to_logic(&sysconfig);
 
     /* ToDo: use external interrupt to go on on nVSYNC */
     while(!get_nvsync()){};  /* wait for nVSYNC goes high */
