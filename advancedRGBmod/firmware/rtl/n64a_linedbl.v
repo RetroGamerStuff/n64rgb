@@ -84,13 +84,39 @@ wire       SL_en       = vinfo_dbl[ 2];
 wire       pal_mode    = vinfo_dbl[ 1];
 wire       n64_480i    = vinfo_dbl[ 0];
 
+
 // start of rtl
 
+reg nDSYNC_dbl = 1'b0;
 
-reg div_2x = 1'b0;
+reg  nVS_i_buf = 1'b0;
+reg  nHS_i_buf = 1'b0;
+
+wire negedge_nHSYNC =  nHS_i_buf & !nHS_i;
+//wire posedge_nHSYNC = !nHS_i_buf &  nHS_i;
+wire negedge_nVSYNC =  nVS_i_buf & !nVS_i;
+
+reg [SLHyb_width-1:0] SL_rval = {SLHyb_width{1'b0}};
 
 always @(posedge VCLK) begin
-  div_2x <= ~div_2x;
+  nDSYNC_dbl <= ~nDSYNC_dbl;
+
+  if (!nDSYNC_dbl) begin
+    nHS_i_buf <= nHS_i;
+    nVS_i_buf <= nVS_i;
+
+    if (negedge_nVSYNC) begin
+      FrameID <= negedge_nHSYNC; // negedge at nHSYNC, too -> odd frame
+      SL_rval <= ((SL_str+8'h01)<<4)-1'b1;
+    end
+  end
+
+  if (!nRST) begin
+    nDSYNC_dbl <= 1'b0;
+    nHS_i_buf  <= 1'b0;
+    nVS_i_buf  <= 1'b0;
+    FrameID    <= 1'b0;
+  end
 end
 
 
@@ -118,9 +144,6 @@ initial begin
     line_width[int_idx] = {hcnt_witdh{1'b0}};
 end
 
-reg  nVS_i_buf = 1'b0;
-reg  nHS_i_buf = 1'b0;
-
 
 reg [1:0]     newFrame = 2'b00;
 reg            FrameID = 1'b0;
@@ -129,18 +152,10 @@ reg [1:0]  stop_rdproc = 2'b00;
 
 
 always @(posedge VCLK) begin
-  if (!div_2x) begin
-    if (nVS_i_buf & !nVS_i) begin
+  if (!nDSYNC_dbl) begin
+    if (negedge_nVSYNC) begin
       // trigger new frame
       newFrame[0] <= ~newFrame[1];
-      if (nHS_i_buf & !nHS_i) // negedge at nHSYNC, too -> odd frame
-        FrameID <= 1'b1;
-      else                    // else -> even Frame
-        FrameID <= 1'b0;
-
-      // trigger read start
-      if (&{nHS_i_buf,!nHS_i,!line_overflow,valid_line})
-        start_rdproc[0] <= ~start_rdproc[1];
 
       // set new info
       if (pal_mode) begin
@@ -152,16 +167,21 @@ always @(posedge VCLK) begin
         hstop     <= `HSTOP_NTSC;
         nHS_width <= n64_480i ? `HS_WIDTH_NTSC_480I : `HS_WIDTH_NTSC_240P;
       end
+
+      if (negedge_nHSYNC)
+        start_rdproc[0] <= ~start_rdproc[1];  // trigger read start
     end
 
-    if (nHS_i_buf & !nHS_i) begin // negedge nHSYNC -> reset wrhcnt and inc. wrpage
-      line_width[wrpage] <= wrhcnt;
 
+    if (negedge_nHSYNC) begin // negedge nHSYNC -> reset wrhcnt and inc. wrpage
+      line_width[wrpage] <= wrhcnt;
       wrhcnt <= {hcnt_witdh{1'b0}};
       if (wrpage == `BUF_NUM_OF_PAGES-1)
         wrpage = {pcnt_width{1'b0}};
       else
         wrpage <= wrpage + 1'b1;
+      if (!rdrun[0])
+        wrpage <= {pcnt_width{1'b0}};
     end else if (~line_overflow) begin
       wrhcnt <= wrhcnt + 1'b1;
     end
@@ -175,19 +195,14 @@ always @(posedge VCLK) begin
       wren   <= 1'b0;
       wraddr <= {hcnt_witdh{1'b0}};
     end
-
-    nVS_i_buf <= nVS_i;
-    nHS_i_buf <= nHS_i;
   end
 
   if (!nRST) begin
         newFrame[0] <= newFrame[1];
-            FrameID <= 1'b0;
     start_rdproc[0] <= start_rdproc[1];
-     stop_rdproc[0] <= ~stop_rdproc[1];
 
     wren   <= 1'b0;
-    wrpage <= 2'b00;
+    wrpage <= {pcnt_width{1'b0}};
     wrhcnt <= {hcnt_witdh{1'b1}};
   end
 end
@@ -213,9 +228,6 @@ always @(posedge VCLK) begin
     end else begin
       rdhcnt <= rdhcnt + 1'b1;
     end
-    if (line_overflow || &{nHS_i_buf,!nHS_i,!valid_line}) begin
-      rdrun <= 2'b00;
-    end
 
     if (rdhcnt == hstart) begin
       rden[0] <= 1'b1;
@@ -226,7 +238,8 @@ always @(posedge VCLK) begin
       rden[0] <= 1'b0;
       rdaddr  <= {hcnt_witdh{1'b0}};
     end
-  end else if (&{rdrun[0],!div_2x,wrhcnt[3]} && wrpage == `BUF_NUM_OF_PAGES-2) begin  // synchronize with writing process
+  end else if (rdrun[0] && !nDSYNC_dbl &&
+               (wrpage == (`BUF_NUM_OF_PAGES>>1))) begin
     rdrun[1] <= 1'b1;
     rdcnt    <= 1'b0;
     rdpage   <= 2'b00;
@@ -236,23 +249,21 @@ always @(posedge VCLK) begin
   end
   
   rden[2:1] <= rden[1:0];
-
-  if (^stop_rdproc) begin
+  if (!nRST || line_overflow ||
+      (negedge_nHSYNC & !valid_line)) begin // reset conditions
     rden  <= 3'b0;
     rdrun <= 2'b0;
   end
 
   start_rdproc[1] <= start_rdproc[0];
-   stop_rdproc[1] <=  stop_rdproc[0];
 end
 
-wire [pcnt_width-1:0] rdpage_pp0 = FrameID ? rdpage : rdpage - !rdcnt;
+wire [pcnt_width-1:0] rdpage_pp0 = (FrameID | !n64_480i) ? rdpage : rdpage - !rdcnt;
 wire [pcnt_width-1:0] rdpage_pp1 = rdpage_pp0 >= `BUF_NUM_OF_PAGES ? `BUF_NUM_OF_PAGES-1 : rdpage_pp0;
-wire [pcnt_width-1:0] rdpage_pp2 = !nDSYNC_dbl ? rdpage_pp1 :
-                                   (!SL_method | n64_480i) ? rdpage_pp1 :  // do not allow advanced scanlines in 480i linex2 mode
-                                   !SL_id ? rdpage_pp1 - 1'b1 : rdpage_pp1 + 1'b1;
+wire [pcnt_width-1:0] rdpage_pp2 = (!SL_method | n64_480i) ? rdpage_pp1 :  // do not allow advanced scanlines in 480i linex2 mode
+                                   !rdaddr[0] ? rdpage_pp1 : !SL_id ? rdpage_pp1 - 1'b1 : rdpage_pp1 + 1'b1;
 wire [pcnt_width-1:0] rdpage_pp3 = !SL_id ? (rdpage_pp2 >= `BUF_NUM_OF_PAGES ? `BUF_NUM_OF_PAGES-1 : rdpage_pp2) :
-                                               (rdpage_pp2 == `BUF_NUM_OF_PAGES ?  {pcnt_width{1'b0}} : rdpage_pp2);
+                                            (rdpage_pp2 == `BUF_NUM_OF_PAGES ?  {pcnt_width{1'b0}} : rdpage_pp2);
 
 wire [color_width_i-1:0] R_buf, G_buf, B_buf;
 
@@ -262,7 +273,7 @@ n64a_ram2port #(
   .data_width(3*color_width_i)
 ) videobuffer_0(
   .wrCLK(VCLK),
-  .wren(|{!wren,line_overflow,div_2x,wraddr[0]}), //  .wren(&{wren,!line_overflow,!div_2x,!wraddr[0]}),
+  .wren(&{wren,!line_overflow,nDSYNC_dbl,!wraddr[0]}),
   .wrpage(wrpage),
   .wraddr(wraddr[hcnt_witdh-1:1]),
   .wrdata({R_i,G_i,B_i}),
@@ -274,16 +285,16 @@ n64a_ram2port #(
 );
 
 
-wire nDSYNC_dbl = rdaddr[0];  // reading buffer has exactly two delay steps - so we can safetely use !rdaddr[0]
+localparam vs_delay_w = $clog2(`BUF_NUM_OF_PAGES);
 
-reg [3:0] rdcnt_buf      = 4'h0;
-reg [1:0] newFrame_delay = 2'b00;
-reg [8:0] vcnt_dbl       = 9'd0;
+reg [           3:0] rdcnt_buf      = 4'h0;
+reg [vs_delay_w-1:0] newFrame_delay = {vs_delay_w{1'b0}};
+reg [           8:0] vcnt_dbl       = 9'd0;
 
 reg [7:0] nHS_cnt = 8'd0;
 reg [1:0] nVS_cnt = 2'b0;
 
-wire CSen_lineend = ((rdhcnt + 2'b11) > (line_width[rdpage] - nHS_width));
+wire CSen_lineend = ((rdhcnt + 2'b11) > (line_width[rdpage_pp1] - nHS_width));
 
 wire is_OSD_area = (  rdhcnt > ({`OSD_WINDOW_H_START,1'b0}+4'h6)) && (  rdhcnt < ({`OSD_WINDOW_H_STOP,1'b0}+4'h6)) &&
                    (vcnt_dbl > ({`OSD_WINDOW_V_START,1'b0}+4'h2)) && (vcnt_dbl < ({`OSD_WINDOW_V_STOP,1'b0}+4'h1));
@@ -294,8 +305,6 @@ reg [color_width_i-1:0] R_dbl_pre, G_dbl_pre, B_dbl_pre,
                         R_sl_pre,  G_sl_pre,  B_sl_pre;
 reg [color_width_i-1:0] R_dbl, G_dbl, B_dbl;
 reg [Y_width-1:0] Y_sl_pre;
-
-reg [SLHyb_width-1:0] SL_rval;
 
 wire [color_width_i-1:0] R_avg = {1'b0,R_dbl_pre[color_width_i-1:1]} + {1'b0,R_buf[color_width_i-1:1]} + (R_dbl_pre[0] ^ R_buf[0]);
 wire [color_width_i-1:0] G_avg = {1'b0,G_dbl_pre[color_width_i-1:1]} + {1'b0,G_buf[color_width_i-1:1]} + (G_dbl_pre[0] ^ G_buf[0]);
@@ -310,22 +319,20 @@ always @(posedge VCLK) begin
    vcnt_dbl <= ~&vcnt_dbl ? vcnt_dbl + 1'b1 : vcnt_dbl;
     nHS_cnt <= nHS_width;
     
-    if (newFrame_delay == 2'b11) begin
+    if (newFrame_delay == `BUF_NUM_OF_PAGES) begin
       vcnt_dbl    <= 9'd0;
       nVS_cnt     <= `VS_WIDTH;
       S_dbl[3]    <= 1'b0;
-      SL_rval <= ((SL_str+8'h01)<<4)-1'b1;
     end else if (|nVS_cnt) begin
       nVS_cnt <= nVS_cnt - 1'b1;
     end else begin
       S_dbl[3] <= 1'b1;
     end
 
-    if (|newFrame_delay)
-      newFrame_delay <= newFrame_delay + 1'b1;
+    newFrame_delay <= |newFrame_delay ? newFrame_delay + 1'b1 : {vs_delay_w{1'b0}};
     if (^newFrame) begin
-        newFrame_delay <= 1'b1;
-        newFrame[1] <= newFrame[0];
+      newFrame_delay <= {{(vs_delay_w-1){1'b0}},1'b1};
+      newFrame[1] <= newFrame[0];
     end
   end else begin
     if (|nHS_cnt) begin
@@ -345,7 +352,7 @@ always @(posedge VCLK) begin
   drawSL <= (is_OSD_area ? SL_in_osd : 1'b1) && SL_en && (rdcnt ^ (!SL_id));
 
   if (rden[2]) begin
-    if (!nDSYNC_dbl) begin
+    if (!rdaddr[0]) begin // reading buffer has exactly two delay steps - so we can safetely use !rdaddr[0]
       R_dbl_pre <= R_buf;
       G_dbl_pre <= G_buf;
       B_dbl_pre <= B_buf;

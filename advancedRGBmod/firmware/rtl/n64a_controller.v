@@ -164,8 +164,8 @@ always @(posedge VCLK)
     show_osd_logo   <= &{SysConfigSet0[26:25],!SysConfigSet0[24]};  // show logo only in OSD
     show_osd        <= SysConfigSet0[25] & !SysConfigSet0[24];
     use_igr         <= SysConfigSet0[18];
-    OutConfigSet[46] <= SysConfigSet0[27] | !SysConfigSet0[25] | SysConfigSet0[24];  // cfg_OSD_SL considers if OSD is shown or not
     OutConfigSet     <= {SysConfigSet0[15:0],SysConfigSet1};
+    OutConfigSet[46] <= SysConfigSet0[27] | !SysConfigSet0[25] | SysConfigSet0[24];  // cfg_OSD_SL considers if OSD is shown or not
   end
 
 

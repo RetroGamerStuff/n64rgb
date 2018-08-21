@@ -178,7 +178,6 @@ wire [3:0] cfg_gamma     =  OutConfigSet[39:36];
 wire       nDeBlurMan    = ~OutConfigSet[34];
 wire       nForceDeBlur  = ~|OutConfigSet[34:33];
 wire       n15bit_mode   = ~OutConfigSet[32];
-
 wire       cfg_lineX2    =       ~n64_480i ? OutConfigSet[29   ] : OutConfigSet[13   ];
 wire [4:0] cfg_SLHyb_str =       ~n64_480i ? OutConfigSet[28:24] :
                            OutConfigSet[2] ? OutConfigSet[28:24] : OutConfigSet[12: 8];
@@ -287,7 +286,6 @@ wire [`VDATA_O_FU_SLICE] vdata_tmp;
 
 n64a_linedbl linedoubler(
   .VCLK(VCLK),
-  .nDSYNC(nDSYNC),
   .nRST(nVRST),
   .vinfo_dbl(vinfo_dbl),
   .vdata_i(vdata_r[3]),
