@@ -112,7 +112,10 @@ set_clock_groups -asynchronous -group \
 #**************************************************************
 
 set_false_path -from [get_ports {nRST CTRL_i UseVGA_HVSync nFilterBypass nEN_RGsB nEN_YPbPr SL_str* n240p n480i_bob}]
-set_false_path -from [get_registers {controller_u|show_* controller_u|OutConfigSet[*]}]
+set_false_path -from [get_registers {controller_u|show_* controller_u|OutConfigSet[*] \
+                                     get_vinfo|FrameID get_vinfo|n64_480i get_vinfo|line_cnt[*] get_vinfo|vmode \
+                                     deblur_management|nblur_n64* deblur_management|ndo_deblur \
+                                     linedoubler|FrameID linedoubler|SL_rval[*]}]
 set_false_path -to [get_ports {nRST SYS_CLKen}]
 
 
