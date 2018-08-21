@@ -101,9 +101,9 @@ inout  nRST;
 output                        CLK_ADV712x;
 output                     nCSYNC_ADV712x;
 // output                     nBLANK_ADV712x;
-output [color_width_o-1:0] V3_o;
-output [color_width_o-1:0] V2_o;
-output [color_width_o-1:0] V1_o;
+output reg [color_width_o-1:0] V3_o = {color_width_o{1'b0}};
+output reg [color_width_o-1:0] V2_o = {color_width_o{1'b0}};
+output reg [color_width_o-1:0] V1_o = {color_width_o{1'b0}};
 
 output nCSYNC;
 output nVSYNC_or_F2;
@@ -207,6 +207,7 @@ wire [3:0] vinfo_pass;
 n64_vinfo_ext get_vinfo(
   .VCLK(VCLK),
   .nDSYNC(nDSYNC),
+  .nRST(nVRST),
   .Sync_pre(vdata_r[0][`VDATA_I_SY_SLICE]),
   .Sync_cur(D_i[3:0]),
   .vinfo_o(vinfo_pass)
@@ -274,6 +275,7 @@ wire [3:0] Sync_o;
 
 n64a_vconv video_converter(
   .VCLK(VCLK),
+  .nRST(nVRST),
   .nEN_YPbPr(cfg_nEN_YPbPr),    // enables color transformation on '0'
   .vdata_i(vdata_tmp),
   .vdata_o({Sync_o,V1_o,V2_o,V3_o})

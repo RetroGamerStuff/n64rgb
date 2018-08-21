@@ -36,6 +36,7 @@
 module n64_vinfo_ext(
   VCLK,
   nDSYNC,
+  nRST,
 
   Sync_pre,
   Sync_cur,
@@ -47,6 +48,7 @@ module n64_vinfo_ext(
 
 input VCLK;
 input nDSYNC;
+input nRST;
 
 input  [3:0] Sync_pre;
 input  [3:0] Sync_cur;
@@ -72,6 +74,9 @@ always @(posedge VCLK) begin // data register management
     data_cnt <= 2'b01;  // reset data counter
   else
     data_cnt <= data_cnt + 1'b1;  // increment data counter
+
+  if (!nRST)
+    data_cnt <= 2'b00;
 end
 
 
@@ -93,13 +98,18 @@ always @(posedge VCLK) begin
       end
     end
   end
+
+  if (!nRST) begin
+    FrameID  <= 1'b0;
+    n64_480i <= 1'b0;
+  end
 end
 
 
 // determine vmode and blurry pixel position
 // =========================================
 
-reg [1:0] line_cnt;         // PAL: line_cnt[1:0] == 0x ; NTSC: line_cnt[1:0] = 1x
+reg [1:0] line_cnt = 2'b00; // PAL: line_cnt[1:0] == 0x ; NTSC: line_cnt[1:0] = 1x
 reg       vmode = 1'b0;     // PAL: vmode == 1          ; NTSC: vmode == 0
 
 always @(posedge VCLK) begin
@@ -109,6 +119,11 @@ always @(posedge VCLK) begin
       vmode    <= ~line_cnt[1];
     end else if(posedge_nHSYNC) // posedge nHSYNC -> increase line_cnt
       line_cnt <= line_cnt + 1'b1;
+  end
+
+  if (!nRST) begin
+    line_cnt <= 2'b00;
+    vmode    <= 1'b0;
   end
 end
 

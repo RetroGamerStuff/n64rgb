@@ -52,6 +52,7 @@ module n64a_controller (
 
   VCLK,
   nDSYNC,
+  nVRST,
 
   video_data_i,
   video_data_o
@@ -73,9 +74,10 @@ output reg [47:0] OutConfigSet;
 
 input VCLK;
 input nDSYNC;
+input nVRST;
 
 input      [`VDATA_I_FU_SLICE] video_data_i;
-output reg [`VDATA_I_FU_SLICE] video_data_o;
+output reg [`VDATA_I_FU_SLICE] video_data_o = {vdata_width_i{1'b0}};
 
 
 // start of rtl
@@ -158,12 +160,12 @@ reg show_osd         = 1'b0;
 reg  use_igr         = 1'b0;
 
 always @(posedge VCLK)
-  if ((!nDSYNC & negedge_nVSYNC) | !nRST) begin
+  if ((!nDSYNC & negedge_nVSYNC) | !nVRST) begin
     show_osd_logo   <= &{SysConfigSet0[26:25],!SysConfigSet0[24]};  // show logo only in OSD
     show_osd        <= SysConfigSet0[25] & !SysConfigSet0[24];
     use_igr         <= SysConfigSet0[18];
-    OutConfigSet    <= {SysConfigSet0[15:0],SysConfigSet1};
-    OutConfigSet[47] <= SysConfigSet0[27] | !SysConfigSet0[25] | SysConfigSet0[24];  // cfg_OSD_SL considers if OSD is shown or not
+    OutConfigSet[46] <= SysConfigSet0[27] | !SysConfigSet0[25] | SysConfigSet0[24];  // cfg_OSD_SL considers if OSD is shown or not
+    OutConfigSet     <= {SysConfigSet0[15:0],SysConfigSet1};
   end
 
 
@@ -268,7 +270,7 @@ always @(posedge CLK_4M) begin
   if (!nVSYNC_pre & nVSYNC_cur)
     new_ctrl_data[1] <= 1'b0;
 
-  if (!nRST) begin
+  if (!nVRST) begin
     rd_state      <= ST_WAIT4N64;
     wait_cnt      <= 5'h0;
     ctrl_hist     <= 3'h7;
@@ -389,7 +391,7 @@ always @(posedge VCLK) begin
   en_txtrd[  0] <= (h_cnt > `OSD_TXT_H_START) && (h_cnt < `OSD_TXT_H_STOP) &&
                    (v_cnt > `OSD_TXT_V_START) && (v_cnt < `OSD_TXT_V_STOP);
 
-  if (!nRST) begin
+  if (!nVRST) begin
     h_cnt <= 10'h0;
     v_cnt <=  8'h0;
 
@@ -469,7 +471,7 @@ always @(posedge VCLK) begin  // delay font selection according to memory delay 
   font_addr_msb  <= {font_addr_msb [3:0],txt_v_cnt[3:0]};
   font_color_del <= {font_color_del[3:0],font_color_tmp};
 
-  if (!nRST) begin
+  if (!nVRST) begin
     background_color_del <= 4'h0;
     font_addr_msb        <= 8'h0;
     font_color_del       <= 8'h0;
@@ -500,7 +502,7 @@ reg [11:0] font_pixel_select = 12'h0;
 always @(posedge VCLK) begin
   font_pixel_select  <= {font_pixel_select [8:0],txt_h_cnt[2:0]};
 
-  if (!nRST)
+  if (!nVRST)
     font_pixel_select  <= 12'h0;
 end
 
@@ -556,6 +558,9 @@ always @(posedge VCLK) begin
   end else begin
     video_data_o[`VDATA_I_CO_SLICE] <= video_data_i[`VDATA_I_CO_SLICE];
   end
+  
+  if (!nVRST)
+    video_data_o <= {vdata_width_i{1'b0}};
 end
 
 endmodule

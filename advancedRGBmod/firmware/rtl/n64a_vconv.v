@@ -37,6 +37,7 @@
 
 module n64a_vconv(
   VCLK,
+  nRST,
 
   nEN_YPbPr,    // enables color transformation on '0'
 
@@ -49,6 +50,7 @@ module n64a_vconv(
 localparam coeff_width = 20;
 
 input VCLK;
+input nRST;
 
 input nEN_YPbPr;
 
@@ -181,6 +183,13 @@ always @(posedge VCLK) begin
     V1_o <= R_i;
     V2_o <= G_i;
     V3_o <= B_i;
+  end
+  
+  if (!nRST) begin
+     S_o <= 4'h0;
+    V1_o <= {color_width_o{1'b0}};
+    V2_o <= {color_width_o{1'b0}};
+    V3_o <= {color_width_o{1'b0}};
   end
 end
 
