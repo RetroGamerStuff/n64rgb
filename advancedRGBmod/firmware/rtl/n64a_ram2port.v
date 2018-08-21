@@ -28,7 +28,6 @@
 // Tool versions:  Altera Quartus Prime
 // Description:    simple line-multiplying
 //
-// Revision: 1.1
 // Features: ip independent implementation of a ram (two port)
 //
 //////////////////////////////////////////////////////////////////////////////////

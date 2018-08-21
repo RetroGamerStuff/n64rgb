@@ -32,7 +32,6 @@
 //               ip/fpga_family/altpll_0.qip
 //               rtl/n64a_ram2port.v
 //
-// Revision: 2.2
 // Features: linebuffer for - NTSC 240p -> 480p rate conversion
 //                          - PAL  288p -> 576p rate conversion
 //           injection of scanlines

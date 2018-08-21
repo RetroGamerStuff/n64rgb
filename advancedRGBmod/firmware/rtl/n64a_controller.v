@@ -33,7 +33,6 @@
 //               system.qsys
 //               ip/fpga_family/rom1port_1.qip
 //
-// Revision: 2.3
 // Features: OSD menu configuration (NIOSII driven)
 //           console reset
 // Latest change: ip independet implementation of RAM

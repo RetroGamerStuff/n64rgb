@@ -31,7 +31,6 @@
 // Dependencies: vh/n64a_params.vh
 //               rtl/n64a_gamma_table.v
 //
-// Revision: 2.1
 // Features: Gamma correction via lookup table
 //
 //////////////////////////////////////////////////////////////////////////////////

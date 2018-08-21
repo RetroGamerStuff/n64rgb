@@ -30,7 +30,6 @@
 //
 // Dependencies: vh/n64a_params.vh
 //
-// Revision: 2.1
 // Features: conversion RGB to YPbPr on demand
 //           outputs 8bit vectors for ADV7125 / ADV7123
 //
