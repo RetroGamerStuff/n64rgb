@@ -169,6 +169,7 @@ set_global_assignment -name TOP_LEVEL_ENTITY n64a_top
 
 set_global_assignment -name VERILOG_FILE rtl/n64a_top.v
 set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64a_params.vh
+set_global_assignment -name VERILOG_FILE rtl/n64a_testpattern.v
 set_global_assignment -name VERILOG_FILE rtl/n64a_controller.v
 set_global_assignment -name QIP_FILE ip/Cyclone10LP/altpll_1.qip
 set_global_assignment -name QIP_FILE system/synthesis/system.qip
