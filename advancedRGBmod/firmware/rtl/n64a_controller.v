@@ -131,7 +131,7 @@ wire [31:0] SysConfigSet0;
 // general structure [31:16] misc, [15:0] video
 // [31:24] {(4bits reserve),sl_in_osd,show_osd_logo,show_osd,mute_osd}
 // [23:16] {(5bits reserve),use_igr,igr for 15bit mode and deblur (not used in logic)}
-// [15: 8] {(4bits reserve),FilterSet (2bit),YPbPr,RGsB}
+// [15: 8] {show_testpattern,(3bits reserve),FilterSet (2bit),YPbPr,RGsB}
 // [ 7: 0] {gamma (4bits),(1bit reserve),VI-DeBlur (2bit), 15bit mode}
 wire [31:0] SysConfigSet1;
 // general structure [31:16] 240p settings, [15:0] 480i settings

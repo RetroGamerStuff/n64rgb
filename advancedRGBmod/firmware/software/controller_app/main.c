@@ -82,7 +82,6 @@ int main()
 
   if (use_flash) {
     load_from_jumperset = cfg_load_from_flash(&sysconfig,0);
-    cfg_clear_flag(&show_osd);
   }
 
   if (info_data & INFO_FALLBACKMODE_GETMASK)
@@ -92,6 +91,11 @@ int main()
     cfg_load_jumperset(&sysconfig,0);
 //    cfg_save_to_flash(&sysconfig,0);
   }
+
+  cfg_clear_flag(&show_osd);
+  cfg_clear_flag(&show_logo);
+  cfg_clear_flag(&mute_osd_tmp);
+  cfg_clear_flag(&show_testpat);
 
   cfg_apply_to_logic(&sysconfig);
 

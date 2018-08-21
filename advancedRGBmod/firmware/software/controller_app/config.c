@@ -77,7 +77,7 @@ void cfg_dec_value(config_t* cfg_data)
   cfg_data->cfg_word->cfg_word_val = cfg_word;
 };
 
-alt_u16 cfg_get_value(config_t* cfg_data,alt_u8 get_reference)
+alt_u16 cfg_get_value(config_t* cfg_data,alt_u16 get_reference)
 {
   alt_u16 cfg_word;
   if (!get_reference) cfg_word = cfg_data->cfg_word->cfg_word_val;
@@ -87,7 +87,7 @@ alt_u16 cfg_get_value(config_t* cfg_data,alt_u8 get_reference)
   else                            return ((cfg_word & cfg_data->value_details.getvalue_mask) >> cfg_data->cfg_word_offset);
 };
 
-void cfg_set_value(config_t* cfg_data, alt_u8 value)
+void cfg_set_value(config_t* cfg_data, alt_u16 value)
 {
   if (cfg_data->cfg_type == FLAG) {
     if (value) cfg_set_flag(cfg_data);
@@ -101,6 +101,30 @@ void cfg_set_value(config_t* cfg_data, alt_u8 value)
     cfg_data->cfg_word->cfg_word_val = cfg_word;
   }
 };
+
+
+void cfg_show_testpattern(configuration_t* sysconfig)
+{
+  extern config_t show_testpat;
+
+  cfg_set_flag(&show_testpat);
+  cfg_apply_to_logic(sysconfig);
+
+  cmd_t command;
+  alt_u32 ctrl_data = get_ctrl_data();
+
+  while(1) {
+    while(!get_nvsync()){};                          /* wait for nVSYNC goes high */
+    while( get_nvsync() && new_ctrl_available()){};  /* wait for nVSYNC goes low and
+                                                        wait for new controller available  */
+    ctrl_data = get_ctrl_data();
+    command = ctrl_data_to_cmd(&ctrl_data,1);
+    if ((command == CMD_MENU_BACK)  || (command == CMD_MENU_LEFT)) break;
+  }
+
+  cfg_clear_flag(&show_testpat);
+  cfg_apply_to_logic(sysconfig);
+}
 
 alt_u8 confirmation_routine()
 {
@@ -116,7 +140,7 @@ alt_u8 confirmation_routine()
 
     while(!get_nvsync()){};                          /* wait for nVSYNC goes high */
     while( get_nvsync() && new_ctrl_available()){};  /* wait for nVSYNC goes low and
--                                                       wait for new controller available  */
+                                                        wait for new controller available  */
     ctrl_data = get_ctrl_data();
     command = ctrl_data_to_cmd(&ctrl_data,1);
 

@@ -121,6 +121,20 @@ input       n480i_bob;
 
 // start of rtl
 
+// Part 0: Test Pattern
+// ====================
+
+wire [`VDATA_O_FU_SLICE] vdata_testpattern;
+
+n64a_testpattern testpattern_u(
+  .VCLK(VCLK),
+  .nDSYNC(nDSYNC),
+  .nRST(nVRST),
+  .vmode(vmode),
+  .Sync_in(D_i[3:0]),
+  .vdata_out(vdata_testpattern)
+);
+
 // Part 1: connect controller module
 // =================================
 
@@ -133,7 +147,7 @@ wire [ 3:0] InfoSet = {vmode,n64_480i,~ndo_deblur,UseVGA_HVSync};
 wire [ 6:0] JumperCfgSet = {nFilterBypass,n240p,~n480i_bob,~SL_str,~nEN_YPbPr,(nEN_YPbPr & ~nEN_RGsB)}; // (~nEN_YPbPr | nEN_RGsB) ensures that not both jumpers are set and passed through the NIOS II
 wire [47:0] OutConfigSet;
 // general structure [47:32] video settings, [31:16] 240p settings, [15:0] 480i settings
-// [47:40] {sl_in_osd,(3bits reserve),FilterSet (2bit),YPbPr,RGsB}
+// [47:40] {show_testpat,sl_in_osd,(2bits reserve),FilterSet (2bit),YPbPr,RGsB}
 // [39:32] {gamma (4bits),(1bit reserve),VI-DeBlur (2bit), 15bit mode}
 // [31:16] {(2bits reserve),lineX2,Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_Method,Sl_ID,Sl_En}
 // [15: 0] {(2bits reserve),lineX2,Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_link,Sl_ID,Sl_En}
@@ -155,8 +169,8 @@ n64a_controller #({hdl_fw_main,hdl_fw_sub}) controller_u(
 );
 
 
-
-wire       cfg_OSD_SL    =  OutConfigSet[47];
+wire       cfg_testpat   =  OutConfigSet[47];
+wire       cfg_OSD_SL    =  OutConfigSet[46];
 wire [1:0] FilterSetting =  OutConfigSet[43:42];
 wire       cfg_nEN_YPbPr = ~OutConfigSet[41];
 wire       cfg_nEN_RGsB  = ~OutConfigSet[40];
@@ -331,6 +345,12 @@ always @(posedge VCLK) begin
     vdata_shifted[1] <= {3*color_width_o{1'b0}};
   end
 
+  if (cfg_testpat) begin
+    Sync_o <= vdata_testpattern[`VDATA_O_SY_SLICE];
+      V3_o <= vdata_testpattern[`VDATA_O_BL_SLICE];
+      V2_o <= vdata_testpattern[`VDATA_O_GR_SLICE];
+      V1_o <= vdata_testpattern[`VDATA_O_RE_SLICE];
+  end
 end
 
 assign    CLK_ADV712x = VCLK;

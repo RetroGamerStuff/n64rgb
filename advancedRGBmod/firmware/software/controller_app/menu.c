@@ -171,11 +171,12 @@ menu_t misc_screen = {
     .overlay = &misc_overlay,
     .parent = &home_menu,
     .current_selection = 0,
-    .number_selections = 3,
+    .number_selections = 4,
     .leaves = {
         {.id = MISC_IGR_RESET_V_OFFSET  , .arrow_desc = &misc_screen_arrow, .leavetype = ICONFIG, .config_value = &igr_reset},
         {.id = MISC_IGR_QUICK_V_OFFSET  , .arrow_desc = &misc_screen_arrow, .leavetype = ICONFIG, .config_value = &igr_quickchange},
-        {.id = MISC_FILTERADDON_V_OFFSET, .arrow_desc = &misc_screen_arrow, .leavetype = ICONFIG, .config_value = &filteraddon_cutoff}
+        {.id = MISC_FILTERADDON_V_OFFSET, .arrow_desc = &misc_screen_arrow, .leavetype = ICONFIG, .config_value = &filteraddon_cutoff},
+        {.id = MISC_SHOWTESTPAT_V_OFFSET, .arrow_desc = &selection_arrow,   .leavetype = IFUNC, .test_fun = &cfg_show_testpattern}
     }
 };
 
@@ -329,10 +330,15 @@ updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t
 
   if ((*current_menu)->leaves[sel].leavetype == IFUNC) {
     if ((command == CMD_MENU_RIGHT) || (command == CMD_MENU_ENTER)) {
-      int retval = (*current_menu)->leaves[sel].load_fun(sysconfig,1);
-      return (retval == 0                     ? RW_DONE  :
-              retval == -CFG_FLASH_SAVE_ABORT ? RW_ABORT :
-                                                RW_FAILED);
+      if (is_misc_screen((*current_menu))) {
+        (*current_menu)->leaves[sel].test_fun(sysconfig);
+        return 0;
+      } else {
+        int retval = (*current_menu)->leaves[sel].load_fun(sysconfig,1);
+        return (retval == 0                     ? RW_DONE  :
+                retval == -CFG_FLASH_SAVE_ABORT ? RW_ABORT :
+                                                  RW_FAILED);
+      }
     }
   }
 

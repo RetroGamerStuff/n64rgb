@@ -116,6 +116,16 @@ cfg_word_t cfg_data_video =
     .cfg_ref_word_val = 0x00
   };
 
+config_t show_testpat = {
+    .cfg_word        = &cfg_data_video,
+    .cfg_word_offset = CFG_SHOW_TESTPAT_OFFSET,
+    .cfg_type        = FLAG,
+    .flag_masks      = {
+        .setflag_mask = CFG_SHOW_TESTPAT_SETMASK,
+        .clrflag_mask = CFG_SHOW_TESTPAT_CLRMASK
+    }
+};
+
 config_t filteraddon_cutoff = {
     .cfg_word        = &cfg_data_video,
     .cfg_word_offset = CFG_FILTERADDON_OFFSET,

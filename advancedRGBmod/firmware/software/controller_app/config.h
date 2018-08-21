@@ -90,7 +90,7 @@ typedef struct {
 // the overall masks
 
 #define CFG_MISC_GETALL_MASK      0x0F07
-#define CFG_VIDEO_GETALL_MASK     0x0FF7
+#define CFG_VIDEO_GETALL_MASK     0x8FF7
 #define CFG_IMAGE240P_GETALL_MASK 0x3FF7
 #define CFG_IMAGE480I_GETALL_MASK CFG_IMAGE240P_GETALL_MASK
 
@@ -131,6 +131,7 @@ typedef struct {
 
 // video
 
+#define CFG_SHOW_TESTPAT_OFFSET 15
 #define CFG_FILTERADDON_OFFSET  10
 #define CFG_VFORMAT_OFFSET       8
   #define CFG_YPBPR_OFFSET         9
@@ -139,6 +140,9 @@ typedef struct {
 #define CFG_DEBLUR_OFFSET        1
 #define CFG_15BITMODE_OFFSET     0
 
+#define CFG_SHOW_TESTPAT_GETMASK  (1<<CFG_SHOW_TESTPAT_OFFSET)
+#define CFG_SHOW_TESTPAT_SETMASK  (1<<CFG_SHOW_TESTPAT_OFFSET)
+#define CFG_SHOW_TESTPAT_CLRMASK  (CFG_VIDEO_GETALL_MASK & ~CFG_SHOW_TESTPAT_SETMASK)
 #define CFG_FILTERADDON_GETMASK   (3<<CFG_FILTERADDON_OFFSET)
   #define CFG_FILTER_RSTMASK        (CFG_VIDEO_GETALL_MASK & ~CFG_FILTERADDON_GETMASK)
   #define CFG_FILTER_OFF_SETMASK    (CFG_VIDEO_GETALL_MASK & (3<<CFG_FILTERADDON_OFFSET))
@@ -270,8 +274,9 @@ inline void cfg_clear_flag(config_t* cfg_data)
   {  if (cfg_data->cfg_type == FLAG) cfg_data->cfg_word->cfg_word_val &= cfg_data->flag_masks.clrflag_mask;  };
 void cfg_inc_value(config_t* cfg_data);
 void cfg_dec_value(config_t* cfg_data);
-alt_u16 cfg_get_value(config_t* cfg_data,alt_u8 get_reference);
-void cfg_set_value(config_t* cfg_data, alt_u8 value);
+alt_u16 cfg_get_value(config_t* cfg_data,alt_u16 get_reference);
+void cfg_set_value(config_t* cfg_data, alt_u16 value);
+void cfg_show_testpattern(configuration_t* sysconfig);
 int cfg_save_to_flash(configuration_t* sysconfig, alt_u8 need_confirm);
 int cfg_load_from_flash(configuration_t* sysconfig, alt_u8 need_confirm);
 int cfg_load_n64defaults(configuration_t* sysconfig, alt_u8 need_confirm);

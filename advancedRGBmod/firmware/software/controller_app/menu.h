@@ -84,8 +84,9 @@ typedef struct {
   alt_u8  rarrow_hpos;
 } arrow_t;
 
-typedef int (*save_call)(configuration_t*,alt_u8);
-typedef int (*load_call)(configuration_t*,alt_u8);
+typedef int  (*save_call)(configuration_t*,alt_u8);
+typedef int  (*load_call)(configuration_t*,alt_u8);
+typedef void (*test_call)(configuration_t*);
 
 typedef struct {
   alt_u8        id;
@@ -97,6 +98,7 @@ typedef struct {
     union {
       save_call save_fun;
       load_call load_fun;
+      test_call test_fun;
     };
   };
 } leaves_t;

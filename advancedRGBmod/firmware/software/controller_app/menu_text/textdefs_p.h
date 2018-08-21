@@ -84,7 +84,8 @@
 #define MISC_VALS_V_OFFSET        CFG_OVERLAY_V_OFFSET
 #define MISC_IGR_RESET_V_OFFSET   ( 1 + MISC_VALS_V_OFFSET)
 #define MISC_IGR_QUICK_V_OFFSET   ( 2 + MISC_VALS_V_OFFSET)
-#define MISC_FILTERADDON_V_OFFSET ( 5 + MISC_VALS_V_OFFSET)
+#define MISC_FILTERADDON_V_OFFSET ( 4 + MISC_VALS_V_OFFSET)
+#define MISC_SHOWTESTPAT_V_OFFSET ( 6 + MISC_VALS_V_OFFSET)
 
 #define RWDATA_OVERLAY_H_OFFSET  OVERLAY_H_OFFSET
 #define RWDATA_OVERLAY_V_OFFSET  OVERLAY_V_OFFSET_WH
@@ -177,9 +178,11 @@ static const char *misc_header =
 static const char *misc_overlay =
     "* In-Game Routines:\n"
     "  - Reset:\n"
-    "  - Quick-Access:\n\n"
+    "  - Quick-Access:\n"
     "* Filter AddOn:\n"
-    "  - Filter Cut-Off:";
+    "  - Filter Cut-Off:\n\n"
+    "* Show Test-Pattern (alpha state)\n"
+    "  [A to enter, B to exit]";
 
 static const char *rwdata_header =
     "Load/Save";

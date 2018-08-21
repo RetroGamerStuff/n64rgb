@@ -59,11 +59,11 @@ parameter vdata_width_o = 4 + 3*color_width_o;
   `define VDATA_O_BL_SLICE    color_width_o-1:0
 
   `define GAMMA_TABLE_OFF   4'b0101
+
   `define HSTART_NTSC 11'd0225
   `define HSTOP_NTSC  11'd1500
-
-  `define HSTART_PAL 11'd0275
-  `define HSTOP_PAL  11'd1550
+  `define HSTART_PAL  11'd0275
+  `define HSTOP_PAL   11'd1550
 
   `define BUF_NUM_OF_PAGES    6
   `define BUF_DEPTH_PER_PAGE  (`HSTOP_NTSC - `HSTART_NTSC + 1)/2
