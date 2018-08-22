@@ -57,29 +57,27 @@ output reg [`VDATA_O_FU_SLICE] vdata_out = {vdata_width_o{1'b0}};
 
 
 
-//wire posedge_nVSYNC = !vdata_out[3*color_width_o+3] &  Sync_in[3];
-wire negedge_nVSYNC =  vdata_out[3*color_width_o+3] & !Sync_in[3];
-//wire posedge_nHSYNC = !vdata_out[3*color_width_o+1] &  Sync_in[1];
-wire negedge_nHSYNC =  vdata_out[3*color_width_o+1] & !Sync_in[1];
-//wire posedge_nCSYNC = !vdata_out[3*color_width_o  ] &  Sync_in[0];
+wire posedge_nVSYNC = !vdata_out[3*color_width_o+3] &  Sync_in[3];
+wire posedge_nHSYNC = !vdata_out[3*color_width_o+1] &  Sync_in[1];
+wire posedge_nCSYNC = !vdata_out[3*color_width_o  ] &  Sync_in[0];
 
 reg [8:0] vcnt = 9'b0;
 reg [9:0] hcnt = 10'b0;
 
-wire [8:0] pattern_vstart = vmode ? 9'd25 : 9'd21;
-wire [8:0] pattern_vstop = vmode ? 9'd299 : 9'd251;
-wire [9:0] pattern_hstart = vmode ? (`HSTART_PAL >> 1) : (`HSTART_NTSC >> 1);
-wire [9:0] pattern_hstop = vmode ? (`HSTOP_PAL >> 1) : (`HSTOP_NTSC >> 1);
+wire [8:0] pattern_vstart = vmode ? 9'd22 : 9'd18;
+wire [8:0] pattern_vstop = vmode ? 9'd296 : 9'd248;
+wire [9:0] pattern_hstart = vmode ? ((`HSTART_PAL-`HS_WIDTH_PAL_288P) >> 1) : ((`HSTART_NTSC-`HS_WIDTH_NTSC_240P) >> 1);
+wire [9:0] pattern_hstop = vmode ? ((`HSTOP_PAL-`HS_WIDTH_PAL_288P) >> 1) : ((`HSTOP_NTSC-`HS_WIDTH_NTSC_240P) >> 1);
 
 always @(posedge VCLK) begin
   if (!nDSYNC) begin
-    if (negedge_nHSYNC) begin
+    if (posedge_nHSYNC) begin
       hcnt <= 10'b0;
       vcnt <= &vcnt ? vcnt : vcnt + 1'b1;
     end else begin
       hcnt <= &hcnt ? hcnt : hcnt + 1'b1;
     end
-    if (negedge_nVSYNC)
+    if (posedge_nVSYNC)
       vcnt <= 9'b0;
 
     if ((vcnt > pattern_vstart) && (vcnt < pattern_vstop)) begin
