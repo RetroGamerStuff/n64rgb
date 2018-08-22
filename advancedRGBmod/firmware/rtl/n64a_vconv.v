@@ -190,6 +190,10 @@ always @(posedge VCLK) begin
     V1_o <= {color_width_o{1'b0}};
     V2_o <= {color_width_o{1'b0}};
     V3_o <= {color_width_o{1'b0}};
+    if (!nEN_YPbPr) begin
+      V2_o[color_width_o-1] = 1'b1;
+      V3_o[color_width_o-1] = 1'b1;
+    end
   end
 end
 
