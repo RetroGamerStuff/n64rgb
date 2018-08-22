@@ -121,19 +121,6 @@ input       n480i_bob;
 
 // start of rtl
 
-// Part 0: Test Pattern
-// ====================
-
-wire [`VDATA_O_FU_SLICE] vdata_testpattern;
-
-n64a_testpattern testpattern_u(
-  .VCLK(VCLK),
-  .nDSYNC(nDSYNC),
-  .nRST(nVRST),
-  .vmode(vmode),
-  .Sync_in(D_i[3:0]),
-  .vdata_out(vdata_testpattern)
-);
 
 // Part 1: connect controller module
 // =================================
@@ -282,33 +269,50 @@ wire nENABLE_linedbl = ~cfg_lineX2 | ~nRST;
 
 wire [15:0] vinfo_dbl = {nENABLE_linedbl,cfg_OSD_SL,cfg_SLHyb_str,cfg_SL_str,cfg_SL_method,cfg_SL_id,cfg_SL_en,vinfo_pass[1:0]};
 
-wire [`VDATA_O_FU_SLICE] vdata_tmp;
+wire [`VDATA_O_FU_SLICE] vdata_srgb_out;
 
 n64a_linedbl linedoubler(
   .VCLK(VCLK),
   .nRST(nVRST),
   .vinfo_dbl(vinfo_dbl),
   .vdata_i(vdata_r[3]),
-  .vdata_o(vdata_tmp)
+  .vdata_o(vdata_srgb_out)
 );
 
 
+
+// Part 6: Test Pattern Generator
+// ==============================
+// (intersects part 5)
+
+wire [`VDATA_O_FU_SLICE] vdata_testpattern;
+
+n64a_testpattern testpattern_u(
+  .VCLK(VCLK),
+  .nDSYNC(nDSYNC),
+  .nRST(nVRST),
+  .vmode(vmode),
+  .Sync_in(D_i[3:0]),
+  .vdata_out(vdata_testpattern)
+);
+
+// (continue with part 5)
 // Part 5.3: Color Transformation
 // ==============================
 
-
-wire [`VDATA_O_FU_SLICE] vdata_o;
+wire [`VDATA_O_FU_SLICE] vdata_vc_in = cfg_testpat ? vdata_testpattern : vdata_srgb_out;
+wire [`VDATA_O_FU_SLICE] vdata_vc_out;
 
 n64a_vconv video_converter(
   .VCLK(VCLK),
   .nRST(nVRST),
   .nEN_YPbPr(cfg_nEN_YPbPr),    // enables color transformation on '0'
-  .vdata_i(vdata_tmp),
-  .vdata_o(vdata_o)
+  .vdata_i(vdata_vc_in),
+  .vdata_o(vdata_vc_out)
 );
 
-// Part 5.4: assign final outputs
-// ==============================
+// Part 7: assign final outputs
+// ============================
 
 reg [3:0] Sync_o = 4'b0;
 reg [`VDATA_O_CO_SLICE] vdata_shifted[0:1];
@@ -318,19 +322,19 @@ initial begin
 end
 
 always @(posedge VCLK) begin
-  Sync_o <= vdata_o[`VDATA_O_SY_SLICE];
+  Sync_o <= vdata_vc_out[`VDATA_O_SY_SLICE];
 
   vdata_shifted[1] <= vdata_shifted[0];
-  vdata_shifted[0] <= vdata_o[`VDATA_O_CO_SLICE];
+  vdata_shifted[0] <= vdata_vc_out[`VDATA_O_CO_SLICE];
 
-  if (!ndo_deblur) begin
+  if (!ndo_deblur && !cfg_testpat) begin
     V3_o <= vdata_shifted[nENABLE_linedbl][`VDATA_O_BL_SLICE];
     V2_o <= vdata_shifted[nENABLE_linedbl][`VDATA_O_GR_SLICE];
     V1_o <= vdata_shifted[nENABLE_linedbl][`VDATA_O_RE_SLICE];
   end else begin
-    V3_o <= vdata_o[`VDATA_O_BL_SLICE];
-    V2_o <= vdata_o[`VDATA_O_GR_SLICE];
-    V1_o <= vdata_o[`VDATA_O_RE_SLICE];
+    V3_o <= vdata_vc_out[`VDATA_O_BL_SLICE];
+    V2_o <= vdata_vc_out[`VDATA_O_GR_SLICE];
+    V1_o <= vdata_vc_out[`VDATA_O_RE_SLICE];
   end
 
   if (!nVRST) begin
@@ -341,13 +345,6 @@ always @(posedge VCLK) begin
 
     vdata_shifted[0] <= {3*color_width_o{1'b0}};
     vdata_shifted[1] <= {3*color_width_o{1'b0}};
-  end
-
-  if (cfg_testpat) begin
-    Sync_o <= vdata_testpattern[`VDATA_O_SY_SLICE];
-      V3_o <= vdata_testpattern[`VDATA_O_BL_SLICE];
-      V2_o <= vdata_testpattern[`VDATA_O_GR_SLICE];
-      V1_o <= vdata_testpattern[`VDATA_O_RE_SLICE];
   end
 end
 
