@@ -29,7 +29,6 @@
 // Description:    simple line-multiplying
 //
 // Dependencies: vh/n64a_params.vh
-//               ip/fpga_family/altpll_0.qip
 //               rtl/n64a_ram2port.v
 //
 // Features: linebuffer for - NTSC 240p -> 480p rate conversion
@@ -148,7 +147,6 @@ end
 reg [1:0]     newFrame = 2'b00;
 reg            FrameID = 1'b0;
 reg [1:0] start_rdproc = 2'b00;
-reg [1:0]  stop_rdproc = 2'b00;
 
 
 always @(posedge VCLK) begin
