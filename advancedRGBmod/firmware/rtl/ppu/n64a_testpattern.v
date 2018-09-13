@@ -53,7 +53,7 @@ input nRST;
 
 input vmode;
 input [3:0] Sync_in;
-output reg [`VDATA_O_FU_SLICE] vdata_out = {vdata_width_o{1'b0}};
+output [`VDATA_O_FU_SLICE] vdata_out;
 
 
 
@@ -64,10 +64,10 @@ wire posedge_nCSYNC = !vdata_out[3*color_width_o  ] &  Sync_in[0];
 reg [8:0] vcnt = 9'b0;
 reg [9:0] hcnt = 10'b0;
 
-wire [8:0] pattern_vstart = vmode ? 9'd22 : 9'd18;
-wire [8:0] pattern_vstop = vmode ? 9'd296 : 9'd248;
-wire [9:0] pattern_hstart = vmode ? ((`HSTART_PAL-`HS_WIDTH_PAL_288P) >> 1) : ((`HSTART_NTSC-`HS_WIDTH_NTSC_240P) >> 1);
-wire [9:0] pattern_hstop = vmode ? ((`HSTOP_PAL-`HS_WIDTH_PAL_288P) >> 1) : ((`HSTOP_NTSC-`HS_WIDTH_NTSC_240P) >> 1);
+wire [8:0] pattern_vstart = vmode ? `TESTPAT_VSTART_PAL : `TESTPAT_VSTART_NTSC;
+wire [8:0] pattern_vstop  = vmode ? `TESTPAT_VSTOP_PAL  : `TESTPAT_VSTOP_NTSC;
+
+reg [4:0] vdata_checkboard_fine = 5'd0;
 
 always @(posedge VCLK) begin
   if (!nDSYNC) begin
@@ -81,26 +81,28 @@ always @(posedge VCLK) begin
       vcnt <= 9'b0;
 
     if ((vcnt > pattern_vstart) && (vcnt < pattern_vstop)) begin
-      if ((hcnt > pattern_hstart) && (hcnt < pattern_hstop))
-        vdata_out[`VDATA_O_CO_SLICE] <= {3*color_width_o{~vdata_out[0]}};
+      if ((hcnt > `TESTPAT_HSTART) && (hcnt < `TESTPAT_HSTOP))
+        vdata_checkboard_fine[0] <= ~vdata_checkboard_fine[0];
       else
-        vdata_out[`VDATA_O_CO_SLICE] <= {3*color_width_o{1'b0}};
+        vdata_checkboard_fine[0] <= 1'b0;
 
-      if (hcnt == pattern_hstart)
-        vdata_out[`VDATA_O_CO_SLICE] <= {3*color_width_o{vcnt[0]}};
+      if (hcnt == `TESTPAT_HSTART)
+        vdata_checkboard_fine[0] <= vcnt[0];
     end else begin
-      vdata_out[`VDATA_O_CO_SLICE] <= {3*color_width_o{1'b0}};
+      vdata_checkboard_fine[0] <= 1'b0;
     end
 
-    vdata_out[`VDATA_O_SY_SLICE] <= Sync_in;
+    vdata_checkboard_fine[4:1] <= Sync_in;
   end
   if (!nRST) begin
-    vdata_out <= {vdata_width_o{1'b0}};
+    vdata_checkboard_fine <= 5'd0;
 
     vcnt <= 9'b0;
     hcnt <= 10'b0;
   end
 end
+
+assign vdata_out = {vdata_checkboard_fine[4:1],{3*color_width_o{vdata_checkboard_fine[0]}}};
 
 
 endmodule

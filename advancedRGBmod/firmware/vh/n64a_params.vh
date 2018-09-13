@@ -116,6 +116,15 @@ parameter vdata_width_o = 4 + 3*color_width_o;
 
   `define IGR_RESET (`A + `B + `Z + `St + `R)
 
+  // Testpattern
+  // ===========
+
+  `define TESTPAT_HSTART      10'd060
+  `define TESTPAT_HSTOP       10'd701
+  `define TESTPAT_VSTART_NTSC  9'd005
+  `define TESTPAT_VSTOP_NTSC   9'd247
+  `define TESTPAT_VSTART_PAL   9'd006
+  `define TESTPAT_VSTOP_PAL    9'd296
 
   // OSD menu window sizing
   // ======================
