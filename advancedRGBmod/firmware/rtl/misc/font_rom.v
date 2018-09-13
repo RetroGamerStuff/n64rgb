@@ -22,7 +22,7 @@
 // Company:  Circuit-Board.de
 // Engineer: borti4938
 //
-// Module Name:    n64a_font_rom
+// Module Name:    font_rom
 // Project Name:   N64 Advanced RGB/YPbPr DAC Mod
 // Target Devices: Max10, Cyclone IV and Cyclone 10 LP devices
 // Tool versions:  Altera Quartus Prime
@@ -35,7 +35,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module n64a_font_rom(
+module font_rom(
   CLK,
   char_addr,
   char_line,

@@ -35,23 +35,23 @@
 
 module n64a_vdemux(
   VCLK,
-  nDSYNC,
+  nVDSYNC,
   nRST,
 
-  D_i,
+  VD_i,
   demuxparams_i,
 
   vdata_r_0,
   vdata_r_1
 );
 
-`include "vh/n64a_params.vh"
+`include "vh/n64adv_vparams.vh"
 
 input VCLK;
-input nDSYNC;
+input nVDSYNC;
 input nRST;
 
-input  [color_width_i-1:0] D_i;
+input  [color_width_i-1:0] VD_i;
 input  [              4:0] demuxparams_i;
 
 output reg [`VDATA_I_FU_SLICE] vdata_r_0 = {vdata_width_i{1'b0}}; // buffer for sync, red, green and blue
@@ -65,7 +65,7 @@ wire       vmode       = demuxparams_i[  2];
 wire       ndo_deblur  = demuxparams_i[  1];
 wire       n15bit_mode = demuxparams_i[  0];
 
-wire posedge_nCSYNC = !vdata_r_0[3*color_width_i] &  D_i[0];
+wire posedge_nCSYNC = !vdata_r_0[3*color_width_i] &  VD_i[0];
 
 
 // start of rtl
@@ -73,7 +73,7 @@ wire posedge_nCSYNC = !vdata_r_0[3*color_width_i] &  D_i[0];
 reg nblank_rgb = 1'b1;
 
 always @(posedge VCLK)
-  if (!nDSYNC) begin
+  if (!nVDSYNC) begin
     if (ndo_deblur) begin
       nblank_rgb <= 1'b1;
     end else begin
@@ -85,20 +85,20 @@ always @(posedge VCLK)
   end
 
 always @(posedge VCLK) begin // data register management
-  if (!nDSYNC) begin
+  if (!nVDSYNC) begin
     // shift data to output registers
     vdata_r_1[`VDATA_I_SY_SLICE] <= vdata_r_0[`VDATA_I_SY_SLICE];
     if (nblank_rgb)  // deblur active: pass RGB only if not blanked
       vdata_r_1[`VDATA_I_CO_SLICE] <= vdata_r_0[`VDATA_I_CO_SLICE];
 
     // get new sync data
-    vdata_r_0[`VDATA_I_SY_SLICE] <= D_i[3:0];
+    vdata_r_0[`VDATA_I_SY_SLICE] <= VD_i[3:0];
   end else begin
     // demux of RGB
     case(data_cnt)
-      2'b01: vdata_r_0[`VDATA_I_RE_SLICE] <= n15bit_mode ? D_i : {D_i[6:2], 2'b00};
-      2'b10: vdata_r_0[`VDATA_I_GR_SLICE] <= n15bit_mode ? D_i : {D_i[6:2], 2'b00};
-      2'b11: vdata_r_0[`VDATA_I_BL_SLICE] <= n15bit_mode ? D_i : {D_i[6:2], 2'b00};
+      2'b01: vdata_r_0[`VDATA_I_RE_SLICE] <= n15bit_mode ? VD_i : {VD_i[6:2], 2'b00};
+      2'b10: vdata_r_0[`VDATA_I_GR_SLICE] <= n15bit_mode ? VD_i : {VD_i[6:2], 2'b00};
+      2'b11: vdata_r_0[`VDATA_I_BL_SLICE] <= n15bit_mode ? VD_i : {VD_i[6:2], 2'b00};
     endcase
   end
 

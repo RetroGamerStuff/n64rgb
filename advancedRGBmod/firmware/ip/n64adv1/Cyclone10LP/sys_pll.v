@@ -4,7 +4,7 @@
 // MODULE: altpll 
 
 // ============================================================
-// File Name: altpll_1.v
+// File Name: sys_pll.v
 // Megafunction Name(s):
 // 			altpll
 //
@@ -36,7 +36,7 @@
 // synopsys translate_off
 `timescale 1 ps / 1 ps
 // synopsys translate_on
-module altpll_1 (
+module sys_pll (
 	inclk0,
 	c0,
 	c1,
@@ -116,7 +116,7 @@ module altpll_1 (
 		altpll_component.clk2_phase_shift = "0",
 		altpll_component.inclk0_input_frequency = 20000,
 		altpll_component.intended_device_family = "Cyclone 10 LP",
-		altpll_component.lpm_hint = "CBX_MODULE_PREFIX=altpll_1",
+		altpll_component.lpm_hint = "CBX_MODULE_PREFIX=sys_pll",
 		altpll_component.lpm_type = "altpll",
 		altpll_component.operation_mode = "NO_COMPENSATION",
 		altpll_component.pll_type = "AUTO",
@@ -253,7 +253,7 @@ endmodule
 // Retrieval info: PRIVATE: PLL_PFDENA_CHECK STRING "0"
 // Retrieval info: PRIVATE: PLL_TARGET_HARCOPY_CHECK NUMERIC "0"
 // Retrieval info: PRIVATE: PRIMARY_CLK_COMBO STRING "inclk0"
-// Retrieval info: PRIVATE: RECONFIG_FILE STRING "altpll_1.mif"
+// Retrieval info: PRIVATE: RECONFIG_FILE STRING "sys_pll.mif"
 // Retrieval info: PRIVATE: SACN_INPUTS_CHECK STRING "0"
 // Retrieval info: PRIVATE: SCAN_FEATURE_ENABLED STRING "1"
 // Retrieval info: PRIVATE: SELF_RESET_LOCK_LOSS STRING "1"
@@ -352,12 +352,12 @@ endmodule
 // Retrieval info: CONNECT: c1 0 0 0 0 @clk 0 0 1 1
 // Retrieval info: CONNECT: c2 0 0 0 0 @clk 0 0 1 2
 // Retrieval info: CONNECT: locked 0 0 0 0 @locked 0 0 0 0
-// Retrieval info: GEN_FILE: TYPE_NORMAL altpll_1.v TRUE
-// Retrieval info: GEN_FILE: TYPE_NORMAL altpll_1.ppf TRUE
-// Retrieval info: GEN_FILE: TYPE_NORMAL altpll_1.inc FALSE
-// Retrieval info: GEN_FILE: TYPE_NORMAL altpll_1.cmp FALSE
-// Retrieval info: GEN_FILE: TYPE_NORMAL altpll_1.bsf FALSE
-// Retrieval info: GEN_FILE: TYPE_NORMAL altpll_1_inst.v FALSE
-// Retrieval info: GEN_FILE: TYPE_NORMAL altpll_1_bb.v FALSE
+// Retrieval info: GEN_FILE: TYPE_NORMAL sys_pll.v TRUE
+// Retrieval info: GEN_FILE: TYPE_NORMAL sys_pll.ppf TRUE
+// Retrieval info: GEN_FILE: TYPE_NORMAL sys_pll.inc FALSE
+// Retrieval info: GEN_FILE: TYPE_NORMAL sys_pll.cmp FALSE
+// Retrieval info: GEN_FILE: TYPE_NORMAL sys_pll.bsf FALSE
+// Retrieval info: GEN_FILE: TYPE_NORMAL sys_pll_inst.v FALSE
+// Retrieval info: GEN_FILE: TYPE_NORMAL sys_pll_bb.v FALSE
 // Retrieval info: LIB_FILE: altera_mf
 // Retrieval info: CBX_MODULE_PREFIX: ON

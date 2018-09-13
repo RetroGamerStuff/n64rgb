@@ -22,26 +22,19 @@
 // Company:  Circuit-Board.de
 // Engineer: borti4938
 //
-// Module Name:    n64a_linedbl
+// Module Name:    linedoubler
 // Project Name:   N64 Advanced RGB/YPbPr DAC Mod
 // Target Devices: Cyclone IV and Cyclone 10 LP devices
 // Tool versions:  Altera Quartus Prime
 // Description:    simple line-multiplying
 //
-// Dependencies: vh/n64a_params.vh
-//               ip/fpga_family/altpll_0.qip
-//               rtl/n64a_ram2port.v
-//
-// Features: linebuffer for - NTSC 240p -> 480p rate conversion
-//                          - PAL  288p -> 576p rate conversion
-//           injection of scanlines
-//
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module n64a_linedbl(
+module linedoubler(
   VCLK,
   nRST,
+  VCLK_Tx,
 
   vinfo_dbl,
 
@@ -49,7 +42,7 @@ module n64a_linedbl(
   vdata_o
 );
 
-`include "vh/n64a_params.vh"
+`include "vh/n64adv_vparams.vh"
 
 localparam buf_pages   = 1;
 localparam hcnt_witdh  = $clog2(`PIXEL_PER_LINE_2x_MAX);
@@ -58,6 +51,7 @@ localparam SLHyb_width = 8; // do not change this localparam!
 
 input VCLK;
 input nRST;
+input VCLK_Tx;
 
 input [15:0] vinfo_dbl; // [nLinedbl,SL_in_osd,SLhyb_str (5bits),SL_str (4bits),SL_method,SL_id,SL_en,PAL,interlaced]
 
@@ -87,7 +81,7 @@ wire       n64_480i    = vinfo_dbl[ 0];
 
 // start of rtl
 
-reg nDSYNC_dbl = 1'b0;
+reg nVDSYNC_dbl = 1'b0;
 
 reg  nVS_i_buf = 1'b0;
 reg  nHS_i_buf = 1'b0;
@@ -99,9 +93,9 @@ wire negedge_nVSYNC =  nVS_i_buf & !nVS_i;
 reg [SLHyb_width-1:0] SL_rval = {SLHyb_width{1'b0}};
 
 always @(posedge VCLK) begin
-  nDSYNC_dbl <= ~nDSYNC_dbl;
+  nVDSYNC_dbl <= ~nVDSYNC_dbl;
 
-  if (!nDSYNC_dbl) begin
+  if (!nVDSYNC_dbl) begin
     nHS_i_buf <= nHS_i;
     nVS_i_buf <= nVS_i;
 
@@ -112,7 +106,7 @@ always @(posedge VCLK) begin
   end
 
   if (!nRST) begin
-    nDSYNC_dbl <= 1'b0;
+    nVDSYNC_dbl <= 1'b0;
     nHS_i_buf  <= 1'b0;
     nVS_i_buf  <= 1'b0;
     FrameID    <= 1'b0;
@@ -148,11 +142,10 @@ end
 reg [1:0]     newFrame = 2'b00;
 reg            FrameID = 1'b0;
 reg [1:0] start_rdproc = 2'b00;
-reg [1:0]  stop_rdproc = 2'b00;
 
 
 always @(posedge VCLK) begin
-  if (!nDSYNC_dbl) begin
+  if (!nVDSYNC_dbl) begin
     if (negedge_nVSYNC) begin
       // trigger new frame
       newFrame[0] <= ~newFrame[1];
@@ -215,7 +208,7 @@ reg [pcnt_width-1:0] rdpage  = {pcnt_width{1'b0}};
 reg [hcnt_witdh-1:0] rdhcnt  = {hcnt_witdh{1'b1}};
 reg [hcnt_witdh-1:0] rdaddr  = {hcnt_witdh{1'b0}};
 
-always @(posedge VCLK) begin
+always @(posedge VCLK_Tx) begin
   if (rdrun[1]) begin
     if (rdhcnt == line_width[rdpage_pp1]) begin
       rdhcnt   <= {hcnt_witdh{1'b0}};
@@ -238,7 +231,7 @@ always @(posedge VCLK) begin
       rden[0] <= 1'b0;
       rdaddr  <= {hcnt_witdh{1'b0}};
     end
-  end else if (rdrun[0] && !nDSYNC_dbl &&
+  end else if (rdrun[0] && !nVDSYNC_dbl &&
                (wrpage == (`BUF_NUM_OF_PAGES>>1))) begin
     rdrun[1] <= 1'b1;
     rdcnt    <= 1'b0;
@@ -267,17 +260,17 @@ wire [pcnt_width-1:0] rdpage_pp3 = !SL_id ? (rdpage_pp2 >= `BUF_NUM_OF_PAGES ? `
 
 wire [color_width_i-1:0] R_buf, G_buf, B_buf;
 
-n64a_ram2port #(
+ram2port #(
   .num_of_pages(`BUF_NUM_OF_PAGES),
   .pagesize(`BUF_DEPTH_PER_PAGE),
   .data_width(3*color_width_i)
 ) videobuffer_0(
   .wrCLK(VCLK),
-  .wren(&{wren,!line_overflow,nDSYNC_dbl,!wraddr[0]}),
+  .wren(&{wren,!line_overflow,nVDSYNC_dbl,!wraddr[0]}),
   .wrpage(wrpage),
   .wraddr(wraddr[hcnt_witdh-1:1]),
   .wrdata({R_i,G_i,B_i}),
-  .rdCLK(VCLK),
+  .rdCLK(VCLK_Tx),
   .rden(rden[0]),
   .rdpage(rdpage_pp3),
   .rdaddr(rdaddr[hcnt_witdh-1:1]),
@@ -310,7 +303,7 @@ wire [color_width_i-1:0] R_avg = {1'b0,R_dbl_pre[color_width_i-1:1]} + {1'b0,R_b
 wire [color_width_i-1:0] G_avg = {1'b0,G_dbl_pre[color_width_i-1:1]} + {1'b0,G_buf[color_width_i-1:1]} + (G_dbl_pre[0] ^ G_buf[0]);
 wire [color_width_i-1:0] B_avg = {1'b0,B_dbl_pre[color_width_i-1:1]} + {1'b0,B_buf[color_width_i-1:1]} + (B_dbl_pre[0] ^ B_buf[0]);
 
-always @(posedge VCLK) begin
+always @(posedge VCLK_Tx) begin
   if (^rdcnt_buf[3:2]) begin
     S_dbl[0] <= 1'b0;
     S_dbl[1] <= 1'b0;
@@ -407,7 +400,7 @@ reg  [color_width_o-1:0]             R_sl, G_sl, B_sl;
 
 integer pp_idx;
 
-always @(posedge VCLK) begin
+always @(posedge VCLK_Tx) begin
        dSL_pp[0] <= drawSL;
          S_pp[0] <= S_dbl;
   R_sl_pre_pp[0] <= R_sl_pre;

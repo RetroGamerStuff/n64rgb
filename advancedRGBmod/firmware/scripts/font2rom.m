@@ -20,8 +20,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-fileName = 'n64a_font_rom'; % file-name for verilog file (/wo extension)
-targetFolder = '../rtl/';   % target folder for rom file
+fileName = 'font_rom'; % file-name for verilog file (/wo extension)
+targetFolder = '../rtl/misc/';   % target folder for rom file
 
 font_width = 12;
 font8x12 = reshape(hex2dec([  ...

@@ -28,33 +28,31 @@
 // Tool versions:  Altera Quartus Prime
 // Description:    estimates whether N64 uses blur or not
 //
-// Dependencies: vh/n64a_params.vh
-//
 //////////////////////////////////////////////////////////////////////////////////
 
 
 module n64_deblur (
   VCLK,
-  nDSYNC,
+  nVDSYNC,
 
   nRST,
 
   vdata_pre,
-  D_i,
+  VD_i,
 
   deblurparams_i,
   ndo_deblur
 );
 
-`include "vh/n64a_params.vh"
+`include "vh/n64adv_vparams.vh"
 
 input VCLK;
-input nDSYNC;
+input nVDSYNC;
 
 input nRST;
 
 input [`VDATA_I_FU_SLICE] vdata_pre;
-input [color_width_i-1:0] D_i;
+input [color_width_i-1:0] VD_i;
 
 input  [5:0] deblurparams_i;          // order: data_cnt,vmode,n64_480i,nForceDeBlur,nDeBlurMan
 output reg  ndo_deblur = 1'b1;
@@ -68,16 +66,16 @@ wire         n64_480i = deblurparams_i[  2];
 wire     nForceDeBlur = deblurparams_i[  1];
 wire       nDeBlurMan = deblurparams_i[  0];
 
-wire negedge_nVSYNC =  vdata_pre[3*color_width_i+3] & !D_i[3];
-wire posedge_nCSYNC = !vdata_pre[3*color_width_i  ] &  D_i[0];
+wire negedge_nVSYNC =  vdata_pre[3*color_width_i+3] & !VD_i[3];
+wire posedge_nCSYNC = !vdata_pre[3*color_width_i  ] &  VD_i[0];
 
 wire [2:0] Rcmp_pre = vdata_pre[3*color_width_i-1:3*color_width_i-3];
 wire [2:0] Gcmp_pre = vdata_pre[2*color_width_i-1:2*color_width_i-3];
 wire [2:0] Bcmp_pre = vdata_pre[  color_width_i-1:  color_width_i-3];
 
-wire [2:0] Rcmp_cur = D_i[color_width_i-1:color_width_i-3];
-wire [2:0] Gcmp_cur = D_i[color_width_i-1:color_width_i-3];
-wire [2:0] Bcmp_cur = D_i[color_width_i-1:color_width_i-3];
+wire [2:0] Rcmp_cur = VD_i[color_width_i-1:color_width_i-3];
+wire [2:0] Gcmp_cur = VD_i[color_width_i-1:color_width_i-3];
+wire [2:0] Bcmp_cur = VD_i[color_width_i-1:color_width_i-3];
 
 
 // some more definitions for the heuristics
@@ -93,7 +91,7 @@ localparam init_trend = 9'h100;  // initial value (shall have MSB set, zero else
 reg blur_pix = 1'b0;
 
 always @(posedge VCLK)
-  if (!nDSYNC) begin
+  if (!nVDSYNC) begin
     if(posedge_nCSYNC) // posedge nCSYNC -> reset blanking
       blur_pix <= ~vmode;
     else
@@ -116,7 +114,7 @@ reg nblur_n64 = 1'b1;                             // blur effect is estimated to
 
 always @(posedge VCLK) begin // estimation of blur effect
   if (!n64_480i) begin
-    if (!nDSYNC) begin
+    if (!nVDSYNC) begin
       if(negedge_nVSYNC) begin  // negedge at nVSYNC detected - new frame
         if (run_estimation) begin
           if (&nblur_est_cnt) // add to weight
@@ -171,7 +169,7 @@ end
 // finally the blanking management
 
 always @(posedge VCLK) begin
-  if (!nDSYNC) begin
+  if (!nVDSYNC) begin
     if (negedge_nVSYNC) begin // negedge at nVSYNC detected - new frame, new setting
       if (nForceDeBlur)
         ndo_deblur <= n64_480i | nblur_n64;

@@ -22,7 +22,7 @@
 // Company:  Circuit-Board.de
 // Engineer: borti4938
 //
-// Module Name:    n64a_gamma_table
+// Module Name:    gamma_table
 // Project Name:   N64 Advanced RGB/YPbPr DAC Mod
 // Target Devices: Max10, Cyclone IV and Cyclone 10 LP devices
 // Tool versions:  Altera Quartus Prime
@@ -35,7 +35,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module n64a_gamma_table(
+module gamma_table(
   VCLK,
   gamma_val,
   vdata_in,
@@ -43,7 +43,7 @@ module n64a_gamma_table(
   vdata_out
 );
 
-`include "vh/n64a_params.vh"
+`include "vh/n64adv_vparams.vh"
 
 input                     VCLK;
 input [              2:0] gamma_val;

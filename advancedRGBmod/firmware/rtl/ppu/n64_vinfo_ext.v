@@ -28,14 +28,12 @@
 // Tool versions:  Altera Quartus Prime
 // Description:    extracts video info from input
 //
-// Dependencies: vh/n64a_params.vh
-//
 //////////////////////////////////////////////////////////////////////////////////
 
 
 module n64_vinfo_ext(
   VCLK,
-  nDSYNC,
+  nVDSYNC,
   nRST,
 
   Sync_pre,
@@ -44,10 +42,10 @@ module n64_vinfo_ext(
   vinfo_o
 );
 
-`include "vh/n64a_params.vh"
+`include "vh/n64adv_vparams.vh"
 
 input VCLK;
-input nDSYNC;
+input nVDSYNC;
 input nRST;
 
 input  [3:0] Sync_pre;
@@ -70,7 +68,7 @@ wire negedge_nHSYNC =  Sync_pre[1] & !Sync_cur[1];
 reg [1:0] data_cnt = 2'b00;
 
 always @(posedge VCLK) begin // data register management
-  if (!nDSYNC)
+  if (!nVDSYNC)
     data_cnt <= 2'b01;  // reset data counter
   else
     data_cnt <= data_cnt + 1'b1;  // increment data counter
@@ -87,7 +85,7 @@ reg FrameID  = 1'b0; // 0 = even frame, 1 = odd frame; 240p: only even or only o
 reg n64_480i = 1'b1; // 0 = 240p/288p , 1= 480i/576i
 
 always @(posedge VCLK) begin
-  if (!nDSYNC) begin
+  if (!nVDSYNC) begin
     if (negedge_nVSYNC) begin    // negedge at nVSYNC
       if (negedge_nHSYNC) begin  // negedge at nHSYNC, too -> odd frame
         n64_480i <= ~FrameID;
@@ -113,7 +111,7 @@ reg [1:0] line_cnt = 2'b00; // PAL: line_cnt[1:0] == 0x ; NTSC: line_cnt[1:0] = 
 reg       vmode = 1'b0;     // PAL: vmode == 1          ; NTSC: vmode == 0
 
 always @(posedge VCLK) begin
-  if (!nDSYNC) begin
+  if (!nVDSYNC) begin
     if(posedge_nVSYNC) begin // posedge at nVSYNC detected - reset line_cnt and set vmode
       line_cnt <= 2'b00;
       vmode    <= ~line_cnt[1];

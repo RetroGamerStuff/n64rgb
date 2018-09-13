@@ -22,7 +22,7 @@
 // Company:  Circuit-Board.de
 // Engineer: borti4938
 //
-// Module Name:    n64a_vconv
+// Module Name:    vconv
 // Project Name:   N64 Advanced RGB/YPbPr DAC Mod
 // Target Devices: Cyclone IV and Cyclone 10 LP devices
 // Tool versions:  Altera Quartus Prime
@@ -35,7 +35,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-module n64a_vconv(
+module vconv(
   VCLK,
   nRST,
 
@@ -45,7 +45,7 @@ module n64a_vconv(
   vdata_o
 );
 
-`include "vh/n64a_params.vh"
+`include "vh/n64adv_vparams.vh"
 
 localparam coeff_width = 20;
 

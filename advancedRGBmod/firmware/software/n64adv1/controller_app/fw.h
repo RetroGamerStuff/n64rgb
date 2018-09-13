@@ -29,8 +29,8 @@
 #ifndef FW_H_
 #define FW_H_
 
-#define SW_FW_MAIN  2
-#define SW_FW_SUB   23
+#define SW_FW_MAIN  1
+#define SW_FW_SUB   30
 
 #define CFG_FW_MAIN SW_FW_MAIN
 #define CFG_FW_SUB  0

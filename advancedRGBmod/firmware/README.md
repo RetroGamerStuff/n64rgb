@@ -15,7 +15,7 @@
   - click _Generate HDL..._ and then on _Generate_ in the popped up window code
   - click on _Finish_ to close Platform Designer
 - Click in _Compile Design_ to build your firmware
-  - output will be generated in _project\_folder_/output_files/_revision_/
+  - output will be generated in _project\_folder_/output_files/n64adv1/_revision_/
   - Update needs an USB Blaster
     - Use the *.sof file to temporarely run your firmware on the FPGA (lasts one power cycle)
 	- Use the *.pof file for program flash memory off the board using AS
@@ -36,9 +36,9 @@
   - click on _File_ -> _New... -> _NIOS II Board Support Package_
   - setup:
     - _Project name:_ **controller\_bsp**
-	- _SOPC Information File name:_ **_project\_folder_/system.sopcinfo**  
+	- _SOPC Information File name:_ **_project\_ip\_folder_/system.sopcinfo**  
 	  (located in _project\_folder_/)
-	- Location: **_project\_folder_/software/controller\_bsp**  
+	- Location: **_project\_sw\_folder_/software/controller\_bsp**  
 	  (should be default location)
   - click on _Finish_ to generate project  
     the project should now appear in your Project Explorer
@@ -46,9 +46,9 @@
   - click on _File_->_New... -> _NIOS II Application_
   - setup:
     - _Project name:_ **controller\_app**
-	- _BSP location:_ **_project\_folder_/software/controller\_bsp**  
+	- _BSP location:_ **_project\_sw\_folder_/software/controller\_bsp**  
 	  (can be selected from project list)
-	- Location: **_project\_folder_/software/controller\_app**  
+	- Location: **_project\_sw\_folder_/software/controller\_app**  
 	  (should be default location)
   - integrate sources into Makefile
     - mark all source-files 

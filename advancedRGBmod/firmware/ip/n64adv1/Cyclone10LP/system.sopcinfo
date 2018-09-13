@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <EnsembleReport name="system" kind="system" version="1.0" fabric="QSYS">
  <!-- Format version 18.0 614 (Future versions may contain additional information.) -->
- <!-- 2018.08.23.19:28:09 -->
+ <!-- 2018.09.13.23:07:22 -->
  <!-- A collection of modules and connections -->
  <parameter name="AUTO_GENERATION_ID">
   <type>java.lang.Integer</type>
-  <value>1535045289</value>
+  <value>1536872842</value>
   <derived>false</derived>
   <enabled>true</enabled>
   <visible>false</visible>
@@ -10680,7 +10680,7 @@ the requested settings for a module instance. -->
   </parameter>
   <parameter name="initializationFileName">
    <type>java.lang.String</type>
-   <value>software/controller_app/mem_init/system_onchip_memory2_0.hex</value>
+   <value>software/n64adv1/controller_app/mem_init/system_onchip_memory2_0.hex</value>
    <derived>false</derived>
    <enabled>true</enabled>
    <visible>true</visible>
@@ -10891,7 +10891,7 @@ the requested settings for a module instance. -->
   </parameter>
   <parameter name="derived_init_file_name">
    <type>java.lang.String</type>
-   <value>software/controller_app/mem_init/system_onchip_memory2_0.hex</value>
+   <value>software/n64adv1/controller_app/mem_init/system_onchip_memory2_0.hex</value>
    <derived>true</derived>
    <enabled>true</enabled>
    <visible>false</visible>
