@@ -289,7 +289,7 @@ reg [1:0] nVS_cnt = 2'b0;
 
 wire CSen_lineend = ((rdhcnt + 2'b11) > (line_width[rdpage_pp1] - nHS_width));
 
-wire is_OSD_area = (  rdhcnt > ({`OSD_WINDOW_H_START,1'b0}+4'h6)) && (  rdhcnt < ({`OSD_WINDOW_H_STOP,1'b0}+4'h6)) &&
+wire is_OSD_area = (  rdhcnt > ({`OSD_WINDOW_H_START,1'b0}+4'h8)) && (  rdhcnt < ({`OSD_WINDOW_H_STOP,1'b0}+4'h7)) &&
                    (vcnt_dbl > ({`OSD_WINDOW_V_START,1'b0}+4'h2)) && (vcnt_dbl < ({`OSD_WINDOW_V_STOP,1'b0}+4'h1));
 
 reg                     drawSL;
