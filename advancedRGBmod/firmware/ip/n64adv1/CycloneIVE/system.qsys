@@ -678,7 +678,7 @@
   <parameter name="enPRInitMode" value="false" />
   <parameter name="enableDiffWidth" value="false" />
   <parameter name="initMemContent" value="true" />
-  <parameter name="initializationFileName">software/adv1/controller_app/mem_init/system_onchip_memory2_0.hex</parameter>
+  <parameter name="initializationFileName">software/n64adv1/controller_app/mem_init/system_onchip_memory2_0.hex</parameter>
   <parameter name="instanceID" value="NONE" />
   <parameter name="memorySize" value="28672" />
   <parameter name="readDuringWriteMode" value="DONT_CARE" />
