@@ -1,0 +1,211 @@
+# -------------------------------------------------------------------------- #
+#
+# Copyright (C) 2018  Intel Corporation. All rights reserved.
+# Your use of Intel Corporation's design tools, logic functions 
+# and other software and tools, and its AMPP partner logic 
+# functions, and any output files from any of the foregoing 
+# (including device programming or simulation files), and any 
+# associated documentation or information are expressly subject 
+# to the terms and conditions of the Intel Program License 
+# Subscription Agreement, the Intel Quartus Prime License Agreement,
+# the Intel FPGA IP License Agreement, or other applicable license
+# agreement, including, without limitation, that your use is for
+# the sole purpose of programming logic devices manufactured by
+# Intel and sold by Intel or its authorized distributors.  Please
+# refer to the applicable agreement for further details.
+#
+# -------------------------------------------------------------------------- #
+#
+# Quartus Prime
+# Version 18.0.0 Build 614 04/24/2018 SJ Lite Edition
+# Date created = 13:22:05  September 04, 2018
+#
+# -------------------------------------------------------------------------- #
+#
+# Notes:
+#
+# 1) The default values for assignments are stored in the file:
+#		n64adv2_assignment_defaults.qdf
+#    If this file doesn't exist, see file:
+#		assignment_defaults.qdf
+#
+# 2) Altera recommends that you do not modify this file. This
+#    file is updated automatically by the Quartus Prime software
+#    and any changes you make may be lost or overwritten.
+#
+# -------------------------------------------------------------------------- #
+
+
+set_global_assignment -name DEVICE 10CL025YE144C8G
+set_global_assignment -name FAMILY "Cyclone 10 LP"
+set_global_assignment -name ORIGINAL_QUARTUS_VERSION 18.0.0
+set_global_assignment -name PROJECT_CREATION_TIME_DATE "13:22:05  SEPTEMBER 04, 2018"
+set_global_assignment -name LAST_QUARTUS_VERSION "18.0.0 Lite Edition"
+set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
+set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
+set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 1
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_global_assignment -name ENABLE_OCT_DONE OFF
+set_global_assignment -name USE_CONFIGURATION_DEVICE ON
+set_global_assignment -name CRC_ERROR_OPEN_DRAIN OFF
+set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "3.3-V LVCMOS"
+set_global_assignment -name CYCLONEII_RESERVE_NCEO_AFTER_CONFIGURATION "USE AS REGULAR IO"
+set_global_assignment -name RESERVE_DATA0_AFTER_CONFIGURATION "USE AS REGULAR IO"
+set_global_assignment -name RESERVE_DATA1_AFTER_CONFIGURATION "USE AS REGULAR IO"
+set_global_assignment -name RESERVE_FLASH_NCE_AFTER_CONFIGURATION "USE AS REGULAR IO"
+set_global_assignment -name RESERVE_DCLK_AFTER_CONFIGURATION "USE AS REGULAR IO"
+set_global_assignment -name OUTPUT_IO_TIMING_NEAR_END_VMEAS "HALF VCCIO" -rise
+set_global_assignment -name OUTPUT_IO_TIMING_NEAR_END_VMEAS "HALF VCCIO" -fall
+set_global_assignment -name OUTPUT_IO_TIMING_FAR_END_VMEAS "HALF SIGNAL SWING" -rise
+set_global_assignment -name OUTPUT_IO_TIMING_FAR_END_VMEAS "HALF SIGNAL SWING" -fall
+
+
+## N64 Video Input
+## ===============
+set_location_assignment PIN_55 -to VCLK_0
+set_location_assignment PIN_91 -to VCLK_1
+set_location_assignment PIN_58 -to nVDSYNC
+set_location_assignment PIN_59 -to VD_i[6]
+set_location_assignment PIN_60 -to VD_i[5]
+set_location_assignment PIN_65 -to VD_i[4]
+set_location_assignment PIN_66 -to VD_i[3]
+set_location_assignment PIN_67 -to VD_i[2]
+set_location_assignment PIN_68 -to VD_i[1]
+set_location_assignment PIN_69 -to VD_i[0]
+
+## N64 Audio Input
+## ===============
+set_location_assignment PIN_52 -to ASCLK_i
+set_location_assignment PIN_53 -to ASDATA_i
+set_location_assignment PIN_54 -to ALRCLK_i
+
+
+## System, Controller and Reset
+## ============================
+set_location_assignment PIN_24 -to SCLK_0
+set_location_assignment PIN_89 -to SCLK_1
+set_location_assignment PIN_51 -to CTRL_i
+set_location_assignment PIN_50 -to nRST
+
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to CTRL_i
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to nRST
+
+## Video Output to ADV7513
+## =======================
+set_location_assignment PIN_113 -to VCLK_o
+set_location_assignment PIN_85 -to VDE_o
+set_location_assignment PIN_80 -to VSYNC_o
+set_location_assignment PIN_83 -to HSYNC_o
+set_location_assignment PIN_144 -to VD_o[23]
+set_location_assignment PIN_143 -to VD_o[22]
+set_location_assignment PIN_142 -to VD_o[21]
+set_location_assignment PIN_141 -to VD_o[20]
+set_location_assignment PIN_137 -to VD_o[19]
+set_location_assignment PIN_136 -to VD_o[18]
+set_location_assignment PIN_135 -to VD_o[17]
+set_location_assignment PIN_133 -to VD_o[16]
+set_location_assignment PIN_132 -to VD_o[15]
+set_location_assignment PIN_120 -to VD_o[14]
+set_location_assignment PIN_121 -to VD_o[13]
+set_location_assignment PIN_125 -to VD_o[12]
+set_location_assignment PIN_119 -to VD_o[11]
+set_location_assignment PIN_115 -to VD_o[10]
+set_location_assignment PIN_114 -to VD_o[9]
+set_location_assignment PIN_112 -to VD_o[8]
+set_location_assignment PIN_106 -to VD_o[7]
+set_location_assignment PIN_105 -to VD_o[6]
+set_location_assignment PIN_103 -to VD_o[5]
+set_location_assignment PIN_101 -to VD_o[4]
+set_location_assignment PIN_100 -to VD_o[3]
+set_location_assignment PIN_99 -to VD_o[2]
+set_location_assignment PIN_87 -to VD_o[1]
+set_location_assignment PIN_86 -to VD_o[0]
+  
+## I2S audio output for ADV7513
+## ============================
+set_location_assignment PIN_71 -to AMCLK_o
+set_location_assignment PIN_76 -to ASCLK_o
+set_location_assignment PIN_77 -to ASDATA_o
+set_location_assignment PIN_72 -to ALRCLK_o
+  
+## I2C, Int
+## ========
+set_location_assignment PIN_7 -to I2C_SCL
+set_location_assignment PIN_10 -to I2C_SDA
+set_location_assignment PIN_111 -to INT_ADV7513
+
+## LED outs and extended data for misc purpouses
+## =============================================
+set_location_assignment PIN_98 -to LED_0
+set_location_assignment PIN_49 -to LED_1
+set_location_assignment PIN_33 -to ExtData[3]
+set_location_assignment PIN_32 -to ExtData[2]
+set_location_assignment PIN_31 -to ExtData[1]
+set_location_assignment PIN_28 -to ExtData[0]
+
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LED_0
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to LED_1
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to ExtData[3]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to ExtData[2]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to ExtData[1]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to ExtData[0]
+
+## PLL Locations
+## =============
+set_location_assignment PLL_2 -to "pll4video:pll4video_u|altpll:altpll_component|pll4vidio_altpll:auto_generated|pll1"
+set_location_assignment PLL_4 -to "pll4audio:pll4audio_u|altpll:altpll_component|pll4audio_altpll:auto_generated|pll1"
+
+## Synthesis and Fitter Assignments
+## ================================
+set_global_assignment -name ROUTER_TIMING_OPTIMIZATION_LEVEL MAXIMUM
+
+## Files
+## =====
+set_global_assignment -name TOP_LEVEL_ENTITY n64adv2_top
+
+set_global_assignment -name VERILOG_FILE rtl/n64adv2_top.v
+set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64adv_vparams.vh
+set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64adv_cparams.vh
+set_global_assignment -name QIP_FILE ip/n64adv2/Cyclone10LP/pll4ctrl.qip
+set_global_assignment -name QIP_FILE ip/n64adv2/Cyclone10LP/pll4video.qip
+set_global_assignment -name QIP_FILE ip/n64adv2/Cyclone10LP/pll4audio.qip
+set_global_assignment -name VERILOG_FILE rtl/n64adv2_controller.v
+set_global_assignment -name QIP_FILE ip/n64adv2/Cyclone10LP/system/synthesis/system.qip
+set_global_assignment -name VERILOG_FILE rtl/n64adv2_ppu_top.v
+set_global_assignment -name VERILOG_FILE rtl/ppu/n64_vinfo_ext.v
+set_global_assignment -name VERILOG_FILE rtl/ppu/n64_deblur.v
+set_global_assignment -name VERILOG_FILE rtl/ppu/n64a_vdemux.v
+set_global_assignment -name VERILOG_FILE rtl/ppu/osd_injection.v
+set_global_assignment -name VERILOG_FILE rtl/ppu/gamma_module.v
+set_global_assignment -name VERILOG_FILE rtl/ppu/linedoubler.v
+set_global_assignment -name VERILOG_FILE rtl/n64adv2_apu_top.v
+set_global_assignment -name QIP_FILE ip/n64adv2/Cyclone10LP/fir_audio_int.qip
+set_global_assignment -name SIP_FILE ip/n64adv2/Cyclone10LP/fir_audio_int.sip
+set_global_assignment -name VERILOG_FILE rtl/misc/ram2port.v
+set_global_assignment -name VERILOG_FILE rtl/misc/font_rom.v
+set_global_assignment -name VERILOG_FILE rtl/misc/gamma_table.v
+set_global_assignment -name SDC_FILE sdc/n64adv2.sdc
+
+set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files/n64adv2/10cl025ye144
+
+## Assignments for Synthesis and Fitter
+## ====================================
+set_global_assignment -name OPTIMIZATION_MODE "AGGRESSIVE PERFORMANCE"
+set_global_assignment -name SMART_RECOMPILE ON
+set_global_assignment -name AUTO_RAM_BLOCK_BALANCING ON
+set_global_assignment -name OPTIMIZE_HOLD_TIMING "ALL PATHS"
+set_global_assignment -name TIMING_ANALYZER_MULTICORNER_ANALYSIS ON
+
+
+## Additions by Quartus Prime
+## ==========================
+set_global_assignment -name NUM_PARALLEL_PROCESSORS 2
+set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "NO HEAT SINK WITH STILL AIR"
+set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
+set_global_assignment -name CYCLONEIII_CONFIGURATION_DEVICE EPCS16
+set_global_assignment -name DEVICE_FILTER_PIN_COUNT 144
+set_global_assignment -name FORCE_CONFIGURATION_VCCIO ON
+set_global_assignment -name CONFIGURATION_VCCIO_LEVEL 3.3V
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

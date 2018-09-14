@@ -44,7 +44,6 @@ module linedoubler(
 
 `include "vh/n64adv_vparams.vh"
 
-localparam buf_pages   = 1;
 localparam hcnt_witdh  = $clog2(`PIXEL_PER_LINE_2x_MAX);
 localparam Y_width     = color_width_o+1;
 localparam SLHyb_width = 8; // do not change this localparam!
@@ -264,7 +263,7 @@ ram2port #(
   .num_of_pages(`BUF_NUM_OF_PAGES),
   .pagesize(`BUF_DEPTH_PER_PAGE),
   .data_width(3*color_width_i)
-) videobuffer_0(
+) videobuffer_u(
   .wrCLK(VCLK),
   .wren(&{wren,!line_overflow,nVDSYNC_dbl,!wraddr[0]}),
   .wrpage(wrpage),
