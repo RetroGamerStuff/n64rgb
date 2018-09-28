@@ -290,7 +290,8 @@ updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t
     }
 
     if (is_misc_screen(*current_menu) && sel == 2 && !use_filteraddon)
-      (*current_menu)->current_selection = (command == CMD_MENU_UP) ? 1 : 0;
+      // (*current_menu)->current_selection = (command == CMD_MENU_UP) ? 1 : (*current_menu)->number_selections - 1;
+      (*current_menu)->current_selection = (command == CMD_MENU_UP) ? 1 : 3;
 
     return todo;
   }
