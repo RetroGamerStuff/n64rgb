@@ -19,7 +19,8 @@ incremental_db/
 ModelSim/
 simulation/
 greybox_tmp/
-system/
+system_n64adv1/
+system_n64adv2/
 .metadata/
 RemoteSystemsTempFiles/
 *BAK*
@@ -36,8 +37,8 @@ Makefile
 meminit.qip
 meminit.spd
 epcq_controller_0.hex
-fir_audio_int/
-fir_audio_int_sim/
+fir_audio/
+fir_audio_sim/
 *.bsf
 *.cmp
 *.spd

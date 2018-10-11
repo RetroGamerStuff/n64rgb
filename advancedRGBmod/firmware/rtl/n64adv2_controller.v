@@ -71,7 +71,7 @@ inout nRST;
 input CTRL;
 
 input nSRST;
-output I2C_SCL;
+inout I2C_SCL;
 inout I2C_SDA;
 input INT_ADV7513;
 
@@ -148,11 +148,11 @@ wire [31:0] SysConfigSet1;
 // [15: 0] {(2bits reserve),lineX2,Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_link,Sl_ID,Sl_En}
 
 
-system system_u(
+system_n64adv2 system_u(
   .clk_clk(CLK_25M),
   .rst_reset_n(nSRST),
-  .hdmi_tx_i2c_scl_export(I2C_SCL),
-  .hdmi_tx_i2c_sda_export(I2C_SDA),
+  .i2c_scl_pad_io(I2C_SCL),
+  .i2c_sda_pad_io(I2C_SDA),
   .hdmi_tx_int_n_export(~INT_ADV7513),
   .sync_in_export({new_ctrl_data[1],nVSYNC_cur}),
   .vd_wraddr_export(vd_wraddr),

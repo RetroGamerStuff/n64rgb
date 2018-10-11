@@ -145,7 +145,7 @@ end
 wire signed [31:0] audio_left_int;
 wire audio_left_int_valid;
 
-fir_audio_int audio_l_int_u(
+fir_audio audio_l_u(
   .clk(AMCLK_i),
   .reset_n(nARST),
   .ast_sink_data(audio_left_in),
@@ -158,7 +158,7 @@ fir_audio_int audio_l_int_u(
 wire signed [31:0] audio_right_int;
 wire audio_right_int_valid;
 
-fir_audio_int audio_r_int_u(
+fir_audio audio_r_u(
   .clk(AMCLK_i),
   .reset_n(nARST),
   .ast_sink_data(audio_right_in),

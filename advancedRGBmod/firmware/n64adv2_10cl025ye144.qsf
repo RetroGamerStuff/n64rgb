@@ -40,7 +40,7 @@ set_global_assignment -name DEVICE 10CL025YE144C8G
 set_global_assignment -name FAMILY "Cyclone 10 LP"
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 18.0.0
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "13:22:05  SEPTEMBER 04, 2018"
-set_global_assignment -name LAST_QUARTUS_VERSION "18.0.0 Lite Edition"
+set_global_assignment -name LAST_QUARTUS_VERSION "18.1.0 Lite Edition"
 set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
 set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
 set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 1
@@ -163,6 +163,9 @@ set_global_assignment -name ROUTER_TIMING_OPTIMIZATION_LEVEL MAXIMUM
 
 ## Files
 ## =====
+set_global_assignment -name SEARCH_PATH rtl
+set_global_assignment -name SEARCH_PATH vh
+
 set_global_assignment -name TOP_LEVEL_ENTITY n64adv2_top
 
 set_global_assignment -name VERILOG_FILE rtl/n64adv2_top.v
@@ -172,7 +175,8 @@ set_global_assignment -name QIP_FILE ip/n64adv2/Cyclone10LP/pll4ctrl.qip
 set_global_assignment -name QIP_FILE ip/n64adv2/Cyclone10LP/pll4video.qip
 set_global_assignment -name QIP_FILE ip/n64adv2/Cyclone10LP/pll4audio.qip
 set_global_assignment -name VERILOG_FILE rtl/n64adv2_controller.v
-set_global_assignment -name QIP_FILE ip/n64adv2/Cyclone10LP/system/synthesis/system.qip
+set_global_assignment -name QSYS_FILE system_n64adv2.qsys
+set_global_assignment -name QIP_FILE system_n64adv2/synthesis/system_n64adv2.qip
 set_global_assignment -name VERILOG_FILE rtl/n64adv2_ppu_top.v
 set_global_assignment -name VERILOG_FILE rtl/ppu/n64_vinfo_ext.v
 set_global_assignment -name VERILOG_FILE rtl/ppu/n64_deblur.v
@@ -181,8 +185,8 @@ set_global_assignment -name VERILOG_FILE rtl/ppu/osd_injection.v
 set_global_assignment -name VERILOG_FILE rtl/ppu/gamma_module.v
 set_global_assignment -name VERILOG_FILE rtl/ppu/linedoubler.v
 set_global_assignment -name VERILOG_FILE rtl/n64adv2_apu_top.v
-set_global_assignment -name QIP_FILE ip/n64adv2/Cyclone10LP/fir_audio_int.qip
-set_global_assignment -name SIP_FILE ip/n64adv2/Cyclone10LP/fir_audio_int.sip
+set_global_assignment -name QIP_FILE ip/n64adv2/Cyclone10LP/fir_audio.qip
+set_global_assignment -name SIP_FILE ip/n64adv2/Cyclone10LP/fir_audio.sip
 set_global_assignment -name VERILOG_FILE rtl/misc/ram2port.v
 set_global_assignment -name VERILOG_FILE rtl/misc/font_rom.v
 set_global_assignment -name VERILOG_FILE rtl/misc/gamma_table.v

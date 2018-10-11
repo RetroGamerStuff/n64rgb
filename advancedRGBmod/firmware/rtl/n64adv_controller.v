@@ -133,8 +133,7 @@ wire [31:0] SysConfigSet1;
 // [31:16] {(2bits reserve),lineX2,Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_Method,Sl_ID,Sl_En}
 // [15: 0] {(2bits reserve),lineX2,Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_link,Sl_ID,Sl_En}
 
-
-system system_u(
+system_n64adv1 system_u(
   .clk_clk(CLK_25M),
   .rst_reset_n(nSRST),
   .sync_in_export({new_ctrl_data[1],nVSYNC_cur}),

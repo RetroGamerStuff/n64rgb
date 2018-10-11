@@ -91,7 +91,7 @@ set_clock_groups -group {CLK_4M CLK_25M} CLK_16k -logically_exclusive
 # Set False Path
 #**************************************************************
 
-set_false_path -from [get_ports {nRST CTRL_i ASCLK_i ASDATA_i ALRCLK_i INT_ADV7513 I2C_SDA}]
+set_false_path -from [get_ports {nRST CTRL_i ASCLK_i ASDATA_i ALRCLK_i INT_ADV7513 I2C_SCL I2C_SDA}]
 set_false_path -from [get_registers {n64adv2_controller_u|use_igr n64adv2_controller_u|OutConfigSet[*] n64adv2_controller_u|OSDInfo[*]\
                                      n64adv2_ppu_u|get_vinfo_u|FrameID n64adv2_ppu_u|get_vinfo_u|n64_480i n64adv2_ppu_u|get_vinfo_u|line_cnt[*] n64adv2_ppu_u|get_vinfo_u|vmode \
                                      n64adv2_ppu_u|deblur_management_u|nblur_n64* n64adv2_ppu_u|deblur_management_u|ndo_deblur \
