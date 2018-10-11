@@ -111,7 +111,7 @@ output ASCLK_o;
 output ASDATA_o;
 output ALRCLK_o;
 
-output I2C_SCL;
+inout I2C_SCL;
 inout I2C_SDA;
 input INT_ADV7513;
 
@@ -155,6 +155,9 @@ pll4video pll4video_u(
   .locked(PLL_LOCKED[1])
 );
 
+assign LED_0 = PLL_LOCKED[1];
+
+
 wire AMCLK;
 
 pll4audio pll4audio_u(
@@ -162,6 +165,8 @@ pll4audio pll4audio_u(
   .c0(AMCLK),
   .locked(PLL_LOCKED[2])
 );
+
+assign LED_1 = PLL_LOCKED[2];
 
 
 // controller module
@@ -227,5 +232,6 @@ n64adv2_apu_top n64adv2_apu_u(
   .ASDATA_o(ASDATA_o),
   .ALRCLK_o(ALRCLK_o)
 );
+
 
 endmodule
