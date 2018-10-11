@@ -37,7 +37,7 @@
 #include "config.h"
 #include "menu.h"
 
-#include "menu_text/textdefs_p.h"
+#include "textdefs_p.h"
 #include "vd_driver.h"
 #include "fw.h"
 

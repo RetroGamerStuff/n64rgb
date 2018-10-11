@@ -26,13 +26,13 @@
  *
  ********************************************************************************/
 
-#ifndef N64_H_
-#define N64_H_
-
 #include "alt_types.h"
 #include "altera_avalon_pio_regs.h"
 #include "system.h"
 
+
+#ifndef N64_H_
+#define N64_H_
 
 #define CTRL_A_OFFSET      0
 #define CTRL_B_OFFSET      1

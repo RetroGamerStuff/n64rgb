@@ -26,12 +26,12 @@
  *
  ********************************************************************************/
 
-#ifndef VD_DRIVER_H_
-#define VD_DRIVER_H_
-
 #include "alt_types.h"
 #include "altera_avalon_pio_regs.h"
 
+
+#ifndef VD_DRIVER_H_
+#define VD_DRIVER_H_
 
 // define virtual display (memory mapped)
 #define VD_WIDTH  52

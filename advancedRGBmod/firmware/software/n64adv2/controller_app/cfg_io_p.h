@@ -26,14 +26,13 @@
  *
  ********************************************************************************/
 
-#ifndef CFG_HEADER_CFG_IO_P_H_
-#define CFG_HEADER_CFG_IO_P_H_
-
-
 #include "alt_types.h"
 #include "altera_avalon_pio_regs.h"
 #include "system.h"
-#include "../config.h"
+#include "config.h"
+
+#ifndef CFG_HEADER_CFG_IO_P_H_
+#define CFG_HEADER_CFG_IO_P_H_
 
 extern const char *OffOn[], *AdvSL[], *LinkSL[], *EvenOdd[], *VideoFormat[], *DeBlurCfg[],
                   *SLDesc[], *GammaValue[], *QuickChange[], *FilterAddOn[];
@@ -115,38 +114,6 @@ cfg_word_t cfg_data_video =
     .cfg_word_val     = 0x00,
     .cfg_ref_word_val = 0x00
   };
-
-config_t show_testpat = {
-    .cfg_word        = &cfg_data_video,
-    .cfg_word_offset = CFG_SHOW_TESTPAT_OFFSET,
-    .cfg_type        = FLAG,
-    .flag_masks      = {
-        .setflag_mask = CFG_SHOW_TESTPAT_SETMASK,
-        .clrflag_mask = CFG_SHOW_TESTPAT_CLRMASK
-    }
-};
-
-config_t filteraddon_cutoff = {
-    .cfg_word        = &cfg_data_video,
-    .cfg_word_offset = CFG_FILTERADDON_OFFSET,
-    .cfg_type        = VALUE,
-    .value_details   = {
-        .max_value     = CFG_FILTER_MAX_VALUE,
-        .getvalue_mask = CFG_FILTERADDON_GETMASK,
-    },
-    .value_string = &FilterAddOn
-};
-
-config_t vformat = {
-    .cfg_word        = &cfg_data_video,
-    .cfg_word_offset = CFG_VFORMAT_OFFSET,
-    .cfg_type        = VALUE,
-    .value_details   = {
-        .max_value     = CFG_VFORMAT_MAX_VALUE,
-        .getvalue_mask = CFG_VFORMAT_GETMASK
-    },
-    .value_string = &VideoFormat
-};
 
 config_t gamma_lut = {
     .cfg_word        = &cfg_data_video,

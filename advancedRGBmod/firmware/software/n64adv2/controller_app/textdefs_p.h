@@ -26,12 +26,12 @@
  *
  ********************************************************************************/
 
-#ifndef MENU_TEXT_TEXTDEFS_P_H_
-#define MENU_TEXT_TEXTDEFS_P_H_
-
 #include <string.h>
 #include <unistd.h>
 
+
+#ifndef MENU_TEXT_TEXTDEFS_P_H_
+#define MENU_TEXT_TEXTDEFS_P_H_
 
 #define HEADER_UNDERLINE      0x08
 #define HOME_LOWSEC_UNDERLINE 0x01

@@ -29,9 +29,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include "alt_types.h"
 #include "system.h"
 
-#include "cfg_header/cfg_io_p.h"
+#include "cfg_io_p.h"
 #include "n64.h"
 #include "config.h"
 #include "menu.h"

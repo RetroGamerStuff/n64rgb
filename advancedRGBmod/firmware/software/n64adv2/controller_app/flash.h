@@ -36,12 +36,12 @@
  *
  ********************************************************************************/
 
-#ifndef FLASH_H_
-#define FLASH_H_
-
 #include "alt_types.h"
 #include "altera_epcq_controller.h"
 
+
+#ifndef FLASH_H_
+#define FLASH_H_
 
 // EPCS16 pagesize is 256 bytes
 // Flash is split to 1.5MB FW and 512kB userdata

@@ -35,6 +35,4 @@
 #define CFG_FW_MAIN SW_FW_MAIN
 #define CFG_FW_SUB  0
 
-
-
 #endif /* FW_H_ */

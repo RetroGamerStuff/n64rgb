@@ -26,14 +26,13 @@
  *
  ********************************************************************************/
 
-#ifndef CONFIG_H_
-#define CONFIG_H_
-
-
 #include "alt_types.h"
 #include "altera_avalon_pio_regs.h"
 #include "system.h"
 
+
+#ifndef CONFIG_H_
+#define CONFIG_H_
 
 typedef enum {
   MISC_MENU = 0,
