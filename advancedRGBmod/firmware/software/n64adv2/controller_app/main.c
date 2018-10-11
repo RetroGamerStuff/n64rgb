@@ -30,9 +30,11 @@
 #include <string.h>
 #include <unistd.h>
 #include "alt_types.h"
+#include "i2c_opencores.h"
 #include "system.h"
 
 #include "cfg_io_p.h"
+#include "adv7513.h"
 #include "n64.h"
 #include "config.h"
 #include "menu.h"
@@ -45,6 +47,7 @@
 
 const alt_u8 RW_Message_FontColor[] = {FONTCOLOR_GREEN,FONTCOLOR_RED,FONTCOLOR_MAGENTA};
 const char   *RW_Message[] = {"< Success >","< Failed >","< Aborted >"};
+
 
 
 /* ToDo's:
@@ -66,7 +69,6 @@ int main()
   };
 
   cfg_clear_words(&sysconfig);
-  check_flash();
 
   alt_u32 ctrl_data;
   alt_u8  info_data;
@@ -79,9 +81,9 @@ int main()
   info_data = get_info_data();
 
   int load_n64_defaults = 1;
-
+  check_flash();
   if (use_flash) {
-      load_n64_defaults = cfg_load_from_flash(&sysconfig,0);
+    load_n64_defaults = cfg_load_from_flash(&sysconfig,0);
   }
 
   if (info_data & INFO_FALLBACKMODE_GETMASK)
@@ -97,6 +99,11 @@ int main()
   cfg_clear_flag(&mute_osd_tmp);
 
   cfg_apply_to_logic(&sysconfig);
+
+
+  I2C_init(I2C_MASTER_BASE,ALT_CPU_FREQ,400000);
+  while (check_adv7513() != 0) {};
+  init_adv7513();
 
   /* Event loop never exits. */
   while (1) {
@@ -209,6 +216,9 @@ int main()
     info_data_pre = info_data;
 
     cfg_apply_to_logic(&sysconfig);
+
+    if (!ADV_MONITOR_SENSE(adv7513_readreg(ADV7513_REG_STATUS)))
+      init_adv7513();
 
     /* ToDo: use external interrupt to go on on nVSYNC */
     while(!get_nvsync()){};  /* wait for nVSYNC goes high */
