@@ -26,14 +26,15 @@
  *
  ********************************************************************************/
 
-#ifndef CFG_HEADER_CFG_IO_P_H_
-#define CFG_HEADER_CFG_IO_P_H_
-
-
 #include "alt_types.h"
 #include "altera_avalon_pio_regs.h"
 #include "system.h"
-#include "../config.h"
+
+#include "config.h"
+
+
+#ifndef CFG_HEADER_CFG_IO_P_H_
+#define CFG_HEADER_CFG_IO_P_H_
 
 extern const char *OffOn[], *AdvSL[], *LinkSL[], *EvenOdd[], *VideoFormat[], *DeBlurCfg[],
                   *SLDesc[], *GammaValue[], *QuickChange[], *FilterAddOn[];

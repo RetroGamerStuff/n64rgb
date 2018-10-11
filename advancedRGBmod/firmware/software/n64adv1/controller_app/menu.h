@@ -26,15 +26,15 @@
  *
  ********************************************************************************/
 
-#ifndef MENU_H_
-#define MENU_H_
-
 #include "alt_types.h"
 #include "altera_avalon_pio_regs.h"
 #include "system.h"
 #include "config.h"
 #include "vd_driver.h"
 
+
+#ifndef MENU_H_
+#define MENU_H_
 
 #define OPT_WINDOWCOLOR_BG    BACKGROUNDCOLOR_WHITE
 #define OPT_WINDOWCOLOR_FONT  FONTCOLOR_BLACK

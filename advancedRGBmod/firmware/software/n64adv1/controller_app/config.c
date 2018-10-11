@@ -29,6 +29,7 @@
 #include "alt_types.h"
 #include "altera_avalon_pio_regs.h"
 #include "system.h"
+
 #include "n64.h"
 #include "config.h"
 #include "menu.h"

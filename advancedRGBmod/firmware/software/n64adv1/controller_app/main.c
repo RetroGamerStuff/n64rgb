@@ -29,9 +29,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include "alt_types.h"
 #include "system.h"
 
-#include "cfg_header/cfg_io_p.h"
+#include "cfg_io_p.h"
 #include "n64.h"
 #include "config.h"
 #include "menu.h"
@@ -65,7 +66,6 @@ int main()
   };
 
   cfg_clear_words(&sysconfig);
-  check_flash();
 
   alt_u32 ctrl_data;
   alt_u8  info_data;
@@ -79,7 +79,7 @@ int main()
   check_filteraddon(info_data);
 
   int load_from_jumperset = 1;
-
+  check_flash();
   if (use_flash) {
     load_from_jumperset = cfg_load_from_flash(&sysconfig,0);
   }
