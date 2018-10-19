@@ -195,6 +195,8 @@ int cfg_load_n64defaults(configuration_t* sysconfig, alt_u8 need_confirm)
   sysconfig->cfg_word_def[IMAGE_480I]->cfg_word_val &= N64_IMAGE480I_CLR_MASK;
 
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= N64_DEFAULT_VIDEO_CFG;
+  sysconfig->cfg_word_def[IMAGE_240P]->cfg_word_val |= N64_DEFAULT_IMAGE240P_CFG;
+  sysconfig->cfg_word_def[IMAGE_480I]->cfg_word_val |= N64_DEFAULT_IMAGE480I_CFG;
 
   return 0;
 }
