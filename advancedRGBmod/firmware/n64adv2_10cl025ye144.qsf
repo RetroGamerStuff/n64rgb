@@ -157,9 +157,6 @@ set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to ExtData[0]
 set_location_assignment PLL_2 -to "pll4video:pll4video_u|altpll:altpll_component|pll4vidio_altpll:auto_generated|pll1"
 set_location_assignment PLL_4 -to "pll4audio:pll4audio_u|altpll:altpll_component|pll4audio_altpll:auto_generated|pll1"
 
-## Synthesis and Fitter Assignments
-## ================================
-set_global_assignment -name ROUTER_TIMING_OPTIMIZATION_LEVEL MAXIMUM
 
 ## Files
 ## =====
@@ -183,7 +180,7 @@ set_global_assignment -name VERILOG_FILE rtl/ppu/n64_deblur.v
 set_global_assignment -name VERILOG_FILE rtl/ppu/n64a_vdemux.v
 set_global_assignment -name VERILOG_FILE rtl/ppu/osd_injection.v
 set_global_assignment -name VERILOG_FILE rtl/ppu/gamma_module.v
-set_global_assignment -name VERILOG_FILE rtl/ppu/linedoubler.v
+set_global_assignment -name VERILOG_FILE rtl/ppu/scaler.v
 set_global_assignment -name VERILOG_FILE rtl/n64adv2_apu_top.v
 set_global_assignment -name QIP_FILE ip/n64adv2/Cyclone10LP/fir_audio.qip
 set_global_assignment -name SIP_FILE ip/n64adv2/Cyclone10LP/fir_audio.sip
@@ -199,6 +196,7 @@ set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files/n64adv2/10cl02
 set_global_assignment -name OPTIMIZATION_MODE "AGGRESSIVE PERFORMANCE"
 set_global_assignment -name SMART_RECOMPILE ON
 set_global_assignment -name OPTIMIZE_HOLD_TIMING "ALL PATHS"
+set_global_assignment -name ROUTER_TIMING_OPTIMIZATION_LEVEL MAXIMUM
 set_global_assignment -name TIMING_ANALYZER_MULTICORNER_ANALYSIS ON
 
 

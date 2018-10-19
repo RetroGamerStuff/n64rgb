@@ -200,7 +200,7 @@ wire [15:0] vinfo_dbl = {nENABLE_linedbl,cfg_OSD_SL,cfg_SLHyb_str,cfg_SL_str,cfg
 
 wire [`VDATA_O_FU_SLICE] vdata_srgb_out;
 
-linedoubler linedoubler_u(
+scaler scaler_u(
   .VCLK(VCLK),
   .nRST(nVRST),
   .VCLK_Tx(VCLK_Tx),
@@ -221,9 +221,9 @@ initial begin
 end
 
 always @(posedge VCLK) begin
-  VDE_o <= 1'b1;
-  VSYNC_o <= !vdata_srgb_out[3*color_width_o+3];
-  HSYNC_o <= !vdata_srgb_out[3*color_width_o+1];
+    VDE_o <= vdata_srgb_out[3*color_width_o+2];
+  VSYNC_o <= vdata_srgb_out[3*color_width_o+3];
+  HSYNC_o <= vdata_srgb_out[3*color_width_o+1];
 
   vdata_shifted[1] <= vdata_shifted[0];
   vdata_shifted[0] <= vdata_srgb_out[`VDATA_O_CO_SLICE];
@@ -234,7 +234,7 @@ always @(posedge VCLK) begin
     VD_o <= vdata_srgb_out[`VDATA_O_CO_SLICE];
 
   if (!nVRST) begin
-    VDE_o <= 1'b0;
+      VDE_o <= 1'b0;
     VSYNC_o <= 1'b0;
     HSYNC_o <= 1'b0;
       VD_o <= {3*color_width_o{1'b0}};

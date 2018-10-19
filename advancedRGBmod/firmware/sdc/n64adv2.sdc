@@ -95,5 +95,5 @@ set_false_path -from [get_ports {nRST CTRL_i ASCLK_i ASDATA_i ALRCLK_i INT_ADV75
 set_false_path -from [get_registers {n64adv2_controller_u|use_igr n64adv2_controller_u|OutConfigSet[*] n64adv2_controller_u|OSDInfo[*]\
                                      n64adv2_ppu_u|get_vinfo_u|FrameID n64adv2_ppu_u|get_vinfo_u|n64_480i n64adv2_ppu_u|get_vinfo_u|line_cnt[*] n64adv2_ppu_u|get_vinfo_u|vmode \
                                      n64adv2_ppu_u|deblur_management_u|nblur_n64* n64adv2_ppu_u|deblur_management_u|ndo_deblur \
-                                     n64adv2_ppu_u|linedoubler_u|FrameID n64adv2_ppu_u|linedoubler_u|SL_rval[*]}]
+                                     n64adv2_ppu_u|scaler_u|FrameID n64adv2_ppu_u|scaler_u|SL_rval[*]}]
 set_false_path -to [get_ports {nRST I2C_SCL I2C_SDA LED_0 LED_1 ExtData[*]}]

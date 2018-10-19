@@ -22,7 +22,7 @@
 // Company:  Circuit-Board.de
 // Engineer: borti4938
 //
-// Module Name:    linedoubler
+// Module Name:    scaler
 // Project Name:   N64 Advanced RGB/YPbPr DAC Mod
 // Target Devices: Cyclone IV and Cyclone 10 LP devices
 // Tool versions:  Altera Quartus Prime
@@ -31,7 +31,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module linedoubler(
+module scaler(
   VCLK,
   nRST,
   VCLK_Tx,
@@ -282,15 +282,15 @@ localparam vs_delay_w = $clog2(`BUF_NUM_OF_PAGES);
 
 reg [           3:0] rdcnt_buf      = 4'h0;
 reg [vs_delay_w-1:0] newFrame_delay = {vs_delay_w{1'b0}};
-reg [           8:0] vcnt_dbl       = 9'd0;
+reg [           9:0] vcnt_dbl       = 10'd0;
 
 reg [7:0] nHS_cnt = 8'd0;
 reg [1:0] nVS_cnt = 2'b0;
 
 wire CSen_lineend = ((rdhcnt + 2'b11) > (line_width[rdpage_pp1] - nHS_width));
 
-wire is_OSD_area = (  rdhcnt > ({`OSD_WINDOW_H_START,1'b0}+4'h8)) && (  rdhcnt < ({`OSD_WINDOW_H_STOP,1'b0}+4'h7)) &&
-                   (vcnt_dbl > ({`OSD_WINDOW_V_START,1'b0}+4'h2)) && (vcnt_dbl < ({`OSD_WINDOW_V_STOP,1'b0}+4'h1));
+wire is_OSD_area = (  rdhcnt      > ({`OSD_WINDOW_H_START,1'b0}+4'h8)) && (  rdhcnt      < ({`OSD_WINDOW_H_STOP,1'b0}+4'h7)) &&
+                   (vcnt_dbl[8:0] > ({`OSD_WINDOW_V_START,1'b0}+4'h2)) && (vcnt_dbl[8:0] < ({`OSD_WINDOW_V_STOP,1'b0}+4'h1));
 
 reg                     drawSL;
 reg               [3:0] S_dbl;
@@ -304,16 +304,17 @@ wire [color_width_i-1:0] G_avg = {1'b0,G_dbl_pre[color_width_i-1:1]} + {1'b0,G_b
 wire [color_width_i-1:0] B_avg = {1'b0,B_dbl_pre[color_width_i-1:1]} + {1'b0,B_buf[color_width_i-1:1]} + (B_dbl_pre[0] ^ B_buf[0]);
 
 always @(posedge VCLK_Tx) begin
+  S_dbl[2] <= (rdhcnt >= hstart && rdhcnt < hstop) &&
+              (pal_mode ? (vcnt_dbl > 10'd40 && (vcnt_dbl < 10'd616)) : (vcnt_dbl > 10'd35 && (vcnt_dbl < 10'd516)));
   if (^rdcnt_buf[3:2]) begin
     S_dbl[0] <= 1'b0;
     S_dbl[1] <= 1'b0;
-    S_dbl[2] <= 1'b1; // dummy
 
    vcnt_dbl <= ~&vcnt_dbl ? vcnt_dbl + 1'b1 : vcnt_dbl;
     nHS_cnt <= nHS_width;
     
     if (newFrame_delay == `BUF_NUM_OF_PAGES) begin
-      vcnt_dbl    <= 9'd0;
+      vcnt_dbl    <= 10'd0;
       nVS_cnt     <= `VS_WIDTH;
       S_dbl[3]    <= 1'b0;
     end else if (|nVS_cnt) begin
