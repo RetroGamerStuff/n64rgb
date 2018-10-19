@@ -182,8 +182,10 @@ set_global_assignment -name VERILOG_FILE rtl/ppu/osd_injection.v
 set_global_assignment -name VERILOG_FILE rtl/ppu/gamma_module.v
 set_global_assignment -name VERILOG_FILE rtl/ppu/scaler.v
 set_global_assignment -name VERILOG_FILE rtl/n64adv2_apu_top.v
+set_global_assignment -name VERILOG_FILE rtl/apu/n64_i2s_resample.v
 set_global_assignment -name QIP_FILE ip/n64adv2/Cyclone10LP/fir_audio.qip
 set_global_assignment -name SIP_FILE ip/n64adv2/Cyclone10LP/fir_audio.sip
+set_global_assignment -name VERILOG_FILE rtl/apu/i2s_leftjustified_tx.v
 set_global_assignment -name VERILOG_FILE rtl/misc/ram2port.v
 set_global_assignment -name VERILOG_FILE rtl/misc/font_rom.v
 set_global_assignment -name VERILOG_FILE rtl/misc/gamma_table.v
