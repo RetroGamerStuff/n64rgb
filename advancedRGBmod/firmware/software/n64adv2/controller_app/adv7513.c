@@ -67,7 +67,7 @@ void init_adv7513() {
                                                         // [1] Video data input edge selection: 1 = rising edge
                                                         // [0] Input Color Space Selection: 0 = RGB
 
-  adv7513_writereg(ADV7513_REG_HDCP_HDMI_CFG, 0x06);    // [6:5] and [3:2] Must be set to Default Value (00 each)
+  adv7513_writereg(ADV7513_REG_HDCP_HDMI_CFG, 0x06);    // [6:5] and [3:2] Must be set to Default Value (00 and 01 respectively)
                                                         // [1] HDMI Mode: 1 = HDMI Mode
 
   adv7513_writereg(ADV7513_REG_AN(10), 0x60);           // [7:5] Programmable delay for input video clock: 011 = no delay
