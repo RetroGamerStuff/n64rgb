@@ -55,6 +55,8 @@ void init_adv7513() {
                                                         // [1:0] Must be set to 1 for proper operation
   adv7513_writereg(ADV7513_REG_INT1(0), 0xA4);          // Must be set to 0xA4 for proper operation
   adv7513_writereg(ADV7513_REG_INT1(1), 0xA4);          // Must be set to 0xA4 for proper operation
+  adv7513_writereg(ADV7513_REG_INT1(2), 0x48);          // [6] Must be set to 1 to enable Video CLK Divide output
+                                                        // Remaining bits must be set to Default (0x08)
   adv7513_writereg(ADV7513_REG_INT2, 0xD0);             // Must be set to 0xD0 for proper operation
   adv7513_writereg(ADV7513_REG_INT3, 0x00);             // Must be set to 0x00 for proper operation
 
