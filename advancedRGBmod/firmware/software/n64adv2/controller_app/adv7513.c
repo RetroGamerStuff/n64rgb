@@ -85,6 +85,7 @@ void init_adv7513() {
   adv7513_writereg(ADV7513_REG_I2S_CONFIG, 0x86);       // [7] Select source of audio sampling frequency: 1 = use sampling frequency from I2C register
                                                         // [2] I2S0 enable for the 4 I2S pins: 1 = Enabled
                                                         // [1:0] I2S Format: 10 = left justified mode
+  adv7513_writereg(ADV7513_REG_AUDIO_CFG3, 0x0B);       // [3:0] I2S Word length per channel: 1011 = 24bit
 
   adv7513_writereg(ADV7513_REG_INFOFRAME_UPDATE, 0xE0); // [7] Auto Checksum Enable: 1 = Use automatically generated checksum
                                                         // [6] AVI Packet Update: 1 = AVI Packet I2C update active

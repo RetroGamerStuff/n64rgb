@@ -71,7 +71,7 @@ output ALRCLK_o;
 wire [15:0] APDATA [0:1];
 wire APDATA_VALID;
 
-n64_i2s_resample i2s_rx_u(
+n64_sample_i2s i2s_rx_u(
   .AMCLK_i(AMCLK_i),
   .nARST(nARST),
   .ASCLK_i(ASCLK_i),
@@ -85,8 +85,8 @@ n64_i2s_resample i2s_rx_u(
 
 // interpolation
 
-wire signed [31:0] APDATA_INT [0:1];
-wire APDATA_VALID_INT [0:1];
+wire signed [23:0] APDATA_INT [0:1];
+wire [1:0] APDATA_INT_VALID;
 
 fir_audio audio_l_u(
   .clk(AMCLK_i),
@@ -95,23 +95,18 @@ fir_audio audio_l_u(
   .ast_sink_valid(APDATA_VALID),
   .ast_sink_error(2'b00),
   .ast_source_data(APDATA_INT[1]),
-  .ast_source_valid(APDATA_VALID_INT[0])
+  .ast_source_valid(APDATA_INT_VALID[1])
 );
-
-wire signed [31:0] audio_right_int;
-wire audio_right_int_valid;
 
 fir_audio audio_r_u(
   .clk(AMCLK_i),
   .reset_n(nARST),
-  .ast_sink_data(APDATA[1]),
+  .ast_sink_data(APDATA[0]),
   .ast_sink_valid(APDATA_VALID),
   .ast_sink_error(2'b00),
   .ast_source_data(APDATA_INT[0]),
-  .ast_source_valid(APDATA_VALID_INT[0])
+  .ast_source_valid(APDATA_INT_VALID[0])
 );
-
-wire APDATA_INT_VALID_COMB = APDATA_VALID_INT[0] & APDATA_VALID_INT[1];
 
 
 // seriellization
@@ -121,7 +116,7 @@ i2s_leftjustified_tx i2s_tx(
   .nARST(nARST),
   .APSDATA_LEFT_i(APDATA_INT[1]),
   .APSDATA_RIGHT_i(APDATA_INT[0]),
-  .APDATA_VALID_i(APDATA_INT_VALID_COMB),
+  .APDATA_VALID_i(APDATA_INT_VALID),
   .ASCLK_o(ASCLK_o),
   .ASDATA_o(ASDATA_o),
   .ALRCLK_o(ALRCLK_o)

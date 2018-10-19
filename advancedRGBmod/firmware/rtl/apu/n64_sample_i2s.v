@@ -22,7 +22,7 @@
 // Company:  Circuit-Board.de
 // Engineer: borti4938
 //
-// Module Name:    n64_i2s_resample.v
+// Module Name:    n64_sample_i2s.v
 // Project Name:   N64 Advanced HMDI Mod
 // Target Devices: Cyclone 10 LP: 10CL025YE144
 // Tool versions:  Altera Quartus Prime
@@ -36,7 +36,7 @@
 
 
 
-module n64_i2s_resample (
+module n64_sample_i2s (
   AMCLK_i,
   nARST,
 
@@ -98,31 +98,31 @@ initial begin
   audio_lr_tmp[1] = 16'h0;
   audio_lr_tmp[0] = 16'h0;
 end
-reg apdata_valid_pre = 1'b0;
+reg [1:0] apdata_valid_tmp = 2'b00;
 
 wire ch_i_sel = ALRCLK_ibuf[1];
 reg [3:0] bit_i_sel = 4'd15;
-reg ch_rd_done = 1'b0;
+reg [1:0] ch_rd_done = 1'b0;
 wire rst_marker = (!ALRCLK_ibuf[2] &  ALRCLK_ibuf[1]) |
                   ( ALRCLK_ibuf[2] & !ALRCLK_ibuf[1]);
 
 always @(posedge AMCLK_i) begin
-  if (get_sdata & !ch_rd_done) begin
+  if (get_sdata & !ch_rd_done[1]) begin
     audio_lr_tmp[ch_i_sel][bit_i_sel] <= ASDATA_ibuf[1];
-    if (~|bit_i_sel)
-      ch_rd_done <= 1'b1;
-    else
-      bit_i_sel <= bit_i_sel - 1'b1;
+    if (~|bit_i_sel) begin
+      ch_rd_done[1] <= ch_rd_done[0];
+      ch_rd_done[0] <= 1'b1;
+    end
+    bit_i_sel <= bit_i_sel - 1'b1;
   end
   if (rst_marker) begin
-    bit_i_sel <= 4'd15;
-    ch_rd_done <= 1'b0;
+    bit_i_sel <= 4'd0;
+    ch_rd_done <= 2'b00;
   end
   if (new_sample) begin
     APDATA_LEFT_o <= audio_lr_tmp[1];
     APDATA_RIGHT_o <= audio_lr_tmp[0];
-    APDATA_VALID_o <= apdata_valid_pre;
-    apdata_valid_pre <= 1'b1;
+    apdata_valid_tmp <= {apdata_valid_tmp[0],1'b1};
   end
 
   if (!nARST) begin
@@ -130,11 +130,27 @@ always @(posedge AMCLK_i) begin
     audio_lr_tmp[0] <= 16'h0;
     APDATA_LEFT_o <= 16'h0;
     APDATA_RIGHT_o <= 16'h0;
-    APDATA_VALID_o <= 1'b0;
-    apdata_valid_pre <= 1'b0;
-    bit_i_sel <= 4'd15;
-    ch_rd_done <= 1'b0;
+    apdata_valid_tmp <= 2'b00;
+    bit_i_sel <= 4'd00;
+    ch_rd_done <= 2'b10;
   end
 end
+
+// generate 96kHz valid signal
+
+reg [7:0] cnt_256x = 8'h00;
+
+always @(posedge AMCLK_i) begin
+  if (apdata_valid_tmp[1]) begin
+    APDATA_VALID_o <= ~|cnt_256x;
+    cnt_256x <= cnt_256x + 1'b1;
+  end
+  if (!nARST) begin
+    APDATA_VALID_o <= 1'b0;
+    cnt_256x <= 8'h00;
+  end
+end
+
+
 
 endmodule

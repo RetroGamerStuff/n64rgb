@@ -56,14 +56,42 @@ module i2s_leftjustified_tx (
 input AMCLK_i;
 input nARST;
 
-input [31:0] APSDATA_LEFT_i;
-input [31:0] APSDATA_RIGHT_i;
-input APDATA_VALID_i;
+input [23:0] APSDATA_LEFT_i;
+input [23:0] APSDATA_RIGHT_i;
+input [1:0] APDATA_VALID_i;
 
 output reg ASCLK_o;
 output reg ASDATA_o;
 output reg ALRCLK_o;
 
+
+// input reg - store valid values from interpolator
+
+reg signed [23:0] audio_lr_i [0:1];
+initial begin
+  audio_lr_i[1] <= 24'd0;
+  audio_lr_i[0] <= 24'd0;
+end
+reg [1:0] trigger_tx = 2'b00;
+
+always @(posedge AMCLK_i) begin
+  if (APDATA_VALID_i[1]) begin
+    audio_lr_i[1] <= APSDATA_LEFT_i;
+    trigger_tx[1] <= 1'b1;
+  end
+  if (APDATA_VALID_i[0]) begin
+    audio_lr_i[0] <= APSDATA_RIGHT_i;
+    trigger_tx[0] <= 1'b1;
+  end
+  if (!nARST) begin
+    audio_lr_i[1] <= 0;
+    audio_lr_i[0] <= 0;
+    trigger_tx <= 2'b00;
+  end
+end
+
+
+// I2S transmitter
 
 // some information:
 // - 24.576MHz = 512 x 48kHz audio
@@ -100,8 +128,8 @@ always @(posedge AMCLK_i) begin
 
   if (&cnt_256x) begin
     if (!ch_o_sel) begin
-      audio_lr_o_tmp[1] = {APSDATA_LEFT_i[31:8],{8{APSDATA_LEFT_i[8]}}};
-      audio_lr_o_tmp[0] = {APSDATA_RIGHT_i[31:8],{8{APSDATA_RIGHT_i[8]}}};
+      audio_lr_o_tmp[1] = {audio_lr_i[1],{8{audio_lr_i[1][0]}}};
+      audio_lr_o_tmp[0] = {audio_lr_i[0],{8{audio_lr_i[0][0]}}};
     end
     ch_o_sel <= ~ch_o_sel;
     bit_o_sel <= 5'd31;
@@ -113,8 +141,8 @@ always @(posedge AMCLK_i) begin
     init_begin <= 1'b0;
     cnt_256x <= 8'h00;
 
-    audio_lr_o_tmp[1] = {APSDATA_LEFT_i[31:8],{8{APSDATA_LEFT_i[8]}}};
-    audio_lr_o_tmp[0] = {APSDATA_RIGHT_i[31:8],{8{APSDATA_RIGHT_i[8]}}};
+    audio_lr_o_tmp[1] = {audio_lr_i[1],{8{audio_lr_i[1][0]}}};
+    audio_lr_o_tmp[0] = {audio_lr_i[0],{8{audio_lr_i[0][0]}}};
     ch_o_sel <= 1'b1;
     bit_o_sel <= 5'd31;
 
@@ -123,7 +151,7 @@ always @(posedge AMCLK_i) begin
     ALRCLK_o <= 1'b0;
   end
 
-  if (!nARST | !APDATA_VALID_i) begin
+  if (trigger_tx != 2'b11) begin
     init_begin <= 1'b1;
 
     ASCLK_o <= 1'b1;
