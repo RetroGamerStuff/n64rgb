@@ -51,7 +51,6 @@ set_input_delay -clock { VCLK } -max 6.5 [get_ports {D_i[*]}]
 # Set Output Delay
 #**************************************************************
 
-set_output_delay -clock { VCLK } 0 [get_ports {R_o* G_o* B_o* nHSYNC nVSYNC nCSYNC nCLAMP}] -add
 
 
 
@@ -71,6 +70,7 @@ set_clock_groups -asynchronous -group \
 
 set_false_path -from [get_ports {nRST_nManualDB CTRL_nAutoDB install_type Default_nForceDeBlur Default_DeBlur Default_n15bit_mode nTHS7374_LPF_Bypass_p85_i nTHS7374_LPF_Bypass_p98_i}]
 set_false_path -to [get_ports {nRST_nManualDB THS7374_LPF_Bypass_o}]
+set_false_path -to [get_ports {R_o* G_o* B_o* nHSYNC nVSYNC nCSYNC nCLAMP}]
 
 
 

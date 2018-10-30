@@ -48,8 +48,6 @@ set_input_delay -clock { VCLK } -max 6.5 [get_ports {D_i[*]}]
 # Set Output Delay
 #**************************************************************
 
-set_output_delay -clock { VCLK } 0 [get_ports {R_o* G_o* B_o* nHSYNC nVSYNC nCSYNC nCLAMP}] -add
-
 
 
 #**************************************************************
@@ -63,6 +61,7 @@ set_output_delay -clock { VCLK } 0 [get_ports {R_o* G_o* B_o* nHSYNC nVSYNC nCSY
 #**************************************************************
 
 set_false_path -from [get_ports {nAutoDeBlur nForceDeBlur_i1 nForceDeBlur_i99 n15bit_mode}]
+set_false_path -to [get_ports {R_o* G_o* B_o* nHSYNC nVSYNC nCSYNC nCLAMP}]
 
 
 
