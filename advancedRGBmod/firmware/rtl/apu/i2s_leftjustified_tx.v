@@ -43,8 +43,8 @@ module i2s_leftjustified_tx (
   nARST,
 
   // Parallel Input
-  APSDATA_LEFT_i,
-  APSDATA_RIGHT_i,
+  APDATA_LEFT_i,
+  APDATA_RIGHT_i,
   APDATA_VALID_i,
 
   // Seriell Audio Output
@@ -56,8 +56,8 @@ module i2s_leftjustified_tx (
 input AMCLK_i;
 input nARST;
 
-input [23:0] APSDATA_LEFT_i;
-input [23:0] APSDATA_RIGHT_i;
+input [23:0] APDATA_LEFT_i;
+input [23:0] APDATA_RIGHT_i;
 input [1:0] APDATA_VALID_i;
 
 output reg ASCLK_o;
@@ -76,11 +76,11 @@ reg [1:0] trigger_tx = 2'b00;
 
 always @(posedge AMCLK_i) begin
   if (APDATA_VALID_i[1]) begin
-    audio_lr_i[1] <= APSDATA_LEFT_i;
+    audio_lr_i[1] <= APDATA_LEFT_i;
     trigger_tx[1] <= 1'b1;
   end
   if (APDATA_VALID_i[0]) begin
-    audio_lr_i[0] <= APSDATA_RIGHT_i;
+    audio_lr_i[0] <= APDATA_RIGHT_i;
     trigger_tx[0] <= 1'b1;
   end
   if (!nARST) begin

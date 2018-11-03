@@ -198,8 +198,8 @@ n64_sample_i2s i2s_rx_u(
 i2s_leftjustified_tx i2s_tx(
   .AMCLK_i(AMCLK_i),
   .nARST(nARST),
-  .APSDATA_LEFT_i(APDATA_INT[1]),
-  .APSDATA_RIGHT_i(APDATA_INT[0]),
+  .APDATA_LEFT_i(APDATA_INT[1]),
+  .APDATA_RIGHT_i(APDATA_INT[0]),
   .APDATA_VALID_i(APDATA_INT_VALID),
   .ASCLK_o(ASCLK_o),
   .ASDATA_o(ASDATA_o),
