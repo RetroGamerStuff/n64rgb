@@ -170,7 +170,6 @@ n64adv_ppu_top n64adv_ppu_u(
   .OSDCLK(CLK_25M),
   .OSDWrVector(OSDWrVector),
   .OSDInfo(OSDInfo),
-  .VCLK_Tx(VCLK),
 //  .nBLANK(nBLANK_ADV712x),
   .VD_o(VD_o),
   .nCSYNC({nCSYNC,nCSYNC_ADV712x}),

@@ -47,8 +47,6 @@ module n64adv_ppu_top (
   OSDWrVector,
   OSDInfo,
 
-  VCLK_Tx,
-
   // Video Output
 //   nBLANK,
   VD_o,
@@ -76,7 +74,6 @@ input        OSDCLK;
 input [24:0] OSDWrVector;
 input [ 2:0] OSDInfo;
 
-input VCLK_Tx;
 // output nBLANK;
 output reg [3*color_width_o-1:0] VD_o = {3*color_width_o{1'b0}};
 output [ 1:0] nCSYNC;
@@ -205,7 +202,6 @@ wire [`VDATA_O_FU_SLICE] vdata_srgb_out;
 linedoubler linedoubler_u(
   .VCLK(VCLK),
   .nRST(nVRST),
-  .VCLK_Tx(VCLK_Tx),
   .vinfo_dbl(vinfo_dbl),
   .vdata_i(vdata_r[3]),
   .vdata_o(vdata_srgb_out)
