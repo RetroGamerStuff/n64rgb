@@ -92,7 +92,7 @@ always @(posedge wrCLK) begin
 end
 
 
-wire [31:0] rdpageoffset = (pagesize * rdpage);
+wire [`MEM_WIDTH-1:0] rdpageoffset = (pagesize * rdpage);
 
 reg                   rden_r = 1'b0;
 reg [`MEM_WIDTH-1:0] rdmem_r = {`MEM_WIDTH{1'b0}};
