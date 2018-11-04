@@ -117,7 +117,7 @@ menu_t cfg_screen = {
     .overlay = &cfg_overlay,
     .parent = &home_menu,
     .current_selection = 0,
-    .number_selections = 6,
+    .number_selections = 5,
     .leaves = {
         {.id = CFG_240P_SET_V_OFFSET, .arrow_desc = &cfg_sel_arrow, .leavetype = ISUBMENU, .submenu      = &cfg_240p_opt_subscreen},
         {.id = CFG_480I_SET_V_OFFSET, .arrow_desc = &cfg_sel_arrow, .leavetype = ISUBMENU, .submenu      = &cfg_480i_opt_subscreen},
@@ -170,7 +170,7 @@ menu_t misc_screen = {
     .overlay = &misc_overlay,
     .parent = &home_menu,
     .current_selection = 0,
-    .number_selections = 4,
+    .number_selections = 2,
     .leaves = {
         {.id = MISC_IGR_RESET_V_OFFSET  , .arrow_desc = &misc_screen_arrow, .leavetype = ICONFIG, .config_value = &igr_reset},
         {.id = MISC_IGR_QUICK_V_OFFSET  , .arrow_desc = &misc_screen_arrow, .leavetype = ICONFIG, .config_value = &igr_quickchange}
@@ -183,7 +183,7 @@ menu_t rwdata_screen = {
     .overlay = &rwdata_overlay,
     .parent = &home_menu,
     .current_selection = 0,
-    .number_selections = 4,
+    .number_selections = 3,
     .leaves = {
         {.id = RWDATA_SAVE_FL_V_OFFSET , .arrow_desc = &selection_arrow, .leavetype = IFUNC, .save_fun = &cfg_save_to_flash},
         {.id = RWDATA_LOAD_FL_V_OFFSET , .arrow_desc = &selection_arrow, .leavetype = IFUNC, .load_fun = &cfg_load_from_flash},
@@ -215,8 +215,6 @@ inline alt_u8 is_cfg_240p_screen (menu_t *menu)  /* ugly hack (ToDo on updates: 
   {  return (menu->leaves[0].config_value->flag_masks.clrflag_mask == CFG_LINEX2_CLRMASK); }
 inline alt_u8 cfg_480i_sl_are_linked (menu_t *menu)  /* ugly hack (ToDo on updates: check for validity, i.e. is this property still unique) */
   {  return ( is_cfg_240p_screen (menu) && menu->leaves[0].config_value == &linex2_480i && cfg_get_value(menu->leaves[2].config_value,0)); }
-inline alt_u8 is_misc_screen (menu_t *menu) /* ugly hack (ToDo on updates: check for validity, i.e. is this property still unique) */
-  {  return (menu->leaves[0].config_value->flag_masks.clrflag_mask == CFG_USEIGR_CLRMASK); }
 inline alt_u8 is_sl_str_val (config_t *config_value) /* ugly hack (ToDo on updates: check for validity, i.e. is this property still unique) */
   {  return (config_value->value_details.max_value == CFG_SLSTR_MAX_VALUE); }
 
@@ -284,10 +282,6 @@ updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t
         (*current_menu)->current_selection = (*current_menu)->current_selection < 2 ? (*current_menu)->current_selection :
             (command == CMD_MENU_UP) ? 1 : 0;
     }
-
-    if (is_misc_screen(*current_menu) && sel == 2 && !use_filteraddon)
-      (*current_menu)->current_selection = (command == CMD_MENU_UP) ? 1 : 0;
-
     return todo;
   }
 
@@ -326,15 +320,10 @@ updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t
 
   if ((*current_menu)->leaves[sel].leavetype == IFUNC) {
     if ((command == CMD_MENU_RIGHT) || (command == CMD_MENU_ENTER)) {
-      if (is_misc_screen((*current_menu))) {
-        (*current_menu)->leaves[sel].test_fun(sysconfig);
-        return 0;
-      } else {
         int retval = (*current_menu)->leaves[sel].load_fun(sysconfig,1);
         return (retval == 0                     ? RW_DONE  :
                 retval == -CFG_FLASH_SAVE_ABORT ? RW_ABORT :
                                                   RW_FAILED);
-      }
     }
   }
 

@@ -146,8 +146,6 @@ typedef enum {
 } cmd_t;
 
 
-extern alt_u8 use_filteraddon;
-
 void print_ctrl_data(alt_u32 *ctrl_data);
 cmd_t ctrl_data_to_cmd(alt_u32* ctrl_data, alt_u8 no_fast_skip);
 inline alt_u32 get_ctrl_data()
