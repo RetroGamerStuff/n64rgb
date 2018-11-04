@@ -120,13 +120,6 @@ output [3:0] ExtData;
 
 // start of rtl
 
-reg nVRST_pre = 1'b0;
-reg nVRST = 1'b0;
-
-always @(posedge VCLK_0) begin
-  nVRST <= nVRST_pre;
-  nVRST_pre <= nRST;
-end
 
 // PLLs
 
@@ -143,17 +136,20 @@ pll4ctrl pll4ctrl_u(
 );
 
 wire [2:0] CLKs_controller = {CLK_4M,CLK_16k,CLK_25M};
+assign LED_0 = PLL_LOCKED[0];
 
 
-wire VCLK_Tx;
+//wire PxCLK_Tx;
+//
+//pll4video pll4video_u(
+//  .inclk0(SCLK_1),
+//  .c0(PxCLK_Tx),
+//  .locked(PLL_LOCKED[1])
+//);
+//
+//assign LED_0 = PLL_LOCKED[1];
+assign PLL_LOCKED[1] = 1'b0;
 
-pll4video pll4video_u(
-  .inclk0(VCLK_1),
-  .c1(VCLK_Tx),
-  .locked(PLL_LOCKED[1])
-);
-
-assign LED_0 = PLL_LOCKED[1];
 
 
 wire AMCLK;
@@ -165,6 +161,33 @@ pll4audio pll4audio_u(
 );
 
 assign LED_1 = PLL_LOCKED[2];
+
+
+// reset signals
+
+reg nVRST_0_pre = 1'b0;
+reg nVRST_0 = 1'b0;
+
+always @(posedge VCLK_0) begin
+  nVRST_0 <= nVRST_0_pre;
+  nVRST_0_pre <= nRST;
+end
+
+reg nVRST_1_pre = 1'b0;
+reg nVRST_1 = 1'b0;
+
+always @(posedge VCLK_1) begin
+  nVRST_1 <= nVRST_1_pre;
+  nVRST_1_pre <= nRST;
+end
+
+reg nARST_pre = 1'b0;
+reg nARST = 1'b0;
+
+always @(posedge SCLK_1) begin
+  nARST <= nARST_pre;
+  nARST_pre <= PLL_LOCKED[2] & nRST;
+end
 
 
 // controller module
@@ -190,7 +213,7 @@ n64adv2_controller #({hdl_fw_main,hdl_fw_sub}) n64adv2_controller_u(
   .VCLK(VCLK_0),
   .nVDSYNC(nVDSYNC),
   .VD_VSi(VD_i[3]),
-  .nVRST(nVRST)
+  .nVRST(nVRST_0)
 );
 
 
@@ -199,25 +222,25 @@ n64adv2_controller #({hdl_fw_main,hdl_fw_sub}) n64adv2_controller_u(
 n64adv2_ppu_top n64adv2_ppu_u(
   .VCLK(VCLK_0),
   .nVDSYNC(nVDSYNC),
-  .nVRST(nVRST),
+  .nVRST(nVRST_0),
   .VD_i(VD_i),
   .InfoSet(InfoSet),
   .ConfigSet(ConfigSet),
   .OSDCLK(CLK_25M),
   .OSDWrVector(OSDWrVector),
   .OSDInfo(OSDInfo),
-  .VCLK_Tx(VCLK_Tx),
+  .VCLK_Tx(VCLK_1),
+  .nVRST_Tx(nVRST_1),
   .VDE_o(VDE_o),
   .VSYNC_o(VSYNC_o),
   .HSYNC_o(HSYNC_o),
   .VD_o(VD_o)
 );
 
-assign VCLK_o = VCLK_Tx;
+assign VCLK_o = VCLK_1;
+
 
 // audio processing module
-
-wire nARST = PLL_LOCKED[1] & nVRST;
 
 n64adv2_apu_top n64adv2_apu_u(
   .AMCLK_i(AMCLK),
@@ -225,11 +248,12 @@ n64adv2_apu_top n64adv2_apu_u(
   .ASCLK_i(ASCLK_i),
   .ASDATA_i(ASDATA_i),
   .ALRCLK_i(ALRCLK_i),
-  .AMCLK_o(AMCLK_o),
   .ASCLK_o(ASCLK_o),
   .ASDATA_o(ASDATA_o),
   .ALRCLK_o(ALRCLK_o)
 );
+
+assign AMCLK_o = AMCLK;
 
 
 endmodule

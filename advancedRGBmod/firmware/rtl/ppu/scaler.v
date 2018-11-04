@@ -34,7 +34,9 @@
 module scaler(
   VCLK,
   nRST,
+
   VCLK_Tx,
+  nRST_Tx,
 
   vinfo_dbl,
 
@@ -51,7 +53,9 @@ localparam SLHyb_width = 8; // do not change this localparam!
 
 input VCLK;
 input nRST;
+
 input VCLK_Tx;
+input nRST_Tx;
 
 input [15:0] vinfo_dbl; // [nLinedbl,SL_in_osd,SLhyb_str (5bits),SL_str (4bits),SL_method,SL_id,SL_en,PAL,interlaced]
 
@@ -242,7 +246,7 @@ always @(posedge VCLK_Tx) begin
   end
   
   rden[2:1] <= rden[1:0];
-  if (!nRST || line_overflow ||
+  if (!nRST_Tx || line_overflow ||
       (negedge_nHSYNC & !valid_line)) begin // reset conditions
     rden  <= 3'b0;
     rdrun <= 2'b0;

@@ -154,7 +154,7 @@ set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to ExtData[0]
 
 ## PLL Locations
 ## =============
-set_location_assignment PLL_2 -to "pll4video:pll4video_u|altpll:altpll_component|pll4vidio_altpll:auto_generated|pll1"
+#set_location_assignment PLL_2 -to "pll4video:pll4video_u|altpll:altpll_component|pll4vidio_altpll:auto_generated|pll1"
 set_location_assignment PLL_4 -to "pll4audio:pll4audio_u|altpll:altpll_component|pll4audio_altpll:auto_generated|pll1"
 
 
@@ -169,7 +169,7 @@ set_global_assignment -name VERILOG_FILE rtl/n64adv2_top.v
 set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64adv_vparams.vh
 set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64adv_cparams.vh
 set_global_assignment -name QIP_FILE ip/n64adv2/Cyclone10LP/pll4ctrl.qip
-set_global_assignment -name QIP_FILE ip/n64adv2/Cyclone10LP/pll4video.qip
+#set_global_assignment -name QIP_FILE ip/n64adv2/Cyclone10LP/pll4video.qip
 set_global_assignment -name QIP_FILE ip/n64adv2/Cyclone10LP/pll4audio.qip
 set_global_assignment -name VERILOG_FILE rtl/n64adv2_controller.v
 set_global_assignment -name QSYS_FILE system_n64adv2.qsys

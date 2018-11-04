@@ -45,8 +45,12 @@
 
 int check_adv7513(void);
 void init_adv7513(void);
+void adv7513_vic_manual_setup(alt_u8 vmode, alt_u8 linex2);
+void adv7513_de_gen_setup(alt_u8 vmode, alt_u8 linex2);
 alt_u8 adv7513_readreg(alt_u8 regaddr);
 void adv7513_writereg(alt_u8 regaddr, alt_u8 data);
+inline void adv7513_reg_bitset(alt_u8 regaddr, alt_u8 bit);
+inline void adv7513_reg_bitclear(alt_u8 regaddr, alt_u8 bit);
 
 
 #endif /* ADV7513_H_ */

@@ -55,6 +55,7 @@ module n64adv2_ppu_top (
   OSDInfo,
 
   VCLK_Tx,
+  nVRST_Tx,
 
   // Video Output to ADV7513
   VDE_o,
@@ -80,6 +81,7 @@ input [24:0] OSDWrVector;
 input [ 2:0] OSDInfo;
 
 input VCLK_Tx;
+input nVRST_Tx;
 output reg VDE_o = 1'b0;
 output reg VSYNC_o = 1'b0;
 output reg HSYNC_o = 1'b0;
@@ -204,6 +206,7 @@ scaler scaler_u(
   .VCLK(VCLK),
   .nRST(nVRST),
   .VCLK_Tx(VCLK_Tx),
+  .nRST_Tx(nVRST_Tx),
   .vinfo_dbl(vinfo_dbl),
   .vdata_i(vdata_r[3]),
   .vdata_o(vdata_srgb_out)
@@ -220,8 +223,7 @@ initial begin
   vdata_shifted[1] = {3*color_width_o{1'b0}};
 end
 
-always @(posedge VCLK) begin
-    VDE_o <= vdata_srgb_out[3*color_width_o+2];
+always @(posedge VCLK_Tx) begin
   VSYNC_o <= vdata_srgb_out[3*color_width_o+3];
   HSYNC_o <= vdata_srgb_out[3*color_width_o+1];
 
@@ -233,7 +235,7 @@ always @(posedge VCLK) begin
   else
     VD_o <= vdata_srgb_out[`VDATA_O_CO_SLICE];
 
-  if (!nVRST) begin
+  if (!nVRST_Tx) begin
       VDE_o <= 1'b0;
     VSYNC_o <= 1'b0;
     HSYNC_o <= 1'b0;

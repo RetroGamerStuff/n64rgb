@@ -59,7 +59,7 @@
 #define ADV7513_REG_CSC_UPPER(x)              0x18 + (x) * 2)
 #define ADV7513_REG_CSC_LOWER(x)              (0x19 + (x) * 2)
 #define ADV7513_REG_SYNC_DECODER(x)           (0x30 + (x))
-#define ADV7513_REG_DE_GENERATOR              (0x35 + (x))
+#define ADV7513_REG_DE_GENERATOR(x)           (0x35 + (x))
 #define ADV7513_REG_PIXEL_REPETITION          0x3b
 #define ADV7513_REG_VIC_MANUAL                0x3c
 #define ADV7513_REG_VIC_SEND                  0x3d
@@ -100,6 +100,7 @@
 #define ADV7513_REG_TIMING_GEN_SEQ            0xd0
 #define ADV7513_REG_POWER2                    0xd6
 #define ADV7513_REG_HSYNC_PLACEMENT_MSB       0xfa
+#define ADV7513_REG_DE_GENERATOR_MSBS         0xfb
 
 #define ADV7513_REG_SYNC_ADJUSTMENT(x)        (0xd7 + (x)) /* 0xd7 - 0xdc */
 #define ADV7513_REG_TMDS_CLOCK_INV            0xde
