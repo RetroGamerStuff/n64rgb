@@ -72,7 +72,7 @@ module n64adv_top (
 );
 
 parameter [3:0] hdl_fw_main = 4'd1;
-parameter [7:0] hdl_fw_sub  = 8'd30;
+parameter [7:0] hdl_fw_sub  = 8'd32;
 
 `include "vh/n64adv_vparams.vh"
 
