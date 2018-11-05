@@ -244,27 +244,27 @@ int cfg_load_jumperset(configuration_t* sysconfig, alt_u8 need_confirm)
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= CFG_DEBLUR_AUTO_SETMASK;
 
   if (jumper_word & JUMPER_LINEX2_GETMASK) {
-    sysconfig->cfg_word_def[IMAGE_240P]->cfg_word_val |= CFG_LINEX2_SETMASK;
+    sysconfig->cfg_word_def[IMAGE_240P]->cfg_word_val |= CFG_240P_LINEX2_SETMASK;
     if (jumper_word & JUMPER_480IBOB_GETMASK)
-      sysconfig->cfg_word_def[IMAGE_480I]->cfg_word_val |= CFG_LINEX2_SETMASK;
+      sysconfig->cfg_word_def[IMAGE_480I]->cfg_word_val |= CFG_480I_LINEX2_MAX_VALUE;
   }
 
-  sysconfig->cfg_word_def[IMAGE_240P]->cfg_word_val |= (CFG_SL_ID_SETMASK | CFG_SL_EN_SETMASK);
+  sysconfig->cfg_word_def[IMAGE_240P]->cfg_word_val |= (CFG_240P_SL_ID_SETMASK | CFG_240P_SL_EN_SETMASK);
   switch ((jumper_word & JUMPER_SLSTR_GETMASK) >> JUMPER_SLSTR_OFFSET) {
     case 1:
-      sysconfig->cfg_word_def[IMAGE_240P]->cfg_word_val |= (0x3<<CFG_SLSTR_OFFSET); // 25%
+      sysconfig->cfg_word_def[IMAGE_240P]->cfg_word_val |= (0x3<<CFG_240P_SLSTR_OFFSET); // 25%
       break;
     case 2:
-      sysconfig->cfg_word_def[IMAGE_240P]->cfg_word_val |= (0x7<<CFG_SLSTR_OFFSET); // 50%
+      sysconfig->cfg_word_def[IMAGE_240P]->cfg_word_val |= (0x7<<CFG_240P_SLSTR_OFFSET); // 50%
       break;
     case 3:
-      sysconfig->cfg_word_def[IMAGE_240P]->cfg_word_val |= (0xF<<CFG_SLSTR_OFFSET); // 100%
+      sysconfig->cfg_word_def[IMAGE_240P]->cfg_word_val |= (0xF<<CFG_240P_SLSTR_OFFSET); // 100%
       break;
     default:
-      sysconfig->cfg_word_def[IMAGE_240P]->cfg_word_val &= CFG_SL_EN_CLRMASK;       // 0%
+      sysconfig->cfg_word_def[IMAGE_240P]->cfg_word_val &= CFG_240P_SL_EN_CLRMASK;       // 0%
       break;
   }
-  sysconfig->cfg_word_def[IMAGE_480I]->cfg_word_val |= (sysconfig->cfg_word_def[IMAGE_240P]->cfg_word_val & CFG_LINEX2_CLRMASK);
+  sysconfig->cfg_word_def[IMAGE_480I]->cfg_word_val |= (sysconfig->cfg_word_def[IMAGE_240P]->cfg_word_val & CFG_480I_LINEX2_RSTMASK);
 
   return 0;
 }

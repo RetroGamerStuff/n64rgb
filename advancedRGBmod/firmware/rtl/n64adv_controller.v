@@ -131,7 +131,7 @@ wire [31:0] SysConfigSet0;
 wire [31:0] SysConfigSet1;
 // general structure [31:16] 240p settings, [15:0] 480i settings
 // [31:16] {(2bits reserve),lineX2,Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_Method,Sl_ID,Sl_En}
-// [15: 0] {(2bits reserve),lineX2,Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_link,Sl_ID,Sl_En}
+// [15: 0] {(1bit reserve),lineX2 (2bits),Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_link,Sl_ID,Sl_En}
 
 system_n64adv1 system_u(
   .clk_clk(CLK_25M),
