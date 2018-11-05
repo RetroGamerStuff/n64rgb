@@ -77,7 +77,7 @@ parameter vdata_width_o = 4 + 3*color_width_o;
   `define HS_WIDTH_PAL_288P   7'd124
   `define HS_WIDTH_PAL_576I   7'd121
 
-  `define VS_WIDTH  2'd2
+  `define VS_WIDTH  4'd3
 
   // Testpattern
   // ===========

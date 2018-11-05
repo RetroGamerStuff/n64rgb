@@ -34,7 +34,6 @@
 module linedoubler(
   VCLK,
   nRST,
-  VCLK_Tx,
 
   vinfo_dbl,
 
@@ -43,15 +42,14 @@ module linedoubler(
 );
 
 `include "vh/n64adv_vparams.vh"
+`define BUF_NUM_OF_PAGES  4
 
-localparam buf_pages   = 1;
 localparam hcnt_witdh  = $clog2(`PIXEL_PER_LINE_2x_MAX);
 localparam Y_width     = color_width_o+1;
 localparam SLHyb_width = 8; // do not change this localparam!
 
 input VCLK;
 input nRST;
-input VCLK_Tx;
 
 input [15:0] vinfo_dbl; // [nLinedbl,SL_in_osd,SLhyb_str (5bits),SL_str (4bits),SL_method,SL_id,SL_en,PAL,interlaced]
 
@@ -206,18 +204,29 @@ reg            [1:0] rdrun   = 2'b00;
 reg                  rdcnt   = 1'b0;
 reg [pcnt_width-1:0] rdpage  = {pcnt_width{1'b0}};
 reg [hcnt_witdh-1:0] rdhcnt  = {hcnt_witdh{1'b1}};
+reg [           9:0] rdvcnt  = 10'd0;
 reg [hcnt_witdh-1:0] rdaddr  = {hcnt_witdh{1'b0}};
 
-always @(posedge VCLK_Tx) begin
+reg nHSYNC_dbl, nVSYNC_dbl, nCSYNC_dbl;
+
+always @(posedge VCLK) begin
   if (rdrun[1]) begin
     if (rdhcnt == line_width[rdpage_pp1]) begin
       rdhcnt   <= {hcnt_witdh{1'b0}};
-      if (rdcnt)
+      if (rdcnt) begin
         if (rdpage == `BUF_NUM_OF_PAGES-1)
           rdpage = {pcnt_width{1'b0}};
         else
           rdpage <= rdpage + 1'b1;
+      end
       rdcnt <= ~rdcnt;
+      
+      if (^newFrame) begin
+        newFrame[1] <= newFrame[0];
+        rdvcnt <= 10'd0;
+      end else begin
+        rdvcnt <= rdvcnt + 1'b1;
+      end
     end else begin
       rdhcnt <= rdhcnt + 1'b1;
     end
@@ -232,13 +241,14 @@ always @(posedge VCLK_Tx) begin
       rdaddr  <= {hcnt_witdh{1'b0}};
     end
   end else if (rdrun[0] && !nVDSYNC_dbl &&
-               (wrpage == (`BUF_NUM_OF_PAGES>>1))) begin
+              (wrpage == (`BUF_NUM_OF_PAGES>>1)) && wrhcnt[6]) begin
     rdrun[1] <= 1'b1;
     rdcnt    <= 1'b0;
-    rdpage   <= 2'b00;
+    rdpage   <= {pcnt_width{1'b0}};
     rdhcnt   <= {hcnt_witdh{1'b0}};
+    rdvcnt   <= (`BUF_NUM_OF_PAGES>>1);
   end else if (^start_rdproc) begin
-    rdrun[0] <= 1'b1;
+    rdrun[0] <= 1'b1; // move to steady state
   end
   
   rden[2:1] <= rden[1:0];
@@ -249,6 +259,11 @@ always @(posedge VCLK_Tx) begin
   end
 
   start_rdproc[1] <= start_rdproc[0];
+
+  nHSYNC_dbl <= rdhcnt >= nHS_width;
+  nVSYNC_dbl <= (rdvcnt < (`BUF_NUM_OF_PAGES>>1)) || (rdvcnt >= (`VS_WIDTH + (`BUF_NUM_OF_PAGES>>1)));
+  nCSYNC_dbl <= nVSYNC_dbl == 1'b1 ? rdhcnt >= nHS_width : rdhcnt > (line_width[rdpage_pp1] - nHS_width);
+  
 end
 
 wire [pcnt_width-1:0] rdpage_pp0 = (FrameID | !n64_480i) ? rdpage : rdpage - !rdcnt;
@@ -264,13 +279,13 @@ ram2port #(
   .num_of_pages(`BUF_NUM_OF_PAGES),
   .pagesize(`BUF_DEPTH_PER_PAGE),
   .data_width(3*color_width_i)
-) videobuffer_0(
+) videobuffer_u(
   .wrCLK(VCLK),
   .wren(&{wren,!line_overflow,nVDSYNC_dbl,!wraddr[0]}),
   .wrpage(wrpage),
   .wraddr(wraddr[hcnt_witdh-1:1]),
   .wrdata({R_i,G_i,B_i}),
-  .rdCLK(VCLK_Tx),
+  .rdCLK(VCLK),
   .rden(rden[0]),
   .rdpage(rdpage_pp3),
   .rdaddr(rdaddr[hcnt_witdh-1:1]),
@@ -278,22 +293,12 @@ ram2port #(
 );
 
 
-localparam vs_delay_w = $clog2(`BUF_NUM_OF_PAGES);
 
-reg [           3:0] rdcnt_buf      = 4'h0;
-reg [vs_delay_w-1:0] newFrame_delay = {vs_delay_w{1'b0}};
-reg [           8:0] vcnt_dbl       = 9'd0;
+wire is_OSD_area = (rdhcnt > ({     `OSD_WINDOW_H_START,1'b0} + 4'd7)) && (rdhcnt < ({     `OSD_WINDOW_H_STOP,1'b0} + 4'd3)) &&
+                   (rdvcnt > ({1'b0,`OSD_WINDOW_V_START,1'b0} + 4'd5)) && (rdvcnt < ({1'b0,`OSD_WINDOW_V_STOP,1'b0} + 4'd3));
 
-reg [7:0] nHS_cnt = 8'd0;
-reg [1:0] nVS_cnt = 2'b0;
-
-wire CSen_lineend = ((rdhcnt + 2'b11) > (line_width[rdpage_pp1] - nHS_width));
-
-wire is_OSD_area = (  rdhcnt > ({`OSD_WINDOW_H_START,1'b0}+4'h8)) && (  rdhcnt < ({`OSD_WINDOW_H_STOP,1'b0}+4'h7)) &&
-                   (vcnt_dbl > ({`OSD_WINDOW_V_START,1'b0}+4'h2)) && (vcnt_dbl < ({`OSD_WINDOW_V_STOP,1'b0}+4'h1));
-
-reg                     drawSL;
-reg               [3:0] S_dbl;
+reg                     drawSL [0:2];
+reg               [3:0] S_dbl [0:2];
 reg [color_width_i-1:0] R_dbl_pre, G_dbl_pre, B_dbl_pre,
                         R_sl_pre,  G_sl_pre,  B_sl_pre;
 reg [color_width_i-1:0] R_dbl, G_dbl, B_dbl;
@@ -303,46 +308,13 @@ wire [color_width_i-1:0] R_avg = {1'b0,R_dbl_pre[color_width_i-1:1]} + {1'b0,R_b
 wire [color_width_i-1:0] G_avg = {1'b0,G_dbl_pre[color_width_i-1:1]} + {1'b0,G_buf[color_width_i-1:1]} + (G_dbl_pre[0] ^ G_buf[0]);
 wire [color_width_i-1:0] B_avg = {1'b0,B_dbl_pre[color_width_i-1:1]} + {1'b0,B_buf[color_width_i-1:1]} + (B_dbl_pre[0] ^ B_buf[0]);
 
-always @(posedge VCLK_Tx) begin
-  if (^rdcnt_buf[3:2]) begin
-    S_dbl[0] <= 1'b0;
-    S_dbl[1] <= 1'b0;
-    S_dbl[2] <= 1'b1; // dummy
-
-   vcnt_dbl <= ~&vcnt_dbl ? vcnt_dbl + 1'b1 : vcnt_dbl;
-    nHS_cnt <= nHS_width;
-    
-    if (newFrame_delay == `BUF_NUM_OF_PAGES) begin
-      vcnt_dbl    <= 9'd0;
-      nVS_cnt     <= `VS_WIDTH;
-      S_dbl[3]    <= 1'b0;
-    end else if (|nVS_cnt) begin
-      nVS_cnt <= nVS_cnt - 1'b1;
-    end else begin
-      S_dbl[3] <= 1'b1;
-    end
-
-    newFrame_delay <= |newFrame_delay ? newFrame_delay + 1'b1 : {vs_delay_w{1'b0}};
-    if (^newFrame) begin
-      newFrame_delay <= {{(vs_delay_w-1){1'b0}},1'b1};
-      newFrame[1] <= newFrame[0];
-    end
-  end else begin
-    if (|nHS_cnt) begin
-      nHS_cnt <= nHS_cnt - 1'b1;
-    end else begin
-      S_dbl[1] <= 1'b1;
-      if (S_dbl[3])
-        S_dbl[0] <= 1'b1;
-    end
-    
-    if (CSen_lineend) begin
-      S_dbl[0] <= 1'b1;
-    end
-  end
-
-  rdcnt_buf <= {rdcnt_buf[2:0],rdcnt};
-  drawSL <= (is_OSD_area ? SL_in_osd : 1'b1) && SL_en && (rdcnt ^ (!SL_id));
+always @(posedge VCLK) begin
+   S_dbl[2] <=  S_dbl[1];
+   S_dbl[1] <=  S_dbl[0];
+   S_dbl[0] <= {nVSYNC_dbl,1'b0, nHSYNC_dbl,nCSYNC_dbl};
+  drawSL[2] <= drawSL[1];
+  drawSL[1] <= drawSL[0];
+  drawSL[0] <= (is_OSD_area ? SL_in_osd : 1'b1) && SL_en && (rdcnt ^ (!SL_id));
 
   if (rden[2]) begin
     if (!rdaddr[0]) begin // reading buffer has exactly two delay steps - so we can safetely use !rdaddr[0]
@@ -400,9 +372,9 @@ reg  [color_width_o-1:0]             R_sl, G_sl, B_sl;
 
 integer pp_idx;
 
-always @(posedge VCLK_Tx) begin
-       dSL_pp[0] <= drawSL;
-         S_pp[0] <= S_dbl;
+always @(posedge VCLK) begin
+       dSL_pp[0] <= drawSL[2];
+         S_pp[0] <= S_dbl[2];
   R_sl_pre_pp[0] <= R_sl_pre;
   G_sl_pre_pp[0] <= G_sl_pre;
   B_sl_pre_pp[0] <= B_sl_pre;

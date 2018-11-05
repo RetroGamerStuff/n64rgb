@@ -205,7 +205,6 @@ wire [`VDATA_O_FU_SLICE] vdata_srgb_out;
 linedoubler linedoubler_u(
   .VCLK(VCLK),
   .nRST(nVRST),
-  .VCLK_Tx(VCLK_Tx),
   .vinfo_dbl(vinfo_dbl),
   .vdata_i(vdata_r[3]),
   .vdata_o(vdata_srgb_out)
