@@ -247,6 +247,7 @@ static const char *home_overlay =
 const char *EnterSubMenu = "[Enter submenu]";
 
 const char *OffOn[]         = {"Off","On"};
+const char *LineX2_480i[]   = {"Off","On","Advanced"};
 const char *EvenOdd[]       = {"Even","Odd "};
 const char *AdvSL[]         = {"Simple","Advanced"};
 const char *LinkSL[]        = {"480i ind.","Link 240p"};

@@ -51,7 +51,7 @@ localparam SLHyb_width = 8; // do not change this localparam!
 input VCLK;
 input nRST;
 
-input [15:0] vinfo_dbl; // [nLinedbl,SL_in_osd,SLhyb_str (5bits),SL_str (4bits),SL_method,SL_id,SL_en,PAL,interlaced]
+input [16:0] vinfo_dbl; // [nLinedbl,lx2_ifix,SL_in_osd,SLhyb_str (5bits),SL_str (4bits),SL_method,SL_id,SL_en,PAL,interlaced]
 
 input  [`VDATA_I_FU_SLICE] vdata_i;
 output [`VDATA_O_FU_SLICE] vdata_o;
@@ -66,7 +66,8 @@ wire [color_width_i-1:0] R_i = vdata_i[`VDATA_I_RE_SLICE];
 wire [color_width_i-1:0] G_i = vdata_i[`VDATA_I_GR_SLICE];
 wire [color_width_i-1:0] B_i = vdata_i[`VDATA_I_BL_SLICE];
 
-wire nENABLE_linedbl   = vinfo_dbl[15] | ~rdrun[1];
+wire nENABLE_linedbl   = vinfo_dbl[16] | ~rdrun[1];
+wire linedbl_480i_fix  = vinfo_dbl[15] | ~rdrun[1];
 wire       SL_in_osd   = vinfo_dbl[14];
 wire [4:0] SLHyb_depth = vinfo_dbl[13:9];
 wire [3:0] SL_str      = vinfo_dbl[ 8:5];
@@ -266,7 +267,7 @@ always @(posedge VCLK) begin
   
 end
 
-wire [pcnt_width-1:0] rdpage_pp0 = (FrameID | !n64_480i) ? rdpage : rdpage - !rdcnt;
+wire [pcnt_width-1:0] rdpage_pp0 = (FrameID | !n64_480i | !linedbl_480i_fix) ? rdpage : rdpage - !rdcnt;
 wire [pcnt_width-1:0] rdpage_pp1 = rdpage_pp0 >= `BUF_NUM_OF_PAGES ? `BUF_NUM_OF_PAGES-1 : rdpage_pp0;
 wire [pcnt_width-1:0] rdpage_pp2 = (!SL_method | n64_480i) ? rdpage_pp1 :  // do not allow advanced scanlines in 480i linex2 mode
                                    !rdaddr[0] ? rdpage_pp1 : !SL_id ? rdpage_pp1 - 1'b1 : rdpage_pp1 + 1'b1;
