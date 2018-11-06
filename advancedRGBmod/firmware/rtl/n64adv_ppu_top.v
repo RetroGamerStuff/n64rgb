@@ -72,7 +72,7 @@ input  [47:0] ConfigSet;
 
 input        OSDCLK;
 input [24:0] OSDWrVector;
-input [ 2:0] OSDInfo;
+input [ 1:0] OSDInfo;
 
 // output nBLANK;
 output reg [3*color_width_o-1:0] VD_o = {3*color_width_o{1'b0}};

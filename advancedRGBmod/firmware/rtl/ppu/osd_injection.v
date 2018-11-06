@@ -51,7 +51,7 @@ module osd_injection (
 
 input OSDCLK;
 input [24:0] OSDWrVector;
-input [ 2:0] OSDInfo;
+input [ 1:0] OSDInfo;
 
 input VCLK;
 input nVDSYNC;
@@ -67,8 +67,8 @@ wire [ 1:0] vd_wrctrl = OSDWrVector[24:23];
 wire [ 9:0] vd_wraddr = OSDWrVector[22:13];
 wire [12:0] vd_wrdata = OSDWrVector[12: 0];
 
-wire show_osd_logo = OSDInfo[2];
-wire show_osd      = OSDInfo[1];
+wire show_osd_logo = OSDInfo[1];
+wire show_osd      = OSDInfo[0];
 
 
 wire nHSYNC_cur = video_data_i[3*color_width_i+1];

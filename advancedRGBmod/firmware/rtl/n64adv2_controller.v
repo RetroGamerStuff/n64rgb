@@ -78,7 +78,7 @@ input INT_ADV7513;
 input      [ 2:0] InfoSet;
 output reg [47:0] OutConfigSet;
 output     [24:0] OSDWrVector;
-output reg [ 2:0] OSDInfo;
+output reg [ 1:0] OSDInfo;
 
 input VCLK;
 input nVDSYNC;
@@ -173,9 +173,8 @@ always @(posedge VCLK)
   if ((!nVDSYNC & negedge_nVSYNC) | !nVRST) begin
     use_igr      <= SysConfigSet0[18];
     OutConfigSet <= {SysConfigSet0[15:0],SysConfigSet1};
-    OSDInfo[2]   <= &{SysConfigSet0[26:25],!SysConfigSet0[24]};  // show logo only in OSD
-    OSDInfo[1]   <= SysConfigSet0[25] & !SysConfigSet0[24];
-    OSDInfo[0]   <= SysConfigSet0[27] | !SysConfigSet0[25] | SysConfigSet0[24];  // cfg_OSD_SL considers if OSD is shown or not
+    OSDInfo[1]   <= &{SysConfigSet0[26:25],!SysConfigSet0[24]};  // show logo only in OSD
+    OSDInfo[0]   <= SysConfigSet0[25] & !SysConfigSet0[24];
   end
 
 
