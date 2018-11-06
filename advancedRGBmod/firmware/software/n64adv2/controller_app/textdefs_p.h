@@ -234,12 +234,12 @@ static const char *home_overlay =
 const char *EnterSubMenu = "[Enter submenu]";
 
 const char *OffOn[]         = {"Off","On"};
+const char *LineX2_480i[]   = {"Off","On","Advanced"};
 const char *EvenOdd[]       = {"Even","Odd "};
 const char *AdvSL[]         = {"Simple","Advanced"};
 const char *LinkSL[]        = {"480i ind.","Link 240p"};
 const char *VideoMode[]     = {"240p60","480i60","288p50","576i50","480p60","576p50"};
 const char *VideoColor[]    = {"21bit","15bit"};
-const char *VideoFormat[]   = {"RGBS","RGBS/RGsB","YPbPr"};
 const char *DeBlur[]        = {"(estimated)","(forced)","(480i/576i)"};
 const char *DeBlurCfg[]     = {"Auto","Off","Always"};
 const char *SLDesc[]        = {"  0.00%","  6.25%"," 12.50%"," 18.75%",

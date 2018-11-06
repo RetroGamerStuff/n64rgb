@@ -96,24 +96,25 @@ wire n64_480i = vinfo_pass[0];
 
 // ConfigSet:
 // general structure [47:32] video settings, [31:16] 240p settings, [15:0] 480i settings
-// [47:40] {(1bit reserved) ,sl_in_osd,(2bits reserve),(4bits reserved)}
+// [47:40] {(1bit reserved) ,sl_in_osd,(6bits reserved)}
 // [39:32] {gamma (4bits),(1bit reserve),VI-DeBlur (2bit), 15bit mode}
 // [31:16] {(2bits reserve),lineX2,Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_Method,Sl_ID,Sl_En}
-// [15: 0] {(2bits reserve),lineX2,Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_link,Sl_ID,Sl_En}
+// [15: 0] {(1bits reserve),lineX2 (2bits),Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_link,Sl_ID,Sl_En}
 wire       cfg_OSD_SL    =   ConfigSet[   46];
 wire [3:0] cfg_gamma     =   ConfigSet[39:36];
 wire       nDeBlurMan    =  ~ConfigSet[   34];
 wire       nForceDeBlur  = ~|ConfigSet[34:33];
 wire       n15bit_mode   =  ~ConfigSet[   32];
-wire       cfg_lineX2    =    ~n64_480i ? ConfigSet[   29] : ConfigSet[   13];
-wire [4:0] cfg_SLHyb_str =    ~n64_480i ? ConfigSet[28:24] :
-                           ConfigSet[2] ? ConfigSet[28:24] : ConfigSet[12: 8];
-wire [3:0] cfg_SL_str    =    ~n64_480i ? ConfigSet[23:20] :
-                           ConfigSet[2] ? ConfigSet[23:20] : ConfigSet[ 7: 4];
-wire       cfg_SL_method =    ~n64_480i ? ConfigSet[   18] : 1'b0;
-wire       cfg_SL_id     =    ~n64_480i ? ConfigSet[   17] :
-                           ConfigSet[2] ? ConfigSet[   17] : ConfigSet[    1] ;
-wire       cfg_SL_en     =    ~n64_480i ? ConfigSet[   16] : ConfigSet[    0] ;
+wire       cfg_lineX2    =    !n64_480i ? ConfigSet[29   ] : |ConfigSet[14:13];
+wire       cfg_lX2_ifix  = !ConfigSet[13];
+wire [4:0] cfg_SLHyb_str =    !n64_480i ? ConfigSet[28:24] :
+                           ConfigSet[2] ? ConfigSet[28:24] :  ConfigSet[12: 8];
+wire [3:0] cfg_SL_str    =    !n64_480i ? ConfigSet[23:20] :
+                           ConfigSet[2] ? ConfigSet[23:20] :  ConfigSet[ 7: 4];
+wire       cfg_SL_method =    !n64_480i ? ConfigSet[18   ] :  1'b0;
+wire       cfg_SL_id     =    !n64_480i ? ConfigSet[17   ] :
+                           ConfigSet[2] ? ConfigSet[17   ] :  ConfigSet[ 1   ] ;
+wire       cfg_SL_en     =    !n64_480i ? ConfigSet[16   ] :  ConfigSet[ 0   ] ;
 
 
 wire [`VDATA_I_FU_SLICE] vdata_r[0:3];
@@ -198,7 +199,7 @@ gamma_module gamma_module_u(
 
 wire nENABLE_linedbl = ~cfg_lineX2 | ~nVRST;
 
-wire [15:0] vinfo_dbl = {nENABLE_linedbl,cfg_OSD_SL,cfg_SLHyb_str,cfg_SL_str,cfg_SL_method,cfg_SL_id,cfg_SL_en,vinfo_pass[1:0]};
+wire [16:0] vinfo_dbl = {nENABLE_linedbl,cfg_lX2_ifix,cfg_OSD_SL,cfg_SLHyb_str,cfg_SL_str,cfg_SL_method,cfg_SL_id,cfg_SL_en,vinfo_pass[1:0]};
 
 wire [`VDATA_O_FU_SLICE] vdata_srgb_out;
 

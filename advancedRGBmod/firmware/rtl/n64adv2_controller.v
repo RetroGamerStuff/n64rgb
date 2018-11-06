@@ -140,12 +140,12 @@ wire [31:0] SysConfigSet0;
 // general structure [31:16] misc, [15:0] video
 // [31:24] {(4bits reserve),sl_in_osd,show_osd_logo,show_osd,mute_osd}
 // [23:16] {(5bits reserve),use_igr,igr for 15bit mode and deblur (not used in logic)}
-// [15: 8] {show_testpattern,(3bits reserve),FilterSet (2bit),YPbPr,RGsB}
+// [15: 8] {(8bits reserve)}
 // [ 7: 0] {gamma (4bits),(1bit reserve),VI-DeBlur (2bit), 15bit mode}
 wire [31:0] SysConfigSet1;
 // general structure [31:16] 240p settings, [15:0] 480i settings
 // [31:16] {(2bits reserve),lineX2,Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_Method,Sl_ID,Sl_En}
-// [15: 0] {(2bits reserve),lineX2,Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_link,Sl_ID,Sl_En}
+// [15: 0] {(1bits reserve),lineX2 (2bits),Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_link,Sl_ID,Sl_En}
 
 
 system_n64adv2 system_u(
@@ -173,6 +173,7 @@ always @(posedge VCLK)
   if ((!nVDSYNC & negedge_nVSYNC) | !nVRST) begin
     use_igr      <= SysConfigSet0[18];
     OutConfigSet <= {SysConfigSet0[15:0],SysConfigSet1};
+    OutConfigSet[46] <= SysConfigSet0[27] | !SysConfigSet0[25] | SysConfigSet0[24];  // cfg_OSD_SL considers if OSD is shown or not
     OSDInfo[1]   <= &{SysConfigSet0[26:25],!SysConfigSet0[24]};  // show logo only in OSD
     OSDInfo[0]   <= SysConfigSet0[25] & !SysConfigSet0[24];
   end

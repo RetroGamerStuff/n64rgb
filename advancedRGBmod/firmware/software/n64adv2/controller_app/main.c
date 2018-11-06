@@ -108,7 +108,7 @@ int main()
   alt_u8 vmode, vmode_pre;
   alt_u8 linex2, linex2_pre;
   vmode = info_data & INFO_VMODE_GETMASK;
-  linex2 = sysconfig.cfg_word_def[IMAGE_240P]->cfg_word_val & CFG_LINEX2_GETMASK;
+  linex2 = (sysconfig.cfg_word_def[IMAGE_240P]->cfg_word_val & CFG_240P_LINEX2_GETMASK) >> CFG_240P_LINEX2_OFFSET;
   adv7513_vic_manual_setup(vmode,linex2);
   adv7513_de_gen_setup(vmode,linex2);
   vmode_pre = vmode;
@@ -117,13 +117,6 @@ int main()
   volatile alt_u8 rd;
   /* Event loop never exits. */
   while (1) {
-    rd = adv7513_readreg(0x9e);
-    rd = adv7513_readreg(0x3b);
-    rd = adv7513_readreg(0x3c);
-    rd = adv7513_readreg(0x3d);
-    rd = adv7513_readreg(0x3e);
-    rd = adv7513_readreg(0xa4);
-
     if (ctrl_update) {
       ctrl_data = get_ctrl_data();
       command = ctrl_data_to_cmd(&ctrl_data,0);
@@ -133,7 +126,7 @@ int main()
 
     info_data = get_info_data();
     vmode = info_data & INFO_VMODE_GETMASK;
-    linex2 = sysconfig.cfg_word_def[IMAGE_240P]->cfg_word_val & CFG_LINEX2_GETMASK;
+    linex2 = (sysconfig.cfg_word_def[IMAGE_240P]->cfg_word_val & CFG_240P_LINEX2_GETMASK) >> CFG_240P_LINEX2_OFFSET;
     if (vmode != vmode_pre || linex2 != linex2_pre) {
       adv7513_vic_manual_setup(vmode,linex2);
       adv7513_de_gen_setup(vmode,linex2);

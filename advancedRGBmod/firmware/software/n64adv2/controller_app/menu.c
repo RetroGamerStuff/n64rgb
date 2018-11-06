@@ -212,7 +212,8 @@ menu_t license_screen = {
 
 inline alt_u8 is_cfg_240p_screen (menu_t *menu)  /* ugly hack (ToDo on updates: check for validity, i.e. is this property still unique
                                                                (this one shall be valid for 240p and 480i sub screen!!!)) */
-  {  return (menu->leaves[0].config_value->flag_masks.clrflag_mask == CFG_LINEX2_CLRMASK); }
+  {  return ((menu->leaves[0].config_value->flag_masks.clrflag_mask == CFG_240P_LINEX2_CLRMASK) ||
+             (menu->leaves[0].config_value->value_details.max_value  == CFG_480I_LINEX2_MAX_VALUE)); }
 inline alt_u8 cfg_480i_sl_are_linked (menu_t *menu)  /* ugly hack (ToDo on updates: check for validity, i.e. is this property still unique) */
   {  return ( is_cfg_240p_screen (menu) && menu->leaves[0].config_value == &linex2_480i && cfg_get_value(menu->leaves[2].config_value,0)); }
 inline alt_u8 is_sl_str_val (config_t *config_value) /* ugly hack (ToDo on updates: check for validity, i.e. is this property still unique) */
@@ -413,8 +414,8 @@ int update_vinfo_screen(menu_t* current_menu, configuration_t* sysconfig, alt_u8
   vd_print_string(INFO_VALS_H_OFFSET,INFO_VIN_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,VideoMode[str_select]);
 
   // Video Output
-  switch(((((sysconfig->cfg_word_def[IMAGE_240P]->cfg_word_val & CFG_LINEX2_GETMASK) >> CFG_LINEX2_OFFSET) << 3) |
-          (((sysconfig->cfg_word_def[IMAGE_480I]->cfg_word_val & CFG_LINEX2_GETMASK) >> CFG_LINEX2_OFFSET) << 2) | str_select) & 0xF) {
+  switch((( ((sysconfig->cfg_word_def[IMAGE_240P]->cfg_word_val & CFG_240P_LINEX2_GETMASK) >> CFG_240P_LINEX2_OFFSET)      << 3) |
+          ((((sysconfig->cfg_word_def[IMAGE_480I]->cfg_word_val & CFG_480I_LINEX2_GETMASK) >> CFG_480I_LINEX2_OFFSET) !=0) << 2) | str_select) & 0xF) {
    /* order: lineX2_240p, linex2_480i, pal, 480i */
     case 0xE: /* 1110 */
     case 0xA: /* 1010 */
