@@ -82,7 +82,7 @@ void init_adv7513() {
                                                         // [6:4] Audio Select: 000 = I2S
                                                         // [3:2] Mode Selection for Audio Select
                                                         // [1:0] MCLK Ratio: 11 = 512xfs
-  adv7513_writereg(ADV7513_REG_AUDIO_CONFIG, 0x2E);     // [5] MCLK Enable: 1 = MCLK is available, 0 = MCLK not available
+//  adv7513_reg_bitset(ADV7513_REG_AUDIO_CONFIG,5);       // [5] MCLK Enable: 1 = MCLK is available, 0 = MCLK not available
                                                         // [4:1] Must be set to Default Value (0111)
   adv7513_writereg(ADV7513_REG_I2S_CONFIG, 0x86);       // [7] Select source of audio sampling frequency: 1 = use sampling frequency from I2C register
                                                         // [2] I2S0 enable for the 4 I2S pins: 1 = Enabled

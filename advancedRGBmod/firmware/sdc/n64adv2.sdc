@@ -32,7 +32,6 @@ create_generated_clock -name AMCLK -source [get_ports {SCLK_1}] -divide_by 78 -m
 create_generated_clock -master_clock CLK_25M -source [get_nets {pll4ctrl_u|altpll_component|auto_generated|wire_pll1_clk[2]}] -divide_by 1 -multiply_by 1 -name ALTERA_DCLK [get_ports {*ALTERA_DCLK}]
 #create_generated_clock -master_clock VCLK_Tx -source [get_nets {pll4video_u|altpll_component|auto_generated|wire_pll1_clk[1]}] -divide_by 1 -multiply_by 1 -name VCLK_o [get_ports {VCLK_o}]
 create_generated_clock -master_clock VCLK_1 -source [get_ports {VCLK_1}] -divide_by 1 -multiply_by 1 -name VCLK_o [get_ports {VCLK_o}]
-create_generated_clock -master_clock AMCLK -source [get_nets {pll4audio_u|altpll_component|auto_generated|wire_pll1_clk[0]}] -divide_by 1 -multiply_by 1 -name AMCLK_o [get_ports {AMCLK_o}]
 
 
 #**************************************************************
@@ -62,11 +61,10 @@ set_input_delay -clock altera_reserved_tck 20 [get_ports altera_reserved_tms]
 #**************************************************************
 
 set_output_delay -clock { VCLK_o } 0 [get_ports {VCLK_o}] -add
-set_output_delay -clock { VCLK_o } -max  1.8 [get_ports {VDE_o VSYNC_o HSYNC_o VD_o*}] -add
-set_output_delay -clock { VCLK_o } -min -1.3 [get_ports {VDE_o VSYNC_o HSYNC_o VD_o*}] -add
+set_output_delay -clock { VCLK_o } -max  1.8 [get_ports {VSYNC_o HSYNC_o VD_o*}] -add
+set_output_delay -clock { VCLK_o } -min -1.3 [get_ports {VSYNC_o HSYNC_o VD_o*}] -add
 
-set_output_delay -clock { AMCLK_o } -max  2 [get_ports {ASCLK_o ASDATA_o ALRCLK_o}] -add
-set_output_delay -clock { AMCLK_o } -min -2 [get_ports {ASCLK_o ASDATA_o ALRCLK_o}] -add
+set_output_delay -clock { AMCLK } 0 [get_ports {ASCLK_o ASDATA_o ALRCLK_o}]
 
 set_output_delay -clock { ALTERA_DCLK } 0 [get_ports {*ALTERA_SCE *ALTERA_SDO}]
 

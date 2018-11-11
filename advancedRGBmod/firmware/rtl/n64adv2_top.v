@@ -56,13 +56,11 @@ module n64adv2_top (
 
   // Video Output to ADV7513
   VCLK_o,
-  VDE_o,
   VSYNC_o,
   HSYNC_o,
   VD_o,
   
   // I2S audio output for ADV7513
-  AMCLK_o,
   ASCLK_o,
   ASDATA_o,
   ALRCLK_o,
@@ -99,12 +97,10 @@ input ASDATA_i;
 input ALRCLK_i;
 
 output VCLK_o;
-output VDE_o;
 output VSYNC_o;
 output HSYNC_o;
 output [3*color_width_o-1:0] VD_o;
 
-output AMCLK_o;
 output ASCLK_o;
 output ASDATA_o;
 output ALRCLK_o;
@@ -252,8 +248,6 @@ n64adv2_apu_top n64adv2_apu_u(
   .ASDATA_o(ASDATA_o),
   .ALRCLK_o(ALRCLK_o)
 );
-
-assign AMCLK_o = AMCLK;
 
 
 endmodule
