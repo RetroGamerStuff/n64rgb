@@ -177,14 +177,10 @@ always @(posedge VCLK_1) begin
   nVRST_1_pre <= nRST;
 end
 
-reg nARST_pre = 1'b0;
-reg nARST = 1'b0;
-
-always @(posedge SCLK_1) begin
-  nARST <= nARST_pre;
-  nARST_pre <= PLL_LOCKED[2] & nRST;
-end
-
+reg [1:0] nARST_pre = 1'b0;
+always @(posedge AMCLK)
+  nARST_pre <= {nARST_pre[0],nRST};
+wire nARST = PLL_LOCKED[2] ? nARST_pre[1] : 1'b0;
 
 // controller module
 
