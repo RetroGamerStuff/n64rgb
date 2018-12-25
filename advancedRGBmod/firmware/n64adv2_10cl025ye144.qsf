@@ -50,7 +50,7 @@ set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_global_assignment -name ENABLE_OCT_DONE OFF
 set_global_assignment -name USE_CONFIGURATION_DEVICE ON
 set_global_assignment -name CRC_ERROR_OPEN_DRAIN OFF
-set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "3.3-V LVCMOS"
+set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "3.3-V LVTTL"
 set_global_assignment -name CYCLONEII_RESERVE_NCEO_AFTER_CONFIGURATION "USE AS REGULAR IO"
 set_global_assignment -name RESERVE_DATA0_AFTER_CONFIGURATION "USE AS REGULAR IO"
 set_global_assignment -name RESERVE_DATA1_AFTER_CONFIGURATION "USE AS REGULAR IO"
@@ -95,7 +95,6 @@ set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to nRST
 ## Video Output to ADV7513
 ## =======================
 set_location_assignment PIN_113 -to VCLK_o
-set_location_assignment PIN_85 -to VDE_o
 set_location_assignment PIN_80 -to VSYNC_o
 set_location_assignment PIN_83 -to HSYNC_o
 set_location_assignment PIN_144 -to VD_o[23]
@@ -125,7 +124,6 @@ set_location_assignment PIN_86 -to VD_o[0]
   
 ## I2S audio output for ADV7513
 ## ============================
-set_location_assignment PIN_71 -to AMCLK_o
 set_location_assignment PIN_76 -to ASCLK_o
 set_location_assignment PIN_77 -to ASDATA_o
 set_location_assignment PIN_72 -to ALRCLK_o
@@ -154,7 +152,6 @@ set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to ExtData[0]
 
 ## PLL Locations
 ## =============
-#set_location_assignment PLL_2 -to "pll4video:pll4video_u|altpll:altpll_component|pll4vidio_altpll:auto_generated|pll1"
 set_location_assignment PLL_4 -to "pll4audio:pll4audio_u|altpll:altpll_component|pll4audio_altpll:auto_generated|pll1"
 
 
@@ -169,7 +166,6 @@ set_global_assignment -name VERILOG_FILE rtl/n64adv2_top.v
 set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64adv_vparams.vh
 set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64adv_cparams.vh
 set_global_assignment -name QIP_FILE ip/n64adv2/Cyclone10LP/pll4ctrl.qip
-#set_global_assignment -name QIP_FILE ip/n64adv2/Cyclone10LP/pll4video.qip
 set_global_assignment -name QIP_FILE ip/n64adv2/Cyclone10LP/pll4audio.qip
 set_global_assignment -name VERILOG_FILE rtl/n64adv2_controller.v
 set_global_assignment -name QSYS_FILE system_n64adv2.qsys
@@ -183,8 +179,6 @@ set_global_assignment -name VERILOG_FILE rtl/ppu/gamma_module.v
 set_global_assignment -name VERILOG_FILE rtl/ppu/scaler.v
 set_global_assignment -name VERILOG_FILE rtl/n64adv2_apu_top.v
 set_global_assignment -name VERILOG_FILE rtl/apu/n64_sample_i2s.v
-#set_global_assignment -name QIP_FILE ip/n64adv2/Cyclone10LP/fir_audio.qip
-#set_global_assignment -name SIP_FILE ip/n64adv2/Cyclone10LP/fir_audio.sip
 set_global_assignment -name QIP_FILE ip/n64adv2/Cyclone10LP/fir_2ch_audio.qip
 set_global_assignment -name SIP_FILE ip/n64adv2/Cyclone10LP/fir_2ch_audio.sip
 set_global_assignment -name VERILOG_FILE rtl/apu/i2s_leftjustified_tx.v
@@ -206,7 +200,7 @@ set_global_assignment -name TIMING_ANALYZER_MULTICORNER_ANALYSIS ON
 
 ## Additions by Quartus Prime
 ## ==========================
-set_global_assignment -name NUM_PARALLEL_PROCESSORS 2
+set_global_assignment -name NUM_PARALLEL_PROCESSORS 4
 set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "NO HEAT SINK WITH STILL AIR"
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
 set_global_assignment -name CYCLONEIII_CONFIGURATION_DEVICE EPCS16

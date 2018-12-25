@@ -135,18 +135,6 @@ wire [2:0] CLKs_controller = {CLK_4M,CLK_16k,CLK_25M};
 assign LED_0 = PLL_LOCKED[0];
 
 
-//wire PxCLK_Tx;
-//
-//pll4video pll4video_u(
-//  .inclk0(SCLK_1),
-//  .c0(PxCLK_Tx),
-//  .locked(PLL_LOCKED[1])
-//);
-//
-//assign LED_0 = PLL_LOCKED[1];
-assign PLL_LOCKED[1] = 1'b0;
-
-
 
 wire AMCLK;
 

@@ -26,11 +26,9 @@ create_clock -name VCLK_1 -period 20.000 -waveform { 0.000 15.000 } [get_ports {
 create_generated_clock -name CLK_4M -source [get_ports {SCLK_0}] -divide_by 27 -multiply_by 4 [get_nets {pll4ctrl_u|altpll_component|auto_generated|wire_pll1_clk[0]}]
 create_generated_clock -name CLK_16k -source [get_ports {SCLK_0}] -divide_by 3375 -multiply_by 2 [get_nets {pll4ctrl_u|altpll_component|auto_generated|wire_pll1_clk[1]}]
 create_generated_clock -name CLK_25M -source [get_ports {SCLK_0}] -divide_by 27 -multiply_by 25 [get_nets {pll4ctrl_u|altpll_component|auto_generated|wire_pll1_clk[2]}]
-# create_generated_clock -name VCLK_Tx -source [get_ports {VCLK_1}] -divide_by 1 -multiply_by 1 [get_nets {pll4video_u|altpll_component|auto_generated|wire_pll1_clk[1]}]
 create_generated_clock -name AMCLK -source [get_ports {SCLK_1}] -divide_by 78 -multiply_by 71 [get_nets {pll4audio_u|altpll_component|auto_generated|wire_pll1_clk[0]}]
 
 create_generated_clock -master_clock CLK_25M -source [get_nets {pll4ctrl_u|altpll_component|auto_generated|wire_pll1_clk[2]}] -divide_by 1 -multiply_by 1 -name ALTERA_DCLK [get_ports {*ALTERA_DCLK}]
-#create_generated_clock -master_clock VCLK_Tx -source [get_nets {pll4video_u|altpll_component|auto_generated|wire_pll1_clk[1]}] -divide_by 1 -multiply_by 1 -name VCLK_o [get_ports {VCLK_o}]
 create_generated_clock -master_clock VCLK_1 -source [get_ports {VCLK_1}] -divide_by 1 -multiply_by 1 -name VCLK_o [get_ports {VCLK_o}]
 
 
@@ -45,10 +43,10 @@ derive_clock_uncertainty
 # Set Input Delay
 #**************************************************************
 
-set_input_delay -clock { VCLK_1 } -min 0.0 [get_ports {nVDSYNC}]
-set_input_delay -clock { VCLK_1 } -max 6.5 [get_ports {nVDSYNC}]
-set_input_delay -clock { VCLK_1 } -min 0.0 [get_ports {VD_i[*]}]
-set_input_delay -clock { VCLK_1 } -max 6.5  [get_ports {VD_i[*]}]
+set_input_delay -clock { VCLK_0 } -min 0.0 [get_ports {nVDSYNC}]
+set_input_delay -clock { VCLK_0 } -max 6.5 [get_ports {nVDSYNC}]
+set_input_delay -clock { VCLK_0 } -min 0.0 [get_ports {VD_i[*]}]
+set_input_delay -clock { VCLK_0 } -max 6.5  [get_ports {VD_i[*]}]
 
 set_input_delay -clock { CLK_25M } 0 [get_ports *ALTERA_DATA0]
 
@@ -60,7 +58,6 @@ set_input_delay -clock altera_reserved_tck 20 [get_ports altera_reserved_tms]
 # Set Output Delay
 #**************************************************************
 
-set_output_delay -clock { VCLK_o } 0 [get_ports {VCLK_o}] -add
 set_output_delay -clock { VCLK_o } -max  1.8 [get_ports {VSYNC_o HSYNC_o VD_o*}] -add
 set_output_delay -clock { VCLK_o } -min -1.3 [get_ports {VSYNC_o HSYNC_o VD_o*}] -add
 
@@ -75,23 +72,13 @@ set_output_delay -clock altera_reserved_tck 20 [get_ports altera_reserved_tdo]
 # Set Clock Groups
 #**************************************************************
 
-#set_clock_groups -asynchronous -group \
-                            {SCLK_0 CLK_4M CLK_16k CLK_25M} \
-                            {VCLK_0 VCLK_1} \
-                            {VCLK_Tx VCLK_o} \
-                            {SCLK_1} \
-                            {AMCLK AMCLK_o}
-#set_clock_groups -group VCLK_Tx VCLK_o -logically_exclusive
-#set_clock_groups -group AMCLK AMCLK_o -logically_exclusive
-#set_clock_groups -group {CLK_4M CLK_25M} CLK_16k -logically_exclusive
-
 set_clock_groups -asynchronous -group \
                             {SCLK_0 CLK_4M CLK_16k CLK_25M} \
-                            {VCLK_0 VCLK_1 VCLK_o} \
+                            VCLK_0 \
+                            {VCLK_1 VCLK_o} \
                             {SCLK_1} \
-                            {AMCLK AMCLK_o}
+                            AMCLK 
 set_clock_groups -group VCLK_1 VCLK_o -logically_exclusive
-set_clock_groups -group AMCLK AMCLK_o -logically_exclusive
 set_clock_groups -group {CLK_4M CLK_25M} CLK_16k -logically_exclusive
 
 
