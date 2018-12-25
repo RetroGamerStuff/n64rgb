@@ -227,7 +227,6 @@ n64adv2_ppu_top n64adv2_ppu_u(
   .OSDInfo(OSDInfo),
   .VCLK_Tx(VCLK_1),
   .nVRST_Tx(nVRST_1),
-  .VDE_o(VDE_o),
   .VSYNC_o(VSYNC_o),
   .HSYNC_o(HSYNC_o),
   .VD_o(VD_o)

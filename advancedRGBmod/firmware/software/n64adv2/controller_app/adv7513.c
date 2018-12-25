@@ -55,6 +55,7 @@ void init_adv7513() {
                                                         // [1:0] Must be set to 1 for proper operation
   adv7513_writereg(ADV7513_REG_INT1(0), 0xA4);          // Must be set to 0xA4 for proper operation
   adv7513_writereg(ADV7513_REG_INT1(1), 0xA4);          // Must be set to 0xA4 for proper operation
+  adv7513_reg_bitclear(ADV7513_REG_INT1(2), 6);         // enable Video CLK Divide output if bit 6 is set
   adv7513_writereg(ADV7513_REG_INT2, 0xD0);             // Must be set to 0xD0 for proper operation
   adv7513_writereg(ADV7513_REG_INT3, 0x00);             // Must be set to 0x00 for proper operation
 
@@ -104,57 +105,42 @@ void init_adv7513() {
 
 void adv7513_vic_manual_setup(alt_u8 vmode, alt_u8 linex2)
 {
-// if (vmode == 0) adv7513_writereg(ADV7513_REG_VIC_MANUAL, 0x02);
-//  else            adv7513_writereg(ADV7513_REG_VIC_MANUAL, 0x11);
-  if (vmode == 0) {
-    if (linex2 == 0) {
-      adv7513_reg_bitset(ADV7513_REG_INPUT_CLK_DIV, 2); // Input Video CLK Divide by 2
-      adv7513_reg_bitset(ADV7513_REG_INT1(2), 6);       // enable Video CLK Divide output
-      adv7513_writereg(ADV7513_REG_VIC_MANUAL, 0x08);
-    }
-    else {
-      adv7513_reg_bitclear(ADV7513_REG_INPUT_CLK_DIV, 2); // No input Video CLK Divide
-      adv7513_reg_bitclear(ADV7513_REG_INT1(2), 6);       // disable Video CLK Divide output
-      adv7513_writereg(ADV7513_REG_VIC_MANUAL, 0x0E);
-    }
-  }
-  else {
-    if (linex2 == 0) {
-      adv7513_reg_bitset(ADV7513_REG_INPUT_CLK_DIV, 2); // Input Video CLK Divide by 2
-      adv7513_reg_bitset(ADV7513_REG_INT1(2), 6);       // enable Video CLK Divide output
-      adv7513_writereg(ADV7513_REG_VIC_MANUAL, 0x17);
-    }
-    else {
-      adv7513_reg_bitclear(ADV7513_REG_INPUT_CLK_DIV, 2); // No input Video CLK Divide
-      adv7513_reg_bitclear(ADV7513_REG_INT1(2), 6);       // disable Video CLK Divide output
-      adv7513_writereg(ADV7513_REG_VIC_MANUAL, 0x1D);
-    }
+  if (linex2 == 0) {
+    if (vmode == 0) adv7513_writereg(ADV7513_REG_VIC_MANUAL, 0x08);
+    else            adv7513_writereg(ADV7513_REG_VIC_MANUAL, 0x17);
+    adv7513_reg_bitset(ADV7513_REG_INPUT_CLK_DIV, 2);
+    adv7513_reg_bitset(ADV7513_REG_INT1(2), 6);
+  } else {
+    if (vmode == 0) adv7513_writereg(ADV7513_REG_VIC_MANUAL, 0x0E);
+    else            adv7513_writereg(ADV7513_REG_VIC_MANUAL, 0x1D);
+    adv7513_reg_bitclear(ADV7513_REG_INPUT_CLK_DIV, 2);
+    adv7513_reg_bitclear(ADV7513_REG_INT1(2), 6);
   }
 }
 
 void adv7513_de_gen_setup (alt_u8 vmode, alt_u8 linex2)
 {
   alt_u16 hs_delay, vs_delay, width, height; // ToDO: these numbers should be parameters!
-/*  if (vmode == 0) {
-    hs_delay = 111;
-    vs_delay = 35;
-    height = 480;
-  } else {
-    hs_delay = 136;
-    vs_delay = 45;
-    height = 576;
-  }
-  width = 638;*/
   if (vmode == 0) {
     hs_delay = 224;
-    vs_delay = 19;
-    height = linex2 == 0 ? 240 : 480;
+    if (linex2 == 0) {
+      vs_delay = 17;
+      height = 240;
+    } else {
+      vs_delay = 68;
+      height = 480;
+    }
   } else {
     hs_delay = 274;
-    vs_delay = 45;
-    height = linex2 == 0 ? 288 : 576;
+    if (linex2 == 0) {
+      vs_delay = 21;
+      height = 288;
+    } else {
+      vs_delay = 42;
+      height = 576;
+    }
   }
-  width = 1275;
+  width = 1278;
   /*
    * External Sync Input Modes
       To properly frame the active video, the ADV7513 can use an external DE (via external pin) or can generate its own DE signal.

@@ -58,7 +58,6 @@ module n64adv2_ppu_top (
   nVRST_Tx,
 
   // Video Output to ADV7513
-  VDE_o,
   VSYNC_o,
   HSYNC_o,
   VD_o
@@ -82,7 +81,6 @@ input [ 1:0] OSDInfo;
 
 input VCLK_Tx;
 input nVRST_Tx;
-output reg VDE_o = 1'b0;
 output reg VSYNC_o = 1'b0;
 output reg HSYNC_o = 1'b0;
 output reg [3*color_width_o-1:0] VD_o = {3*color_width_o{1'b0}};
@@ -237,7 +235,6 @@ always @(posedge VCLK_Tx) begin
     VD_o <= vdata_srgb_out[`VDATA_O_CO_SLICE];
 
   if (!nVRST_Tx) begin
-      VDE_o <= 1'b0;
     VSYNC_o <= 1'b0;
     HSYNC_o <= 1'b0;
       VD_o <= {3*color_width_o{1'b0}};
