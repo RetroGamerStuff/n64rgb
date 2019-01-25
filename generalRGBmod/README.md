@@ -167,7 +167,7 @@ A complete installation and setup guide to this modding kit is provided in the m
 Choose the PCB service which suits you. Here are some:
 
 - OSHPark: [Link to the Main PCB v1](https://oshpark.com/shared_projects/zPCxky4e) (If the PCB was updated and I forgot to update this link, look onto [my profile](https://oshpark.com/profiles/borti4938))
-- OSHPark: [Link to the Main PCB v2](https://oshpark.com/shared_projects/XceXMR8r) (If the PCB was updated and I forgot to update this link, look onto [my profile](https://oshpark.com/profiles/borti4938))
+- OSHPark: [Link to the Main PCB v2](https://oshpark.com/shared_projects/WYtE5A1v) (If the PCB was updated and I forgot to update this link, look onto [my profile](https://oshpark.com/profiles/borti4938))
 - PCBWay.com: [Link](http://www.pcbway.com/), [Affiliate Link](http://www.pcbway.com/setinvite.aspx?inviteid=10658)
 
 ### BOM / Part List for the PCB
