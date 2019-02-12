@@ -134,7 +134,7 @@ wire [ 3:0] InfoSet;
 wire [ 6:0] JumperCfgSet = {nFilterBypass,n240p,~n480i_bob,~SL_str,~nEN_YPbPr,(nEN_YPbPr & ~nEN_RGsB)}; // (~nEN_YPbPr | nEN_RGsB) ensures that not both jumpers are set and passed through the NIOS II
 wire [47:0] ConfigSet;
 wire [24:0] OSDWrVector;
-wire [ 2:0] OSDInfo;
+wire [ 1:0] OSDInfo;
 
 n64adv_controller #({hdl_fw_main,hdl_fw_sub}) n64adv_controller_u(
   .CLKs(CLKs_controller),

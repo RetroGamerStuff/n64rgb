@@ -134,7 +134,7 @@ menu_t cfg_240p_opt_subscreen = {
     .overlay = &cfg_240p_opt_overlay,
     .parent = &cfg_screen,
     .current_selection = 0,
-    .number_selections = 7,
+    .number_selections = 6,
     .leaves = {
         {.id = CFG_VSUB_LINEX2_V_OFFSET   , .arrow_desc = &cfg_240p_opt_arrow, .leavetype = ICONFIG , .config_value = &linex2},
         {.id = CFG_VSUB_SL_EN_V_OFFSET    , .arrow_desc = &cfg_240p_opt_arrow, .leavetype = ICONFIG , .config_value = &sl_en},
@@ -142,7 +142,6 @@ menu_t cfg_240p_opt_subscreen = {
         {.id = CFG_VSUB_SL_ID_V_OFFSET    , .arrow_desc = &cfg_240p_opt_arrow, .leavetype = ICONFIG , .config_value = &sl_id},
         {.id = CFG_VSUB_SL_STR_V_OFFSET   , .arrow_desc = &cfg_240p_opt_arrow, .leavetype = ICONFIG , .config_value = &sl_str},
         {.id = CFG_VSUB_SLHYB_STR_V_OFFSET, .arrow_desc = &cfg_240p_opt_arrow, .leavetype = ICONFIG , .config_value = &slhyb_str},
-        {.id = CFG_VSUB_SLOSD_V_OFFSET    , .arrow_desc = &cfg_240p_opt_arrow, .leavetype = ICONFIG , .config_value = &show_sl_in_osd}
     }
 };
 
