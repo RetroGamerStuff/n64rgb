@@ -95,7 +95,7 @@ SYS_CLK                      : 24        : input  : 3.3-V LVCMOS      :         
 GND+                         : 25        :        :                   :         : 2         :                
 VCCIO2                       : 26        : power  :                   : 3.3V    : 2         :                
 GND                          : 27        : gnd    :                   :         :           :                
-SYS_CLKen                    : 28        : output : 3.3-V LVCMOS      :         : 2         : Y              
+RESERVED_INPUT_WITH_WEAK_PULLUP : 28        :        :                   :         : 2         :                
 VCCINT                       : 29        : power  :                   : 1.2V    :           :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : 30        :        :                   :         : 2         :                
 n240p                        : 31        : input  : 3.3-V LVCMOS      :         : 2         : Y              
