@@ -57,7 +57,7 @@
 
 #define CFG_OVERLAY_H_OFFSET  OVERLAY_H_OFFSET
 #define CFG_OVERLAY_V_OFFSET  OVERLAY_V_OFFSET_WH
-#define CFG_VALS_H_OFFSET     (22 + CFG_OVERLAY_H_OFFSET)
+#define CFG_VALS_H_OFFSET     (23 + CFG_OVERLAY_H_OFFSET)
 #define CFG_VALS_V_OFFSET     CFG_OVERLAY_V_OFFSET
 #define CFG_240P_SET_V_OFFSET ( 1 + CFG_VALS_V_OFFSET)
 #define CFG_480I_SET_V_OFFSET ( 2 + CFG_VALS_V_OFFSET)
@@ -68,9 +68,9 @@
 
 #define CFG_VSUB_OVERLAY_H_OFFSET   OVERLAY_H_OFFSET
 #define CFG_VSUB_OVERLAY_V_OFFSET   OVERLAY_V_OFFSET_WH
-#define CFG_VSUB_VALS_H_OFFSET      (26 + CFG_VSUB_OVERLAY_H_OFFSET)
+#define CFG_VSUB_VALS_H_OFFSET      (28 + CFG_VSUB_OVERLAY_H_OFFSET)
 #define CFG_VSUB_VALS_V_OFFSET      CFG_VSUB_OVERLAY_V_OFFSET
-#define CFG_VSUB_LINEX2_V_OFFSET    ( 0 + CFG_VSUB_OVERLAY_H_OFFSET)
+#define CFG_VSUB_LINEX_V_OFFSET     ( 0 + CFG_VSUB_OVERLAY_H_OFFSET)
 #define CFG_VSUB_SL_EN_V_OFFSET     ( 1 + CFG_VSUB_OVERLAY_H_OFFSET)
 #define CFG_VSUB_SL_METHOD_V_OFFSET ( 2 + CFG_VSUB_OVERLAY_H_OFFSET)
 #define CFG_VSUB_SL_ID_V_OFFSET     ( 3 + CFG_VSUB_OVERLAY_H_OFFSET)
@@ -148,7 +148,7 @@ static const char *vinfo_overlay =
 static const char *cfg_header =
     "Configuration";
 static const char *cfg_overlay =
-    "* Linedoubling:\n"
+    "* Linemultiplier:\n"
     "  - 240p settings:\n"
     "  - 480i settings:\n"
     "* Output Format:\n"
@@ -158,16 +158,24 @@ static const char *cfg_overlay =
 
 static const char *cfg_240p_opt_header =
     "Config. (240p)";
-static const char *cfg_480i_opt_header =
-    "Config. (480i)";
 static const char *cfg_240p_opt_overlay =
-    "* Enable LineX2:\n"
+    "* Enable Linemultiplier:\n"
     "* Use Scanlines:\n"
     "  - Method:\n"
     "  - Scanline ID:\n"
     "  - Scanline Strength:\n"
-    "  - Hybrid Depth:\n"
-    "  - Show Sl. in OSD:";
+    "  - Hybrid Depth:";
+
+static const char *cfg_480i_opt_header =
+    "Config. (480i)";
+static const char *cfg_480i_opt_overlay =
+    "* De-Interlacing (Bob):\n"
+    "  - Field-Shift Fix:\n"
+    "* Use Scanlines:\n"
+    "  - Method:\n"
+    "  - Scanline ID:\n"
+    "  - Scanline Strength:\n"
+    "  - Hybrid Depth:";
 
 
 
@@ -244,18 +252,19 @@ static const char *home_overlay =
     "License...";
 
 const char *EnterSubMenu = "[Enter submenu]";
+const char *LineX3Hint   = "*LineX3: only available in NTSC video mode";
 
 const char *OffOn[]         = {"Off","On"};
-const char *LineX2_480i[]   = {"Off","On","Advanced"};
+const char *LineX_240p[]    = {"LineX Off","LineX2","LineX3*"};
 const char *EvenOdd[]       = {"Even","Odd "};
 const char *AdvSL[]         = {"Simple","Advanced"};
 const char *LinkSL[]        = {"480i ind.","Link 240p"};
-const char *VideoMode[]     = {"240p60","480i60","288p50","576i50","480p60","576p50"};
+const char *VideoMode[]     = {"240p60","480i60","288p50","576i50","480p60","576p50","720p60 (pseudo)"};
 const char *VideoColor[]    = {"21bit","15bit"};
 const char *VideoFormat[]   = {"RGBS","RGBS/RGsB","YPbPr"};
 const char *DeBlur[]        = {"(estimated)","(forced)","(480i/576i)"};
 const char *DeBlurCfg[]     = {"Auto","Off","Always"};
-const char *FilterAddOn[]   = {"Auto"," 9.5MHz","18.0MHz","(bypassed)","(not installed)"};
+const char *FilterAddOn[]   = {"Auto"," 9.5MHz","18.0MHz","36.0MHz","(bypassed)","(not installed)"};
 const char *SLDesc[]        = {"  0.00%","  6.25%"," 12.50%"," 18.75%",
                                " 25.00%"," 31.25%"," 37.50%"," 43.75%",
                                " 50.00%"," 56.25%"," 62.50%"," 68.75%",

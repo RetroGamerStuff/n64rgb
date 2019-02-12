@@ -115,9 +115,9 @@ void cfg_show_testpattern(configuration_t* sysconfig)
   alt_u32 ctrl_data = get_ctrl_data();
 
   while(1) {
-    while(!get_nvsync()){};                          /* wait for nVSYNC goes high */
-    while( get_nvsync() && new_ctrl_available()){};  /* wait for nVSYNC goes low and
-                                                        wait for new controller available  */
+    while(!get_nvsync()){};                          // wait for nVSYNC goes high
+    while( get_nvsync() && new_ctrl_available()){};  // wait for nVSYNC goes low and
+                                                     // wait for new controller available
     ctrl_data = get_ctrl_data();
     command = ctrl_data_to_cmd(&ctrl_data,1);
     if ((command == CMD_MENU_BACK)  || (command == CMD_MENU_LEFT)) break;
@@ -239,15 +239,15 @@ int cfg_load_jumperset(configuration_t* sysconfig, alt_u8 need_confirm)
   alt_u8 jumper_word = cfg_get_jumper();
 
   if (~(jumper_word & JUMPER_FILTERADDON_GETMASK)) {
-    sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= CFG_FILTER_OFF_SETMASK;
+    sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= CFG_FILTER_AUTO_SETMASK;
   }
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val &= CFG_DEBLUR_RSTMASK;
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= CFG_DEBLUR_AUTO_SETMASK;
 
   if (jumper_word & JUMPER_LINEX2_GETMASK) {
-    sysconfig->cfg_word_def[IMAGE_240P]->cfg_word_val |= CFG_240P_LINEX2_SETMASK;
-    if (jumper_word & JUMPER_480IBOB_GETMASK)
-      sysconfig->cfg_word_def[IMAGE_480I]->cfg_word_val |= CFG_480I_LINEX2_MAX_VALUE;
+    sysconfig->cfg_word_def[IMAGE_240P]->cfg_word_val |= (1 << CFG_240P_LINEX_OFFSET);
+    if (jumper_word & JUMPER_480I_BOB_DEINTER_GETMASK)
+      sysconfig->cfg_word_def[IMAGE_480I]->cfg_word_val |= CFG_480I_BOB_DEINTER_SETMASK;
   }
 
   sysconfig->cfg_word_def[IMAGE_240P]->cfg_word_val |= (CFG_240P_SL_ID_SETMASK | CFG_240P_SL_EN_SETMASK);
@@ -265,7 +265,7 @@ int cfg_load_jumperset(configuration_t* sysconfig, alt_u8 need_confirm)
       sysconfig->cfg_word_def[IMAGE_240P]->cfg_word_val &= CFG_240P_SL_EN_CLRMASK;       // 0%
       break;
   }
-  sysconfig->cfg_word_def[IMAGE_480I]->cfg_word_val |= (sysconfig->cfg_word_def[IMAGE_240P]->cfg_word_val & CFG_480I_LINEX2_RSTMASK);
+  sysconfig->cfg_word_def[IMAGE_480I]->cfg_word_val |= (sysconfig->cfg_word_def[IMAGE_240P]->cfg_word_val & CFG_480I_FIELDFIX_CLRMASK & CFG_480I_BOB_DEINTER_CLRMASK);
 
   return 0;
 }

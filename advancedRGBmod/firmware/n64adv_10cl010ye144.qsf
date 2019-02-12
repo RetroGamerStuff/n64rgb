@@ -171,6 +171,7 @@ set_global_assignment -name VERILOG_FILE rtl/n64adv_top.v
 set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64adv_vparams.vh
 set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64adv_cparams.vh
 set_global_assignment -name QIP_FILE ip/n64adv1/Cyclone10LP/sys_pll.qip
+set_global_assignment -name QIP_FILE ip/n64adv1/Cyclone10LP/video_pll.qip
 set_global_assignment -name VERILOG_FILE rtl/n64adv_controller.v
 set_global_assignment -name QSYS_FILE system_n64adv1.qsys
 set_global_assignment -name QIP_FILE system_n64adv1/synthesis/system_n64adv1.qip
@@ -180,8 +181,10 @@ set_global_assignment -name VERILOG_FILE rtl/ppu/n64_deblur.v
 set_global_assignment -name VERILOG_FILE rtl/ppu/n64a_vdemux.v
 set_global_assignment -name VERILOG_FILE rtl/ppu/osd_injection.v
 set_global_assignment -name VERILOG_FILE rtl/ppu/gamma_module.v
-set_global_assignment -name VERILOG_FILE rtl/ppu/linedoubler.v
+set_global_assignment -name VERILOG_FILE rtl/ppu/linemult.v
+set_global_assignment -name QIP_FILE ip/n64adv1/Cyclone10LP/vclk_tx_mux.qip
 set_global_assignment -name VERILOG_FILE rtl/ppu/testpattern.v
+set_global_assignment -name QIP_FILE ip/n64adv1/Cyclone10LP/vclk_tx_post_testpattern_mux.qip
 set_global_assignment -name VERILOG_FILE rtl/ppu/vconv.v
 set_global_assignment -name VERILOG_FILE rtl/misc/ram2port.v
 set_global_assignment -name VERILOG_FILE rtl/misc/font_rom.v
@@ -231,10 +234,11 @@ set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to nHSYNC_
 
 ## Assignments for Synthesis and Fitter
 ## ====================================
-set_global_assignment -name OPTIMIZATION_MODE BALANCED
 set_global_assignment -name SMART_RECOMPILE ON
+set_global_assignment -name ALLOW_REGISTER_RETIMING OFF
 set_global_assignment -name OPTIMIZE_HOLD_TIMING "ALL PATHS"
 set_global_assignment -name TIMING_ANALYZER_MULTICORNER_ANALYSIS ON
+set_global_assignment -name SEED 12
 
 
 ## Additions by Quartus Prime

@@ -28,7 +28,7 @@
 //                 Cyclone 10 LP: 10CL010YE144
 // Tool versions:  Altera Quartus Prime
 //
-// Revision: 1.30
+// Revision: 1.32
 // Features: see repository readme
 //
 //////////////////////////////////////////////////////////////////////////////////
@@ -104,28 +104,53 @@ input       n480i_bob;
 
 // start of rtl
 
-reg nVRST_pre = 1'b0;
-reg nVRST = 1'b0;
-
-always @(posedge VCLK) begin
-  nVRST <= nVRST_pre;
-  nVRST_pre <= nRST;
-end
 
 // PLLs
 
-wire CLK_4M, CLK_16k, CLK_25M, PLL_LOCKED;
+wire CLK_4M, CLK_16k, CLK_25M, SYS_PLL_LOCKED;
 
 sys_pll sys_pll_u(
   .inclk0(SYS_CLK),
   .c0(CLK_4M),
   .c1(CLK_16k),
   .c2(CLK_25M),
-  .locked(PLL_LOCKED)
+  .locked(SYS_PLL_LOCKED)
 );
 
 wire [2:0] CLKs_controller = {CLK_4M,CLK_16k,CLK_25M};
-wire nSRST = PLL_LOCKED;
+wire nSRST = SYS_PLL_LOCKED;
+
+
+wire VCLK_50M, VCLK_75M, VIDEO_PLL_LOCKED;
+
+video_pll video_pll_u(
+  .inclk0(VCLK),
+  .c0(VCLK_50M),
+  .c1(VCLK_75M),
+  .locked(VIDEO_PLL_LOCKED)
+);
+
+wire [1:0] VCLK_Tx = {VCLK_75M,VCLK_50M};
+
+// synchronize resets
+
+reg nVRST_pre = 1'b0;
+reg nVRST = 1'b0;
+always @(posedge VCLK) begin
+  nVRST <= nVRST_pre;
+  nVRST_pre <= nRST;
+end
+
+reg [1:0] nVRST_Tx_pre [0:1];
+initial begin
+  nVRST_Tx_pre[0] = 2'b00;
+  nVRST_Tx_pre[1] = 2'b00;
+end
+always @(posedge VCLK_50M)
+  nVRST_Tx_pre[0] <= {nVRST_Tx_pre[0][0],nRST};
+always @(posedge VCLK_75M)
+  nVRST_Tx_pre[1] <= {nVRST_Tx_pre[1][0],nRST};
+wire [1:0] nVRST_Tx = VIDEO_PLL_LOCKED ? {nVRST_Tx_pre[1][1],nVRST_Tx_pre[0][1]} : 2'b000;
 
 
 // controller module
@@ -138,7 +163,7 @@ wire [ 1:0] OSDInfo;
 
 n64adv_controller #({hdl_fw_main,hdl_fw_sub}) n64adv_controller_u(
   .CLKs(CLKs_controller),
-  .CLKs_valid(PLL_LOCKED),
+  .CLKs_valid(SYS_PLL_LOCKED),
   .nRST(nRST),
   .nSRST(nSRST),
   .CTRL(CTRL_i),
@@ -166,7 +191,9 @@ n64adv_ppu_top n64adv_ppu_u(
   .OSDCLK(CLK_25M),
   .OSDWrVector(OSDWrVector),
   .OSDInfo(OSDInfo),
-  .VCLK_Tx(VCLK),
+  .VCLK_Tx(VCLK_Tx),
+  .nVRST_Tx(nVRST_Tx),
+  .VCLK_o(CLK_ADV712x),
 //  .nBLANK(nBLANK_ADV712x),
   .VD_o(VD_o),
   .nCSYNC({nCSYNC,nCSYNC_ADV712x}),
@@ -174,7 +201,5 @@ n64adv_ppu_top n64adv_ppu_u(
   .nVSYNC_or_F2(nVSYNC_or_F2),
   .nHSYNC_or_F1(nHSYNC_or_F1)
 );
-
-assign CLK_ADV712x = VCLK;
 
 endmodule

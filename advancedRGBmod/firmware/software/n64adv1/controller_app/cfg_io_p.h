@@ -36,7 +36,7 @@
 #ifndef CFG_HEADER_CFG_IO_P_H_
 #define CFG_HEADER_CFG_IO_P_H_
 
-extern const char *OffOn[], *LineX2_480i[], *AdvSL[], *LinkSL[], *EvenOdd[],
+extern const char *OffOn[], *LineX_240p[], *AdvSL[], *LinkSL[], *EvenOdd[],
                   *VideoFormat[], *DeBlurCfg[], *SLDesc[], *GammaValue[],
                   *QuickChange[], *FilterAddOn[];
 
@@ -180,15 +180,15 @@ cfg_word_t cfg_data_image240p =
     .cfg_ref_word_val = 0x00
   };
 
-config_t linex2 = {
+config_t linex_240p = {
     .cfg_word        = &cfg_data_image240p,
-    .cfg_word_offset = CFG_240P_LINEX2_OFFSET,
-    .cfg_type        = FLAG,
-    .flag_masks      = {
-        .setflag_mask = CFG_240P_LINEX2_SETMASK,
-        .clrflag_mask = CFG_240P_LINEX2_CLRMASK
+    .cfg_word_offset = CFG_240P_LINEX_OFFSET,
+    .cfg_type        = VALUE,
+    .value_details   = {
+        .max_value     = CFG_240P_LINEX_MAX_VALUE,
+        .getvalue_mask = CFG_240P_LINEX_GETMASK
     },
-    .value_string = &OffOn
+    .value_string = &LineX_240p
 };
 
 config_t slhyb_str = {
@@ -254,15 +254,26 @@ cfg_word_t cfg_data_image480i =
     .cfg_ref_word_val = 0x00
   };
 
-config_t linex2_480i = {
+config_t bob_deinter_480i = {
     .cfg_word        = &cfg_data_image480i,
-    .cfg_word_offset = CFG_480I_LINEX2_OFFSET,
-    .cfg_type        = VALUE,
-	.value_details   = {
-        .max_value     = CFG_480I_LINEX2_MAX_VALUE,
-        .getvalue_mask = CFG_480I_LINEX2_GETMASK
+    .cfg_word_offset = CFG_480I_BOB_DEINTER_OFFSET,
+    .cfg_type        = FLAG,
+    .flag_masks      = {
+        .setflag_mask = CFG_480I_BOB_DEINTER_SETMASK,
+        .clrflag_mask = CFG_480I_BOB_DEINTER_CLRMASK
     },
-    .value_string = &LineX2_480i
+    .value_string = &OffOn
+};
+
+config_t field_shift_fix_480i = {
+    .cfg_word        = &cfg_data_image480i,
+    .cfg_word_offset = CFG_480I_FIELDFIX_OFFSET,
+    .cfg_type        = FLAG,
+    .flag_masks      = {
+        .setflag_mask = CFG_480I_FIELDFIX_SETMASK,
+        .clrflag_mask = CFG_480I_FIELDFIX_CLRMASK
+    },
+    .value_string = &OffOn
 };
 
 config_t slhyb_str_480i = {

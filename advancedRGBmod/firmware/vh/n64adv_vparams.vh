@@ -65,19 +65,26 @@ parameter vdata_width_o = 4 + 3*color_width_o;
   `define HSTART_PAL  11'd0275
   `define HSTOP_PAL   11'd1550
 
-  `define BUF_NUM_OF_PAGES    6
+  `define BUF_NUM_OF_PAGES    4
   `define BUF_DEPTH_PER_PAGE  (`HSTOP_NTSC - `HSTART_NTSC + 1)/2
   
   `define PIXEL_PER_LINE_2x_NTSC  1545
   `define PIXEL_PER_LINE_2x_PAL   1587
   `define PIXEL_PER_LINE_2x_MAX   1600
 
-  `define HS_WIDTH_NTSC_240P  7'd115
-  `define HS_WIDTH_NTSC_480I  7'd111
-  `define HS_WIDTH_PAL_288P   7'd124
-  `define HS_WIDTH_PAL_576I   7'd121
+  `define HS_WIDTH_NTSC_LX2     7'd113
+  `define H_SHIFT_NTSC_240P_LX2 5'b00010
+  `define H_SHIFT_NTSC_480I_LX2 5'b11110
+  `define HS_WIDTH_NTSC_LX3     7'd38
+  `define H_SHIFT_NTSC_240P_LX3 5'b11011
 
-  `define VS_WIDTH  4'd3
+  `define HS_WIDTH_PAL_LX2      7'd123
+  `define H_SHIFT_PAL_288P_LX2  5'b00001
+  `define H_SHIFT_PAL_576I_LX2  5'b11110
+
+  `define VS_WIDTH_NTSC_LX2  4'd2
+  `define VS_WIDTH_NTSC_LX3  4'd5
+  `define VS_WIDTH_PAL_LX2  4'd5
 
   // Testpattern
   // ===========

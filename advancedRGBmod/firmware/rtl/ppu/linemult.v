@@ -2,7 +2,7 @@
 //
 // This file is part of the N64 RGB/YPbPr DAC project.
 //
-// Copyright (C) 2016-2018 by Peter Bartmann <borti4938@gmx.de>
+// Copyright (C) 2016-2019 by Peter Bartmann <borti4938@gmx.de>
 //
 // N64 RGB/YPbPr DAC is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 // Company:  Circuit-Board.de
 // Engineer: borti4938
 //
-// Module Name:    linedoubler
+// Module Name:    linemult
 // Project Name:   N64 Advanced RGB/YPbPr DAC Mod
 // Target Devices: Cyclone IV and Cyclone 10 LP devices
 // Tool versions:  Altera Quartus Prime
@@ -31,27 +31,37 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module linedoubler(
+module linemult(
   VCLK,
-  nRST,
+  nVRST,
 
-  vinfo_dbl,
+  VCLK_Tx,
+  nVRST_Tx,
+  VCLK_o,
+  nVRST_o,
+
+  vinfo_mult,
 
   vdata_i,
   vdata_o
 );
 
 `include "vh/n64adv_vparams.vh"
-`define BUF_NUM_OF_PAGES  4
 
 localparam hcnt_witdh  = $clog2(`PIXEL_PER_LINE_2x_MAX);
 localparam Y_width     = color_width_o+1;
 localparam SLHyb_width = 8; // do not change this localparam!
 
 input VCLK;
-input nRST;
+input nVRST;
 
-input [16:0] vinfo_dbl; // [nLinedbl,lx2_ifix,SL_in_osd,SLhyb_str (5bits),SL_str (4bits),SL_method,SL_id,SL_en,PAL,interlaced]
+input [1:0] VCLK_Tx;
+input [1:0] nVRST_Tx;
+output VCLK_o;
+output nVRST_o;
+
+input [16:0] vinfo_mult; // [nLineMult (2bits),lx_ifix (1bit),SLhyb_str (5bits),SL_str (4bits),SL_method,SL_id,SL_en,PAL,interlaced]
+
 
 input  [`VDATA_I_FU_SLICE] vdata_i;
 output [`VDATA_O_FU_SLICE] vdata_o;
@@ -66,17 +76,17 @@ wire [color_width_i-1:0] R_i = vdata_i[`VDATA_I_RE_SLICE];
 wire [color_width_i-1:0] G_i = vdata_i[`VDATA_I_GR_SLICE];
 wire [color_width_i-1:0] B_i = vdata_i[`VDATA_I_BL_SLICE];
 
-wire nENABLE_linedbl   = vinfo_dbl[16] | ~rdrun[1];
-wire linedbl_480i_fix  = vinfo_dbl[15] | ~rdrun[1];
-wire       SL_in_osd   = vinfo_dbl[14];
-wire [4:0] SLHyb_depth = vinfo_dbl[13:9];
-wire [3:0] SL_str      = vinfo_dbl[ 8:5];
-wire       SL_method   = vinfo_dbl[ 4];
-wire       SL_id       = vinfo_dbl[ 3];
-wire       SL_en       = vinfo_dbl[ 2];
-wire       pal_mode    = vinfo_dbl[ 1];
-wire       n64_480i    = vinfo_dbl[ 0];
-
+wire   nENABLE_linemult = ~^vinfo_mult[16:15];
+wire [1:0] linemult_sel =   vinfo_mult[16:15]; // LineX3 not allowed in PAL mode (covered in upper module)
+wire       bob_480i_fix =   vinfo_mult[14];
+wire [4:0]  SLHyb_depth =   vinfo_mult[13:9];
+wire [3:0]       SL_str =   vinfo_mult[ 8:5];
+wire          SL_method =   vinfo_mult[ 4];
+wire              SL_id =   vinfo_mult[ 3];
+wire              SL_en =   vinfo_mult[ 2];
+wire           pal_mode =   vinfo_mult[ 1];
+wire           n64_480i =   vinfo_mult[ 0];
+ 
 
 // start of rtl
 
@@ -104,7 +114,7 @@ always @(posedge VCLK) begin
     end
   end
 
-  if (!nRST) begin
+  if (!nVRST) begin
     nVDSYNC_dbl <= 1'b0;
     nHS_i_buf  <= 1'b0;
     nVS_i_buf  <= 1'b0;
@@ -116,8 +126,10 @@ end
 reg [hcnt_witdh-1:0] hstart = `HSTART_NTSC;
 reg [hcnt_witdh-1:0] hstop  = `HSTOP_NTSC;
 
-reg [6:0] nHS_width = `HS_WIDTH_NTSC_480I;
-
+reg [ 6:0] nHS_width = `HS_WIDTH_NTSC_LX2;
+reg [ 4:0] pic_shift = `H_SHIFT_NTSC_480I_LX2;
+reg [ 3:0] nVS_width = `VS_WIDTH_NTSC_LX2;
+reg [10:0] nVS_delay = (`BUF_NUM_OF_PAGES>>1);
 
 localparam pcnt_width = $clog2(`BUF_NUM_OF_PAGES);
 
@@ -153,12 +165,18 @@ always @(posedge VCLK) begin
       if (pal_mode) begin
         hstart    <= `HSTART_PAL;
         hstop     <= `HSTOP_PAL;
-        nHS_width <= n64_480i ? `HS_WIDTH_PAL_576I : `HS_WIDTH_PAL_288P;
+        nHS_width <= `HS_WIDTH_PAL_LX2;
+        pic_shift <= n64_480i ? `H_SHIFT_PAL_576I_LX2 : `H_SHIFT_PAL_288P_LX2;
+        nVS_width <= `VS_WIDTH_PAL_LX2;
       end else begin
         hstart    <= `HSTART_NTSC;
         hstop     <= `HSTOP_NTSC;
-        nHS_width <= n64_480i ? `HS_WIDTH_NTSC_480I : `HS_WIDTH_NTSC_240P;
+        nHS_width <= linemult_sel == 2'b10 ? `HS_WIDTH_NTSC_LX3 : `HS_WIDTH_NTSC_LX2;
+        pic_shift <= linemult_sel == 2'b10 ? `H_SHIFT_NTSC_240P_LX3 :
+                                  n64_480i ? `H_SHIFT_NTSC_480I_LX2 : `H_SHIFT_NTSC_240P_LX2;
+        nVS_width <= linemult_sel == 2'b10 ? `VS_WIDTH_NTSC_LX3 : `VS_WIDTH_NTSC_LX2;
       end
+      nVS_delay <= linemult_sel == 2'b10 ? 11'd0 : (`BUF_NUM_OF_PAGES>>1);
 
       if (negedge_nHSYNC)
         start_rdproc[0] <= ~start_rdproc[1];  // trigger read start
@@ -189,7 +207,7 @@ always @(posedge VCLK) begin
     end
   end
 
-  if (!nRST) begin
+  if (!nVRST) begin
         newFrame[0] <= newFrame[1];
     start_rdproc[0] <= start_rdproc[1];
 
@@ -199,32 +217,69 @@ always @(posedge VCLK) begin
   end
 end
 
+wire VCLK_Tx_o;
+
+vclk_tx_mux vclk_tx_mux_u (
+  .data2(VCLK_Tx[1]),
+  .data1(VCLK_Tx[0]),
+  .data0(VCLK),
+  .sel(linemult_sel),
+  .result(VCLK_Tx_o)
+);
+
+reg [1:0] linemult_sel_buf [0:2];
+initial begin
+  linemult_sel_buf[0] = 2'b00;
+  linemult_sel_buf[1] = 2'b00;
+  linemult_sel_buf[2] = 2'b00;
+end
+reg [7:0] hold_nVRST_Tx_o = 8'h0;
+reg nVRST_Tx_o;
+
+always @(posedge VCLK_Tx_o) begin
+  if (~|hold_nVRST_Tx_o) begin
+    nVRST_Tx_o <= linemult_sel == 2'b10 ? nVRST_Tx[1] :
+                  linemult_sel == 2'b01 ? nVRST_Tx[0] :
+                                          nVRST;
+  end else begin
+    nVRST_Tx_o <= 1'b0;
+    hold_nVRST_Tx_o <= hold_nVRST_Tx_o - 1'b1;
+  end
+  if (linemult_sel_buf[2] != linemult_sel_buf[1])
+    hold_nVRST_Tx_o <= 8'hff;
+  linemult_sel_buf[2] <= linemult_sel_buf[1];
+  linemult_sel_buf[1] <= linemult_sel_buf[0];
+  linemult_sel_buf[0] <= linemult_sel;
+end
+
 
 reg            [2:0] rden    = 3'b0;
 reg            [1:0] rdrun   = 2'b00;
-reg                  rdcnt   = 1'b0;
+reg            [1:0] rdcnt   = 2'b0;
 reg [pcnt_width-1:0] rdpage  = {pcnt_width{1'b0}};
 reg [hcnt_witdh-1:0] rdhcnt  = {hcnt_witdh{1'b1}};
-reg [           9:0] rdvcnt  = 10'd0;
+reg [          10:0] rdvcnt  = 11'd0;
 reg [hcnt_witdh-1:0] rdaddr  = {hcnt_witdh{1'b0}};
 
 reg nHSYNC_dbl, nVSYNC_dbl, nCSYNC_dbl;
 
-always @(posedge VCLK) begin
+always @(posedge VCLK_Tx_o) begin
   if (rdrun[1]) begin
     if (rdhcnt == line_width[rdpage_pp1]) begin
       rdhcnt   <= {hcnt_witdh{1'b0}};
-      if (rdcnt) begin
+      if (rdcnt == linemult_sel) begin
+        rdcnt <= 2'b00;
         if (rdpage == `BUF_NUM_OF_PAGES-1)
           rdpage = {pcnt_width{1'b0}};
         else
           rdpage <= rdpage + 1'b1;
+      end else begin
+        rdcnt <= rdcnt + 1'b1;
       end
-      rdcnt <= ~rdcnt;
       
       if (^newFrame) begin
         newFrame[1] <= newFrame[0];
-        rdvcnt <= 10'd0;
+        rdvcnt <= 11'd0;
       end else begin
         rdvcnt <= rdvcnt + 1'b1;
       end
@@ -232,10 +287,10 @@ always @(posedge VCLK) begin
       rdhcnt <= rdhcnt + 1'b1;
     end
 
-    if (rdhcnt == hstart) begin
+    if ((rdhcnt+{{(hcnt_witdh-5){pic_shift[4]}},pic_shift}) == hstart) begin
       rden[0] <= 1'b1;
       rdaddr  <= {hcnt_witdh{1'b0}};
-    end else if (rdhcnt > hstart && rdhcnt < hstop) begin
+    end else if ((rdhcnt+{{(hcnt_witdh-5){pic_shift[4]}},pic_shift}) > hstart && (rdhcnt+{{(hcnt_witdh-5){pic_shift[4]}},pic_shift}) < hstop) begin
       rdaddr <= rdaddr + 1'b1;
     end else begin
       rden[0] <= 1'b0;
@@ -244,7 +299,7 @@ always @(posedge VCLK) begin
   end else if (rdrun[0] && !nVDSYNC_dbl &&
               (wrpage == (`BUF_NUM_OF_PAGES>>1)) && wrhcnt[6]) begin
     rdrun[1] <= 1'b1;
-    rdcnt    <= 1'b0;
+    rdcnt    <= 2'b00;
     rdpage   <= {pcnt_width{1'b0}};
     rdhcnt   <= {hcnt_witdh{1'b0}};
     rdvcnt   <= (`BUF_NUM_OF_PAGES>>1);
@@ -253,8 +308,9 @@ always @(posedge VCLK) begin
   end
   
   rden[2:1] <= rden[1:0];
-  if (!nRST || line_overflow ||
-      (negedge_nHSYNC & !valid_line)) begin // reset conditions
+  if (!nVRST_Tx_o || line_overflow ||
+      (negedge_nHSYNC & !valid_line) ||
+      nENABLE_linemult) begin // reset conditions
     rden  <= 3'b0;
     rdrun <= 2'b0;
   end
@@ -262,12 +318,13 @@ always @(posedge VCLK) begin
   start_rdproc[1] <= start_rdproc[0];
 
   nHSYNC_dbl <= rdhcnt >= nHS_width;
-  nVSYNC_dbl <= (rdvcnt < (`BUF_NUM_OF_PAGES>>1)) || (rdvcnt >= (`VS_WIDTH + (`BUF_NUM_OF_PAGES>>1)));
+  nVSYNC_dbl <= (rdvcnt < nVS_delay) || (rdvcnt >= (nVS_width + nVS_delay));
   nCSYNC_dbl <= nVSYNC_dbl == 1'b1 ? rdhcnt >= nHS_width : rdhcnt > (line_width[rdpage_pp1] - nHS_width);
   
 end
 
-wire [pcnt_width-1:0] rdpage_pp0 = (FrameID | !n64_480i | !linedbl_480i_fix) ? rdpage : rdpage - !rdcnt;
+
+wire [pcnt_width-1:0] rdpage_pp0 = (FrameID | !n64_480i | !bob_480i_fix) ? rdpage : rdpage - !rdcnt[0];
 wire [pcnt_width-1:0] rdpage_pp1 = rdpage_pp0 >= `BUF_NUM_OF_PAGES ? `BUF_NUM_OF_PAGES-1 : rdpage_pp0;
 wire [pcnt_width-1:0] rdpage_pp2 = (!SL_method | n64_480i) ? rdpage_pp1 :  // do not allow advanced scanlines in 480i linex2 mode
                                    !rdaddr[0] ? rdpage_pp1 : !SL_id ? rdpage_pp1 - 1'b1 : rdpage_pp1 + 1'b1;
@@ -286,7 +343,7 @@ ram2port #(
   .wrpage(wrpage),
   .wraddr(wraddr[hcnt_witdh-1:1]),
   .wrdata({R_i,G_i,B_i}),
-  .rdCLK(VCLK),
+  .rdCLK(VCLK_Tx_o),
   .rden(rden[0]),
   .rdpage(rdpage_pp3),
   .rdaddr(rdaddr[hcnt_witdh-1:1]),
@@ -294,9 +351,6 @@ ram2port #(
 );
 
 
-
-wire is_OSD_area = (rdhcnt > ({     `OSD_WINDOW_H_START,1'b0} + 4'd7)) && (rdhcnt < ({     `OSD_WINDOW_H_STOP,1'b0} + 4'd3)) &&
-                   (rdvcnt > ({1'b0,`OSD_WINDOW_V_START,1'b0} + 4'd5)) && (rdvcnt < ({1'b0,`OSD_WINDOW_V_STOP,1'b0} + 4'd3));
 
 reg                     drawSL [0:2];
 reg               [3:0] S_dbl [0:2];
@@ -309,13 +363,14 @@ wire [color_width_i-1:0] R_avg = {1'b0,R_dbl_pre[color_width_i-1:1]} + {1'b0,R_b
 wire [color_width_i-1:0] G_avg = {1'b0,G_dbl_pre[color_width_i-1:1]} + {1'b0,G_buf[color_width_i-1:1]} + (G_dbl_pre[0] ^ G_buf[0]);
 wire [color_width_i-1:0] B_avg = {1'b0,B_dbl_pre[color_width_i-1:1]} + {1'b0,B_buf[color_width_i-1:1]} + (B_dbl_pre[0] ^ B_buf[0]);
 
-always @(posedge VCLK) begin
+always @(posedge VCLK_Tx_o) begin
    S_dbl[2] <=  S_dbl[1];
    S_dbl[1] <=  S_dbl[0];
    S_dbl[0] <= {nVSYNC_dbl,1'b0, nHSYNC_dbl,nCSYNC_dbl};
   drawSL[2] <= drawSL[1];
   drawSL[1] <= drawSL[0];
-  drawSL[0] <= (is_OSD_area ? SL_in_osd : 1'b1) && SL_en && (rdcnt ^ (!SL_id));
+  drawSL[0] <= SL_en && (linemult_sel_buf[2] == 2'b01 ? (rdcnt ^ (!SL_id)) :
+                         SL_id ? (rdcnt == 2'b10) : (rdcnt == 2'b00));
 
   if (rden[2]) begin
     if (!rdaddr[0]) begin // reading buffer has exactly two delay steps - so we can safetely use !rdaddr[0]
@@ -373,7 +428,7 @@ reg  [color_width_o-1:0]             R_sl, G_sl, B_sl;
 
 integer pp_idx;
 
-always @(posedge VCLK) begin
+always @(posedge VCLK_Tx_o) begin
        dSL_pp[0] <= drawSL[2];
          S_pp[0] <= S_dbl[2];
   R_sl_pre_pp[0] <= R_sl_pre;
@@ -424,7 +479,7 @@ always @(posedge VCLK) begin
   end
 
   // use standard input if no line-doubling
-  if (nENABLE_linedbl) begin
+  if (nENABLE_linemult) begin
     S_o <= vdata_i[`VDATA_I_SY_SLICE];
     R_o <= {R_i,R_i[color_width_i-1]};
     G_o <= {G_i,G_i[color_width_i-1]};
@@ -435,6 +490,8 @@ end
 
 // post-assignment
 
+assign VCLK_o = VCLK_Tx_o;
+assign nVRST_o = nVRST_Tx_o;
 assign vdata_o = {S_o,R_o,G_o,B_o};
 
 endmodule 

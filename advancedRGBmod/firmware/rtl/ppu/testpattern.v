@@ -62,8 +62,8 @@ reg [9:0] hcnt = 10'b0;
 
 wire [8:0] pattern_vstart = vmode ? 9'd22 : 9'd18;
 wire [8:0] pattern_vstop = vmode ? 9'd296 : 9'd248;
-wire [9:0] pattern_hstart = vmode ? ((`HSTART_PAL-`HS_WIDTH_PAL_288P) >> 1) : ((`HSTART_NTSC-`HS_WIDTH_NTSC_240P) >> 1);
-wire [9:0] pattern_hstop = vmode ? ((`HSTOP_PAL-`HS_WIDTH_PAL_288P) >> 1) : ((`HSTOP_NTSC-`HS_WIDTH_NTSC_240P) >> 1);
+wire [9:0] pattern_hstart = vmode ? ((`HSTART_PAL-7'd124) >> 1) : ((`HSTART_NTSC-7'd115) >> 1);
+wire [9:0] pattern_hstop = vmode ? ((`HSTOP_PAL-7'd124) >> 1) : ((`HSTOP_NTSC-7'd115) >> 1);
 
 always @(posedge VCLK) begin
   if (!nVDSYNC) begin

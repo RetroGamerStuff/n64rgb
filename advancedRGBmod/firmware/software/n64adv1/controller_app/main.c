@@ -44,7 +44,7 @@
 #define DEBLUR_FORCE_ON  2
 
 const alt_u8 RW_Message_FontColor[] = {FONTCOLOR_GREEN,FONTCOLOR_RED,FONTCOLOR_MAGENTA};
-const char   *RW_Message[] = {"< Success >","< Failed >","< Aborted >"};
+const char   *RW_Message[] = {"< Success >","< Failed > ","< Aborted >"};
 
 
 /* ToDo's:
