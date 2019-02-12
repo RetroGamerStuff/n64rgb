@@ -42,7 +42,6 @@ module n64adv_top (
 
   // System CLK, Controller and Reset
   SYS_CLK,
-  SYS_CLKen,
   CTRL_i,
   nRST,
 
@@ -81,7 +80,6 @@ input                     nVDSYNC;
 input [color_width_i-1:0] VD_i;
 
 input  SYS_CLK;
-output SYS_CLKen;
 input  CTRL_i;
 inout  nRST;
 
@@ -105,8 +103,6 @@ input       n480i_bob;
 
 
 // start of rtl
-
-assign SYS_CLKen = 1'b1;
 
 reg nVRST_pre = 1'b0;
 reg nVRST = 1'b0;

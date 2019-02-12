@@ -83,12 +83,12 @@ set_location_assignment PIN_144 -to VD_i[0]
 ## System, Controller and Reset
 ## ============================
 set_location_assignment PIN_24 -to SYS_CLK
-set_location_assignment PIN_28 -to SYS_CLKen
+#set_location_assignment PIN_28 -to SYS_CLKen
 set_location_assignment PIN_127 -to CTRL_i
 #set_location_assignment PIN_128 -to nCOLD
 set_location_assignment PIN_129 -to nRST
 
-set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to SYS_CLKen
+#set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to SYS_CLKen
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to CTRL_i
 #set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to nCOLD
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to nRST
@@ -192,7 +192,7 @@ set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files/n64adv1/ep4ce1
 
 ## Current Strength
 ## ================
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to SYS_CLKen
+# set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to SYS_CLKen
 set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to nRST
 
 set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to CLK_ADV712x
