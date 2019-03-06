@@ -249,7 +249,7 @@ always @(*) begin
    B_o                          <= {vdata_r[1][`VDATA_BL_SLICE],vdata_r[1][  color_width-1]};
 
   CLK_ADV712x    <= VCLK;
-  nCSYNC_ADV712x  <= nSYNC_ON_GREEN ? 1'b0 : vdata_r[1][vdata_width-4];
+  nCSYNC_ADV712x <= nSYNC_ON_GREEN ? 1'b0 : vdata_r[1][vdata_width-4];
   nBLANK_ADV712x <= 1'b1;
 end
 
