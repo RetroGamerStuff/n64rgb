@@ -83,13 +83,13 @@ input [1:0] VCLK_Tx;
 input [1:0] nVRST_Tx;
 
 output VCLK_o;
-// output nBLANK;
+// output reg nBLANK = 1'b0;
 output reg [3*color_width_o-1:0] VD_o = {3*color_width_o{1'b0}};
-output [ 1:0] nCSYNC;
+output reg [                1:0] nCSYNC = 2'b00;
 
 input UseVGA_HVSync;
-output nVSYNC_or_F2;
-output nHSYNC_or_F1;
+output reg nVSYNC_or_F2 = 1'b0;
+output reg nHSYNC_or_F1 = 1'b0;
 
 
 
@@ -106,25 +106,58 @@ wire n64_480i = vinfo_pass[0];
 // [31:16] 240p: {(1bit reserve),linemult (2bits),Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_Method,Sl_ID,Sl_En}
 // [15: 0] 480i: {(1bit reserve),field_fix,bob_deint.,Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_link,Sl_ID,Sl_En}
 
-wire       cfg_testpat   =  ConfigSet[47];
-wire [2:0] FilterSetting =  ConfigSet[44:42];
-wire       cfg_nEN_YPbPr = ~ConfigSet[41];
-wire       cfg_nEN_RGsB  = ~ConfigSet[40];
-wire [3:0] cfg_gamma     =  ConfigSet[39:36];
-wire       nDeBlurMan    = ~ConfigSet[34];
-wire       nForceDeBlur  = ~|ConfigSet[34:33];
-wire       n15bit_mode   = ~ConfigSet[32];
-wire       cfg_ifix      =    !n64_480i ?            2'b00 : ConfigSet[14];
-wire [1:0] cfg_linemult  =    !n64_480i ? (pal_mode ? {1'b0,^ConfigSet[30:29]} : ConfigSet[30:29]) // do not allow LineX3 in PAL mode
-                                                           : {1'b0,ConfigSet[13]};
-wire [4:0] cfg_SLHyb_str =    !n64_480i ? ConfigSet[28:24] :
-                           ConfigSet[2] ? ConfigSet[28:24] :  ConfigSet[12: 8];
-wire [3:0] cfg_SL_str    =    !n64_480i ? ConfigSet[23:20] :
-                           ConfigSet[2] ? ConfigSet[23:20] :  ConfigSet[ 7: 4];
-wire       cfg_SL_method =    !n64_480i ? ConfigSet[18   ] :  1'b0;
-wire       cfg_SL_id     =    !n64_480i ? ConfigSet[17   ] :
-                           ConfigSet[2] ? ConfigSet[17   ] :  ConfigSet[ 1   ] ;
-wire       cfg_SL_en     =    !n64_480i ? ConfigSet[16   ] :  ConfigSet[ 0   ] ;
+reg       cfg_testpat      = 1'b0;
+reg [2:0] cfg_filter       = 3'b000;
+reg       cfg_nEN_YPbPr    = 1'b0;
+reg       cfg_nEN_RGsB     = 1'b0;
+reg [3:0] cfg_gamma        = 4'b0000;
+reg       cfg_ndeblurman   = 1'b0;
+reg       cfg_nforcedeblur = 1'b0;
+reg       cfg_n15bit_mode  = 1'b0;
+reg       cfg_ifix         = 1'b0;
+reg [1:0] cfg_linemult     = 2'b00;
+reg [4:0] cfg_SLHyb_str    = 5'b00000;
+reg [3:0] cfg_SL_str       = 4'b0000;
+reg       cfg_SL_method    = 1'b0;
+reg       cfg_SL_id        = 1'b0;
+reg       cfg_SL_en        = 1'b0;
+
+always @(posedge VCLK) begin
+  cfg_testpat      <=  ConfigSet[47];
+  cfg_filter       <=  ConfigSet[44:42];
+  cfg_nEN_YPbPr    <= ~ConfigSet[41];
+  cfg_nEN_RGsB     <= ~ConfigSet[40];
+  cfg_gamma        <=  ConfigSet[39:36];
+  cfg_ndeblurman   <= ~ConfigSet[34];
+  cfg_nforcedeblur <= ~|ConfigSet[34:33];
+  cfg_n15bit_mode  <= ~ConfigSet[32];
+  if (!n64_480i) begin
+    cfg_ifix         <= 1'b0;
+    if (pal_mode)
+      cfg_linemult     <= {1'b0,^ConfigSet[30:29]}; // do not allow LineX3 in PAL mode
+    else
+      cfg_linemult     <= ConfigSet[30:29];
+    cfg_SLHyb_str    <= ConfigSet[28:24];
+    cfg_SL_str       <= ConfigSet[23:20];
+    cfg_SL_method    <= ConfigSet[18   ];
+    cfg_SL_id        <= ConfigSet[17   ];
+    cfg_SL_en        <= ConfigSet[16   ];
+  end else begin
+    cfg_ifix         <= ConfigSet[14];
+    cfg_linemult     <= {1'b0,ConfigSet[13]};
+    if (ConfigSet[2]) begin // check if SL mode is linked to 240p
+      cfg_SLHyb_str    <= ConfigSet[28:24];
+      cfg_SL_str       <= ConfigSet[23:20];
+      cfg_SL_id        <= ConfigSet[17   ];
+    end else begin
+      cfg_SLHyb_str    <= ConfigSet[12: 8];
+      cfg_SL_str       <= ConfigSet[ 7: 4];
+      cfg_SL_id        <= ConfigSet[ 1   ];
+    end
+    cfg_SL_method    <= 1'b0;
+    cfg_SL_en        <= ConfigSet[ 0   ];
+  end
+end
 
 
 wire [`VDATA_I_FU_SLICE] vdata_r[0:3];
@@ -153,7 +186,7 @@ n64_deblur deblur_management_u(
   .nRST(nVRST),
   .vdata_pre(vdata_r[0]),
   .VD_i(VD_i),
-  .deblurparams_i({vinfo_pass,nForceDeBlur,nDeBlurMan}),
+  .deblurparams_i({vinfo_pass,cfg_nforcedeblur,cfg_ndeblurman}),
   .ndo_deblur(ndo_deblur)
 );
 
@@ -166,7 +199,7 @@ n64a_vdemux video_demux_u(
   .nVDSYNC(nVDSYNC),
   .nRST(nVRST),
   .VD_i(VD_i),
-  .demuxparams_i({vinfo_pass[3:1],ndo_deblur,n15bit_mode}),
+  .demuxparams_i({vinfo_pass[3:1],ndo_deblur,cfg_n15bit_mode}),
   .vdata_r_0(vdata_r[0]),
   .vdata_r_1(vdata_r[1])
 );
@@ -280,7 +313,7 @@ vconv vconv_u(
 // Part 7: assign final outputs
 // ============================
 
-reg [3:0] Sync_o = 4'b0;
+wire [3:0] Sync_o = vdata_vc_out[`VDATA_O_SY_SLICE];
 reg [`VDATA_O_CO_SLICE] vdata_shifted[0:1];
 initial begin
   vdata_shifted[0] = {3*color_width_o{1'b0}};
@@ -288,7 +321,12 @@ initial begin
 end
 
 always @(posedge VCLK_Tx_o) begin
-  Sync_o <= vdata_vc_out[`VDATA_O_SY_SLICE];
+//  nBLANK <= Sync_o[2];
+  nCSYNC[1] <= Sync_o[0];
+  if (cfg_nEN_RGsB & cfg_nEN_YPbPr)
+    nCSYNC[0] <= 1'b0;
+  else
+    nCSYNC[0] <= Sync_o[0];
 
   vdata_shifted[1] <= vdata_shifted[0];
   vdata_shifted[0] <= vdata_vc_out[`VDATA_O_CO_SLICE];
@@ -299,7 +337,7 @@ always @(posedge VCLK_Tx_o) begin
     VD_o <= vdata_vc_out[`VDATA_O_CO_SLICE];
 
   if (!nVRST_Tx_o) begin
-    Sync_o <= 4'b0;
+    nCSYNC <= 2'b00;
       VD_o <= {3*color_width_o{1'b0}};
 
     vdata_shifted[0] <= {3*color_width_o{1'b0}};
@@ -307,11 +345,6 @@ always @(posedge VCLK_Tx_o) begin
   end
 end
 
-assign InfoSet = {vinfo_pass[1:0],~ndo_deblur,UseVGA_HVSync};
-
-// assign nBLANK = Sync_o[2];
-wire nCSYNC_ADV712x = cfg_nEN_RGsB & cfg_nEN_YPbPr ? 1'b0  : Sync_o[0];
-assign nCSYNC       = {Sync_o[0],nCSYNC_ADV712x};
 
 // Filter Add On:
 // =============================
@@ -333,12 +366,27 @@ assign nCSYNC       = {Sync_o[0],nCSYNC_ADV712x};
 
 reg [1:2] Filter;
 
-always @(posedge VCLK_Tx_o)
-  Filter <= FilterSetting == 3'b000 ? cfg_linemult : FilterSetting[1:0] - 1'b1;
+always @(posedge VCLK_Tx_o) begin
+  Filter <= cfg_filter == 3'b000 ? cfg_linemult : cfg_filter[1:0] - 1'b1;
+  
+  if (UseVGA_HVSync) begin
+    nVSYNC_or_F2 <= Sync_o[3];
+    nHSYNC_or_F1 <= Sync_o[1];
+  end else begin
+    nVSYNC_or_F2 <= Filter[2] & !Filter[1];
+    nHSYNC_or_F1 <= Filter[1] & !Filter[2];
+  end
 
-assign nVSYNC_or_F2 = UseVGA_HVSync ? Sync_o[3] : Filter[2] & !Filter[1];
-assign nHSYNC_or_F1 = UseVGA_HVSync ? Sync_o[1] : Filter[1] & !Filter[2];
+  if (!nVRST_Tx_o) begin
+    nVSYNC_or_F2 <= 1'b0;
+    nHSYNC_or_F1 <= 1'b0;
+  end
+end
 
+
+// final assignments with register
+
+assign InfoSet = {vinfo_pass[1:0],~ndo_deblur,UseVGA_HVSync};
 assign VCLK_o = VCLK_Tx_o;
 
 endmodule
