@@ -14,7 +14,7 @@ If you are looking for a ready to install kit, just look on your own for a selle
   * MaxII EPM240T100C5
   * MaxII EPM570T100C5
   * MaxV 5M240ZT100C4 (a 5M240ZT100C5 does not met timing requirements [1])
-  * MaxV 5M570ZT100C4 (a 5M570ZT100C5 does not met timing requirements [1])
+  * MaxV 5M570ZT100C5 (older versions only support 5M570ZT100C4 due to timing [1])
 - Video DAC:
   * V1: R2R ladder with video amplifier THS7374 or THS7373
   * V2: Video DAC ADV7125
@@ -34,10 +34,10 @@ The following shortly describes the main features of the firmware and how to use
 #### Notes
 ##### [1]
 Clocks are defined in the SDC-files place in the firmware folder.
-The 5M240ZT100C5 and 5M570ZT100C5 does not met the timing requirements checked during the Timing Analysis. However, the default model is the so called *slow model*. If one uses the *fast model* for analysis, the timings are met without any problems.
-So one could also give a try with the 5M240ZT100C5 or the 5M570ZT100C5, which should also works with 95% of all units produced in 'common' environments (e.g. living room temperature environment). Nevertheless, I won't garantee that.
+The 5M240ZT100C5 does not met the timing requirements checked during the Timing Analysis. However, the default model is the so called *slow model*. If one uses the *fast model* for analysis, the timings are met without any problems.
+So one could also give a try with the 5M240ZT100C5, which should also works with 95% of all units produced in 'common' environments (e.g. living room temperature environment). Nevertheless, I won't guarantee that.
 
-Update: If you are looking for a 5M240ZT100C4 and 5M570ZT100C4, you propably realize that they are not in stock (e.g. at Mouser or Digikey). Then you can also use the 5M240ZT100I5 and 5M570ZT100I5, which are actually the same CPLDs.
+Update: If you are looking for a 5M240ZT100C4 and 5M570ZT100C4, you probably realize that they are not in stock (e.g. at Mouser or Digikey). Then you can also use the 5M240ZT100I5 and 5M570ZT100I5, which are actually the same CPLDs.
 
 
 ##### [2]
