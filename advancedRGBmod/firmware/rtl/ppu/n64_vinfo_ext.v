@@ -67,15 +67,15 @@ wire negedge_nHSYNC =  Sync_pre[1] & !Sync_cur[1];
 
 reg [1:0] data_cnt = 2'b00;
 
-always @(posedge VCLK) begin // data register management
-  if (!nVDSYNC)
-    data_cnt <= 2'b01;  // reset data counter
-  else
-    data_cnt <= data_cnt + 1'b1;  // increment data counter
-
+always @(posedge VCLK or negedge nRST)  // data register management
   if (!nRST)
     data_cnt <= 2'b00;
-end
+  else begin
+    if (!nVDSYNC)
+      data_cnt <= 2'b01;  // reset data counter
+    else
+      data_cnt <= data_cnt + 1'b1;  // increment data counter
+  end
 
 
 // estimation of 240p/288p
@@ -84,8 +84,11 @@ end
 reg FrameID  = 1'b0; // 0 = even frame, 1 = odd frame; 240p: only even or only odd frames; 480i: even and odd frames
 reg n64_480i = 1'b1; // 0 = 240p/288p , 1= 480i/576i
 
-always @(posedge VCLK) begin
-  if (!nVDSYNC) begin
+always @(posedge VCLK or negedge nRST)
+  if (!nRST) begin
+    FrameID  <= 1'b0;
+    n64_480i <= 1'b1;
+  end else if (!nVDSYNC) begin
     if (negedge_nVSYNC) begin    // negedge at nVSYNC
       if (negedge_nHSYNC) begin  // negedge at nHSYNC, too -> odd frame
         n64_480i <= ~FrameID;
@@ -97,12 +100,6 @@ always @(posedge VCLK) begin
     end
   end
 
-  if (!nRST) begin
-    FrameID  <= 1'b0;
-    n64_480i <= 1'b0;
-  end
-end
-
 
 // determine vmode and blurry pixel position
 // =========================================
@@ -110,20 +107,17 @@ end
 reg [1:0] line_cnt = 2'b00; // PAL: line_cnt[1:0] == 0x ; NTSC: line_cnt[1:0] = 1x
 reg       vmode = 1'b0;     // PAL: vmode == 1          ; NTSC: vmode == 0
 
-always @(posedge VCLK) begin
-  if (!nVDSYNC) begin
+always @(posedge VCLK or negedge nRST)
+  if (!nRST) begin
+    line_cnt <= 2'b00;
+    vmode    <= 1'b0;
+  end else if (!nVDSYNC) begin
     if(posedge_nVSYNC) begin // posedge at nVSYNC detected - reset line_cnt and set vmode
       line_cnt <= 2'b00;
       vmode    <= ~line_cnt[1];
     end else if(posedge_nHSYNC) // posedge nHSYNC -> increase line_cnt
       line_cnt <= line_cnt + 1'b1;
   end
-
-  if (!nRST) begin
-    line_cnt <= 2'b00;
-    vmode    <= 1'b0;
-  end
-end
 
 
 // pack vinfo_o vector

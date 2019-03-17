@@ -180,20 +180,19 @@ set_false_path -from [get_registers {n64adv_ppu_u|linemult_u|SL_rval*}]
 set list_direct_false_from [list [get_registers {n64adv_ppu_u|linemult_u|nVDSYNC_dbl}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|nVS_i_buf}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|nHS_i_buf}] \
-                                 [get_registers {n64adv_ppu_u|linemult_u|hstart*}] \
-                                 [get_registers {n64adv_ppu_u|linemult_u|hstop*}] \
-                                 [get_registers {n64adv_ppu_u|linemult_u|nHS_width*}] \
-                                 [get_registers {n64adv_ppu_u|linemult_u|pic_shift*}] \
-                                 [get_registers {n64adv_ppu_u|linemult_u|nVS_width*}] \
-                                 [get_registers {n64adv_ppu_u|linemult_u|nVS_delay*}] \
+                                 [get_registers {n64adv_ppu_u|linemult_u|hstart_rx*}] \
+                                 [get_registers {n64adv_ppu_u|linemult_u|hstop_rx*}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|wren}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|wrpage*}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|wrhcnt*}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|wraddr*}] \
+                                 [get_registers {n64adv_ppu_u|linemult_u|line_overflow_r}] \
+                                 [get_registers {n64adv_ppu_u|linemult_u|valid_line_r}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|line_width*}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|newFrame*}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|FrameID}] \
-                                 [get_registers {n64adv_ppu_u|linemult_u|start_rdproc*}] \
+                                 [get_registers {n64adv_ppu_u|linemult_u|SL_rval*}] \
+                                 [get_registers {n64adv_ppu_u|linemult_u|start_rdproc}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|linemult_sel_buf*}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|*nVRST_Tx_o*}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|videobuffer_u|*}]]
@@ -201,11 +200,14 @@ foreach from_path $list_direct_false_from {
   set_false_path -from $from_path -to [get_clocks {VCLK_1x_out_pre0}]
 }
 
-set list_direct_false_to [list [get_registers {n64adv_ppu_u|linemult_u|newFrame*}] \
-                               [get_registers {n64adv_ppu_u|linemult_u|FrameID}] \
-                               [get_registers {n64adv_ppu_u|linemult_u|start_rdproc*}] \
-                               [get_registers {n64adv_ppu_u|linemult_u|linemult_sel_buf*}] \
-                               [get_registers {n64adv_ppu_u|linemult_u|videobuffer_u|*}] \
+set list_direct_false_to [list [get_registers {n64adv_ppu_u|linemult_u|linemult_sel_buf*}] \
+                               [get_registers {n64adv_ppu_u|linemult_u|sync4tx_u|*}] \
+                               [get_registers {n64adv_ppu_u|linemult_u|hstart_tx*}] \
+                               [get_registers {n64adv_ppu_u|linemult_u|hstop_tx*}] \
+                               [get_registers {n64adv_ppu_u|linemult_u|nHS_width*}] \
+                               [get_registers {n64adv_ppu_u|linemult_u|pic_shift*}] \
+                               [get_registers {n64adv_ppu_u|linemult_u|nVS_width*}] \
+                               [get_registers {n64adv_ppu_u|linemult_u|nVS_delay*}] \
                                [get_registers {n64adv_ppu_u|linemult_u|rden*}] \
                                [get_registers {n64adv_ppu_u|linemult_u|rdrun*}] \
                                [get_registers {n64adv_ppu_u|linemult_u|rdcnt*}] \
@@ -213,7 +215,11 @@ set list_direct_false_to [list [get_registers {n64adv_ppu_u|linemult_u|newFrame*
                                [get_registers {n64adv_ppu_u|linemult_u|rdhcnt*}] \
                                [get_registers {n64adv_ppu_u|linemult_u|rdvcnt*}] \
                                [get_registers {n64adv_ppu_u|linemult_u|rdaddr*}] \
-                               [get_registers {n64adv_ppu_u|linemult_u|*_dbl*}] \
+                               [get_registers {n64adv_ppu_u|linemult_u|start_rdproc_tx_resynced_pre}] \
+                               [get_registers {n64adv_ppu_u|linemult_u|newFrame*}] \
+                               [get_registers {n64adv_ppu_u|linemult_u|FrameID}] \
+                               [get_registers {n64adv_ppu_u|linemult_u|videobuffer_u|*}] \
+                               [get_registers {n64adv_ppu_u|linemult_u|*_mult*}] \
                                [get_registers {n64adv_ppu_u|linemult_u|drawSL*}] \
                                [get_registers {n64adv_ppu_u|linemult_u|*_sl*}] \
                                [get_registers {n64adv_ppu_u|linemult_u|*_pp*}] \

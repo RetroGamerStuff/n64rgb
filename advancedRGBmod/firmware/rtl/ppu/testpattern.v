@@ -65,8 +65,13 @@ wire [8:0] pattern_vstop = vmode ? 9'd296 : 9'd248;
 wire [9:0] pattern_hstart = vmode ? ((`HSTART_PAL-7'd124) >> 1) : ((`HSTART_NTSC-7'd115) >> 1);
 wire [9:0] pattern_hstop = vmode ? ((`HSTOP_PAL-7'd124) >> 1) : ((`HSTOP_NTSC-7'd115) >> 1);
 
-always @(posedge VCLK) begin
-  if (!nVDSYNC) begin
+always @(posedge VCLK or negedge nRST)
+  if (!nRST) begin
+    vdata_out <= {vdata_width_o{1'b0}};
+
+    vcnt <= 9'b0;
+    hcnt <= 10'b0;
+  end else if (!nVDSYNC) begin
     if (posedge_nHSYNC) begin
       hcnt <= 10'b0;
       vcnt <= &vcnt ? vcnt : vcnt + 1'b1;
@@ -90,13 +95,5 @@ always @(posedge VCLK) begin
 
     vdata_out[`VDATA_O_SY_SLICE] <= Sync_in;
   end
-  if (!nRST) begin
-    vdata_out <= {vdata_width_o{1'b0}};
-
-    vcnt <= 9'b0;
-    hcnt <= 10'b0;
-  end
-end
-
 
 endmodule

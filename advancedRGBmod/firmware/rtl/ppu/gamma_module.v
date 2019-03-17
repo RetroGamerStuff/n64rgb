@@ -63,6 +63,7 @@ wire [`VDATA_I_CO_SLICE] gamma_vdata_out;
 
 gamma_table gamma_table_re_u(
   .VCLK(VCLK),
+  .nRST(nRST),
   .gamma_val(gamma_rom_page),
   .vdata_in(video_data_i[`VDATA_I_RE_SLICE]),
   .nbypass(en_gamma_boost),
@@ -71,6 +72,7 @@ gamma_table gamma_table_re_u(
 
 gamma_table gamma_table_gr_u(
   .VCLK(VCLK),
+  .nRST(nRST),
   .gamma_val(gamma_rom_page),
   .vdata_in(video_data_i[`VDATA_I_GR_SLICE]),
   .nbypass(en_gamma_boost),
@@ -79,6 +81,7 @@ gamma_table gamma_table_gr_u(
 
 gamma_table gamma_table_bl_u(
   .VCLK(VCLK),
+  .nRST(nRST),
   .gamma_val(gamma_rom_page),
   .vdata_in(video_data_i[`VDATA_I_BL_SLICE]),
   .nbypass(en_gamma_boost),
@@ -87,14 +90,11 @@ gamma_table gamma_table_bl_u(
 
 
 // registered output
-always @(posedge VCLK) begin
-  if (!nVDSYNC)
-    video_data_o <= {video_data_i[`VDATA_I_SY_SLICE],gamma_vdata_out};
+always @(posedge VCLK or negedge nRST)
   if (!nRST)
     video_data_o <= {vdata_width_i{1'b0}};
-end
-
- 
+  else if (!nVDSYNC)
+    video_data_o <= {video_data_i[`VDATA_I_SY_SLICE],gamma_vdata_out};
 
 
 endmodule

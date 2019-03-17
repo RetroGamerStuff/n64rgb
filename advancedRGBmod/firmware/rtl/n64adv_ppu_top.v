@@ -242,8 +242,8 @@ wire VCLK_Tx_o_pre, nVRST_Tx_o_pre;
 wire [`VDATA_O_FU_SLICE] vdata_srgb_out;
 
 linemult linemult_u(
-  .VCLK(VCLK),
-  .nVRST(nVRST),
+  .VCLK_Rx(VCLK),
+  .nVRST_Rx(nVRST),
   .VCLK_Tx(VCLK_Tx),
   .nVRST_Tx(nVRST_Tx),
   .VCLK_o(VCLK_Tx_o_pre),

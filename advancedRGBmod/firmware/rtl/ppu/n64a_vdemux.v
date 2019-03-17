@@ -72,8 +72,10 @@ wire posedge_nCSYNC = !vdata_r_0[3*color_width_i] &  VD_i[0];
 
 reg nblank_rgb = 1'b1;
 
-always @(posedge VCLK)
-  if (!nVDSYNC) begin
+always @(posedge VCLK or negedge nRST)
+  if (!nRST) begin
+    nblank_rgb <= 1'b1;
+  end else if (!nVDSYNC) begin
     if (ndo_deblur) begin
       nblank_rgb <= 1'b1;
     end else begin
@@ -84,28 +86,28 @@ always @(posedge VCLK)
     end
   end
 
-always @(posedge VCLK) begin // data register management
-  if (!nVDSYNC) begin
-    // shift data to output registers
-    vdata_r_1[`VDATA_I_SY_SLICE] <= vdata_r_0[`VDATA_I_SY_SLICE];
-    if (nblank_rgb)  // deblur active: pass RGB only if not blanked
-      vdata_r_1[`VDATA_I_CO_SLICE] <= vdata_r_0[`VDATA_I_CO_SLICE];
-
-    // get new sync data
-    vdata_r_0[`VDATA_I_SY_SLICE] <= VD_i[3:0];
-  end else begin
-    // demux of RGB
-    case(data_cnt)
-      2'b01: vdata_r_0[`VDATA_I_RE_SLICE] <= n15bit_mode ? VD_i : {VD_i[6:2], 2'b00};
-      2'b10: vdata_r_0[`VDATA_I_GR_SLICE] <= n15bit_mode ? VD_i : {VD_i[6:2], 2'b00};
-      2'b11: vdata_r_0[`VDATA_I_BL_SLICE] <= n15bit_mode ? VD_i : {VD_i[6:2], 2'b00};
-    endcase
-  end
-
+  
+always @(posedge VCLK or negedge nRST) // data register management
   if (!nRST) begin
     vdata_r_0 <= {vdata_width_i{1'b0}};
     vdata_r_1 <= {vdata_width_i{1'b0}};
+  end else begin
+    if (!nVDSYNC) begin
+      // shift data to output registers
+      vdata_r_1[`VDATA_I_SY_SLICE] <= vdata_r_0[`VDATA_I_SY_SLICE];
+      if (nblank_rgb)  // deblur active: pass RGB only if not blanked
+        vdata_r_1[`VDATA_I_CO_SLICE] <= vdata_r_0[`VDATA_I_CO_SLICE];
+
+      // get new sync data
+      vdata_r_0[`VDATA_I_SY_SLICE] <= VD_i[3:0];
+    end else begin
+      // demux of RGB
+      case(data_cnt)
+        2'b01: vdata_r_0[`VDATA_I_RE_SLICE] <= n15bit_mode ? VD_i : {VD_i[6:2], 2'b00};
+        2'b10: vdata_r_0[`VDATA_I_GR_SLICE] <= n15bit_mode ? VD_i : {VD_i[6:2], 2'b00};
+        2'b11: vdata_r_0[`VDATA_I_BL_SLICE] <= n15bit_mode ? VD_i : {VD_i[6:2], 2'b00};
+      endcase
+    end
   end
-end
 
 endmodule

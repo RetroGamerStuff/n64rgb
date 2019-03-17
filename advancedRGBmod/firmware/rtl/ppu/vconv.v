@@ -88,19 +88,27 @@ initial begin
   end
 end
 
-always @(posedge VCLK) begin
-  for (i = 1; i < 3; i = i+1) begin
-    S[i] <= S[i-1];
-    R[i] <= R[i-1];
-    G[i] <= G[i-1];
-    B[i] <= B[i-1];
-  end
+always @(posedge VCLK or negedge nRST)
+  if (!nRST) begin
+    for (i = 0; i < 3; i = i+1) begin
+      S[i] <= 4'h0;
+      R[i] <= {color_width_o{1'b0}};
+      G[i] <= {color_width_o{1'b0}};
+      B[i] <= {color_width_o{1'b0}};
+    end
+  end else begin
+    for (i = 1; i < 3; i = i+1) begin
+      S[i] <= S[i-1];
+      R[i] <= R[i-1];
+      G[i] <= G[i-1];
+      B[i] <= B[i-1];
+    end
 
-  S[0] <= S_i;
-  R[0] <= R_i;
-  G[0] <= G_i;
-  B[0] <= B_i;
-end
+    S[0] <= S_i;
+    R[0] <= R_i;
+    G[0] <= G_i;
+    B[0] <= B_i;
+  end
 
 
 // Transformation to YPbPr
@@ -119,31 +127,42 @@ localparam fyr = 20'd313524;
 localparam fyg = 20'd615514;
 localparam fyb = 20'd119538;
 
-reg [color_width_o+coeff_width+1:0] Y_addmult;
-reg [color_width_o+coeff_width-1:0] R4Y_scaled;
-reg [color_width_o+coeff_width-1:0] G4Y_scaled;
-reg [color_width_o+coeff_width-1:0] B4Y_scaled;
+reg [color_width_o+coeff_width+1:0] Y_addmult  = {(color_width_o+coeff_width+2){1'b0}};
+reg [color_width_o+coeff_width-1:0] R4Y_scaled = {(color_width_o+coeff_width){1'b0}};
+reg [color_width_o+coeff_width-1:0] G4Y_scaled = {(color_width_o+coeff_width){1'b0}};
+reg [color_width_o+coeff_width-1:0] B4Y_scaled = {(color_width_o+coeff_width){1'b0}};
 
-always @(posedge VCLK) begin
-  Y_addmult  <= R4Y_scaled + G4Y_scaled + B4Y_scaled;
-  R4Y_scaled <= fyr * (* multstyle = "dsp" *) R[0];
-  G4Y_scaled <= fyg * (* multstyle = "dsp" *) G[0];
-  B4Y_scaled <= fyb * (* multstyle = "dsp" *) B[0];
-end
+always @(posedge VCLK or negedge nRST)
+  if (!nRST) begin
+    Y_addmult  <= {(color_width_o+coeff_width+2){1'b0}};
+    R4Y_scaled <= {(color_width_o+coeff_width){1'b0}};
+    G4Y_scaled <= {(color_width_o+coeff_width){1'b0}};
+    B4Y_scaled <= {(color_width_o+coeff_width){1'b0}};
+  end else begin
+    Y_addmult  <= R4Y_scaled + G4Y_scaled + B4Y_scaled;
+    R4Y_scaled <= fyr * (* multstyle = "dsp" *) R[0];
+    G4Y_scaled <= fyg * (* multstyle = "dsp" *) G[0];
+    B4Y_scaled <= fyb * (* multstyle = "dsp" *) B[0];
+  end
 
 
 localparam fpbr = 20'd353865;
 localparam fpbg = 20'd694711;
 
-reg [color_width_o+coeff_width  :0] Pb_nPart_addmult;
-reg [color_width_o+coeff_width-1:0] R4Pb_scaled;
-reg [color_width_o+coeff_width-1:0] G4Pb_scaled;
+reg [color_width_o+coeff_width  :0] Pb_nPart_addmult = {(color_width_o+coeff_width+1){1'b0}};
+reg [color_width_o+coeff_width-1:0] R4Pb_scaled      = {(color_width_o+coeff_width){1'b0}};
+reg [color_width_o+coeff_width-1:0] G4Pb_scaled      = {(color_width_o+coeff_width){1'b0}};
 
-always @(posedge VCLK) begin
-  Pb_nPart_addmult <= R4Pb_scaled + G4Pb_scaled;
-  R4Pb_scaled      <= fpbr * (* multstyle = "dsp" *) R[0];
-  G4Pb_scaled      <= fpbg * (* multstyle = "dsp" *) G[0];
-end
+always @(posedge VCLK or negedge nRST)
+  if (!nRST) begin
+    Pb_nPart_addmult <= {(color_width_o+coeff_width+1){1'b0}};
+    R4Pb_scaled      <= {(color_width_o+coeff_width){1'b0}};
+    G4Pb_scaled      <= {(color_width_o+coeff_width){1'b0}};
+  end else begin
+    Pb_nPart_addmult <= R4Pb_scaled + G4Pb_scaled;
+    R4Pb_scaled      <= fpbr * (* multstyle = "dsp" *) R[0];
+    G4Pb_scaled      <= fpbg * (* multstyle = "dsp" *) G[0];
+  end
 
 
 wire [color_width_o+1:0] Pb_addmult = {1'b0,B[2],1'b0}- Pb_nPart_addmult[msb_vo+1:lsb_vo-1];
@@ -152,15 +171,20 @@ wire [color_width_o+1:0] Pb_addmult = {1'b0,B[2],1'b0}- Pb_nPart_addmult[msb_vo+
 localparam fprg = 20'd878052;
 localparam fprb = 20'd170524;
 
-reg [color_width_o+coeff_width  :0] Pr_nPart_addmult;
-reg [color_width_o+coeff_width-1:0] G4Pr_scaled;
-reg [color_width_o+coeff_width-1:0] B4Pr_scaled;
+reg [color_width_o+coeff_width  :0] Pr_nPart_addmult = {(color_width_o+coeff_width+1){1'b0}};
+reg [color_width_o+coeff_width-1:0] G4Pr_scaled      = {(color_width_o+coeff_width){1'b0}};
+reg [color_width_o+coeff_width-1:0] B4Pr_scaled      = {(color_width_o+coeff_width){1'b0}};
 
-always @(posedge VCLK) begin
-  Pr_nPart_addmult <= G4Pr_scaled + B4Pr_scaled;
-  G4Pr_scaled      <= fprg * (* multstyle = "dsp" *) G[0];
-  B4Pr_scaled      <= fprb * (* multstyle = "dsp" *) B[0];
-end
+always @(posedge VCLK or negedge nRST)
+  if (!nRST) begin
+    Pr_nPart_addmult <= {(color_width_o+coeff_width+1){1'b0}};
+    G4Pr_scaled      <= {(color_width_o+coeff_width){1'b0}};
+    B4Pr_scaled      <= {(color_width_o+coeff_width){1'b0}};
+  end else begin
+    Pr_nPart_addmult <= G4Pr_scaled + B4Pr_scaled;
+    G4Pr_scaled      <= fprg * (* multstyle = "dsp" *) G[0];
+    B4Pr_scaled      <= fprb * (* multstyle = "dsp" *) B[0];
+  end
 
 wire [color_width_o+1:0] Pr_addmult = {1'b0,R[2],1'b0}- Pr_nPart_addmult[msb_vo+1:lsb_vo-1];
 
@@ -172,30 +196,25 @@ wire [color_width_o  :0] Pb_tmp = Pb_addmult[color_width_o+1:1] + Pb_addmult[0];
 wire [color_width_o  :0] Pr_tmp = Pr_addmult[color_width_o+1:1] + Pr_addmult[0];
 
 
-always @(posedge VCLK) begin
-  if (!nEN_YPbPr) begin
-     S_o <= S[2];
-    V1_o <= {~Pr_tmp[color_width_o],Pr_tmp[color_width_o-1:1]};
-    V2_o <= Y_tmp;
-    V3_o <= {~Pb_tmp[color_width_o],Pb_tmp[color_width_o-1:1]};
-  end else begin
-     S_o <= S_i;
-    V1_o <= R_i;
-    V2_o <= G_i;
-    V3_o <= B_i;
-  end
-  
+always @(posedge VCLK or negedge nRST)
   if (!nRST) begin
      S_o <= 4'h0;
     V1_o <= {color_width_o{1'b0}};
     V2_o <= {color_width_o{1'b0}};
     V3_o <= {color_width_o{1'b0}};
+  end else begin
     if (!nEN_YPbPr) begin
-      V2_o[color_width_o-1] = 1'b1;
-      V3_o[color_width_o-1] = 1'b1;
+       S_o <= S[2];
+      V1_o <= {~Pr_tmp[color_width_o],Pr_tmp[color_width_o-1:1]};
+      V2_o <= Y_tmp;
+      V3_o <= {~Pb_tmp[color_width_o],Pb_tmp[color_width_o-1:1]};
+    end else begin
+       S_o <= S[2];
+      V1_o <= R[2];
+      V2_o <= G[2];
+      V3_o <= B[2];
     end
   end
-end
 
 
 // post-assignment

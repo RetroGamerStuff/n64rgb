@@ -55,7 +55,7 @@ input [`VDATA_I_FU_SLICE] vdata_pre;
 input [color_width_i-1:0] VD_i;
 
 input  [5:0] deblurparams_i;          // order: data_cnt,vmode,n64_480i,nForceDeBlur,nDeBlurMan
-output reg  ndo_deblur = 1'b1;
+output reg  ndo_deblur = 1'b0;
 
 
 // some pre-assignments and definitions
@@ -90,8 +90,10 @@ localparam init_trend = 9'h100;  // initial value (shall have MSB set, zero else
 
 reg blur_pix = 1'b0;
 
-always @(posedge VCLK)
-  if (!nVDSYNC) begin
+always @(posedge VCLK or negedge nRST)
+  if (!nRST)
+    blur_pix <= 1'b0;
+  else if (!nVDSYNC) begin
     if(posedge_nCSYNC) // posedge nCSYNC -> reset blanking
       blur_pix <= ~vmode;
     else
@@ -112,64 +114,65 @@ reg [`TREND_RANGE] nblur_n64_trend = init_trend;  // trend shows if the algorith
                                                   // this acts as like as a very simple mean filter
 reg nblur_n64 = 1'b1;                             // blur effect is estimated to be off within the N64 if value is 1'b1
 
-always @(posedge VCLK) begin // estimation of blur effect
-  if (!n64_480i) begin
-    if (!nVDSYNC) begin
-      if(negedge_nVSYNC) begin  // negedge at nVSYNC detected - new frame
-        if (run_estimation) begin
-          if (&nblur_est_cnt) // add to weight
-              nblur_n64_trend <= &nblur_n64_trend ? nblur_n64_trend :         // saturate if needed
-                                                    nblur_n64_trend + 1'b1;
-          else                // subtract
-              nblur_n64_trend <= |nblur_n64_trend ? nblur_n64_trend - 1'b1 :
-                                                    nblur_n64_trend;          // saturate if needed
+always @(posedge VCLK or negedge nRST)
+  if (!nRST) begin
+    run_estimation  <= 1'b0;
+    nblur_n64_trend <= init_trend;
+    nblur_n64       <= 1'b1;
+  end else begin
+    if (!n64_480i) begin
+      if (!nVDSYNC) begin
+        if(negedge_nVSYNC) begin  // negedge at nVSYNC detected - new frame
+          if (run_estimation) begin
+            if (&nblur_est_cnt) // add to weight
+                nblur_n64_trend <= &nblur_n64_trend ? nblur_n64_trend :         // saturate if needed
+                                                      nblur_n64_trend + 1'b1;
+            else                // subtract
+                nblur_n64_trend <= |nblur_n64_trend ? nblur_n64_trend - 1'b1 :
+                                                      nblur_n64_trend;          // saturate if needed
 
-          nblur_n64 <= nblur_n64_trend[`NBLUR_TH_BIT];
+            nblur_n64 <= nblur_n64_trend[`NBLUR_TH_BIT];
+          end
+
+          nblur_est_cnt  <= 2'b00;
+          run_estimation <= 1'b1;
         end
 
-        nblur_est_cnt  <= 2'b00;
-        run_estimation <= 1'b1;
-      end
+        if(!blur_pix) begin  // incomming (potential) blurry pixel
+                             // (blur_pix changes on next @(negedge VCLK))
 
-      if(!blur_pix) begin  // incomming (potential) blurry pixel
-                           // (blur_pix changes on next @(negedge VCLK))
-
-        if (&gradient_changes)  // evaluate gradients
-          if (~&nblur_est_cnt)
+          if (&gradient_changes && ~&nblur_est_cnt)  // evaluate gradients (and saturate counter if needed
             nblur_est_cnt <= nblur_est_cnt +1'b1;
 
-        gradient_changes    <= 2'b00; // reset
-      end
-    end else begin
-      if (blur_pix) begin
-        case(data_cnt)
+          gradient_changes    <= 2'b00; // reset of gradients
+        end
+      end else begin
+        if (blur_pix) begin
+          case(data_cnt)
             2'b01: gradient[2] <= {(Rcmp_pre < Rcmp_cur),(Rcmp_pre > Rcmp_cur)};
             2'b10: gradient[1] <= {(Gcmp_pre < Gcmp_cur),(Gcmp_pre > Gcmp_cur)};
             2'b11: gradient[0] <= {(Bcmp_pre < Bcmp_cur),(Bcmp_pre > Bcmp_cur)};
-        endcase
-      end else begin
-        case(data_cnt)
-          2'b01: if ( &(gradient[2] ^ {(Rcmp_pre < Rcmp_cur),(Rcmp_pre > Rcmp_cur)})) gradient_changes[0] <= 1'b1;
-          2'b10: if (~&(gradient[1] ^ {(Gcmp_pre < Gcmp_cur),(Gcmp_pre > Gcmp_cur)})) gradient_changes[0] <= 1'b0;
-          2'b11: if ( &(gradient[0] ^ {(Bcmp_pre < Bcmp_cur),(Bcmp_pre > Bcmp_cur)})) gradient_changes[1] <= 1'b1;
-        endcase
+          endcase
+        end else begin
+          case(data_cnt)
+            2'b01: if ( &(gradient[2] ^ {(Rcmp_pre < Rcmp_cur),(Rcmp_pre > Rcmp_cur)})) gradient_changes[0] <= 1'b1;
+            2'b10: if (~&(gradient[1] ^ {(Gcmp_pre < Gcmp_cur),(Gcmp_pre > Gcmp_cur)})) gradient_changes[0] <= 1'b0;
+            2'b11: if ( &(gradient[0] ^ {(Bcmp_pre < Bcmp_cur),(Bcmp_pre > Bcmp_cur)})) gradient_changes[1] <= 1'b1;
+          endcase
+        end
       end
+    end else begin
+      run_estimation <= 1'b0;
     end
-  end else begin
-    run_estimation <= 1'b0;
   end
-  if (!nRST) begin
-    nblur_n64_trend <= init_trend;
-    nblur_n64       <= 1'b1;
-    run_estimation  <= 1'b0;
-  end
-end
 
 
 // finally the blanking management
 
-always @(posedge VCLK) begin
-  if (!nVDSYNC) begin
+always @(posedge VCLK or negedge nRST)
+  if (!nRST) begin
+    ndo_deblur <= 1'b0;
+  end else if (!nVDSYNC) begin
     if (negedge_nVSYNC) begin // negedge at nVSYNC detected - new frame, new setting
       if (nForceDeBlur)
         ndo_deblur <= n64_480i | nblur_n64;
@@ -177,6 +180,5 @@ always @(posedge VCLK) begin
         ndo_deblur <= n64_480i | nDeBlurMan;
     end
   end
-end
 
 endmodule

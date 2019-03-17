@@ -28,7 +28,7 @@
 //                 Cyclone 10 LP: 10CL010YE144
 // Tool versions:  Altera Quartus Prime
 //
-// Revision: 1.32
+// Revision: 1.33
 // Features: see repository readme
 //
 //////////////////////////////////////////////////////////////////////////////////
@@ -71,7 +71,7 @@ module n64adv_top (
 );
 
 parameter [3:0] hdl_fw_main = 4'd1;
-parameter [7:0] hdl_fw_sub  = 8'd32;
+parameter [7:0] hdl_fw_sub  = 8'd33;
 
 `include "vh/n64adv_vparams.vh"
 
@@ -108,7 +108,6 @@ input       n480i_bob;
 // PLLs
 
 wire CLK_4M, CLK_16k, CLK_25M, SYS_PLL_LOCKED;
-
 sys_pll sys_pll_u(
   .inclk0(SYS_CLK),
   .c0(CLK_4M),
@@ -116,41 +115,58 @@ sys_pll sys_pll_u(
   .c2(CLK_25M),
   .locked(SYS_PLL_LOCKED)
 );
-
 wire [2:0] CLKs_controller = {CLK_4M,CLK_16k,CLK_25M};
-wire nSRST = SYS_PLL_LOCKED;
 
 
 wire VCLK_50M, VCLK_75M, VIDEO_PLL_LOCKED;
-
 video_pll video_pll_u(
   .inclk0(VCLK),
   .c0(VCLK_50M),
   .c1(VCLK_75M),
   .locked(VIDEO_PLL_LOCKED)
 );
-
 wire [1:0] VCLK_Tx = {VCLK_75M,VCLK_50M};
 
 // synchronize resets
+wire nSRST_25M;
+reset_generator reset_sys_25M_u(
+  .clk(CLK_25M),
+  .clk_en(SYS_PLL_LOCKED),
+  .async_nrst_i(1'b1),      // special situation here; this reset is only used for soft-CPU (NIOS II), which only resets on power cycle
+  .rst_o(nSRST_25M)
+);
+wire nSRST_4M;
+reset_generator reset_sys_4M_u(
+  .clk(CLK_16k),
+  .clk_en(SYS_PLL_LOCKED),
+  .async_nrst_i(nRST),
+  .rst_o(nSRST_4M)
+);
 
-reg nVRST_pre = 1'b0;
-reg nVRST = 1'b0;
-always @(posedge VCLK) begin
-  nVRST <= nVRST_pre;
-  nVRST_pre <= nRST;
-end
 
-reg [1:0] nVRST_Tx_pre [0:1];
-initial begin
-  nVRST_Tx_pre[0] = 2'b00;
-  nVRST_Tx_pre[1] = 2'b00;
-end
-always @(posedge VCLK_50M)
-  nVRST_Tx_pre[0] <= {nVRST_Tx_pre[0][0],nRST};
-always @(posedge VCLK_75M)
-  nVRST_Tx_pre[1] <= {nVRST_Tx_pre[1][0],nRST};
-wire [1:0] nVRST_Tx = VIDEO_PLL_LOCKED ? {nVRST_Tx_pre[1][1],nVRST_Tx_pre[0][1]} : 2'b000;
+wire [2:0] nSRST = {nSRST_4M,1'b1,nSRST_25M};
+
+wire nVRST;
+reset_generator reset_vclk_u(
+  .clk(VCLK),
+  .clk_en(1'b1),
+  .async_nrst_i(nRST),
+  .rst_o(nVRST)
+);
+
+wire [1:0] nVRST_Tx;
+reset_generator reset_vclk_50M__u(
+  .clk(VCLK_50M),
+  .clk_en(VIDEO_PLL_LOCKED),
+  .async_nrst_i(nRST),
+  .rst_o(nVRST_Tx[0])
+);
+reset_generator reset_vclk_75M_u(
+  .clk(VCLK_75M),
+  .clk_en(VIDEO_PLL_LOCKED),
+  .async_nrst_i(nRST),
+  .rst_o(nVRST_Tx[1])
+);
 
 
 // controller module

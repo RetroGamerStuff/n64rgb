@@ -59,7 +59,7 @@ parameter [11:0] hdl_fw = 12'h000; // number is a dummy; defined in and passed f
 input [2:0] CLKs;
 input CLKs_valid;
 inout nRST;
-input nSRST;
+input [2:0] nSRST;
 
 input CTRL;
 
@@ -81,25 +81,33 @@ wire CLK_4M = CLKs[2];
 wire CLK_16k = CLKs[1];
 wire CLK_25M = CLKs[0];
 
+wire nSRST_4M = nSRST[2];
+wire nSRST_25M = nSRST[0];
+
 
 reg negedge_nVSYNC = 1'b0;
-// reg posedge_nVSYNC = 1'b0;
 reg nVSYNC_cur = 1'b0;
 
-always @(posedge VCLK) begin
-  if (!nVDSYNC) begin
-    negedge_nVSYNC <=  nVSYNC_cur & !VD_VSi;
-//     posedge_nVSYNC <= !nVSYNC_cur &  VD_VSi;
-    nVSYNC_cur <= VD_VSi;
-  end
-  
+always @(posedge VCLK or negedge nVRST)
   if (!nVRST) begin
     negedge_nVSYNC <= 1'b0;
-//     posedge_nVSYNC <= 1'b0;
     nVSYNC_cur <= 1'b0;
+  end else if (!nVDSYNC) begin
+    negedge_nVSYNC <=  nVSYNC_cur & !VD_VSi;
+    nVSYNC_cur <= VD_VSi;
   end
-end
 
+wire nVSYNC_25M_resynced;
+register_sync #(
+  .reg_width(1),
+  .reg_preset(1'b0)
+) sync4cpu_u(
+  .clk(CLK_25M),
+  .clk_en(1'b1),
+  .nrst(nSRST_25M),
+  .reg_i({nVSYNC_cur}),
+  .reg_o({nVSYNC_25M_resynced})
+);
 
 // Part 1: Instantiate NIOS II
 // ===========================
@@ -135,14 +143,14 @@ wire [31:0] SysConfigSet1;
 
 system_n64adv1 system_u(
   .clk_clk(CLK_25M),
-  .rst_reset_n(nSRST),
-  .sync_in_export({new_ctrl_data[1],nVSYNC_cur}),
+  .rst_reset_n(nSRST_25M),
+  .sync_in_export({new_ctrl_data[1],nVSYNC_25M_resynced}),
   .vd_wraddr_export(vd_wraddr),
   .vd_wrctrl_export(vd_wrctrl),
   .vd_wrdata_export(vd_wrdata),
   .ctrl_data_in_export(serial_data[1]),
   .jumper_cfg_set_in_export({1'b0,JumperCfgSet}),
-  .info_set_in_export({3'b000,InfoSet,FallbackMode}),
+  .info_set_in_export({2'b00,InfoSet,FallbackMode,FallbackMode_valid}),
   .cfg_set0_out_export(SysConfigSet0),
   .cfg_set1_out_export(SysConfigSet1),
   .hdl_fw_in_export(hdl_fw)
@@ -154,10 +162,10 @@ reg use_igr = 1'b0;
 
 always @(posedge VCLK)
   if ((!nVDSYNC & negedge_nVSYNC) | !nVRST) begin
-    use_igr          <= SysConfigSet0[18];
-    OutConfigSet     <= {SysConfigSet0[15:0],SysConfigSet1};
-    OSDInfo[1]       <= &{SysConfigSet0[26:25],!SysConfigSet0[24]};  // show logo only in OSD
-    OSDInfo[0]       <= SysConfigSet0[25] & !SysConfigSet0[24];
+    use_igr      <= SysConfigSet0[18];
+    OutConfigSet <= {SysConfigSet0[15:0],SysConfigSet1};
+    OSDInfo[1]   <= &{SysConfigSet0[26:25],!SysConfigSet0[24]};  // show logo only in OSD
+    OSDInfo[0]   <= SysConfigSet0[25] & !SysConfigSet0[24];
   end
 
 
@@ -180,8 +188,8 @@ reg [5:0] ctrl_low_cnt = 6'h0;
 wire      ctrl_bit     = ctrl_low_cnt < wait_cnt;
 
 reg [31:0] serial_data[0:1];
-reg [ 4:0] ctrl_data_cnt    = 5'h0;
-reg [ 1:0] new_ctrl_data    = 2'b00;
+reg [ 4:0] ctrl_data_cnt = 5'h0;
+reg [ 1:0] new_ctrl_data = 2'b00;
 
 initial begin
   serial_data[1] <= 32'h0;
@@ -199,82 +207,80 @@ reg initiate_nrst = 1'b0;
 // 24:31 - Y axis
 // 32    - Stop bit
 
-always @(posedge CLK_4M) begin
-  case (rd_state)
-    ST_WAIT4N64:
-      if (&wait_cnt & ctrl_negedge) begin // waiting duration ends (exit wait state only if CTRL was high for a certain duration)
-        rd_state       <= ST_N64_RD;
-        serial_data[0] <= 32'h0;
-        ctrl_data_cnt  <=  5'h0;
-      end
-    ST_N64_RD: begin
-      if (ctrl_posedge)       // sample data part 1
-        ctrl_low_cnt <= wait_cnt;
-      if (ctrl_negedge) begin // sample data part 2
-        if (!ctrl_data_cnt[3]) begin  // eight bits read
-          serial_data[0][29:22] <= {ctrl_bit,serial_data[0][29:23]};
-          ctrl_data_cnt         <=  ctrl_data_cnt + 1'b1;
-        end else if (serial_data[0][29:22] == 8'b10000000) begin // check command
-          rd_state       <= ST_CTRL_RD;
-          serial_data[0] <= 32'h0;
-          ctrl_data_cnt  <=  5'h0;
-        end else begin
-          rd_state <= ST_WAIT4N64;
-        end
-      end
-    end
-    ST_CTRL_RD: begin
-      if (ctrl_posedge)       // sample data part 1
-        ctrl_low_cnt <= wait_cnt;
-      if (ctrl_negedge) begin // sample data part 2
-        if (~&ctrl_data_cnt) begin  // still reading
-          serial_data[0] <= {ctrl_bit,serial_data[0][31:1]};
-          ctrl_data_cnt  <=  ctrl_data_cnt + 1'b1;
-        end else begin  // thirtytwo bits read
-          rd_state         <= ST_WAIT4N64;
-          serial_data[1]   <= {ctrl_bit,serial_data[0][31:1]};
-          new_ctrl_data[0] <= 1'b1;  // signalling new controller data available
-        end
-      end
-    end
-    default: begin
-      rd_state <= ST_WAIT4N64;
-    end
-  endcase
-
-  if (ctrl_negedge | ctrl_posedge) begin // counter reset
-    wait_cnt <= 5'h0;
-  end else begin
-    if (~&wait_cnt) // saturate counter if needed
-      wait_cnt <= wait_cnt + 1'b1;
-    else  // counter saturated
-      rd_state <= ST_WAIT4N64;
-  end
-
-  ctrl_hist <= {ctrl_hist[1:0],CTRL};
-
-  if (new_ctrl_data[0]) begin
-    new_ctrl_data  <= 2'b10;
-    if (use_igr & (serial_data[1][15:0] == `IGR_RESET))
-      initiate_nrst <= 1'b1;
-  end
-
-  if (negedge_nVSYNC)
-    new_ctrl_data[1] <= 1'b0;
-
-  if (!nVRST) begin
-    rd_state      <= ST_WAIT4N64;
-    wait_cnt      <= 5'h0;
-    ctrl_hist     <= 3'h7;
-    initiate_nrst <= 1'b0;
-
-    new_ctrl_data <=  2'b0;
-
+always @(posedge CLK_4M or negedge nSRST_4M)
+  if (!nSRST_4M) begin
+    rd_state       <= ST_WAIT4N64;
+    wait_cnt       <=  5'h0;
+    ctrl_hist      <=  3'h7;
+    ctrl_low_cnt   <=  6'h0;
     serial_data[1] <= 32'h0;
     serial_data[0] <= 32'h0;
-  end
-end
+    ctrl_data_cnt  <=  5'h0;
+    new_ctrl_data  <=  2'b0;
+    initiate_nrst  <=  1'b0;
+  end else begin
+    case (rd_state)
+      ST_WAIT4N64:
+        if (&wait_cnt & ctrl_negedge) begin // waiting duration ends (exit wait state only if CTRL was high for a certain duration)
+          rd_state       <= ST_N64_RD;
+          serial_data[0] <= 32'h0;
+          ctrl_data_cnt  <=  5'h0;
+        end
+      ST_N64_RD: begin
+        if (ctrl_posedge)       // sample data part 1
+          ctrl_low_cnt <= wait_cnt;
+        if (ctrl_negedge) begin // sample data part 2
+          if (!ctrl_data_cnt[3]) begin  // eight bits read
+            serial_data[0][29:22] <= {ctrl_bit,serial_data[0][29:23]};
+            ctrl_data_cnt         <=  ctrl_data_cnt + 1'b1;
+          end else if (serial_data[0][29:22] == 8'b10000000) begin // check command
+            rd_state       <= ST_CTRL_RD;
+            serial_data[0] <= 32'h0;
+            ctrl_data_cnt  <=  5'h0;
+          end else begin
+            rd_state <= ST_WAIT4N64;
+          end
+        end
+      end
+      ST_CTRL_RD: begin
+        if (ctrl_posedge)       // sample data part 1
+          ctrl_low_cnt <= wait_cnt;
+        if (ctrl_negedge) begin // sample data part 2
+          if (~&ctrl_data_cnt) begin  // still reading
+            serial_data[0] <= {ctrl_bit,serial_data[0][31:1]};
+            ctrl_data_cnt  <=  ctrl_data_cnt + 1'b1;
+          end else begin  // thirtytwo bits read
+            rd_state         <= ST_WAIT4N64;
+            serial_data[1]   <= {ctrl_bit,serial_data[0][31:1]};
+            new_ctrl_data[0] <= 1'b1;  // signalling new controller data available
+          end
+        end
+      end
+      default: begin
+        rd_state <= ST_WAIT4N64;
+      end
+    endcase
 
+    if (ctrl_negedge | ctrl_posedge) begin // counter reset
+      wait_cnt <= 5'h0;
+    end else begin
+      if (~&wait_cnt) // saturate counter if needed
+        wait_cnt <= wait_cnt + 1'b1;
+      else  // counter saturated
+        rd_state <= ST_WAIT4N64;
+    end
+
+    ctrl_hist <= {ctrl_hist[1:0],CTRL};
+
+    if (new_ctrl_data[0]) begin
+      new_ctrl_data  <= 2'b10;
+      if (use_igr & (serial_data[1][15:0] == `IGR_RESET))
+        initiate_nrst <= 1'b1;
+    end
+
+    if (negedge_nVSYNC)
+      new_ctrl_data[1] <= 1'b0;
+  end
 
 
 // Part 3: Trigger Reset on Demand
@@ -283,15 +289,15 @@ end
 reg       drv_rst =  1'b0;
 reg [9:0] rst_cnt = 10'b0; // ~64ms are needed to count from max downto 0 with CLK_16k.
 
-always @(posedge CLK_16k) begin
+always @(posedge CLK_16k)
   if (initiate_nrst == 1'b1) begin
-    drv_rst <= 1'b1;      // reset system
+    drv_rst <= 1'b1;            // reset system
     rst_cnt <= 10'h3ff;
-  end else if (|rst_cnt) // decrement as long as rst_cnt is not zero
+  end else if (|rst_cnt) begin  // decrement as long as rst_cnt is not zero
     rst_cnt <= rst_cnt - 1'b1;
-  else
-    drv_rst <= 1'b0; // end of reset
-end
+  end else begin
+    drv_rst <= 1'b0;            // end of reset
+  end
 
 assign nRST = drv_rst ? 1'b0 : 1'bz;
 
