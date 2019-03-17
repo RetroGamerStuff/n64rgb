@@ -104,19 +104,18 @@ end
 // Part 1: Instantiate NIOS II
 // ===========================
 
-
-reg newpowercycle = 1'b1;
+reg [9:0] time_out = 10'd1023;
 reg FallbackMode  = 1'b0;
+reg FallbackMode_valid = 1'b0;
 
-always @(posedge CLK_16k) begin
-  if (CLKs_valid) begin
-    if (nRST)
-      newpowercycle <= 1'b0;
-    else
-      FallbackMode <= newpowercycle;  // reset pressed during new power cycle
-                                      // -> activate fallback mode
+always @(posedge VCLK)
+  if (!FallbackMode_valid) begin
+    if (~|time_out) begin
+      FallbackMode <= ~nVRST;
+      FallbackMode_valid <= 1'b1;
+    end
+    time_out <= time_out - 10'd1;
   end
-end
 
 wire [ 9:0] vd_wraddr;
 wire [ 1:0] vd_wrctrl;

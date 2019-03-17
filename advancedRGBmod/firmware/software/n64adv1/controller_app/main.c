@@ -84,16 +84,24 @@ int main()
     load_from_jumperset = cfg_load_from_flash(&sysconfig,0);
   }
 
-  if (info_data & INFO_FALLBACKMODE_GETMASK)
-    cfg_load_n64defaults(&sysconfig,0);
-  else if (load_from_jumperset != 0) {
+  if (load_from_jumperset != 0) {
     cfg_clear_words(&sysconfig);  // just in case anything went wrong while loading from flash
     cfg_load_jumperset(&sysconfig,0);
 //    cfg_save_to_flash(&sysconfig,0);
   }
 
-  cfg_clear_flag(&show_osd);
-  cfg_clear_flag(&show_logo);
+  while ((info_data & INFO_FALLBACKMODE_VALID_GETMASK) == 0) info_data = get_info_data();
+
+  if (info_data & INFO_FALLBACKMODE_GETMASK) {
+    cfg_load_n64defaults(&sysconfig,0);
+    print_overlay(menu);
+    cfg_set_flag(&show_logo);
+    print_selection_arrow(menu);
+    cfg_set_flag(&show_osd);
+  } else {
+    cfg_clear_flag(&show_osd);
+    cfg_clear_flag(&show_logo);
+  }
   cfg_clear_flag(&mute_osd_tmp);
   cfg_clear_flag(&show_testpat);
 
