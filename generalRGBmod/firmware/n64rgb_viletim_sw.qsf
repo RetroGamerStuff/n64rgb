@@ -134,7 +134,6 @@ set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files/viletim
 ## ===============
 set_global_assignment -name SMART_RECOMPILE ON
 set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED WITH BUS-HOLD"
-set_global_assignment -name OPTIMIZE_HOLD_TIMING "ALL PATHS"
 
 
 ## Additions by Quartus Prime

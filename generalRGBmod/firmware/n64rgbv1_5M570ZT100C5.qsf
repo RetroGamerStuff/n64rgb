@@ -148,6 +148,7 @@ set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files/v1/5M570ZT100C
 ## =============================
 set_global_assignment -name SMART_RECOMPILE ON
 set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED WITH BUS-HOLD"
+set_global_assignment -name OPTIMIZATION_MODE "HIGH PERFORMANCE EFFORT"
 
 
 ## Additions by Quartus Prime
@@ -157,4 +158,3 @@ set_global_assignment -name NUM_PARALLEL_PROCESSORS 2
 set_global_assignment -name ENABLE_OCT_DONE OFF
 set_global_assignment -name STRATIXV_CONFIGURATION_SCHEME "PASSIVE SERIAL"
 set_global_assignment -name USE_CONFIGURATION_DEVICE ON
-set_global_assignment -name OPTIMIZATION_MODE "HIGH PERFORMANCE EFFORT"

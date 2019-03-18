@@ -150,8 +150,7 @@ set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files/v1/EPM240T100C
 ## ===============
 set_global_assignment -name SMART_RECOMPILE ON
 set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED WITH BUS-HOLD"
-set_global_assignment -name OPTIMIZE_HOLD_TIMING "ALL PATHS"
-set_global_assignment -name SEED 14
+set_global_assignment -name SEED 5
 
 
 ## Additions by Quartus Prime
