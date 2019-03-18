@@ -435,8 +435,8 @@ reg [Y_width-1:0] Y_sl_pre = {Y_width{1'b0}};
 
 initial begin
   for (int_idx = 0; int_idx < 3; int_idx = int_idx+1) begin
-    drawSL[int_idx] <= 1'b0;
-    S_mult[int_idx] <= 4'b0000;
+    drawSL[int_idx] = 1'b0;
+    S_mult[int_idx] = 4'b0000;
   end
 end
 
@@ -450,20 +450,20 @@ always @(posedge VCLK_Tx_o or negedge nVRST_Tx_o)
       drawSL[int_idx] <= 1'b0;
       S_mult[int_idx] <= 4'b0000;
     end
-    R_mult_pre = {color_width_i{1'b0}};
-    G_mult_pre = {color_width_i{1'b0}};
-    B_mult_pre = {color_width_i{1'b0}};
-    R_sl_pre = {color_width_i{1'b0}};
-    G_sl_pre = {color_width_i{1'b0}};
-    B_sl_pre = {color_width_i{1'b0}};
-    R_mult = {color_width_i{1'b0}};
-    G_mult = {color_width_i{1'b0}};
-    B_mult = {color_width_i{1'b0}};
-    Y_sl_pre = {Y_width{1'b0}};
+    R_mult_pre <= {color_width_i{1'b0}};
+    G_mult_pre <= {color_width_i{1'b0}};
+    B_mult_pre <= {color_width_i{1'b0}};
+    R_sl_pre   <= {color_width_i{1'b0}};
+    G_sl_pre   <= {color_width_i{1'b0}};
+    B_sl_pre   <= {color_width_i{1'b0}};
+    R_mult     <= {color_width_i{1'b0}};
+    G_mult     <= {color_width_i{1'b0}};
+    B_mult     <= {color_width_i{1'b0}};
+    Y_sl_pre   <= {Y_width{1'b0}};
   end else begin
-     S_mult[2] <=  S_mult[1];
-     S_mult[1] <=  S_mult[0];
-     S_mult[0] <= {nVSYNC_mult,1'b0, nHSYNC_mult,nCSYNC_mult};
+    S_mult[2] <=  S_mult[1];
+    S_mult[1] <=  S_mult[0];
+    S_mult[0] <= {nVSYNC_mult,1'b0, nHSYNC_mult,nCSYNC_mult};
     drawSL[2] <= drawSL[1];
     drawSL[1] <= drawSL[0];
     drawSL[0] <= SL_en && (linemult_sel_buf[2] == 2'b01 ? (rdcnt ^ (!SL_id)) :
@@ -487,10 +487,10 @@ always @(posedge VCLK_Tx_o or negedge nVRST_Tx_o)
       R_mult_pre <= {color_width_i{1'b0}};
       G_mult_pre <= {color_width_i{1'b0}};
       B_mult_pre <= {color_width_i{1'b0}};
-      R_sl_pre  <= {color_width_i{1'b0}};
-      G_sl_pre  <= {color_width_i{1'b0}};
-      B_sl_pre  <= {color_width_i{1'b0}};
-      Y_sl_pre  <= {      Y_width{1'b0}};
+      R_sl_pre   <= {color_width_i{1'b0}};
+      G_sl_pre   <= {color_width_i{1'b0}};
+      B_sl_pre   <= {color_width_i{1'b0}};
+      Y_sl_pre   <= {      Y_width{1'b0}};
     end
 
     R_mult <= R_mult_pre;
@@ -522,9 +522,9 @@ initial begin
     G_sl_pre_pp[int_idx] <= {color_width_i{1'b0}};
     B_sl_pre_pp[int_idx] <= {color_width_i{1'b0}};
   end
-  R_o[int_idx] <= {color_width_o{1'b0}};
-  G_o[int_idx] <= {color_width_o{1'b0}};
-  B_o[int_idx] <= {color_width_o{1'b0}};
+  R_o <= {color_width_o{1'b0}};
+  G_o <= {color_width_o{1'b0}};
+  B_o <= {color_width_o{1'b0}};
 end
 
 wire [Y_width+4:0] Y_ref_pre_full = Y_sl_pre * (* multstyle = "dsp" *) SLHyb_depth;
@@ -562,9 +562,9 @@ always @(posedge VCLK_Tx_o or negedge nVRST_Tx_o)
       G_sl_pre_pp[int_idx] <= {color_width_i{1'b0}};
       B_sl_pre_pp[int_idx] <= {color_width_i{1'b0}};
     end
-    R_o[int_idx] <= {color_width_o{1'b0}};
-    G_o[int_idx] <= {color_width_o{1'b0}};
-    B_o[int_idx] <= {color_width_o{1'b0}};
+    R_o <= {color_width_o{1'b0}};
+    G_o <= {color_width_o{1'b0}};
+    B_o <= {color_width_o{1'b0}};
 
     Y_ref_pre <= {Y_width{1'b0}};
     Y_ref <= {Y_width{1'b0}};

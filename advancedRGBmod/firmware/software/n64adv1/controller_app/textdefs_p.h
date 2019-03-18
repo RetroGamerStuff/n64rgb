@@ -217,7 +217,7 @@ static const char *thanks_overlay =
   /* 1234567890123456789012345678901234567890123456789012 */
 
 static const char *about_overlay =
-    "The N64 RGB project is open source, i.e.PCB files,\n"
+    "The N64 RGB project is open source, i.e. PCB files,\n"
     "HDL and SW sources are provided to you FOR FREE!\n\n"
     "Your version\n"
     " - firmware (HDL):\n"
