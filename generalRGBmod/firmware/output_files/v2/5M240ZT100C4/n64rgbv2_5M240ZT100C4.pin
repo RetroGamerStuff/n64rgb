@@ -67,22 +67,22 @@ RESERVED_INPUT_WITH_BUS_HOLD : 2         :        :                   :         
 RESERVED_INPUT_WITH_BUS_HOLD : 3         :        :                   :         : 1         :                
 RESERVED_INPUT_WITH_BUS_HOLD : 4         :        :                   :         : 1         :                
 RESERVED_INPUT_WITH_BUS_HOLD : 5         :        :                   :         : 1         :                
-D_i[6]                       : 6         : input  : 3.3-V LVCMOS      :         : 1         : Y              
-D_i[5]                       : 7         : input  : 3.3-V LVCMOS      :         : 1         : Y              
+D_i[6]                       : 6         : input  : 3.3-V LVTTL       :         : 1         : Y              
+D_i[5]                       : 7         : input  : 3.3-V LVTTL       :         : 1         : Y              
 RESERVED_INPUT_WITH_BUS_HOLD : 8         :        :                   :         : 1         :                
 VCCIO1                       : 9         : power  :                   : 3.3V    : 1         :                
 GND                          : 10        : gnd    :                   :         :           :                
 GND                          : 11        : gnd    :                   :         :           :                
-VCLK                         : 12        : input  : 3.3-V LVCMOS      :         : 1         : Y              
+VCLK                         : 12        : input  : 3.3-V LVTTL       :         : 1         : Y              
 VCCINT                       : 13        : power  :                   : 1.8V    :           :                
-nDSYNC                       : 14        : input  : 3.3-V LVCMOS      :         : 1         : Y              
-D_i[4]                       : 15        : input  : 3.3-V LVCMOS      :         : 1         : Y              
-D_i[3]                       : 16        : input  : 3.3-V LVCMOS      :         : 1         : Y              
-D_i[2]                       : 17        : input  : 3.3-V LVCMOS      :         : 1         : Y              
-D_i[1]                       : 18        : input  : 3.3-V LVCMOS      :         : 1         : Y              
-D_i[0]                       : 19        : input  : 3.3-V LVCMOS      :         : 1         : Y              
-CTRL_nAutoDB                 : 20        : input  : 3.3-V LVCMOS      :         : 1         : Y              
-nRST_nManualDB               : 21        : bidir  : 3.3-V LVCMOS      :         : 1         : Y              
+nDSYNC                       : 14        : input  : 3.3-V LVTTL       :         : 1         : Y              
+D_i[4]                       : 15        : input  : 3.3-V LVTTL       :         : 1         : Y              
+D_i[3]                       : 16        : input  : 3.3-V LVTTL       :         : 1         : Y              
+D_i[2]                       : 17        : input  : 3.3-V LVTTL       :         : 1         : Y              
+D_i[1]                       : 18        : input  : 3.3-V LVTTL       :         : 1         : Y              
+D_i[0]                       : 19        : input  : 3.3-V LVTTL       :         : 1         : Y              
+CTRL_nAutoDB                 : 20        : input  : 3.3-V LVTTL       :         : 1         : Y              
+nRST_nManualDB               : 21        : bidir  : 3.3-V LVTTL       :         : 1         : Y              
 TMS                          : 22        : input  :                   :         : 1         :                
 TDI                          : 23        : input  :                   :         : 1         :                
 TCK                          : 24        : input  :                   :         : 1         :                
@@ -99,55 +99,55 @@ RESERVED_INPUT_WITH_BUS_HOLD : 34        :        :                   :         
 RESERVED_INPUT_WITH_BUS_HOLD : 35        :        :                   :         : 1         :                
 RESERVED_INPUT_WITH_BUS_HOLD : 36        :        :                   :         : 1         :                
 RESERVED_INPUT_WITH_BUS_HOLD : 37        :        :                   :         : 1         :                
-install_type                 : 38        : input  : 3.3-V LVCMOS      :         : 1         : Y              
+install_type                 : 38        : input  : 3.3-V LVTTL       :         : 1         : Y              
 RESERVED_INPUT_WITH_BUS_HOLD : 39        :        :                   :         : 1         :                
-Default_n15bit_mode          : 40        : input  : 3.3-V LVCMOS      :         : 1         : Y              
-nHSYNC                       : 41        : output : 3.3-V LVCMOS      :         : 1         : Y              
-nVSYNC                       : 42        : output : 3.3-V LVCMOS      :         : 1         : Y              
-nCSYNC                       : 43        : output : 3.3-V LVCMOS      :         : 1         : Y              
-nCLAMP                       : 44        : output : 3.3-V LVCMOS      :         : 1         : Y              
+Default_n15bit_mode          : 40        : input  : 3.3-V LVTTL       :         : 1         : Y              
+nHSYNC                       : 41        : output : 3.3-V LVTTL       :         : 1         : Y              
+nVSYNC                       : 42        : output : 3.3-V LVTTL       :         : 1         : Y              
+nCSYNC                       : 43        : output : 3.3-V LVTTL       :         : 1         : Y              
+nCLAMP                       : 44        : output : 3.3-V LVTTL       :         : 1         : Y              
 VCCIO1                       : 45        : power  :                   : 3.3V    : 1         :                
 GND                          : 46        : gnd    :                   :         :           :                
-CLK_ADV712x                  : 47        : output : 3.3-V LVCMOS      :         : 1         : Y              
-B_o[7]                       : 48        : output : 3.3-V LVCMOS      :         : 1         : Y              
-B_o[6]                       : 49        : output : 3.3-V LVCMOS      :         : 1         : Y              
-B_o[5]                       : 50        : output : 3.3-V LVCMOS      :         : 1         : Y              
-B_o[4]                       : 51        : output : 3.3-V LVCMOS      :         : 1         : Y              
-B_o[3]                       : 52        : output : 3.3-V LVCMOS      :         : 2         : Y              
-B_o[2]                       : 53        : output : 3.3-V LVCMOS      :         : 2         : Y              
-B_o[1]                       : 54        : output : 3.3-V LVCMOS      :         : 2         : Y              
-nSYNC_ON_GREEN               : 55        : input  : 3.3-V LVCMOS      :         : 2         : Y              
-nCSYNC_ADV712x               : 56        : output : 3.3-V LVCMOS      :         : 2         : Y              
-nBLANK_ADV712x               : 57        : output : 3.3-V LVCMOS      :         : 2         : Y              
-G_o[7]                       : 58        : output : 3.3-V LVCMOS      :         : 2         : Y              
+CLK_ADV712x                  : 47        : output : 3.3-V LVTTL       :         : 1         : Y              
+B_o[7]                       : 48        : output : 3.3-V LVTTL       :         : 1         : Y              
+B_o[6]                       : 49        : output : 3.3-V LVTTL       :         : 1         : Y              
+B_o[5]                       : 50        : output : 3.3-V LVTTL       :         : 1         : Y              
+B_o[4]                       : 51        : output : 3.3-V LVTTL       :         : 1         : Y              
+B_o[3]                       : 52        : output : 3.3-V LVTTL       :         : 2         : Y              
+B_o[2]                       : 53        : output : 3.3-V LVTTL       :         : 2         : Y              
+B_o[1]                       : 54        : output : 3.3-V LVTTL       :         : 2         : Y              
+nSYNC_ON_GREEN               : 55        : input  : 3.3-V LVTTL       :         : 2         : Y              
+nCSYNC_ADV712x               : 56        : output : 3.3-V LVTTL       :         : 2         : Y              
+nBLANK_ADV712x               : 57        : output : 3.3-V LVTTL       :         : 2         : Y              
+G_o[7]                       : 58        : output : 3.3-V LVTTL       :         : 2         : Y              
 VCCIO2                       : 59        : power  :                   : 3.3V    : 2         :                
 GND                          : 60        : gnd    :                   :         :           :                
-B_o[0]                       : 61        : output : 3.3-V LVCMOS      :         : 2         : Y              
-G_o[0]                       : 62        : output : 3.3-V LVCMOS      :         : 2         : Y              
+B_o[0]                       : 61        : output : 3.3-V LVTTL       :         : 2         : Y              
+G_o[0]                       : 62        : output : 3.3-V LVTTL       :         : 2         : Y              
 VCCINT                       : 63        : power  :                   : 1.8V    :           :                
-R_o[0]                       : 64        : output : 3.3-V LVCMOS      :         : 2         : Y              
+R_o[0]                       : 64        : output : 3.3-V LVTTL       :         : 2         : Y              
 GND                          : 65        : gnd    :                   :         :           :                
-G_o[6]                       : 66        : output : 3.3-V LVCMOS      :         : 2         : Y              
-G_o[5]                       : 67        : output : 3.3-V LVCMOS      :         : 2         : Y              
-G_o[4]                       : 68        : output : 3.3-V LVCMOS      :         : 2         : Y              
-G_o[3]                       : 69        : output : 3.3-V LVCMOS      :         : 2         : Y              
-G_o[2]                       : 70        : output : 3.3-V LVCMOS      :         : 2         : Y              
-G_o[1]                       : 71        : output : 3.3-V LVCMOS      :         : 2         : Y              
-R_o[7]                       : 72        : output : 3.3-V LVCMOS      :         : 2         : Y              
-R_o[6]                       : 73        : output : 3.3-V LVCMOS      :         : 2         : Y              
-R_o[5]                       : 74        : output : 3.3-V LVCMOS      :         : 2         : Y              
-R_o[4]                       : 75        : output : 3.3-V LVCMOS      :         : 2         : Y              
-R_o[3]                       : 76        : output : 3.3-V LVCMOS      :         : 2         : Y              
-R_o[2]                       : 77        : output : 3.3-V LVCMOS      :         : 2         : Y              
-R_o[1]                       : 78        : output : 3.3-V LVCMOS      :         : 2         : Y              
+G_o[6]                       : 66        : output : 3.3-V LVTTL       :         : 2         : Y              
+G_o[5]                       : 67        : output : 3.3-V LVTTL       :         : 2         : Y              
+G_o[4]                       : 68        : output : 3.3-V LVTTL       :         : 2         : Y              
+G_o[3]                       : 69        : output : 3.3-V LVTTL       :         : 2         : Y              
+G_o[2]                       : 70        : output : 3.3-V LVTTL       :         : 2         : Y              
+G_o[1]                       : 71        : output : 3.3-V LVTTL       :         : 2         : Y              
+R_o[7]                       : 72        : output : 3.3-V LVTTL       :         : 2         : Y              
+R_o[6]                       : 73        : output : 3.3-V LVTTL       :         : 2         : Y              
+R_o[5]                       : 74        : output : 3.3-V LVTTL       :         : 2         : Y              
+R_o[4]                       : 75        : output : 3.3-V LVTTL       :         : 2         : Y              
+R_o[3]                       : 76        : output : 3.3-V LVTTL       :         : 2         : Y              
+R_o[2]                       : 77        : output : 3.3-V LVTTL       :         : 2         : Y              
+R_o[1]                       : 78        : output : 3.3-V LVTTL       :         : 2         : Y              
 GND                          : 79        : gnd    :                   :         :           :                
 VCCIO2                       : 80        : power  :                   : 3.3V    : 2         :                
 RESERVED_INPUT_WITH_BUS_HOLD : 81        :        :                   :         : 2         :                
 RESERVED_INPUT_WITH_BUS_HOLD : 82        :        :                   :         : 2         :                
 RESERVED_INPUT_WITH_BUS_HOLD : 83        :        :                   :         : 2         :                
 RESERVED_INPUT_WITH_BUS_HOLD : 84        :        :                   :         : 2         :                
-Default_DeBlur               : 85        : input  : 3.3-V LVCMOS      :         : 2         : Y              
-Default_nForceDeBlur         : 86        : input  : 3.3-V LVCMOS      :         : 2         : Y              
+Default_DeBlur               : 85        : input  : 3.3-V LVTTL       :         : 2         : Y              
+Default_nForceDeBlur         : 86        : input  : 3.3-V LVTTL       :         : 2         : Y              
 RESERVED_INPUT_WITH_BUS_HOLD : 87        :        :                   :         : 2         :                
 RESERVED_INPUT_WITH_BUS_HOLD : 88        :        :                   :         : 2         :                
 RESERVED_INPUT_WITH_BUS_HOLD : 89        :        :                   :         : 2         :                
