@@ -1,10 +1,17 @@
 # A small Flex-PCB
 ## N64 RCP-NUS breakout
 
-
 ## Purpose
 
 This PCB enables you to apply conditioning resistors to the RCP output pins. This is useful for any CPLD and FPGA RGB Kit like viletims N64RGB (public and commercial), N64RGBv1, N64RGBv2, N64Advanced and many more variations spreaded over the internet.
+
+
+## Where to Order?
+
+This board can be ordered from every service you want to choose, e.g. PCBWay (I personally ordered around 100 boards for around $100).
+An easy small prototype solution though might be the flex cable service by [OSHPark](https://oshpark.com/shared_projects/WxRgf9Iw).
+Make sure to tick the flex service before going to the checkout!
+
 
 ## Pinout
 
@@ -39,6 +46,7 @@ You need
 - if you have resistors at the input of your N64RGB modding board, you need to replace them with ferrit beads (see BOM if for proper replacements)
 
 Assemble the board. The resistor arrays don't have an orientation.
+
 
 ## Installation
 
