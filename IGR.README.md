@@ -44,6 +44,6 @@ If you are on the DIY PCB project, first open the _n64rgb.v_ and (un-)comment th
 In Quartus Prime then go to _Processing_ on the top bar and _Start Compilation_. Or simply double click on _Assembler (Generate programming file)_ in the _Tasks_-subwindow. Your programming file (\*.pof) will be located in the project-subfolder _output\_files/_.
 
 #### Request the firmware
-As I can understand that not everybody wants to install a 15GB program for just building the firmware, I offer you to generate your firmware. Just send me your edited **igr\_params.vh** to [borti4938@gmx.de](mailto:borti4938@gmx.de).
+As I can understand that not everybody wants to install a 15GB program for just building the firmware, I offer you to generate your firmware. Just send me your edited **igr\_params.vh** to [borti4938@gmail.com](mailto:borti4938@gmail.com).
 
 A few days later I will upload it to GitHub. I try to inform you via email directly, but please be not sad if I forget it. Just look frequently on GitHub.
