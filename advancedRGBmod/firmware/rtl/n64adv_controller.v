@@ -40,8 +40,9 @@ module n64adv_controller (
 
   CTRL,
 
-  InfoSet,
+  PPUState,
   JumperCfgSet,
+  MANAGE_VPLL,
   OutConfigSet,
   OSDWrVector,
   OSDInfo,
@@ -63,8 +64,9 @@ input [2:0] nSRST;
 
 input CTRL;
 
-input      [ 3:0] InfoSet;
+input      [12:0] PPUState;
 input      [ 6:0] JumperCfgSet;
+output reg [ 1:0] MANAGE_VPLL;
 output reg [47:0] OutConfigSet;
 output     [24:0] OSDWrVector;
 output reg [ 1:0] OSDInfo;
@@ -131,7 +133,7 @@ wire [12:0] vd_wrdata;
 
 wire [31:0] SysConfigSet0;
 // general structure [31:16] misc, [15:0] video
-// [31:24] {(5bits reserve),show_osd_logo,show_osd,mute_osd}
+// [31:24] {(3bits reserve),USE_VPLL, TEST_VPLL, show_osd_logo,show_osd,mute_osd}
 // [23:16] {(5bits reserve),use_igr,igr for 15bit mode and deblur (not used in logic)}
 // [15: 8] {show_testpattern,(2bits reserve),FilterSet (3bits),YPbPr,RGsB}
 // [ 7: 0] {gamma (4bits),(1bit reserve),VI-DeBlur (2bit), 15bit mode}
@@ -150,7 +152,8 @@ system_n64adv1 system_u(
   .vd_wrdata_export(vd_wrdata),
   .ctrl_data_in_export(serial_data[1]),
   .jumper_cfg_set_in_export({1'b0,JumperCfgSet}),
-  .info_set_in_export({2'b00,InfoSet,FallbackMode,FallbackMode_valid}),
+  .ppu_state_in_export(PPUState),
+  .fallback_in_export({FallbackMode,FallbackMode_valid}),
   .cfg_set0_out_export(SysConfigSet0),
   .cfg_set1_out_export(SysConfigSet1),
   .hdl_fw_in_export(hdl_fw)
@@ -162,6 +165,7 @@ reg use_igr = 1'b0;
 
 always @(posedge VCLK)
   if ((!nVDSYNC & negedge_nVSYNC) | !nVRST) begin
+    MANAGE_VPLL  <= SysConfigSet0[28:27];
     use_igr      <= SysConfigSet0[18];
     OutConfigSet <= {SysConfigSet0[15:0],SysConfigSet1};
     OSDInfo[1]   <= &{SysConfigSet0[26:25],!SysConfigSet0[24]};  // show logo only in OSD

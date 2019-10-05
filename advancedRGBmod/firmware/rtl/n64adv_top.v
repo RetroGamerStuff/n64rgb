@@ -71,7 +71,7 @@ module n64adv_top (
 );
 
 parameter [3:0] hdl_fw_main = 4'd1;
-parameter [7:0] hdl_fw_sub  = 8'd33;
+parameter [7:0] hdl_fw_sub  = 8'd40;
 
 `include "vh/n64adv_vparams.vh"
 
@@ -102,76 +102,32 @@ input       n240p;
 input       n480i_bob;
 
 
-// start of rtl
-
-
-// PLLs
-
-wire CLK_4M, CLK_16k, CLK_25M, SYS_PLL_LOCKED;
-sys_pll sys_pll_u(
-  .inclk0(SYS_CLK),
-  .c0(CLK_4M),
-  .c1(CLK_16k),
-  .c2(CLK_25M),
-  .locked(SYS_PLL_LOCKED)
-);
-wire [2:0] CLKs_controller = {CLK_4M,CLK_16k,CLK_25M};
-
-
-wire VCLK_50M, VCLK_75M, VIDEO_PLL_LOCKED;
-video_pll video_pll_u(
-  .inclk0(VCLK),
-  .c0(VCLK_50M),
-  .c1(VCLK_75M),
-  .locked(VIDEO_PLL_LOCKED)
-);
-wire [1:0] VCLK_Tx = {VCLK_75M,VCLK_50M};
-
-// synchronize resets
-wire nSRST_25M;
-reset_generator reset_sys_25M_u(
-  .clk(CLK_25M),
-  .clk_en(SYS_PLL_LOCKED),
-  .async_nrst_i(1'b1),      // special situation here; this reset is only used for soft-CPU (NIOS II), which only resets on power cycle
-  .rst_o(nSRST_25M)
-);
-wire nSRST_4M;
-reset_generator reset_sys_4M_u(
-  .clk(CLK_16k),
-  .clk_en(SYS_PLL_LOCKED),
-  .async_nrst_i(nRST),
-  .rst_o(nSRST_4M)
-);
-
-
-wire [2:0] nSRST = {nSRST_4M,1'b1,nSRST_25M};
+// housekeeping of clocks and resets
 
 wire nVRST;
-reset_generator reset_vclk_u(
-  .clk(VCLK),
-  .clk_en(1'b1),
-  .async_nrst_i(nRST),
-  .rst_o(nVRST)
-);
+wire [1:0] VCLK_Tx, nVRST_Tx;
+wire [2:0] CLKs_controller, nSRST;
+wire [1:0] MANAGE_VPLL;
+wire       VCLK_PLL_LOCKED, SYS_PLL_LOCKED;
 
-wire [1:0] nVRST_Tx;
-reset_generator reset_vclk_50M__u(
-  .clk(VCLK_50M),
-  .clk_en(VIDEO_PLL_LOCKED),
-  .async_nrst_i(nRST),
-  .rst_o(nVRST_Tx[0])
-);
-reset_generator reset_vclk_75M_u(
-  .clk(VCLK_75M),
-  .clk_en(VIDEO_PLL_LOCKED),
-  .async_nrst_i(nRST),
-  .rst_o(nVRST_Tx[1])
+n64adv_clk_n_rst_hk clk_n_rst_hk_u(
+  .VCLK(VCLK),
+  .SYS_CLK(SYS_CLK),
+  .nRST(nRST),
+  .nVRST(nVRST),
+  .VCLK_Tx(VCLK_Tx),
+  .nVRST_Tx(nVRST_Tx),
+  .MANAGE_VPLL(MANAGE_VPLL),
+  .VCLK_PLL_LOCKED(VCLK_PLL_LOCKED),
+  .CLKs_controller(CLKs_controller),
+  .nSRST(nSRST),
+  .SYS_PLL_LOCKED(SYS_PLL_LOCKED)
 );
 
 
 // controller module
 
-wire [ 3:0] InfoSet;
+wire [12:0] PPUState;
 wire [ 6:0] JumperCfgSet = {nFilterBypass,n240p,~n480i_bob,~SL_str,~nEN_YPbPr,(nEN_YPbPr & ~nEN_RGsB)}; // (~nEN_YPbPr | nEN_RGsB) ensures that not both jumpers are set and passed through the NIOS II
 wire [47:0] ConfigSet;
 wire [24:0] OSDWrVector;
@@ -183,7 +139,7 @@ n64adv_controller #({hdl_fw_main,hdl_fw_sub}) n64adv_controller_u(
   .nRST(nRST),
   .nSRST(nSRST),
   .CTRL(CTRL_i),
-  .InfoSet(InfoSet),
+  .PPUState({PPUState[12:11],VCLK_PLL_LOCKED,PPUState[9:0]}),
   .JumperCfgSet(JumperCfgSet),
   .OutConfigSet(ConfigSet),
   .OSDWrVector(OSDWrVector),
@@ -191,7 +147,8 @@ n64adv_controller #({hdl_fw_main,hdl_fw_sub}) n64adv_controller_u(
   .VCLK(VCLK),
   .nVDSYNC(nVDSYNC),
   .VD_VSi(VD_i[3]),
-  .nVRST(nVRST)
+  .nVRST(nVRST),
+  .MANAGE_VPLL(MANAGE_VPLL)
 );
 
 
@@ -202,13 +159,14 @@ n64adv_ppu_top n64adv_ppu_u(
   .nVRST(nVRST),
   .nVDSYNC(nVDSYNC),
   .VD_i(VD_i),
-  .InfoSet(InfoSet),
+  .PPUState(PPUState),
   .ConfigSet(ConfigSet),
-  .OSDCLK(CLK_25M),
+  .OSDCLK(CLKs_controller[0]),
   .OSDWrVector(OSDWrVector),
   .OSDInfo(OSDInfo),
   .VCLK_Tx(VCLK_Tx),
   .nVRST_Tx(nVRST_Tx),
+  .USE_VPLL(MANAGE_VPLL[1]),
   .VCLK_o(CLK_ADV712x),
 //  .nBLANK(nBLANK_ADV712x),
   .VD_o(VD_o),

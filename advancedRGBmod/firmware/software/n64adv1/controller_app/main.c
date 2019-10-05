@@ -59,24 +59,25 @@ int main()
   menu_t *menu = &home_menu;
 
   configuration_t sysconfig = {
-      .cfg_word_def[MISC_MENU]  = &cfg_data_misc,
-      .cfg_word_def[VIDEO]      = &cfg_data_video,
-      .cfg_word_def[IMAGE_240P] = &cfg_data_image240p,
-      .cfg_word_def[IMAGE_480I] = &cfg_data_image480i,
+      .cfg_word_def[MISC_MENU]    = &cfg_data_misc,
+      .cfg_word_def[VIDEO]        = &cfg_data_video,
+      .cfg_word_def[IMAGE_240P]   = &cfg_data_image240p,
+      .cfg_word_def[IMAGE_480I]   = &cfg_data_image480i,
   };
 
   cfg_clear_words(&sysconfig);
 
   alt_u32 ctrl_data;
-  alt_u8  info_data;
+  alt_u16 ppu_state;
+  alt_u8 vpll_lock_first_boot;
+  alt_u8 vpll_state_frame_delay;
 
   static alt_u8 ctrl_update = 1;
-  static alt_u8 info_data_pre = 0;
+  static alt_u16 ppu_state_pre = 0;
 
   static int message_cnt = 0;
 
-  info_data = get_info_data();
-  check_filteraddon(info_data);
+  check_filteraddon();
 
   int load_from_jumperset = 1;
   check_flash();
@@ -90,9 +91,10 @@ int main()
 //    cfg_save_to_flash(&sysconfig,0);
   }
 
-  while ((info_data & INFO_FALLBACKMODE_VALID_GETMASK) == 0) info_data = get_info_data();
+  alt_u8 use_fallback = get_fallback_mode();
+  while (is_fallback_mode_valid() == 0) use_fallback = get_fallback_mode();
 
-  if (info_data & INFO_FALLBACKMODE_GETMASK) {
+  if (use_fallback) {
     cfg_load_n64defaults(&sysconfig,0);
     print_overlay(menu);
     cfg_set_flag(&show_logo);
@@ -104,8 +106,13 @@ int main()
   }
   cfg_clear_flag(&mute_osd_tmp);
   cfg_clear_flag(&show_testpat);
+  cfg_clear_flag(&test_vpll);
 
   cfg_apply_to_logic(&sysconfig);
+
+  vpll_lock_first_boot = 1;
+  vpll_state_frame_delay = 0;
+
 
   /* Event loop never exits. */
   while (1) {
@@ -116,8 +123,7 @@ int main()
       command = CMD_NON;
     }
 
-    info_data = get_info_data();
-
+    ppu_state = get_ppu_state();
 
     if(cfg_get_value(&show_osd,0)) {
 
@@ -163,9 +169,9 @@ int main()
       }
 
       if ((menu->type == VINFO) &&
-          ((info_data_pre != info_data)              ||
+          ((ppu_state_pre != ppu_state)              ||
            (todo == NEW_OVERLAY)                     ))
-        update_vinfo_screen(menu,&sysconfig,info_data);
+        update_vinfo_screen(menu,&ppu_state);
 
       if ((menu->type == CONFIG) && ((todo == NEW_OVERLAY)    ||
                                      (todo == NEW_CONF_VALUE) ||
@@ -185,12 +191,12 @@ int main()
       if ((cfg_get_value(&igr_quickchange,0) & CFG_QUDEBLUR_GETMASK))
         switch (command) {
           case CMD_DEBLUR_QUICK_ON:
-            if (!(info_data & INFO_480I_GETMASK)) {
+            if (!(ppu_state & PPU_STATE_480I_GETMASK)) {
               cfg_set_value(&deblur,DEBLUR_FORCE_ON);
             };
             break;
           case CMD_DEBLUR_QUICK_OFF:
-            if (!(info_data & INFO_480I_GETMASK)) {
+            if (!(ppu_state & PPU_STATE_480I_GETMASK)) {
               cfg_set_value(&deblur,DEBLUR_FORCE_OFF);
             };
             break;
@@ -215,7 +221,25 @@ int main()
 
     if (menu->type != TEXT) print_ctrl_data(&ctrl_data);
 
-    info_data_pre = info_data;
+    ppu_state_pre = ppu_state;
+
+    vpll_lock = update_vpll_lock_state();
+    if (vpll_lock) {
+      vpll_lock_first_boot = 0;
+      vpll_state_frame_delay = 0;
+      cfg_set_flag(&test_vpll);
+    } else { // VPLL is not running at this point (lock lost?)
+      if (vpll_lock_first_boot) {
+        vpll_state_frame_delay++;
+        if (vpll_state_frame_delay == VPLL_START_FRAMES) {
+          vpll_lock_first_boot = 0;
+          vpll_state_frame_delay = VPLL_LOCK_LOST_FRAMES;
+        }
+      } else {
+        if (vpll_state_frame_delay == VPLL_LOCK_LOST_FRAMES) cfg_clear_flag(&use_vpll);
+        else                                                 vpll_state_frame_delay++;
+      }
+    }
 
     cfg_apply_to_logic(&sysconfig);
 

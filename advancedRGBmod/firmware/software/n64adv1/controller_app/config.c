@@ -34,6 +34,7 @@
 #include "config.h"
 #include "menu.h"
 #include "flash.h"
+#include "vd_driver.h"
 #include "fw.h"
 
 
@@ -44,7 +45,10 @@ typedef struct {
 } cfg4flash_t;
 
 static const char *confirm_message = "< Really? >";
+static const char *running_message = "< Running >";
 extern const char *btn_overlay_1, *btn_overlay_2;
+
+alt_u8 use_filteraddon;
 
 void cfg_inc_value(config_t* cfg_data)
 {
@@ -104,7 +108,7 @@ void cfg_set_value(config_t* cfg_data, alt_u16 value)
 };
 
 
-void cfg_show_testpattern(configuration_t* sysconfig)
+int cfg_show_testpattern(configuration_t* sysconfig)
 {
   extern config_t show_testpat;
 
@@ -125,6 +129,8 @@ void cfg_show_testpattern(configuration_t* sysconfig)
 
   cfg_clear_flag(&show_testpat);
   cfg_apply_to_logic(sysconfig);
+
+  return 0;
 }
 
 alt_u8 confirmation_routine()
@@ -306,4 +312,38 @@ void cfg_update_reference(configuration_t* sysconfig)
   int idx;
   for (idx = 0; idx < NUM_CFG_WORDS; idx++)
     sysconfig->cfg_word_def[idx]->cfg_ref_word_val = sysconfig->cfg_word_def[idx]->cfg_word_val;
+}
+
+void enable_vpll_test()
+{
+  alt_u32 cfg_set0_word = 0;
+  cfg_set0_word = IORD_ALTERA_AVALON_PIO_DATA(CFG_SET0_OUT_BASE);
+  cfg_set0_word |= (CFG_TEST_VPLL_SETMASK << 16);
+  IOWR_ALTERA_AVALON_PIO_DATA(CFG_SET0_OUT_BASE,cfg_set0_word);
+}
+
+void disable_vpll_test()
+{
+  alt_u32 cfg_set0_word = 0;
+  cfg_set0_word = IORD_ALTERA_AVALON_PIO_DATA(CFG_SET0_OUT_BASE);
+  cfg_set0_word &= ((CFG_TEST_VPLL_CLRMASK << 16) || CFG_VIDEO_GETALL_MASK);
+  IOWR_ALTERA_AVALON_PIO_DATA(CFG_SET0_OUT_BASE,cfg_set0_word);
+}
+
+int run_vpll_test(configuration_t* sysconfig)
+{
+  alt_u8 vpll_lock = update_vpll_lock_state();
+  if (vpll_lock) return 0;
+
+  vd_print_string(RWM_H_OFFSET,RWM_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_YELLOW,running_message);
+  enable_vpll_test();
+  int i;
+  for ( i = 0; i < VPLL_START_FRAMES; i++) { /* wait for five frames for PLL */
+    while(!get_nvsync()){};  /* wait for nVSYNC goes high */
+    while( get_nvsync()){};  /* wait for nVSYNC goes low  */
+    vpll_lock = update_vpll_lock_state();
+    if (vpll_lock) return 0;
+  }
+  disable_vpll_test();
+  return -VPLL_TEST_FAILED;
 }

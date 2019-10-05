@@ -213,7 +213,7 @@ always @(posedge VCLK_Rx or negedge nVRST_Rx)
 
 wire VCLK_Tx_o;
 
-vclk_tx_mux vclk_tx_mux_u (
+vclk_tx_3mux vclk_tx_3mux_u (
   .data2(VCLK_Tx[1]),
   .data1(VCLK_Tx[0]),
   .data0(VCLK_Rx),

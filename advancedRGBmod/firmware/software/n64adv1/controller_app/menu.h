@@ -86,7 +86,7 @@ typedef struct {
 
 typedef int  (*save_call)(configuration_t*,alt_u8);
 typedef int  (*load_call)(configuration_t*,alt_u8);
-typedef void (*test_call)(configuration_t*);
+typedef int  (*test_call)(configuration_t*);
 
 typedef struct {
   alt_u8        id;
@@ -119,7 +119,7 @@ extern menu_t home_menu;
 updateaction_t modify_menu(cmd_t command, menu_t** current_menu, configuration_t* sysconfig);
 void print_overlay(menu_t* current_menu);
 void print_selection_arrow(menu_t* current_menu);
-int update_vinfo_screen(menu_t* current_menu, configuration_t* sysconfig, alt_u8 info_data);
+int update_vinfo_screen(menu_t* current_menu, alt_u16* ppu_state);
 int update_cfg_screen(menu_t* current_menu);
 
 

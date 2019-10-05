@@ -71,11 +71,20 @@
 #define CFG_VSUB_VALS_H_OFFSET      (28 + CFG_VSUB_OVERLAY_H_OFFSET)
 #define CFG_VSUB_VALS_V_OFFSET      CFG_VSUB_OVERLAY_V_OFFSET
 #define CFG_VSUB_LINEX_V_OFFSET     ( 0 + CFG_VSUB_OVERLAY_H_OFFSET)
-#define CFG_VSUB_SL_EN_V_OFFSET     ( 1 + CFG_VSUB_OVERLAY_H_OFFSET)
-#define CFG_VSUB_SL_METHOD_V_OFFSET ( 2 + CFG_VSUB_OVERLAY_H_OFFSET)
-#define CFG_VSUB_SL_ID_V_OFFSET     ( 3 + CFG_VSUB_OVERLAY_H_OFFSET)
-#define CFG_VSUB_SL_STR_V_OFFSET    ( 4 + CFG_VSUB_OVERLAY_H_OFFSET)
-#define CFG_VSUB_SLHYB_STR_V_OFFSET ( 5 + CFG_VSUB_OVERLAY_H_OFFSET)
+#define CFG_VSUB_VPLL_V_OFFSET      ( 1 + CFG_VSUB_OVERLAY_H_OFFSET)
+#define CFG_VSUB_FIELDFIX_V_OFFSET  ( 1 + CFG_VSUB_OVERLAY_H_OFFSET)
+#define CFG_VSUB_SL_EN_V_OFFSET     ( 2 + CFG_VSUB_OVERLAY_H_OFFSET)
+#define CFG_VSUB_SL_METHOD_V_OFFSET ( 3 + CFG_VSUB_OVERLAY_H_OFFSET)
+#define CFG_VSUB_SL_ID_V_OFFSET     ( 4 + CFG_VSUB_OVERLAY_H_OFFSET)
+#define CFG_VSUB_SL_STR_V_OFFSET    ( 5 + CFG_VSUB_OVERLAY_H_OFFSET)
+#define CFG_VSUB_SLHYB_STR_V_OFFSET ( 6 + CFG_VSUB_OVERLAY_H_OFFSET)
+
+#define CFG_VPLLSUB_OVERLAY_H_OFFSET  TEXTOVERLAY_H_OFFSET
+#define CFG_VPLLSUB_OVERLAY_V_OFFSET  OVERLAY_V_OFFSET_WH
+#define CFG_VPLLSUB_VALS_H_OFFSET     (26 + CFG_VPLLSUB_OVERLAY_H_OFFSET)
+#define CFG_VPLLSUB_VALS_V_OFFSET     CFG_VPLLSUB_OVERLAY_V_OFFSET
+#define CFG_VPLLSUB_TEST_V_OFFSET     ( 4 + CFG_VPLLSUB_OVERLAY_V_OFFSET)
+#define CFG_VPLLSUB_EN_V_OFFSET       ( 5 + CFG_VPLLSUB_OVERLAY_V_OFFSET)
 
 #define MISC_OVERLAY_H_OFFSET     OVERLAY_H_OFFSET
 #define MISC_OVERLAY_V_OFFSET     OVERLAY_V_OFFSET_WH
@@ -100,11 +109,12 @@
 #define INFO_VALS_V_OFFSET    INFO_OVERLAY_V_OFFSET
 
 #define INFO_VIN_V_OFFSET     (1 + INFO_VALS_V_OFFSET)
-#define INFO_VOUT_V_OFFSET    (2 + INFO_VALS_V_OFFSET)
-#define INFO_COL_V_OFFSET     (3 + INFO_VALS_V_OFFSET)
-#define INFO_FORMAT_V_OFFSET  (4 + INFO_VALS_V_OFFSET)
-#define INFO_DEBLUR_V_OFFSET  (5 + INFO_VALS_V_OFFSET)
-#define INFO_FAO_V_OFFSET     (6 + INFO_VALS_V_OFFSET)
+#define INFO_VPLL_V_OFFSET    (2 + INFO_VALS_V_OFFSET)
+#define INFO_VOUT_V_OFFSET    (3 + INFO_VALS_V_OFFSET)
+#define INFO_COL_V_OFFSET     (4 + INFO_VALS_V_OFFSET)
+#define INFO_FORMAT_V_OFFSET  (5 + INFO_VALS_V_OFFSET)
+#define INFO_DEBLUR_V_OFFSET  (6 + INFO_VALS_V_OFFSET)
+#define INFO_FAO_V_OFFSET     (7 + INFO_VALS_V_OFFSET)
 
 
 #define MAIN_OVERLAY_H_OFFSET 2
@@ -139,6 +149,7 @@ static const char *vinfo_header =
 static const char *vinfo_overlay =
     "* Video\n"
     "  - Input:\n"
+    "  - PLL:\n"
     "  - Output:\n"
     "  - Color Depth:\n"
     "  - Format:\n"
@@ -160,6 +171,7 @@ static const char *cfg_240p_opt_header =
     "Config. (240p)";
 static const char *cfg_240p_opt_overlay =
     "* Enable Linemultiplier:\n"
+    "  - Video PLL:\n"
     "* Use Scanlines:\n"
     "  - Method:\n"
     "  - Scanline ID:\n"
@@ -177,6 +189,16 @@ static const char *cfg_480i_opt_overlay =
     "  - Scanline Strength:\n"
     "  - Hybrid Depth:";
 
+
+static const char *cfg_vpll_opt_header =
+    "Config. (VPLL)";
+static const char *cfg_vpll_opt_overlay =
+    "In order to get LineX3 available, you have to have\n"
+    "video PLL running and locked. If VPLL lost lock\n"
+    "during runtime, you may try to re-enable VLL here.\n\n"
+    "  * Test Video PLL:\n"
+    "  * Enable Video PLL:";
+  /* 1234567890123456789012345678901234567890123456789012 */
 
 
 
@@ -251,11 +273,14 @@ static const char *home_overlay =
     "Acknowledgment...\n"
     "License...";
 
-const char *EnterSubMenu = "[Enter submenu]";
-const char *LineX3Hint   = "*LineX3: only available in NTSC video mode";
+const char *EnterSubMenu    = "[Enter submenu]";
+const char *StartTest       = "[Start VPLL Test]";
+const char *LineX3VPLLHint  = "*LineX3: needs VPLL enabled";
+const char *LineX3Hint      = "*LineX3: only available in NTSC video mode";
 
 const char *OffOn[]         = {"Off","On"};
 const char *LineX_240p[]    = {"LineX Off","LineX2","LineX3*"};
+const char *VideoPLL[]      = {"Off","Locked"};
 const char *EvenOdd[]       = {"Even","Odd "};
 const char *AdvSL[]         = {"Simple","Advanced"};
 const char *LinkSL[]        = {"480i ind.","Link 240p"};
@@ -264,7 +289,7 @@ const char *VideoColor[]    = {"21bit","15bit"};
 const char *VideoFormat[]   = {"RGBS","RGBS/RGsB","YPbPr"};
 const char *DeBlur[]        = {"(estimated)","(forced)","(480i/576i)"};
 const char *DeBlurCfg[]     = {"Auto","Off","Always"};
-const char *FilterAddOn[]   = {"Auto"," 9.5MHz","18.0MHz","36.0MHz","(bypassed)","(not installed)"};
+const char *FilterAddOn[]   = {"(Auto)"," 9.5MHz","18.0MHz","36.0MHz","(bypassed)","(not installed)"};
 const char *SLDesc[]        = {"  0.00%","  6.25%"," 12.50%"," 18.75%",
                                " 25.00%"," 31.25%"," 37.50%"," 43.75%",
                                " 50.00%"," 56.25%"," 62.50%"," 68.75%",

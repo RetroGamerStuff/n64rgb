@@ -22,8 +22,8 @@
 // Company: Circuit-Board.de
 // Engineer: borti4938
 //
-// VH-file Name:   n64adv2_vparams
-// Project Name:   N64 Advanced HDMI Mod
+// VH-file Name:   n64adv_vparams
+// Project Name:   N64 Advanced Mod
 // Target Devices: several devices
 // Tool versions:  Altera Quartus Prime
 // Description:

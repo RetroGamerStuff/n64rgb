@@ -46,7 +46,7 @@
 
 extern char szText[];
 
-alt_u8 use_filteraddon;
+alt_u8 vpll_lock;
 
 void print_ctrl_data(alt_u32* ctrl_data) {
   sprintf(szText,"Ctrl.Data: 0x%08x",(uint) *ctrl_data);

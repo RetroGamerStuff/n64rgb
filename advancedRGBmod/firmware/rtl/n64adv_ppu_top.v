@@ -40,7 +40,7 @@ module n64adv_ppu_top (
   VD_i,
 
   // Misc Information Exchange
-  InfoSet,
+  PPUState,
   ConfigSet,
 
   OSDCLK,
@@ -50,6 +50,7 @@ module n64adv_ppu_top (
   // possible VCLKs for the output
   VCLK_Tx,
   nVRST_Tx,
+  USE_VPLL,
 
   // Video Output
   VCLK_o,
@@ -66,13 +67,14 @@ module n64adv_ppu_top (
 
 `include "vh/n64adv_cparams.vh"
 `include "vh/n64adv_vparams.vh"
+`include "vh/n64adv_sysconfig.vh"
 
 input VCLK;
 input nVRST;
 input nVDSYNC;
 input [color_width_i-1:0] VD_i;
 
-output [ 3:0] InfoSet;
+output [12:0] PPUState;
 input  [47:0] ConfigSet;
 
 input        OSDCLK;
@@ -81,6 +83,7 @@ input [ 1:0] OSDInfo;
 
 input [1:0] VCLK_Tx;
 input [1:0] nVRST_Tx;
+input       USE_VPLL;
 
 output VCLK_o;
 // output reg nBLANK = 1'b0;
@@ -95,7 +98,8 @@ output reg nHSYNC_or_F1 = 1'b0;
 
 // start of rtl
 
-
+// structure of vinfo
+// [3:0] {data_cnt,vmode,n64_480i}
 wire [3:0] vinfo_pass;
 wire pal_mode = vinfo_pass[1];
 wire n64_480i = vinfo_pass[0];
@@ -123,39 +127,39 @@ reg       cfg_SL_id        = 1'b0;
 reg       cfg_SL_en        = 1'b0;
 
 always @(posedge VCLK) begin
-  cfg_testpat      <=  ConfigSet[47];
-  cfg_filter       <=  ConfigSet[44:42];
-  cfg_nEN_YPbPr    <= ~ConfigSet[41];
-  cfg_nEN_RGsB     <= ~ConfigSet[40];
-  cfg_gamma        <=  ConfigSet[39:36];
-  cfg_ndeblurman   <= ~ConfigSet[34];
-  cfg_nforcedeblur <= ~|ConfigSet[34:33];
-  cfg_n15bit_mode  <= ~ConfigSet[32];
+  cfg_testpat      <=  ConfigSet[`show_testpattern_bit];
+  cfg_filter       <=  ConfigSet[`FilterSet_slice];
+  cfg_nEN_YPbPr    <= ~ConfigSet[`YPbPr_bit];
+  cfg_nEN_RGsB     <= ~ConfigSet[`RGsB_bit];
+  cfg_gamma        <=  ConfigSet[`gamma_slice];
+  cfg_ndeblurman   <= ~ConfigSet[`ndeblurman_bit];
+  cfg_nforcedeblur <= ~|ConfigSet[`ndeblurman_bit:`nforcedeblur_bit];
+  cfg_n15bit_mode  <= ~ConfigSet[`n15bit_mode_bit];
   if (!n64_480i) begin
     cfg_ifix         <= 1'b0;
-    if (pal_mode)
-      cfg_linemult     <= {1'b0,^ConfigSet[30:29]}; // do not allow LineX3 in PAL mode
+    if (pal_mode | !USE_VPLL)
+      cfg_linemult     <= {1'b0,^ConfigSet[`v240p_linemult_slice]}; // do not allow LineX3 in PAL mode or if PLL of VCLK (for LineX3) is not locked (or not used)
     else
-      cfg_linemult     <= ConfigSet[30:29];
-    cfg_SLHyb_str    <= ConfigSet[28:24];
-    cfg_SL_str       <= ConfigSet[23:20];
-    cfg_SL_method    <= ConfigSet[18   ];
-    cfg_SL_id        <= ConfigSet[17   ];
-    cfg_SL_en        <= ConfigSet[16   ];
+      cfg_linemult     <= ConfigSet[`v240p_linemult_slice];
+    cfg_SLHyb_str    <= ConfigSet[`v240p_SL_hybrid_slice];
+    cfg_SL_str       <= ConfigSet[`v240p_SL_str_slice];
+    cfg_SL_method    <= ConfigSet[`v240p_SL_method_bit];
+    cfg_SL_id        <= ConfigSet[`v240p_SL_ID_bit];
+    cfg_SL_en        <= ConfigSet[`v240p_SL_En_bit];
   end else begin
-    cfg_ifix         <= ConfigSet[14];
-    cfg_linemult     <= {1'b0,ConfigSet[13]};
-    if (ConfigSet[2]) begin // check if SL mode is linked to 240p
-      cfg_SLHyb_str    <= ConfigSet[28:24];
-      cfg_SL_str       <= ConfigSet[23:20];
-      cfg_SL_id        <= ConfigSet[17   ];
+    cfg_ifix         <= ConfigSet[`v480i_field_fix_bit];
+    cfg_linemult     <= {1'b0,ConfigSet[`v480i_linex2_bit]};
+    if (ConfigSet[`v480i_SL_linked_bit]) begin // check if SL mode is linked to 240p
+      cfg_SLHyb_str    <= ConfigSet[`v240p_SL_hybrid_slice];
+      cfg_SL_str       <= ConfigSet[`v240p_SL_str_slice];
+      cfg_SL_id        <= ConfigSet[`v240p_SL_ID_bit];
     end else begin
-      cfg_SLHyb_str    <= ConfigSet[12: 8];
-      cfg_SL_str       <= ConfigSet[ 7: 4];
-      cfg_SL_id        <= ConfigSet[ 1   ];
+      cfg_SLHyb_str    <= ConfigSet[`v480i_SL_hybrid_slice];
+      cfg_SL_str       <= ConfigSet[`v480i_SL_str_slice];
+      cfg_SL_id        <= ConfigSet[`v480i_SL_ID_bit];
     end
     cfg_SL_method    <= 1'b0;
-    cfg_SL_en        <= ConfigSet[ 0   ];
+    cfg_SL_en        <= ConfigSet[`v480i_SL_En_bit];
   end
 end
 
@@ -236,7 +240,7 @@ gamma_module gamma_module_u(
 // Part 5.2: Line Multiplier
 // =========================
 
-wire [17:0] vinfo_mult = {cfg_linemult,cfg_ifix,cfg_SLHyb_str,cfg_SL_str,cfg_SL_method,cfg_SL_id,cfg_SL_en,vinfo_pass[1:0]};
+wire [16:0] vinfo_mult = {cfg_linemult,cfg_ifix,cfg_SLHyb_str,cfg_SL_str,cfg_SL_method,cfg_SL_id,cfg_SL_en,vinfo_pass[1:0]};
 
 wire VCLK_Tx_o_pre, nVRST_Tx_o_pre;
 wire [`VDATA_O_FU_SLICE] vdata_srgb_out;
@@ -275,7 +279,7 @@ testpattern testpattern_u(
 // ==============================
 
 wire VCLK_Tx_o;
-vclk_tx_post_testpattern_mux vclk_tx_post_testpattern_mux_u(
+vclk_tx_2mux vclk_tx_post_testpattern_2mux_u(
   .data1(VCLK),
   .data0(VCLK_Tx_o_pre),
   .sel(cfg_testpat),
@@ -365,16 +369,17 @@ end
 // (Bypass SF is hard wired to 1)
 
 reg [1:2] Filter;
+wire AutoFilter_w = cfg_filter == 3'b000;
 
 always @(posedge VCLK_Tx_o) begin
-  Filter <= cfg_filter == 3'b000 ? cfg_linemult : cfg_filter[1:0] - 1'b1;
+  Filter <= AutoFilter_w ? cfg_linemult : cfg_filter[1:0] - 1'b1;
   
   if (UseVGA_HVSync) begin
     nVSYNC_or_F2 <= Sync_o[3];
     nHSYNC_or_F1 <= Sync_o[1];
   end else begin
-    nVSYNC_or_F2 <= Filter[2] & !Filter[1];
-    nHSYNC_or_F1 <= Filter[1] & !Filter[2];
+    nVSYNC_or_F2 <= Filter[2];
+    nHSYNC_or_F1 <= Filter[1];
   end
 
   if (!nVRST_Tx_o) begin
@@ -385,8 +390,7 @@ end
 
 
 // final assignments with register
-
-assign InfoSet = {vinfo_pass[1:0],~ndo_deblur,UseVGA_HVSync};
+assign PPUState = {pal_mode,n64_480i,1'b0,cfg_linemult,~cfg_n15bit_mode,~cfg_nEN_YPbPr,~cfg_nEN_RGsB,~ndo_deblur,~cfg_nforcedeblur,Filter,AutoFilter_w};
 assign VCLK_o = VCLK_Tx_o;
 
 endmodule

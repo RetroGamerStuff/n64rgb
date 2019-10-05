@@ -41,7 +41,7 @@ set_global_assignment -name FAMILY "Cyclone IV E"
 set_global_assignment -name DEVICE EP4CE10E22C8
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 17.0.2
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "08:43:25  SEPTEMBER 28, 2017"
-set_global_assignment -name LAST_QUARTUS_VERSION "18.1.0 Lite Edition"
+set_global_assignment -name LAST_QUARTUS_VERSION "18.1.1 Lite Edition"
 set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
 set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
 set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 1
@@ -170,8 +170,11 @@ set_global_assignment -name TOP_LEVEL_ENTITY n64adv_top
 set_global_assignment -name VERILOG_FILE rtl/n64adv_top.v
 set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64adv_vparams.vh
 set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64adv_cparams.vh
+set_global_assignment -name VERILOG_FILE rtl/n64adv_clk_n_rst_hk.v
 set_global_assignment -name QIP_FILE ip/n64adv1/CycloneIVE/sys_pll.qip
 set_global_assignment -name QIP_FILE ip/n64adv1/CycloneIVE/video_pll.qip
+set_global_assignment -name QIP_FILE ip/n64adv1/CycloneIVE/vclk_tx_2mux.qip
+set_global_assignment -name QIP_FILE ip/n64adv1/CycloneIVE/vclk_tx_3mux.qip
 set_global_assignment -name VERILOG_FILE rtl/misc/reset_generator.v
 set_global_assignment -name VERILOG_FILE rtl/misc/register_sync.v
 set_global_assignment -name VERILOG_FILE rtl/n64adv_controller.v
@@ -184,9 +187,7 @@ set_global_assignment -name VERILOG_FILE rtl/ppu/n64a_vdemux.v
 set_global_assignment -name VERILOG_FILE rtl/ppu/osd_injection.v
 set_global_assignment -name VERILOG_FILE rtl/ppu/gamma_module.v
 set_global_assignment -name VERILOG_FILE rtl/ppu/linemult.v
-set_global_assignment -name QIP_FILE ip/n64adv1/CycloneIVE/vclk_tx_mux.qip
 set_global_assignment -name VERILOG_FILE rtl/ppu/testpattern.v
-set_global_assignment -name QIP_FILE ip/n64adv1/CycloneIVE/vclk_tx_post_testpattern_mux.qip
 set_global_assignment -name VERILOG_FILE rtl/ppu/vconv.v
 set_global_assignment -name VERILOG_FILE rtl/misc/ram2port.v
 set_global_assignment -name VERILOG_FILE rtl/misc/font_rom.v

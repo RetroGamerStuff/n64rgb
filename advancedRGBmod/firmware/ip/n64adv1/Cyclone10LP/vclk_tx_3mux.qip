@@ -1,4 +1,4 @@
 set_global_assignment -name IP_TOOL_NAME "LPM_MUX"
 set_global_assignment -name IP_TOOL_VERSION "18.1"
 set_global_assignment -name IP_GENERATED_DEVICE_FAMILY "{Cyclone 10 LP}"
-set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) "vclk_tx_post_testpattern_mux.v"]
+set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) "vclk_tx_3mux.v"]

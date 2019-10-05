@@ -22,8 +22,8 @@
 // Company: Circuit-Board.de
 // Engineer: borti4938
 //
-// VH-file Name:   n64adv2_cparams
-// Project Name:   N64 Advanced HDMI Mod
+// VH-file Name:   n64adv_cparams
+// Project Name:   N64 Advanced Mod
 // Target Devices: several devices
 // Tool versions:  Altera Quartus Prime
 // Description:
@@ -31,8 +31,8 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-`ifndef _n64adv2_cparams_vh_
-`define _n64adv2_cparams_vh_
+`ifndef _n64adv_cparams_vh_
+`define _n64adv_cparams_vh_
 
 
   // N64 controller sniffing

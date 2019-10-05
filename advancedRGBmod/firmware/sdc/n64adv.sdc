@@ -57,19 +57,24 @@ create_clock -name {SYS_CLK} -period $sys_clk_per -waveform $sys_clk_waveform [g
 # Create Generated Clock
 #**************************************************************
 
-# Video PLL Clocks
-create_generated_clock -name {VCLK_2x_base} -source [get_pins {video_pll_u|altpll_component|auto_generated|pll1|inclk[0]}] -master_clock {VCLK_1x_base} -divide_by 1 -multiply_by 1 -duty_cycle 75 [get_pins {video_pll_u|altpll_component|auto_generated|pll1|clk[0]}]
-create_generated_clock -name {VCLK_3x_base} -source [get_pins {video_pll_u|altpll_component|auto_generated|pll1|inclk[0]}] -master_clock {VCLK_1x_base} -divide_by 2 -multiply_by 3 -duty_cycle 75 [get_pins {video_pll_u|altpll_component|auto_generated|pll1|clk[1]}]
+# Video Clocks
+
+create_clock -name {VCLK_2x_base} -period $n64_vclk_per -waveform $n64_vclk_waveform $vclk_input -add
+
+set vclk_pll_in [get_pins {clk_n_rst_hk_u|video_pll_u|altpll_component|auto_generated|pll1|inclk[0]}]
+set vclk_pll_3x_out [get_pins {clk_n_rst_hk_u|video_pll_u|altpll_component|auto_generated|pll1|clk[0]}]
+create_generated_clock -name {VCLK_3x_base} -source $vclk_pll_in -master_clock {VCLK_1x_base} -divide_by 2 -multiply_by 3 -duty_cycle 75 $vclk_pll_3x_out
+
 
 # Other Internal Video Clocks
 # First MUX
-set vclk_mux_0_out [get_pins {n64adv_ppu_u|linemult_u|vclk_tx_mux_u|LPM_MUX_component|auto_generated|result_node[0]|combout}]
-create_generated_clock -name {VCLK_1x_out_pre0} -source [get_ports {VCLK}] -master_clock {VCLK_1x_base} $vclk_mux_0_out
-create_generated_clock -name {VCLK_2x_out_pre0} -source [get_pins {video_pll_u|altpll_component|auto_generated|pll1|clk[0]}] -master_clock {VCLK_2x_base} $vclk_mux_0_out -add
-create_generated_clock -name {VCLK_3x_out_pre0} -source [get_pins {video_pll_u|altpll_component|auto_generated|pll1|clk[1]}] -master_clock {VCLK_3x_base} $vclk_mux_0_out -add
+set vclk_mux_0_out [get_pins {n64adv_ppu_u|linemult_u|vclk_tx_3mux_u|LPM_MUX_component|auto_generated|result_node[0]|combout}]
+create_generated_clock -name {VCLK_1x_out_pre0} -source $vclk_input -master_clock {VCLK_1x_base} $vclk_mux_0_out
+create_generated_clock -name {VCLK_2x_out_pre0} -source $vclk_input -master_clock {VCLK_2x_base} $vclk_mux_0_out -add
+create_generated_clock -name {VCLK_3x_out_pre0} -source $vclk_pll_3x_out -master_clock {VCLK_3x_base} $vclk_mux_0_out -add
 
 # Secound MUX
-set vclk_mux_1_out [get_pins {n64adv_ppu_u|vclk_tx_post_testpattern_mux_u|LPM_MUX_component|auto_generated|result_node[0]|combout}]
+set vclk_mux_1_out [get_pins {n64adv_ppu_u|vclk_tx_post_testpattern_2mux_u|LPM_MUX_component|auto_generated|result_node[0]|combout}]
 create_generated_clock -name {VCLK_1x_out_pre1} -source $vclk_mux_0_out -master_clock {VCLK_1x_out_pre0} $vclk_mux_1_out
 create_generated_clock -name {VCLK_2x_out_pre1} -source $vclk_mux_0_out -master_clock {VCLK_2x_out_pre0} $vclk_mux_1_out -add
 create_generated_clock -name {VCLK_3x_out_pre1} -source $vclk_mux_0_out -master_clock {VCLK_3x_out_pre0} $vclk_mux_1_out -add
@@ -83,12 +88,16 @@ create_generated_clock -name {VCLK_3x_out} -source $vclk_mux_1_out -master_clock
 create_generated_clock -name {VCLK_testpattern_out} -source $vclk_mux_1_out -master_clock {VCLK_testpattern_out_pre} $vclk_out -add
 
 # System PLL Clocks
-create_generated_clock -name {CLK_4M} -source [get_pins {sys_pll_u|altpll_component|auto_generated|pll1|inclk[0]}] -divide_by 25 -multiply_by 2 [get_pins {sys_pll_u|altpll_component|auto_generated|pll1|clk[0]}]
-create_generated_clock -name {CLK_16k} -source [get_pins {sys_pll_u|altpll_component|auto_generated|pll1|inclk[0]}] -divide_by 3125 -multiply_by 1 [get_pins {sys_pll_u|altpll_component|auto_generated|pll1|clk[1]}]
-create_generated_clock -name {CLK_25M} -source [get_pins {sys_pll_u|altpll_component|auto_generated|pll1|inclk[0]}] -divide_by 2 -multiply_by 1 [get_pins {sys_pll_u|altpll_component|auto_generated|pll1|clk[2]}]
+set sys_pll_in [get_pins {clk_n_rst_hk_u|sys_pll_u|altpll_component|auto_generated|pll1|inclk[0]}]
+set sys_pll_4M_out [get_pins {clk_n_rst_hk_u|sys_pll_u|altpll_component|auto_generated|pll1|clk[0]}]
+set sys_pll_16k_out [get_pins {clk_n_rst_hk_u|sys_pll_u|altpll_component|auto_generated|pll1|clk[1]}]
+set sys_pll_25M_out [get_pins {clk_n_rst_hk_u|sys_pll_u|altpll_component|auto_generated|pll1|clk[2]}]
+create_generated_clock -name {CLK_4M} -source $sys_pll_in -divide_by 25 -multiply_by 2 $sys_pll_4M_out
+create_generated_clock -name {CLK_16k} -source $sys_pll_in -divide_by 3125 -multiply_by 1 $sys_pll_16k_out
+create_generated_clock -name {CLK_25M} -source $sys_pll_in -divide_by 2 -multiply_by 1 $sys_pll_25M_out
 
 # DCLK for Flash
-create_generated_clock -name {ALTERA_DCLK} -source [get_pins {sys_pll_u|altpll_component|auto_generated|pll1|clk[2]}] [get_ports {*ALTERA_DCLK}]
+create_generated_clock -name {ALTERA_DCLK} -source $sys_pll_25M_out [get_ports {*ALTERA_DCLK}]
 
 
 #**************************************************************
@@ -157,7 +166,7 @@ set_output_delay -clock {altera_reserved_tck} 20 [get_ports {altera_reserved_tdo
 set_clock_groups -logically_exclusive \
                     -group {VCLK_1x_base VCLK_1x_out_pre0 VCLK_1x_out_pre1 VCLK_1x_out} \
                     -group {VCLK_2x_base VCLK_2x_out_pre0 VCLK_2x_out_pre1 VCLK_2x_out} \
-                    -group {VCLK_3x_base VCLK_3x_out_pre0 VCLK_3x_out_pre1 VCLK_3x_out} \
+                    -group {VCLK_3x_base VCLK_3x_base VCLK_3x_out_pre0 VCLK_3x_out_pre1 VCLK_3x_out} \
                     -group {VCLK_testpattern_base VCLK_testpattern_out_pre VCLK_testpattern_out} \
                     -group {SYS_CLK CLK_4M CLK_16k CLK_25M}
 
@@ -170,8 +179,7 @@ set_clock_groups -logically_exclusive \
 set_false_path -from [get_ports {nRST CTRL_i UseVGA_HVSync nFilterBypass nEN_RGsB nEN_YPbPr SL_str* n240p n480i_bob}]
 
 # configuration registers as false path
-set to_linemult_u [get_registers {n64adv_ppu_u|linemult_u|*}]
-set_false_path -from [get_registers {n64adv_ppu_u|cfg_*}]
+set_false_path -from [get_registers {n64adv_ppu_u|cfg_* n64adv_ppu_u|Filter*}]
 set_false_path -from [get_registers {n64adv_ppu_u|get_vinfo_u|*}] -to [get_registers {n64adv_ppu_u|linemult_u|*}]
 set_false_path -to [get_registers {n64adv_controller_u|use_igr n64adv_controller_u|OSDInfo* n64adv_controller_u|OutConfigSet*}]
 set_false_path -from [get_registers {n64adv_ppu_u|linemult_u|SL_rval*}]
@@ -278,9 +286,8 @@ set_multicycle_path -from [get_registers {n64adv_ppu_u|video_demux_u|vdata_r_0[*
 
 # overconstraining path between clock input, pll outputs, muxes and output (only for fitter)
 if {[string equal $::quartus(nameofexecutable) "quartus_fit"]} {
-  set_max_delay -from $vclk_input -to $vclk_mux_0_out 0.000
-  set_max_delay -from [get_pins {video_pll_u|altpll_component|auto_generated|pll1|clk[0]}] -to $vclk_mux_0_out 0.000
-  set_max_delay -from [get_pins {video_pll_u|altpll_component|auto_generated|pll1|clk[1]}] -to $vclk_mux_0_out 0.000
+  set_max_delay -from $vclk_input -to $vclk_mux_1_out 0.000
+  set_max_delay -from $vclk_pll_3x_out -to $vclk_mux_0_out 0.000
   set_max_delay -from $vclk_mux_0_out -to $vclk_mux_1_out 0.000
   set_max_delay -from $vclk_mux_1_out -to $vclk_out 0.000
 }
