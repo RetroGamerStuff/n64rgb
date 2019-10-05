@@ -67,15 +67,13 @@ int main()
 
   cfg_clear_words(&sysconfig);
 
+  alt_u8 ctrl_update = 1;
   alt_u32 ctrl_data;
-  alt_u16 ppu_state;
+  alt_u16 ppu_state, ppu_state_pre;
   alt_u8 vpll_lock_first_boot;
   alt_u8 vpll_state_frame_delay;
 
-  static alt_u8 ctrl_update = 1;
-  static alt_u16 ppu_state_pre = 0;
-
-  static int message_cnt = 0;
+  int message_cnt = 0;
 
   check_filteraddon();
 
@@ -95,6 +93,7 @@ int main()
   while (is_fallback_mode_valid() == 0) use_fallback = get_fallback_mode();
 
   if (use_fallback) {
+    cfg_clear_words(&sysconfig);  // just in case anything went wrong while loading from flash
     cfg_load_n64defaults(&sysconfig,0);
     print_overlay(menu);
     cfg_set_flag(&show_logo);

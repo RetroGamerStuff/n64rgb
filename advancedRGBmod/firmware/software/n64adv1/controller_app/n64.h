@@ -173,11 +173,11 @@ inline alt_u8 get_nvsync()
   {  return (IORD_ALTERA_AVALON_PIO_DATA(SYNC_IN_BASE) & NVSYNC_IN_MASK);  };
 inline alt_u8 new_ctrl_available()
   {  return (IORD_ALTERA_AVALON_PIO_DATA(SYNC_IN_BASE) & NEW_CTRL_DATA_IN_MASK);  };
-inline alt_u16 get_hdl_version()
-  {  return (IORD_ALTERA_AVALON_PIO_DATA(HDL_FW_IN_BASE) & HDL_FW_GETALL_MASK);  };
 inline alt_u8 get_fallback_mode()
   {  return ((IORD_ALTERA_AVALON_PIO_DATA(FALLBACK_IN_BASE) & FALLBACK_GETALL_MASK) >> FALLBACKMODE_OFFSET);  };
 inline alt_u8 is_fallback_mode_valid()
   {  return (IORD_ALTERA_AVALON_PIO_DATA(FALLBACK_IN_BASE) & FALLBACKMODE_VALID_GETMASK);  };
+inline alt_u16 get_hdl_version()
+  {  return (IORD_ALTERA_AVALON_PIO_DATA(HDL_FW_IN_BASE) & HDL_FW_GETALL_MASK);  };
 
 #endif /* N64_H_ */

@@ -170,6 +170,7 @@ set_global_assignment -name TOP_LEVEL_ENTITY n64adv_top
 set_global_assignment -name VERILOG_FILE rtl/n64adv_top.v
 set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64adv_vparams.vh
 set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64adv_cparams.vh
+set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64adv_sysconfig.vh
 set_global_assignment -name VERILOG_FILE rtl/n64adv_clk_n_rst_hk.v
 set_global_assignment -name QIP_FILE ip/n64adv1/CycloneIVE/sys_pll.qip
 set_global_assignment -name QIP_FILE ip/n64adv1/CycloneIVE/video_pll.qip
@@ -195,43 +196,6 @@ set_global_assignment -name VERILOG_FILE rtl/misc/gamma_table.v
 set_global_assignment -name SDC_FILE sdc/n64adv.sdc
 
 set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files/n64adv1/ep4ce10e22
-
-## Current Strength
-## ================
-# set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to SYS_CLKen
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to nRST
-
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to CLK_ADV712x
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to nCSYNC_ADV712x
-# set_instance_assignment -name CURRENT_STRENGTH_NEW MINIMUM CURRENT" -to nBLANK_ADV712x
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to VD_o[23]
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to VD_o[22]
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to VD_o[21]
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to VD_o[20]
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to VD_o[19]
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to VD_o[18]
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to VD_o[17]
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to VD_o[16]
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to VD_o[15]
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to VD_o[14]
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to VD_o[13]
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to VD_o[12]
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to VD_o[11]
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to VD_o[10]
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to VD_o[9]
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to VD_o[8]
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to VD_o[7]
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to VD_o[6]
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to VD_o[5]
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to VD_o[4]
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to VD_o[3]
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to VD_o[2]
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to VD_o[1]
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to VD_o[0]
-
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to nCSYNC
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to nVSYNC_or_F2
-set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to nHSYNC_or_F1
 
 
 ## Assignments for Synthesis and Fitter

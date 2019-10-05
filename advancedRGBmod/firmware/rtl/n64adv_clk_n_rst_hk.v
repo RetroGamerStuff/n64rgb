@@ -44,8 +44,7 @@ module n64adv_clk_n_rst_hk(
   VCLK_PLL_LOCKED,
 
   CLKs_controller,
-  nSRST,
-  SYS_PLL_LOCKED
+  nSRST
 );
 
 input VCLK;
@@ -61,7 +60,6 @@ output       VCLK_PLL_LOCKED;
 
 output [2:0] CLKs_controller;
 output [2:0] nSRST;
-output       SYS_PLL_LOCKED;
 
 
 // Video
@@ -80,7 +78,7 @@ video_pll video_pll_u(
 );
 
 
-
+wire nVRST_w;
 reset_generator reset_vclk_u(
   .clk(VCLK),
   .clk_en(1'b1),
@@ -116,8 +114,9 @@ always @(posedge VCLK_75M) begin
   USE_VPLL_buf[2:0] <= {USE_VPLL_buf[1:0],USE_VPLL};
 end
 
+assign nVRST    = nVRST;
 assign VCLK_Tx  = {VCLK_75M,VCLK};
-assign nVRST_Tx = {nVRST_75M_Tx,nVRST};
+assign nVRST_Tx = {nVRST_75M_Tx,nVRST_w};
 
 
 // system
@@ -142,14 +141,13 @@ reset_generator reset_sys_25M_u(
 );
 
 reset_generator reset_sys_4M_u(
-  .clk(CLK_16k),
+  .clk(CLK_4M),
   .clk_en(SYS_PLL_LOCKED_w),
   .async_nrst_i(nRST),
   .rst_o(nSRST[2])
 );
 
 assign nSRST[1] = 1'b1;
-assign SYS_PLL_LOCKED = SYS_PLL_LOCKED_w;
 
 
 

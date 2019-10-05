@@ -108,7 +108,7 @@ wire nVRST;
 wire [1:0] VCLK_Tx, nVRST_Tx;
 wire [2:0] CLKs_controller, nSRST;
 wire [1:0] MANAGE_VPLL;
-wire       VCLK_PLL_LOCKED, SYS_PLL_LOCKED;
+wire       VCLK_PLL_LOCKED;
 
 n64adv_clk_n_rst_hk clk_n_rst_hk_u(
   .VCLK(VCLK),
@@ -120,8 +120,7 @@ n64adv_clk_n_rst_hk clk_n_rst_hk_u(
   .MANAGE_VPLL(MANAGE_VPLL),
   .VCLK_PLL_LOCKED(VCLK_PLL_LOCKED),
   .CLKs_controller(CLKs_controller),
-  .nSRST(nSRST),
-  .SYS_PLL_LOCKED(SYS_PLL_LOCKED)
+  .nSRST(nSRST)
 );
 
 
@@ -135,20 +134,19 @@ wire [ 1:0] OSDInfo;
 
 n64adv_controller #({hdl_fw_main,hdl_fw_sub}) n64adv_controller_u(
   .CLKs(CLKs_controller),
-  .CLKs_valid(SYS_PLL_LOCKED),
   .nRST(nRST),
   .nSRST(nSRST),
   .CTRL(CTRL_i),
   .PPUState({PPUState[12:11],VCLK_PLL_LOCKED,PPUState[9:0]}),
   .JumperCfgSet(JumperCfgSet),
+  .MANAGE_VPLL(MANAGE_VPLL),
   .OutConfigSet(ConfigSet),
   .OSDWrVector(OSDWrVector),
   .OSDInfo(OSDInfo),
   .VCLK(VCLK),
   .nVDSYNC(nVDSYNC),
   .VD_VSi(VD_i[3]),
-  .nVRST(nVRST),
-  .MANAGE_VPLL(MANAGE_VPLL)
+  .nVRST(nVRST)
 );
 
 

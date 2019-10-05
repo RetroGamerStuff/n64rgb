@@ -186,7 +186,7 @@ always @(posedge VCLK_Rx or negedge nVRST_Rx)
       line_width[wrpage] <= wrhcnt;
       wrhcnt <= {hcnt_witdh{1'b0}};
       if (wrpage == `BUF_NUM_OF_PAGES-1)
-        wrpage = {pcnt_width{1'b0}};
+        wrpage <= {pcnt_width{1'b0}};
       else
         wrpage <= wrpage + 1'b1;
       if (!rdrun[0])

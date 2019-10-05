@@ -79,8 +79,6 @@ typedef struct {
   const char*         *value_string;
 } config_t;
 
-typedef alt_u8 manage_vpll;
-
 #define VPLL_TEST_FAILED       10
 #define CFG_VERSION_INVALID   100
 #define CFG_FLASH_NOT_USED    101

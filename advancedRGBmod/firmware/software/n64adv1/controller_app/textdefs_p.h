@@ -273,32 +273,32 @@ static const char *home_overlay =
     "Acknowledgment...\n"
     "License...";
 
-const char *EnterSubMenu    = "[Enter submenu]";
-const char *StartTest       = "[Start VPLL Test]";
-const char *LineX3VPLLHint  = "*LineX3: needs VPLL enabled";
-const char *LineX3Hint      = "*LineX3: only available in NTSC video mode";
+const char *EnterSubMenu   = "[Enter submenu]";
+const char *StartTest      = "[Start VPLL Test]";
+const char *LineX3VPLLHint = "*LineX3: needs VPLL enabled";
+const char *LineX3Hint     = "*LineX3: only available in NTSC video mode";
 
-const char *OffOn[]         = {"Off","On"};
-const char *LineX_240p[]    = {"LineX Off","LineX2","LineX3*"};
-const char *VideoPLL[]      = {"Off","Locked"};
-const char *EvenOdd[]       = {"Even","Odd "};
-const char *AdvSL[]         = {"Simple","Advanced"};
-const char *LinkSL[]        = {"480i ind.","Link 240p"};
-const char *VideoMode[]     = {"240p60","480i60","288p50","576i50","480p60","576p50","720p60 (pseudo)"};
-const char *VideoColor[]    = {"21bit","15bit"};
-const char *VideoFormat[]   = {"RGBS","RGBS/RGsB","YPbPr"};
-const char *DeBlur[]        = {"(estimated)","(forced)","(480i/576i)"};
-const char *DeBlurCfg[]     = {"Auto","Off","Always"};
-const char *FilterAddOn[]   = {"(Auto)"," 9.5MHz","18.0MHz","36.0MHz","(bypassed)","(not installed)"};
-const char *SLDesc[]        = {"  0.00%","  6.25%"," 12.50%"," 18.75%",
-                               " 25.00%"," 31.25%"," 37.50%"," 43.75%",
-                               " 50.00%"," 56.25%"," 62.50%"," 68.75%",
-                               " 75.00%"," 81.25%"," 87.50%"," 93.75%",
-                               "100.00%","106.25%","112.50%","118.75%",
-                               "125.00%","131.25%","137.50%","143.75%",
-                               "150.00%"};
+const char *OffOn[]        = {"Off","On"};
+const char *LineX_240p[]   = {"LineX Off","LineX2","LineX3*"};
+const char *VideoPLL[]     = {"Off","Locked"};
+const char *EvenOdd[]      = {"Even","Odd "};
+const char *AdvSL[]        = {"Simple","Advanced"};
+const char *LinkSL[]       = {"480i ind.","Link 240p"};
+const char *VideoMode[]    = {"240p60","480i60","288p50","576i50","480p60","576p50","720p60 (pseudo)"};
+const char *VideoColor[]   = {"21bit","15bit"};
+const char *VideoFormat[]  = {"RGBS","RGBS/RGsB","YPbPr"};
+const char *DeBlur[]       = {"(estimated)","(forced)","(480i/576i)"};
+const char *DeBlurCfg[]    = {"Auto","Off","Always"};
+const char *FilterAddOn[]  = {"(Auto)"," 9.5MHz","18.0MHz","36.0MHz","(bypassed)","(not installed)"};
+const char *SLDesc[]       = {"  0.00%","  6.25%"," 12.50%"," 18.75%",
+                              " 25.00%"," 31.25%"," 37.50%"," 43.75%",
+                              " 50.00%"," 56.25%"," 62.50%"," 68.75%",
+                              " 75.00%"," 81.25%"," 87.50%"," 93.75%",
+                              "100.00%","106.25%","112.50%","118.75%",
+                              "125.00%","131.25%","137.50%","143.75%",
+                              "150.00%"};
 
-const char *GammaValue[]    = {"0.75","0.80","0.85","0.90","0.95","1.00","1.05","1.10","1.15"};
-const char *QuickChange[]   = {"Off","DeBlur","15bit mode","All"};
+const char *GammaValue[]   = {"0.75","0.80","0.85","0.90","0.95","1.00","1.05","1.10","1.15"};
+const char *QuickChange[]  = {"Off","DeBlur","15bit mode","All"};
 
 #endif /* MENU_TEXT_TEXTDEFS_P_H_ */

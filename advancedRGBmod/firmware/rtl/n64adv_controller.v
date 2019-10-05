@@ -34,7 +34,6 @@
 
 module n64adv_controller (
   CLKs,
-  CLKs_valid,
   nRST,
   nSRST,
 
@@ -58,7 +57,6 @@ parameter [11:0] hdl_fw = 12'h000; // number is a dummy; defined in and passed f
 `include "vh/n64adv_cparams.vh"
 
 input [2:0] CLKs;
-input CLKs_valid;
 inout nRST;
 input [2:0] nSRST;
 

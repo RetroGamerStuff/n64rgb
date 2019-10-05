@@ -421,7 +421,7 @@ inline void print_fw_version()
 void print_overlay(menu_t* current_menu)
 {
   alt_u8 h_run;
-  alt_u8 overlay_h_offset =        (current_menu->type == TEXT) ? TEXTOVERLAY_H_OFFSET :
+  alt_u8 overlay_h_offset =       (current_menu->type == TEXT) ? TEXTOVERLAY_H_OFFSET :
                             (is_cfg_vpll_screen(current_menu)) ? TEXTOVERLAY_H_OFFSET : HOMEOVERLAY_H_OFFSET;
   alt_u8 overlay_v_offset = 0;
 
