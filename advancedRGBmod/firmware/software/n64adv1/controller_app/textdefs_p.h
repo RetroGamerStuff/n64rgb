@@ -195,7 +195,7 @@ static const char *cfg_vpll_opt_header =
 static const char *cfg_vpll_opt_overlay =
     "In order to get LineX3 available, you have to have\n"
     "video PLL running and locked. If VPLL lost lock\n"
-    "during runtime, you may try to re-enable VLL here.\n\n"
+    "during runtime, you may try to re-enable VPLL here.\n\n"
     "  * Test Video PLL:\n"
     "  * Enable Video PLL:";
   /* 1234567890123456789012345678901234567890123456789012 */

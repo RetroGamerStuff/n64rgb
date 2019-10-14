@@ -83,7 +83,7 @@ reset_generator reset_vclk_u(
   .clk(VCLK),
   .clk_en(1'b1),
   .async_nrst_i(nRST),
-  .rst_o(nVRST)
+  .rst_o(nVRST_w)
 );
 
 wire nVRST_75M_Tx_w;
@@ -114,7 +114,7 @@ always @(posedge VCLK_75M) begin
   USE_VPLL_buf[2:0] <= {USE_VPLL_buf[1:0],USE_VPLL};
 end
 
-assign nVRST    = nVRST;
+assign nVRST    = nVRST_w;
 assign VCLK_Tx  = {VCLK_75M,VCLK};
 assign nVRST_Tx = {nVRST_75M_Tx,nVRST_w};
 
