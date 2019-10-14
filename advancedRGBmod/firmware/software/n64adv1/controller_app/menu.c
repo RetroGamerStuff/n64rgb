@@ -605,7 +605,7 @@ int update_cfg_screen(menu_t* current_menu)
 
         if (is_cfg_240p_screen(current_menu))
           if ((!cfg_get_value(current_menu->leaves[0].config_value,0) && v_run > 0) ||
-              (!cfg_get_value(current_menu->leaves[2].config_value,0) && v_run > 1))
+              (!cfg_get_value(current_menu->leaves[2].config_value,0) && v_run > 2))
             font_color = val_is_ref ? FONTCOLOR_GREY : FONTCOLOR_DARKGOLD;
 
         if (is_cfg_vpll_screen(current_menu)) {
