@@ -244,7 +244,7 @@ int cfg_load_jumperset(configuration_t* sysconfig, alt_u8 need_confirm)
 
   alt_u8 jumper_word = cfg_get_jumper();
 
-  if (~(jumper_word & JUMPER_FILTERADDON_GETMASK)) {
+  if (~(jumper_word & JUMPER_BYPASS_FILTER_GETMASK)) {
     sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= CFG_FILTER_AUTO_SETMASK;
   }
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val &= CFG_DEBLUR_RSTMASK;

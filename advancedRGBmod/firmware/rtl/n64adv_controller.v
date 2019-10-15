@@ -63,7 +63,7 @@ input [2:0] nSRST;
 input CTRL;
 
 input      [12:0] PPUState;
-input      [ 6:0] JumperCfgSet;
+input      [ 7:0] JumperCfgSet;
 output reg [ 1:0] MANAGE_VPLL;
 output reg [47:0] OutConfigSet;
 output     [24:0] OSDWrVector;
@@ -149,7 +149,7 @@ system_n64adv1 system_u(
   .vd_wrctrl_export(vd_wrctrl),
   .vd_wrdata_export(vd_wrdata),
   .ctrl_data_in_export(serial_data[1]),
-  .jumper_cfg_set_in_export({1'b0,JumperCfgSet}),
+  .jumper_cfg_set_in_export(JumperCfgSet),
   .ppu_state_in_export(PPUState),
   .fallback_in_export({FallbackMode,FallbackMode_valid}),
   .cfg_set0_out_export(SysConfigSet0),

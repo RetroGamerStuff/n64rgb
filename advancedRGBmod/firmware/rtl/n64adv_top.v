@@ -71,7 +71,7 @@ module n64adv_top (
 );
 
 parameter [3:0] hdl_fw_main = 4'd1;
-parameter [7:0] hdl_fw_sub  = 8'd40;
+parameter [7:0] hdl_fw_sub  = 8'd41;
 
 `include "vh/n64adv_vparams.vh"
 
@@ -127,7 +127,7 @@ n64adv_clk_n_rst_hk clk_n_rst_hk_u(
 // controller module
 
 wire [12:0] PPUState;
-wire [ 6:0] JumperCfgSet = {nFilterBypass,n240p,~n480i_bob,~SL_str,~nEN_YPbPr,(nEN_YPbPr & ~nEN_RGsB)}; // (~nEN_YPbPr | nEN_RGsB) ensures that not both jumpers are set and passed through the NIOS II
+wire [ 7:0] JumperCfgSet = {UseVGA_HVSync,nFilterBypass,n240p,~n480i_bob,~SL_str,~nEN_YPbPr,(nEN_YPbPr & ~nEN_RGsB)}; // (~nEN_YPbPr | nEN_RGsB) ensures that not both jumpers are set and passed through the NIOS II
 wire [47:0] ConfigSet;
 wire [24:0] OSDWrVector;
 wire [ 1:0] OSDInfo;
