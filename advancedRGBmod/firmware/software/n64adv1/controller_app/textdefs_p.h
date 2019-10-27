@@ -246,7 +246,7 @@ static const char *about_overlay =
     " - firmware (SW) :\n\n"
     "Questions / (limited) Support:\n"
     " - GitHub: <https://github.com/borti4938/n64rgb>\n"
-    " - Email:  <borti4938@gmx.de>";
+    " - Email:  <borti4938@gmail.com>";
   /* 1234567890123456789012345678901234567890123456789012 */
 
 static const char *license_overlay =
