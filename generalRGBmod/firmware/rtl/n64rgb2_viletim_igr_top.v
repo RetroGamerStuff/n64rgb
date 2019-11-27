@@ -2,7 +2,7 @@
 //
 // This file is part of the N64 RGB/YPbPr DAC project.
 //
-// Copyright (C) 2016-2018 by Peter Bartmann <borti4938@gmail.com>
+// Copyright (C) 2016-2019 by Peter Bartmann <borti4938@gmail.com>
 //
 // N64 RGB/YPbPr DAC is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 // Engineer: borti4938
 // (initial design file by Ikari_01)
 //
-// Module Name:    n64rgb_viletim_igr_top
+// Module Name:    n64rgb2_viletim_igr_top
 // Project Name:   N64 RGB DAC Mod
 // Target Devices: MaxII: EPM240T100C5
 // Tool versions:  Altera Quartus Prime
@@ -50,7 +50,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module n64rgb_viletim_igr_top (
+module n64rgb2_viletim_igr_top (
   // N64 Video Input
   VCLK,
   nDSYNC,
@@ -58,8 +58,7 @@ module n64rgb_viletim_igr_top (
 
   // Controller and Reset
   CTRL_A,
-  nRST_M_o1,
-  nRST_M_o99,
+  nRST_M,
 
   // Jumper
   Default_nForceDeBlur,
@@ -85,8 +84,7 @@ input                   nDSYNC;
 input [color_width-1:0] D_i;
 
 input CTRL_A;
-inout nRST_M_o1;
-inout nRST_M_o99;
+inout nRST_M;
 
 input Default_nForceDeBlur;
 input Default_DeBlur;
@@ -110,15 +108,9 @@ output [color_width-1:0] B_o;
 wire nForceDeBlur, nDeBlurMan, n15bit_mode;
 wire DRV_RST;
 
-reg  nRST_IGR;
-
-always @(posedge VCLK) begin
-  nRST_IGR <= nRST_M_o1 & nRST_M_o99;
-end
-
 n64_igr igr(
   .VCLK(VCLK),
-  .nRST_IGR(nRST_IGR),
+  .nRST_IGR(nRST_M),
   .DRV_RST(DRV_RST),
   .CTRL(CTRL_A),
   .Default_nForceDeBlur(Default_nForceDeBlur),
@@ -129,8 +121,7 @@ n64_igr igr(
   .n15bit_mode(n15bit_mode)
 );
 
-assign nRST_M_o1  = DRV_RST ? 1'b0 : 1'bz;
-assign nRST_M_o99 = DRV_RST ? 1'b0 : 1'bz;
+assign nRST_M  = DRV_RST ? 1'b0 : 1'bz;
 
 
 // Part 2 - 4: RGB Demux with De-Blur Add-On
@@ -167,13 +158,12 @@ n64_vinfo_ext get_vinfo(
 // Part 3: DeBlur Management (incl. heuristic)
 // ===========================================
 
-wire nrst_deblur = nRST_M_o1 & nRST_M_o99;
 wire ndo_deblur;
 
 n64_deblur deblur_management(
   .VCLK(VCLK),
   .nDSYNC(nDSYNC),
-  .nRST(nrst_deblur),
+  .nRST(nRST_M),
   .vdata_pre(vdata_r),
   .D_i(D_i),
   .deblurparams_i({vinfo_pass,nForceDeBlur,nDeBlurMan}),
