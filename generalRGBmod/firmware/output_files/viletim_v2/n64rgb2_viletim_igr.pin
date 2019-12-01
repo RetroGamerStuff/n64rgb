@@ -63,45 +63,45 @@ CHIP  "n64rgb2_viletim_igr"  ASSIGNED TO AN: EPM240T100C5
 
 Pin Name/Usage               : Location  : Dir.   : I/O Standard      : Voltage : I/O Bank  : User Assignment
 -------------------------------------------------------------------------------------------------------------
-RESERVED_INPUT_WITH_BUS_HOLD : 1         :        :                   :         : 2         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 1         :        :                   :         : 2         :                
 nCSYNC                       : 2         : output : 3.3-V LVTTL       :         : 1         : Y              
 nHSYNC                       : 3         : output : 3.3-V LVTTL       :         : 1         : Y              
 nVSYNC                       : 4         : output : 3.3-V LVTTL       :         : 1         : Y              
 nCLAMP                       : 5         : output : 3.3-V LVTTL       :         : 1         : Y              
-RESERVED_INPUT_WITH_BUS_HOLD : 6         :        :                   :         : 1         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 7         :        :                   :         : 1         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 8         :        :                   :         : 1         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 6         :        :                   :         : 1         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 7         :        :                   :         : 1         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 8         :        :                   :         : 1         :                
 VCCIO1                       : 9         : power  :                   : 3.3V    : 1         :                
 GNDIO                        : 10        : gnd    :                   :         :           :                
 GNDINT                       : 11        : gnd    :                   :         :           :                
 nDSYNC                       : 12        : input  : 3.3-V LVTTL       :         : 1         : Y              
 VCCINT                       : 13        : power  :                   : 2.5V/3.3V :           :                
 VCLK                         : 14        : input  : 3.3-V LVTTL       :         : 1         : Y              
-RESERVED_INPUT_WITH_BUS_HOLD : 15        :        :                   :         : 1         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 16        :        :                   :         : 1         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 17        :        :                   :         : 1         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 15        :        :                   :         : 1         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 16        :        :                   :         : 1         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 17        :        :                   :         : 1         :                
 nRST_M                       : 18        : bidir  : 3.3-V LVTTL       :         : 1         : Y              
-RESERVED_INPUT_WITH_BUS_HOLD : 19        :        :                   :         : 1         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 20        :        :                   :         : 1         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 19        :        :                   :         : 1         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 20        :        :                   :         : 1         :                
 CTRL_A                       : 21        : input  : 3.3-V LVTTL       :         : 1         : Y              
 TMS                          : 22        : input  :                   :         : 1         :                
 TDI                          : 23        : input  :                   :         : 1         :                
 TCK                          : 24        : input  :                   :         : 1         :                
 TDO                          : 25        : output :                   :         : 1         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 26        :        :                   :         : 1         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 27        :        :                   :         : 1         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 28        :        :                   :         : 1         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 29        :        :                   :         : 1         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 30        :        :                   :         : 1         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 26        :        :                   :         : 1         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 27        :        :                   :         : 1         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 28        :        :                   :         : 1         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 29        :        :                   :         : 1         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 30        :        :                   :         : 1         :                
 VCCIO1                       : 31        : power  :                   : 3.3V    : 1         :                
 GNDIO                        : 32        : gnd    :                   :         :           :                
 Default_n15bit_mode          : 33        : input  : 3.3-V LVTTL       :         : 1         : Y              
-RESERVED_INPUT_WITH_BUS_HOLD : 34        :        :                   :         : 1         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 35        :        :                   :         : 1         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 36        :        :                   :         : 1         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 37        :        :                   :         : 1         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 34        :        :                   :         : 1         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 35        :        :                   :         : 1         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 36        :        :                   :         : 1         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 37        :        :                   :         : 1         :                
 D_i[6]                       : 38        : input  : 3.3-V LVTTL       :         : 1         : Y              
-RESERVED_INPUT_WITH_BUS_HOLD : 39        :        :                   :         : 1         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 39        :        :                   :         : 1         :                
 D_i[5]                       : 40        : input  : 3.3-V LVTTL       :         : 1         : Y              
 D_i[4]                       : 41        : input  : 3.3-V LVTTL       :         : 1         : Y              
 D_i[3]                       : 42        : input  : 3.3-V LVTTL       :         : 1         : Y              
@@ -110,10 +110,10 @@ D_i[1]                       : 44        : input  : 3.3-V LVTTL       :         
 VCCIO1                       : 45        : power  :                   : 3.3V    : 1         :                
 GNDIO                        : 46        : gnd    :                   :         :           :                
 D_i[0]                       : 47        : input  : 3.3-V LVTTL       :         : 1         : Y              
-RESERVED_INPUT_WITH_BUS_HOLD : 48        :        :                   :         : 1         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 49        :        :                   :         : 1         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 50        :        :                   :         : 1         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 51        :        :                   :         : 1         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 48        :        :                   :         : 1         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 49        :        :                   :         : 1         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 50        :        :                   :         : 1         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 51        :        :                   :         : 1         :                
 G_o[6]                       : 52        : output : 2.5 V             :         : 2         : Y              
 G_o[5]                       : 53        : output : 2.5 V             :         : 2         : Y              
 G_o[4]                       : 54        : output : 2.5 V             :         : 2         : Y              
@@ -124,9 +124,9 @@ G_o[0]                       : 58        : output : 2.5 V             :         
 VCCIO2                       : 59        : power  :                   : 2.5V    : 2         :                
 GNDIO                        : 60        : gnd    :                   :         :           :                
 Default_nForceDeBlur         : 61        : input  : 3.3-V LVTTL       :         : 2         : Y              
-RESERVED_INPUT_WITH_BUS_HOLD : 62        :        :                   :         : 2         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 62        :        :                   :         : 2         :                
 VCCINT                       : 63        : power  :                   : 2.5V/3.3V :           :                
-RESERVED_INPUT_WITH_BUS_HOLD : 64        :        :                   :         : 2         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 64        :        :                   :         : 2         :                
 GNDINT                       : 65        : gnd    :                   :         :           :                
 B_o[6]                       : 66        : output : 2.5 V             :         : 2         : Y              
 B_o[5]                       : 67        : output : 2.5 V             :         : 2         : Y              
@@ -135,25 +135,25 @@ B_o[3]                       : 69        : output : 2.5 V             :         
 B_o[2]                       : 70        : output : 2.5 V             :         : 2         : Y              
 B_o[1]                       : 71        : output : 2.5 V             :         : 2         : Y              
 B_o[0]                       : 72        : output : 2.5 V             :         : 2         : Y              
-RESERVED_INPUT_WITH_BUS_HOLD : 73        :        :                   :         : 2         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 74        :        :                   :         : 2         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 75        :        :                   :         : 2         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 76        :        :                   :         : 2         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 77        :        :                   :         : 2         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 73        :        :                   :         : 2         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 74        :        :                   :         : 2         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 75        :        :                   :         : 2         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 76        :        :                   :         : 2         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 77        :        :                   :         : 2         :                
 Default_DeBlur               : 78        : input  : 3.3-V LVTTL       :         : 2         : Y              
 GNDIO                        : 79        : gnd    :                   :         :           :                
 VCCIO2                       : 80        : power  :                   : 2.5V    : 2         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 81        :        :                   :         : 2         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 82        :        :                   :         : 2         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 83        :        :                   :         : 2         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 84        :        :                   :         : 2         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 85        :        :                   :         : 2         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 86        :        :                   :         : 2         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 87        :        :                   :         : 2         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 88        :        :                   :         : 2         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 89        :        :                   :         : 2         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 90        :        :                   :         : 2         :                
-RESERVED_INPUT_WITH_BUS_HOLD : 91        :        :                   :         : 2         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 81        :        :                   :         : 2         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 82        :        :                   :         : 2         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 83        :        :                   :         : 2         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 84        :        :                   :         : 2         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 85        :        :                   :         : 2         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 86        :        :                   :         : 2         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 87        :        :                   :         : 2         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 88        :        :                   :         : 2         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 89        :        :                   :         : 2         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 90        :        :                   :         : 2         :                
+RESERVED_INPUT_WITH_WEAK_PULLUP : 91        :        :                   :         : 2         :                
 R_o[6]                       : 92        : output : 2.5 V             :         : 2         : Y              
 GNDIO                        : 93        : gnd    :                   :         :           :                
 VCCIO2                       : 94        : power  :                   : 2.5V    : 2         :                

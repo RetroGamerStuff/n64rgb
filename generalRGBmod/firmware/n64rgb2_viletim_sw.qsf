@@ -127,13 +127,19 @@ set_instance_assignment -name IO_STANDARD "2.5 V" -to B_o
 ## Files
 ## =====
 set_global_assignment -name TOP_LEVEL_ENTITY n64rgb2_viletim_sw_top
+set_global_assignment -name VERILOG_FILE rtl/n64rgb2_viletim_sw_top.v
+set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64rgb_params.vh
+set_global_assignment -name VERILOG_FILE rtl/n64_vinfo_ext.v
+set_global_assignment -name VERILOG_FILE rtl/n64_deblur.v
+set_global_assignment -name VERILOG_FILE rtl/n64_vdemux.v
+set_global_assignment -name SDC_FILE sdc/n64rgb2_viletim_sw.sdc
 set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files/viletim_v2
 
 
 ## Fitter Settings
 ## ===============
 set_global_assignment -name SMART_RECOMPILE ON
-set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED WITH BUS-HOLD"
+set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED WITH WEAK PULL-UP"
 
 
 ## Additions by Quartus Prime
@@ -143,9 +149,3 @@ set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "NO HEAT SINK WITH STI
 set_global_assignment -name ENABLE_OCT_DONE OFF
 set_global_assignment -name STRATIXV_CONFIGURATION_SCHEME "PASSIVE SERIAL"
 set_global_assignment -name USE_CONFIGURATION_DEVICE ON
-set_global_assignment -name SDC_FILE sdc/n64rgb2_viletim_sw.sdc
-set_global_assignment -name VERILOG_FILE rtl/n64rgb2_viletim_sw_top.v
-set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64rgb_params.vh
-set_global_assignment -name VERILOG_FILE rtl/n64_vinfo_ext.v
-set_global_assignment -name VERILOG_FILE rtl/n64_deblur.v
-set_global_assignment -name VERILOG_FILE rtl/n64_vdemux.v
