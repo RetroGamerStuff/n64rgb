@@ -59,10 +59,9 @@ int main()
   menu_t *menu = &home_menu;
 
   configuration_t sysconfig = {
-      .cfg_word_def[MISC_MENU]    = &cfg_data_misc,
-      .cfg_word_def[VIDEO]        = &cfg_data_video,
-      .cfg_word_def[IMAGE_240P]   = &cfg_data_image240p,
-      .cfg_word_def[IMAGE_480I]   = &cfg_data_image480i,
+      .cfg_word_def[MISC]  = &cfg_data_misc,
+      .cfg_word_def[VIDEO] = &cfg_data_video,
+      .cfg_word_def[IMAGE] = &cfg_data_image,
   };
 
   cfg_clear_words(&sysconfig);
@@ -94,7 +93,7 @@ int main()
 
   if (use_fallback) {
     cfg_clear_words(&sysconfig);  // just in case anything went wrong while loading from flash
-    cfg_load_n64defaults(&sysconfig,0);
+    cfg_load_defaults(&sysconfig,0);
     print_overlay(menu);
     cfg_set_flag(&show_logo);
     print_selection_arrow(menu);
@@ -112,6 +111,9 @@ int main()
   vpll_lock_first_boot = 1;
   vpll_state_frame_delay = 0;
 
+  ppu_state = get_ppu_state();
+  ppu_state_pre = ~ppu_state;
+
 
   /* Event loop never exits. */
   while (1) {
@@ -122,7 +124,6 @@ int main()
       command = CMD_NON;
     }
 
-    ppu_state = get_ppu_state();
 
     if(cfg_get_value(&show_osd,0)) {
 
@@ -191,12 +192,12 @@ int main()
         switch (command) {
           case CMD_DEBLUR_QUICK_ON:
             if (!(ppu_state & PPU_STATE_480I_GETMASK)) {
-              cfg_set_value(&deblur,DEBLUR_FORCE_ON);
+              cfg_set_value(&deblur_mode,DEBLUR_FORCE_ON);
             };
             break;
           case CMD_DEBLUR_QUICK_OFF:
             if (!(ppu_state & PPU_STATE_480I_GETMASK)) {
-              cfg_set_value(&deblur,DEBLUR_FORCE_OFF);
+              cfg_set_value(&deblur_mode,DEBLUR_FORCE_OFF);
             };
             break;
           default:
@@ -246,6 +247,7 @@ int main()
     while(!get_nvsync()){};  /* wait for nVSYNC goes high */
     while( get_nvsync()){};  /* wait for nVSYNC goes low  */
     ctrl_update = new_ctrl_available();
+    ppu_state = get_ppu_state();
   }
 
   return 0;

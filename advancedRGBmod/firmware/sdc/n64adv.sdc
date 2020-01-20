@@ -181,7 +181,7 @@ set_false_path -from [get_ports {nRST CTRL_i UseVGA_HVSync nFilterBypass nEN_RGs
 # configuration registers as false path
 set_false_path -from [get_registers {n64adv_ppu_u|cfg_* n64adv_ppu_u|Filter*}]
 set_false_path -from [get_registers {n64adv_ppu_u|get_vinfo_u|*}] -to [get_registers {n64adv_ppu_u|linemult_u|*}]
-set_false_path -to [get_registers {n64adv_controller_u|use_igr n64adv_controller_u|OSDInfo* n64adv_controller_u|OutConfigSet*}]
+set_false_path -to [get_registers {n64adv_controller_u|use_igr n64adv_controller_u|OSDInfo* n64adv_controller_u|PPUConfigSet*}]
 set_false_path -from [get_registers {n64adv_ppu_u|linemult_u|SL_rval*}]
 
 # tell the timer to not analyse these paths of the linemult unit in direct mode

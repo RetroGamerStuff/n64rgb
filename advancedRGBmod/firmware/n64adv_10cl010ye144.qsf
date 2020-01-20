@@ -170,7 +170,7 @@ set_global_assignment -name TOP_LEVEL_ENTITY n64adv_top
 set_global_assignment -name VERILOG_FILE rtl/n64adv_top.v
 set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64adv_vparams.vh
 set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64adv_cparams.vh
-set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64adv_sysconfig.vh
+set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64adv_ppuconfig.vh
 set_global_assignment -name VERILOG_FILE rtl/n64adv_clk_n_rst_hk.v
 set_global_assignment -name QIP_FILE ip/n64adv1/Cyclone10LP/sys_pll.qip
 set_global_assignment -name QIP_FILE ip/n64adv1/Cyclone10LP/video_pll.qip
@@ -183,7 +183,7 @@ set_global_assignment -name QSYS_FILE system_n64adv1.qsys
 set_global_assignment -name QIP_FILE system_n64adv1/synthesis/system_n64adv1.qip
 set_global_assignment -name VERILOG_FILE rtl/n64adv_ppu_top.v
 set_global_assignment -name VERILOG_FILE rtl/ppu/n64_vinfo_ext.v
-set_global_assignment -name VERILOG_FILE rtl/ppu/n64_deblur.v
+set_global_assignment -name VERILOG_FILE rtl/ppu/n64a_deblur.v
 set_global_assignment -name VERILOG_FILE rtl/ppu/n64a_vdemux.v
 set_global_assignment -name VERILOG_FILE rtl/ppu/osd_injection.v
 set_global_assignment -name VERILOG_FILE rtl/ppu/gamma_module.v

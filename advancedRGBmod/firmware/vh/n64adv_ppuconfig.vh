@@ -2,7 +2,7 @@
 //
 // This file is part of the N64 RGB/YPbPr DAC project.
 //
-// Copyright (C) 2015-2019 by Peter Bartmann <borti4938@gmail.com>
+// Copyright (C) 2015-2020 by Peter Bartmann <borti4938@gmail.com>
 //
 // N64 RGB/YPbPr DAC is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 // Company: Circuit-Board.de
 // Engineer: borti4938
 //
-// VH-file Name:   n64adv_sysconfig
+// VH-file Name:   n64adv_ppuconfig
 // Project Name:   N64 Advanced Mod
 // Target Devices: several devices
 // Tool versions:  Altera Quartus Prime
@@ -31,32 +31,39 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-`ifndef _n64adv_sysconfig_vh_
-`define _n64adv_sysconfig_vh_
+`ifndef _n64adv_ppuconfig_vh_
+`define _n64adv_ppuconfig_vh_
 
   // configuration as defined in n64adv_controller.v (must match software)
   //  wire [31:0] SysConfigSet0;
-  //    general structure [31:16] misc, [15:0] video
-  //    [31:24] {(5bits reserve),show_osd_logo,show_osd,mute_osd}
-  //    [23:16] {(5bits reserve),use_igr,igr for 15bit mode and deblur (not used in logic)}
-  //    [15: 8] {show_testpattern,(2bits reserve)FilterSet (3bits),YPbPr,RGsB}
-  //    [ 7: 0] {gamma (4bits),(1bit reserve),VI-DeBlur (2bit), 15bit mode}
+  //    [31:24] {(8bits reserve)}
+  //    [23:16] {(8bits reserve)}
+  //    [15: 8] {(2bits reserve),use_vpll,test_vpll,show_testpattern,show_osd_logo,show_osd,mute_osd}
+  //    [ 7: 0] {(5bits reserve),use_igr,igr for 15bit mode and deblur (not used in logic)}
   //  wire [31:0] SysConfigSet1;
+  //    [31:24] {(3bits reserve),FilterSet (3bits),YPbPr,RGsB}
+  //    [23:16] {(3bits reserve), gamma (4bits),15bit mode}
+  //    [15: 8] {DeBlur High: (1bit reserve) P2P-Sens, FrameCnt (3bit), Dead-Zone (3bit)}
+  //    [ 7: 0] {DeBlur Low:  (2bit reserve) Stability/TH (2bit), Reset (2bit), VI-DeBlur (2bit)}
+  //  wire [31:0] SysConfigSet2;
   //    general structure [31:16] 240p settings, [15:0] 480i settings
   //    [31:16] 240p: {(1bit reserve),linemult (2bits),Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_Method,Sl_ID,Sl_En}
   //    [15: 0] 480i: {(1bit reserve),field_fix,bob_deint.,Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_link,Sl_ID,Sl_En}
   // later
-  //  OutConfigSet <= {SysConfigSet0[15:0],SysConfigSet1};
+  //  PPUConfigSet <= {SysConfigSet2[11],SysConfigSet1[30:0],SysConfigSet0};
 
-  `define SysConfigSet0_Offset  32
-  `define show_testpattern_bit  15 + `SysConfigSet0_Offset
-  `define FilterSet_slice       12 + `SysConfigSet0_Offset : 10 + `SysConfigSet0_Offset
-  `define YPbPr_bit              9 + `SysConfigSet0_Offset
-  `define RGsB_bit               8 + `SysConfigSet0_Offset
-  `define gamma_slice            7 + `SysConfigSet0_Offset :  4 + `SysConfigSet0_Offset
-  `define ndeblurman_bit         2 + `SysConfigSet0_Offset
-  `define nforcedeblur_bit       1 + `SysConfigSet0_Offset
-  `define n15bit_mode_bit        0 + `SysConfigSet0_Offset
+  `define SysConfigSet2_Offset  64
+  `define show_testpattern_bit  11 + `SysConfigSet2_Offset - 12
+
+  `define SysConfigSet1_Offset  32
+  `define FilterSet_slice       28 + `SysConfigSet1_Offset : 26 + `SysConfigSet1_Offset
+  `define YPbPr_bit             25 + `SysConfigSet1_Offset
+  `define RGsB_bit              24 + `SysConfigSet1_Offset
+  `define gamma_slice           20 + `SysConfigSet1_Offset : 17 + `SysConfigSet1_Offset
+  `define n15bit_mode_bit       16 + `SysConfigSet1_Offset
+  `define deblurparams_slice    15 + `SysConfigSet1_Offset :  0 + `SysConfigSet1_Offset
+    `define ndeblurman_bit       1 + `SysConfigSet1_Offset
+    `define nforcedeblur_bit     0 + `SysConfigSet1_Offset
 
   `define v240p_linemult_slice  30:29
     `define v240p_linex3_bit      30

@@ -36,13 +36,9 @@
 #ifndef MENU_H_
 #define MENU_H_
 
+#define OPT_WINDOW_WIDTH  15
 #define OPT_WINDOWCOLOR_BG    BACKGROUNDCOLOR_WHITE
 #define OPT_WINDOWCOLOR_FONT  FONTCOLOR_BLACK
-
-#define SUBMENU_ARROW_L   ARROW_RIGHT
-#define OPT_ARROW_L       TRIANGLE_LEFT
-#define OPT_ARROW_R       TRIANGLE_RIGHT
-#define OPT_WINDOW_WIDTH  13
 
 #define BTN_OVERLAY_H_OFFSET  (VD_WIDTH - 13)
 #define BTN_OVERLAY_V_OFFSET  (VD_HEIGHT - 4)
@@ -78,10 +74,13 @@ typedef enum {
 } leavetype_t;
 
 typedef struct {
-  alt_u8  arrowshape_left;
-  alt_u8  arrowshape_right;
-  alt_u8  larrow_hpos;
-  alt_u8  rarrow_hpos;
+  alt_u8 left;
+  alt_u8 right;
+} arrowshape_t;
+
+typedef struct {
+  const arrowshape_t *shape;
+  alt_u8       hpos;
 } arrow_t;
 
 typedef int (*save_call)(configuration_t*,alt_u8);
@@ -111,7 +110,6 @@ typedef struct menu {
   alt_u8              current_selection;
   const alt_u8        number_selections;
   leaves_t            leaves[];
-
 } menu_t;
 
 extern menu_t home_menu;

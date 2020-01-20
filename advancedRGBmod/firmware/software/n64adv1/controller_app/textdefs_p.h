@@ -55,29 +55,40 @@
 #define VERSION_V_OFFSET (OVERLAY_V_OFFSET +  4)
 
 
-#define CFG_OVERLAY_H_OFFSET  OVERLAY_H_OFFSET
-#define CFG_OVERLAY_V_OFFSET  OVERLAY_V_OFFSET_WH
-#define CFG_VALS_H_OFFSET     (23 + CFG_OVERLAY_H_OFFSET)
-#define CFG_VALS_V_OFFSET     CFG_OVERLAY_V_OFFSET
-#define CFG_240P_SET_V_OFFSET ( 1 + CFG_VALS_V_OFFSET)
-#define CFG_480I_SET_V_OFFSET ( 2 + CFG_VALS_V_OFFSET)
-#define CFG_FORMAT_V_OFFSET   ( 3 + CFG_VALS_V_OFFSET)
-#define CFG_DEBLUR_V_OFFSET   ( 4 + CFG_VALS_V_OFFSET)
-#define CFG_15BIT_V_OFFSET    ( 5 + CFG_VALS_V_OFFSET)
-#define CFG_GAMMA_V_OFFSET    ( 6 + CFG_VALS_V_OFFSET)
+#define CFG_OVERLAY_H_OFFSET    OVERLAY_H_OFFSET
+#define CFG_OVERLAY_V_OFFSET    OVERLAY_V_OFFSET_WH
+#define CFG_VALS_H_OFFSET       (23 + CFG_OVERLAY_H_OFFSET)
+#define CFG_VALS_V_OFFSET       CFG_OVERLAY_V_OFFSET
+#define CFG_240P_SET_V_OFFSET   ( 1 + CFG_VALS_V_OFFSET)
+#define CFG_480I_SET_V_OFFSET   ( 2 + CFG_VALS_V_OFFSET)
+#define CFG_FORMAT_V_OFFSET     ( 3 + CFG_VALS_V_OFFSET)
+#define CFG_DEBLURMODE_V_OFFSET ( 4 + CFG_VALS_V_OFFSET)
+#define CFG_DEBLURADV_V_OFFSET  ( 5 + CFG_VALS_V_OFFSET)
+#define CFG_15BIT_V_OFFSET      ( 6 + CFG_VALS_V_OFFSET)
+#define CFG_GAMMA_V_OFFSET      ( 7 + CFG_VALS_V_OFFSET)
 
 #define CFG_VSUB_OVERLAY_H_OFFSET   OVERLAY_H_OFFSET
 #define CFG_VSUB_OVERLAY_V_OFFSET   OVERLAY_V_OFFSET_WH
 #define CFG_VSUB_VALS_H_OFFSET      (28 + CFG_VSUB_OVERLAY_H_OFFSET)
 #define CFG_VSUB_VALS_V_OFFSET      CFG_VSUB_OVERLAY_V_OFFSET
-#define CFG_VSUB_LINEX_V_OFFSET     ( 0 + CFG_VSUB_OVERLAY_H_OFFSET)
-#define CFG_VSUB_VPLL_V_OFFSET      ( 1 + CFG_VSUB_OVERLAY_H_OFFSET)
-#define CFG_VSUB_FIELDFIX_V_OFFSET  ( 1 + CFG_VSUB_OVERLAY_H_OFFSET)
-#define CFG_VSUB_SL_EN_V_OFFSET     ( 2 + CFG_VSUB_OVERLAY_H_OFFSET)
-#define CFG_VSUB_SL_METHOD_V_OFFSET ( 3 + CFG_VSUB_OVERLAY_H_OFFSET)
-#define CFG_VSUB_SL_ID_V_OFFSET     ( 4 + CFG_VSUB_OVERLAY_H_OFFSET)
-#define CFG_VSUB_SL_STR_V_OFFSET    ( 5 + CFG_VSUB_OVERLAY_H_OFFSET)
-#define CFG_VSUB_SLHYB_STR_V_OFFSET ( 6 + CFG_VSUB_OVERLAY_H_OFFSET)
+#define CFG_VSUB_LINEX_V_OFFSET     ( 0 + CFG_VSUB_OVERLAY_V_OFFSET)
+#define CFG_VSUB_VPLL_V_OFFSET      ( 1 + CFG_VSUB_OVERLAY_V_OFFSET)
+#define CFG_VSUB_FIELDFIX_V_OFFSET  ( 1 + CFG_VSUB_OVERLAY_V_OFFSET)
+#define CFG_VSUB_SL_EN_V_OFFSET     ( 2 + CFG_VSUB_OVERLAY_V_OFFSET)
+#define CFG_VSUB_SL_METHOD_V_OFFSET ( 3 + CFG_VSUB_OVERLAY_V_OFFSET)
+#define CFG_VSUB_SL_ID_V_OFFSET     ( 4 + CFG_VSUB_OVERLAY_V_OFFSET)
+#define CFG_VSUB_SL_STR_V_OFFSET    ( 5 + CFG_VSUB_OVERLAY_V_OFFSET)
+#define CFG_VSUB_SLHYB_STR_V_OFFSET ( 6 + CFG_VSUB_OVERLAY_V_OFFSET)
+
+#define CFG_DBSUB_OVERLAY_H_OFFSET  OVERLAY_H_OFFSET
+#define CFG_DBSUB_OVERLAY_V_OFFSET  OVERLAY_V_OFFSET_WH
+#define CFG_DBSUB_VALS_H_OFFSET     (29 + CFG_VSUB_OVERLAY_H_OFFSET)
+#define CFG_DBSUB_VALS_V_OFFSET     CFG_DBSUB_OVERLAY_V_OFFSET
+#define CFG_DBSUB_P2P_V_OFFSET      ( 1 + CFG_DBSUB_OVERLAY_V_OFFSET)
+#define CFG_DBSUB_DBCNT_V_OFFSET    ( 2 + CFG_DBSUB_OVERLAY_V_OFFSET)
+#define CFG_DBSUB_DBCNTDZ_V_OFFSET  ( 3 + CFG_DBSUB_OVERLAY_V_OFFSET)
+#define CFG_DBSUB_DBSTAB_V_OFFSET   ( 5 + CFG_DBSUB_OVERLAY_V_OFFSET)
+#define CFG_DBSUB_DBRST_V_OFFSET    ( 6 + CFG_DBSUB_OVERLAY_V_OFFSET)
 
 #define CFG_VPLLSUB_OVERLAY_H_OFFSET  TEXTOVERLAY_H_OFFSET
 #define CFG_VPLLSUB_OVERLAY_V_OFFSET  OVERLAY_V_OFFSET_WH
@@ -164,6 +175,7 @@ static const char *cfg_overlay =
     "  - 480i settings:\n"
     "* Output Format:\n"
     "* 240p-DeBlur:\n"
+    "  - Adv. settings:\n"
     "* 15bit Mode:\n"
     "* Gamma Value:";
 
@@ -188,6 +200,18 @@ static const char *cfg_480i_opt_overlay =
     "  - Scanline ID:\n"
     "  - Scanline Strength:\n"
     "  - Hybrid Depth:";
+
+
+static const char *cfg_deblur_opt_header =
+    "Adv.DeBlur Config.";
+static const char *cfg_deblur_opt_overlay =
+    "* Picture Sensitivity:\n"
+    "  - Pixel-to-Pixel:\n"
+    "  - Pixel cnt. th. high:\n"
+    "  - Pixel cnt. th. low:\n"
+    "* Content Stability:\n"
+    "  - Frame cnt. th. bit:\n"
+    "  - Reset estimate:";
 
 
 static const char *cfg_vpll_opt_header =
@@ -252,7 +276,7 @@ static const char *about_overlay =
 static const char *license_overlay =
     " The N64Advanced is part of the\n"
     " N64 RGB/YPbPr DAC project\n"
-    "        Copyright   2015 - 2019 Peter Bartmann\n"
+    "        Copyright   2015 - 2020 Peter Bartmann\n"
     " This project is published under GNU GPL v3.0 or\n"
     " later. You should have received a copy of the GNU\n"
     " General Public License along with this project.\n"
@@ -273,32 +297,26 @@ static const char *home_overlay =
     "Acknowledgment...\n"
     "License...";
 
-const char *EnterSubMenu   = "[Enter submenu]";
-const char *StartTest      = "[Start VPLL Test]";
-const char *LineX3VPLLHint = "*LineX3: needs VPLL enabled";
-const char *LineX3Hint     = "*LineX3: only available in NTSC video mode";
+const char *EnterSubMenu    = "[Enter submenu]";
+const char *StartTest       = "[Start VPLL Test]";
+const char *LineX3VPLLHint  = "*LineX3: needs VPLL enabled";
+const char *LineX3Hint      = "*LineX3: only available in NTSC video mode";
 
-const char *OffOn[]        = {"Off","On"};
-const char *LineX_240p[]   = {"LineX Off","LineX2","LineX3*"};
-const char *VideoPLL[]     = {"Off","Locked"};
-const char *EvenOdd[]      = {"Even","Odd "};
-const char *AdvSL[]        = {"Simple","Advanced"};
-const char *LinkSL[]       = {"480i ind.","Link 240p"};
-const char *VideoMode[]    = {"240p60","480i60","288p50","576i50","480p60","576p50","720p60 (pseudo)"};
-const char *VideoColor[]   = {"21bit","15bit"};
-const char *VideoFormat[]  = {"RGBS","RGBS/RGsB","YPbPr"};
-const char *DeBlur[]       = {"(estimated)","(forced)","(480i/576i)"};
-const char *DeBlurCfg[]    = {"Auto","Off","Always"};
-const char *FilterAddOn[]  = {"(Auto)"," 9.5MHz","18.0MHz","36.0MHz","(bypassed)","(not installed)"};
-const char *SLDesc[]       = {"  0.00%","  6.25%"," 12.50%"," 18.75%",
-                              " 25.00%"," 31.25%"," 37.50%"," 43.75%",
-                              " 50.00%"," 56.25%"," 62.50%"," 68.75%",
-                              " 75.00%"," 81.25%"," 87.50%"," 93.75%",
-                              "100.00%","106.25%","112.50%","118.75%",
-                              "125.00%","131.25%","137.50%","143.75%",
-                              "150.00%"};
+const char *OffOn[]         = {"Off","On"};
+const char *LineX_240p[]    = {"LineX Off","LineX2","LineX3*"};
+const char *VideoPLL[]      = {"Off","Locked"};
+const char *EvenOdd[]       = {"Even","Odd "};
+const char *AdvSL[]         = {"Simple","Advanced"};
+const char *LinkSL[]        = {"480i ind.","Link 240p"};
+const char *VideoMode[]     = {"240p60","480i60","288p50","576i50","480p60","576p50","720p60 (pseudo)"};
+const char *VideoColor[]    = {"21bit","15bit"};
+const char *VideoFormat[]   = {"RGBS","RGBS/RGsB","YPbPr"};
+const char *DeBlur[]        = {"(estimated)","(forced)","(480i/576i)"};
+const char *DeBlurMode[]    = {"Auto","Off","Always"};
+const char *DeBlurPixSens[] = {"Normal","High"};
+const char *DeBlurRst[]     = {"Never","On Vmode change","On reset","On both"};
+const char *FilterAddOn[]   = {"(Auto)"," 9.5MHz","18.0MHz","36.0MHz","(bypassed)","(not installed)"};
 
-const char *GammaValue[]   = {"0.75","0.80","0.85","0.90","0.95","1.00","1.05","1.10","1.15"};
-const char *QuickChange[]  = {"Off","DeBlur","15bit mode","All"};
+const char *QuickChange[]   = {"Off","DeBlur","15bit mode","All"};
 
 #endif /* MENU_TEXT_TEXTDEFS_P_H_ */

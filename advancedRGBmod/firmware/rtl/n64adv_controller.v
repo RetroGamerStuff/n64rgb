@@ -42,7 +42,7 @@ module n64adv_controller (
   PPUState,
   JumperCfgSet,
   MANAGE_VPLL,
-  OutConfigSet,
+  PPUConfigSet,
   OSDWrVector,
   OSDInfo,
 
@@ -65,7 +65,7 @@ input CTRL;
 input      [12:0] PPUState;
 input      [ 7:0] JumperCfgSet;
 output reg [ 1:0] MANAGE_VPLL;
-output reg [47:0] OutConfigSet;
+output reg [63:0] PPUConfigSet;
 output     [24:0] OSDWrVector;
 output reg [ 1:0] OSDInfo;
 
@@ -129,16 +129,20 @@ wire [ 9:0] vd_wraddr;
 wire [ 1:0] vd_wrctrl;
 wire [12:0] vd_wrdata;
 
-wire [31:0] SysConfigSet0;
-// general structure [31:16] misc, [15:0] video
-// [31:24] {(3bits reserve),USE_VPLL, TEST_VPLL, show_osd_logo,show_osd,mute_osd}
-// [23:16] {(5bits reserve),use_igr,igr for 15bit mode and deblur (not used in logic)}
-// [15: 8] {show_testpattern,(2bits reserve),FilterSet (3bits),YPbPr,RGsB}
-// [ 7: 0] {gamma (4bits),(1bit reserve),VI-DeBlur (2bit), 15bit mode}
+wire [31:0] SysConfigSet2;
+// [31:16] {(16bits reserved)}
+// [15: 8] {(2bits reserve),USE_VPLL, TEST_VPLL, show_testpattern, show_osd_logo, show_osd, mute_osd}
+// [ 7: 0] {(5bits reserve),use_igr,igr for 15bit mode and deblur (not used in logic)}
 wire [31:0] SysConfigSet1;
+// [31:24] {(3bits reserve),FilterSet (3bits),YPbPr,RGsB}
+// [23:16] {(3bits reserve), gamma (4bits),15bit mode}
+// [15: 8] {DeBlur High: (1bit reserve) P2P-Sens, FrameCnt (3bit), Dead-Zone (3bit)}
+// [ 7: 0] {DeBlur Low:  (2bit reserve) Stability/TH (2bit), Reset (2bit), VI-DeBlur (2bit)}
+wire [31:0] SysConfigSet0;
 // general structure [31:16] 240p settings, [15:0] 480i settings
 // [31:16] 240p: {(1bit reserve),linemult (2bits),Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_Method,Sl_ID,Sl_En}
 // [15: 0] 480i: {(1bit reserve),field_fix,bob_deint.,Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_link,Sl_ID,Sl_En}
+
 
 
 system_n64adv1 system_u(
@@ -152,8 +156,9 @@ system_n64adv1 system_u(
   .jumper_cfg_set_in_export(JumperCfgSet),
   .ppu_state_in_export(PPUState),
   .fallback_in_export({FallbackMode,FallbackMode_valid}),
-  .cfg_set0_out_export(SysConfigSet0),
+  .cfg_set2_out_export(SysConfigSet2),
   .cfg_set1_out_export(SysConfigSet1),
+  .cfg_set0_out_export(SysConfigSet0),
   .hdl_fw_in_export(hdl_fw)
 );
 
@@ -163,11 +168,12 @@ reg use_igr = 1'b0;
 
 always @(posedge VCLK)
   if ((!nVDSYNC & negedge_nVSYNC) | !nVRST) begin
-    MANAGE_VPLL  <= SysConfigSet0[28:27];
-    use_igr      <= SysConfigSet0[18];
-    OutConfigSet <= {SysConfigSet0[15:0],SysConfigSet1};
-    OSDInfo[1]   <= &{SysConfigSet0[26:25],!SysConfigSet0[24]};  // show logo only in OSD
-    OSDInfo[0]   <= SysConfigSet0[25] & !SysConfigSet0[24];
+    MANAGE_VPLL      <= SysConfigSet2[13:12];
+    OSDInfo[1]       <= &{SysConfigSet2[10:9],!SysConfigSet2[8]};  // show logo only in OSD
+    OSDInfo[0]       <= SysConfigSet2[9] & !SysConfigSet2[8];
+    use_igr          <= SysConfigSet2[2];
+    PPUConfigSet     <= {SysConfigSet1,SysConfigSet0};
+    PPUConfigSet[63] <= SysConfigSet2[11];
   end
 
 

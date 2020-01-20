@@ -67,7 +67,7 @@ module n64adv_ppu_top (
 
 `include "vh/n64adv_cparams.vh"
 `include "vh/n64adv_vparams.vh"
-`include "vh/n64adv_sysconfig.vh"
+`include "vh/n64adv_ppuconfig.vh"
 
 input VCLK;
 input nVRST;
@@ -75,7 +75,7 @@ input nVDSYNC;
 input [color_width_i-1:0] VD_i;
 
 output [12:0] PPUState;
-input  [47:0] ConfigSet;
+input  [63:0] ConfigSet;
 
 input        OSDCLK;
 input [24:0] OSDWrVector;
@@ -105,26 +105,26 @@ wire pal_mode = vinfo_pass[1];
 wire n64_480i = vinfo_pass[0];
 
 // general structure of ConfigSet
-// [47:40] {show_testpattern,(2bits reserve),FilterSet (3bits),YPbPr,RGsB}
-// [39:32] {gamma (4bits),(1bit reserve),VI-DeBlur (2bit), 15bit mode}
-// [31:16] 240p: {(1bit reserve),linemult (2bits),Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_Method,Sl_ID,Sl_En}
-// [15: 0] 480i: {(1bit reserve),field_fix,bob_deint.,Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_link,Sl_ID,Sl_En}
+// [63:48] Others: {show_testpattern, (2bits reserve),FilterSet (3bits),YPbPr,RGsB,(3bits reserve), gamma (4bits),15bit mode}
+// [47:32] DeBlur: {(1bit reserve) P2P-Sens, FrameCnt (3bit), Dead-Zone (3bit), (2bit reserve) Stability/TH (2bit), Reset (2bit), VI-DeBlur (2bit)}
+// [31:16] 240p:   {(1bit reserve),linemult (2bits),Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_Method,Sl_ID,Sl_En}
+// [15: 0] 480i:   {(1bit reserve),field_fix,bob_deint.,Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_link,Sl_ID,Sl_En}
 
-reg       cfg_testpat      = 1'b0;
-reg [2:0] cfg_filter       = 3'b000;
-reg       cfg_nEN_YPbPr    = 1'b0;
-reg       cfg_nEN_RGsB     = 1'b0;
-reg [3:0] cfg_gamma        = 4'b0000;
-reg       cfg_ndeblurman   = 1'b0;
-reg       cfg_nforcedeblur = 1'b0;
-reg       cfg_n15bit_mode  = 1'b0;
-reg       cfg_ifix         = 1'b0;
-reg [1:0] cfg_linemult     = 2'b00;
-reg [4:0] cfg_SLHyb_str    = 5'b00000;
-reg [3:0] cfg_SL_str       = 4'b0000;
-reg       cfg_SL_method    = 1'b0;
-reg       cfg_SL_id        = 1'b0;
-reg       cfg_SL_en        = 1'b0;
+reg        cfg_testpat      = 1'b0;
+reg [ 2:0] cfg_filter       = 3'b000;
+reg        cfg_nEN_YPbPr    = 1'b0;
+reg        cfg_nEN_RGsB     = 1'b0;
+reg [ 3:0] cfg_gamma        = 4'b0000;
+reg [15:0] cfg_deblurparams = 16'h0000; // ToDo: setup default
+reg        cfg_nforcedeblur = 1'b0;
+reg        cfg_n15bit_mode  = 1'b0;
+reg        cfg_ifix         = 1'b0;
+reg [ 1:0] cfg_linemult     = 2'b00;
+reg [ 4:0] cfg_SLHyb_str    = 5'b00000;
+reg [ 3:0] cfg_SL_str       = 4'b0000;
+reg        cfg_SL_method    = 1'b0;
+reg        cfg_SL_id        = 1'b0;
+reg        cfg_SL_en        = 1'b0;
 
 always @(posedge VCLK) begin
   cfg_testpat      <=  ConfigSet[`show_testpattern_bit];
@@ -132,8 +132,8 @@ always @(posedge VCLK) begin
   cfg_nEN_YPbPr    <= ~ConfigSet[`YPbPr_bit];
   cfg_nEN_RGsB     <= ~ConfigSet[`RGsB_bit];
   cfg_gamma        <=  ConfigSet[`gamma_slice];
-  cfg_ndeblurman   <= ~ConfigSet[`ndeblurman_bit];
   cfg_nforcedeblur <= ~|ConfigSet[`ndeblurman_bit:`nforcedeblur_bit];
+  cfg_deblurparams <=  ConfigSet[`deblurparams_slice];
   cfg_n15bit_mode  <= ~ConfigSet[`n15bit_mode_bit];
   if (!n64_480i) begin
     cfg_ifix         <= 1'b0;
@@ -184,15 +184,17 @@ n64_vinfo_ext get_vinfo_u(
 
 wire ndo_deblur;
 
-n64_deblur deblur_management_u(
+n64a_deblur deblur_management_u(
   .VCLK(VCLK),
   .nVDSYNC(nVDSYNC),
   .nRST(nVRST),
   .vdata_pre(vdata_r[0]),
   .VD_i(VD_i),
-  .deblurparams_i({vinfo_pass,cfg_nforcedeblur,cfg_ndeblurman}),
+  .vid_state_i(vinfo_pass),
+  .algorithmsettings_i(cfg_deblurparams),
   .ndo_deblur(ndo_deblur)
 );
+
 
 
 // Part 3: data demux
