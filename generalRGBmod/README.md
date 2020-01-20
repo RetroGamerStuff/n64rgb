@@ -16,7 +16,8 @@ If you are looking for a ready to install kit, just look on your own for a selle
   * MaxV 5M240ZT100C4 (a 5M240ZT100C5 does not met timing requirements [1])
   * MaxV 5M570ZT100C5 (older versions only support 5M570ZT100C4 due to timing [1])
 - Video DAC:
-  * V1: R2R ladder with video amplifier THS7374 or THS7373
+  * V1: R2R ladder with video amplifier THS7374 or THS7373  
+    **V1 is not recommended for new builds.** Please use the N64RGB20 board by viletim instead!
   * V2: Video DAC ADV7125
 - Detection of 240p/288p vs. 480i/576i together with detection of NTSC vs. PAL mode
 - Heuristic for de-blur function [2], De-Blur in 240p/288p (horizontal resolution decreased from 640 to 320 pixels)

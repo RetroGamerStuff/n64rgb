@@ -2,7 +2,7 @@
 //
 // This file is part of the N64 RGB/YPbPr DAC project.
 //
-// Copyright (C) 2016-2018 by Peter Bartmann <borti4938@gmail.com>
+// Copyright (C) 2016-2019 by Peter Bartmann <borti4938@gmail.com>
 //
 // N64 RGB/YPbPr DAC is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -23,48 +23,33 @@
 // Engineer: borti4938
 // (initial design file by Ikari_01)
 //
-// Module Name:    n64rgb_viletim_igr_top
+// Module Name:    n64rgb2_viletim_sw_top
 // Project Name:   N64 RGB DAC Mod
 // Target Devices: MaxII: EPM240T100C5
 // Tool versions:  Altera Quartus Prime
 // Description:
 //
-// Dependencies: rtl/n64_igr.v        (Rev. 2.5)
-//               rtl/n64_vinfo_ext.v  (Rev. 1.0)
+// Dependencies: rtl/n64_vinfo_ext.v  (Rev. 1.0)
 //               rtl/n64_deblur.v     (Rev. 1.1)
 //               rtl/n64_vdemux.v     (Rev. 1.0)
 //               vh/n64rgb_params.vh
 //
-// Revision: 2.5
+// Revision: 1.5
 // Features: BUFFERED version (no color shifting around edges)
-//           deblur (with heuristic) and 15bit mode (5bit for each color)
-//             - heuristic deblur:   on (default)                               | off (set pin 61 to GND / short pin 61 & 60)
-//             - deblur default:     on (default)                               | off (set pin 91 to GND / short pin 91 & 90)
-//               (deblur deafult only comes into account if heuristic is switched off)
-//             - 15bit mode default: on (set pin 36 to GND / short pin 36 & 37) | off (default)
-//           controller input detection for switching de-blur and 15bit mode
-//           resetting N64 using the controller
-//           defaults of de-blur and 15bit mode are set on power cycle
-//           if de-blur heuristic is overridden by user, it is reset on each power cycle and on each reset
+//           de-blur with heuristic estimation (auto)
+//           15bit color mode (5bit for each color) if wanted
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-
-module n64rgb_viletim_igr_top (
+module n64rgb2_viletim_sw_top (
   // N64 Video Input
   VCLK,
   nDSYNC,
   D_i,
 
-  // Controller and Reset
-  CTRL_A,
-  nRST_M_o1,
-  nRST_M_o99,
-
-  // Jumper
-  Default_nForceDeBlur,
-  Default_DeBlur,
-  Default_n15bit_mode,
+  nAutoDeBlur,
+  nForceDeBlur,  // feature to enable de-blur (0 = feature on, 1 = feature off)
+  n15bit_mode,      // 15bit color mode if input set to GND (weak pull-up assigned)
 
   // Video output
   nHSYNC,
@@ -75,7 +60,6 @@ module n64rgb_viletim_igr_top (
   R_o,
   G_o,
   B_o
-
 );
 
 `include "vh/n64rgb_params.vh"
@@ -84,13 +68,9 @@ input                   VCLK;
 input                   nDSYNC;
 input [color_width-1:0] D_i;
 
-input CTRL_A;
-inout nRST_M_o1;
-inout nRST_M_o99;
-
-input Default_nForceDeBlur;
-input Default_DeBlur;
-input Default_n15bit_mode;
+input nAutoDeBlur;
+input nForceDeBlur;
+input n15bit_mode;
 
 output nHSYNC;
 output nVSYNC;
@@ -104,33 +84,16 @@ output [color_width-1:0] B_o;
 
 // start of rtl
 
-// Part 1: connect IGR module
-// ==========================
+// Part 1: connect switches
+// ========================
 
-wire nForceDeBlur, nDeBlurMan, n15bit_mode;
-wire DRV_RST;
-
-reg  nRST_IGR;
+reg nForceDeBlur_L, nDeBlurMan_L, nrst_deblur_L;
 
 always @(posedge VCLK) begin
-  nRST_IGR <= nRST_M_o1 & nRST_M_o99;
+  nForceDeBlur_L <= !nAutoDeBlur & nForceDeBlur;
+  nDeBlurMan_L   <= nForceDeBlur;
+  nrst_deblur_L  <= !nAutoDeBlur;
 end
-
-n64_igr igr(
-  .VCLK(VCLK),
-  .nRST_IGR(nRST_IGR),
-  .DRV_RST(DRV_RST),
-  .CTRL(CTRL_A),
-  .Default_nForceDeBlur(Default_nForceDeBlur),
-  .Default_DeBlur(Default_DeBlur),
-  .Default_n15bit_mode(Default_n15bit_mode),
-  .nForceDeBlur(nForceDeBlur),
-  .nDeBlur(nDeBlurMan),
-  .n15bit_mode(n15bit_mode)
-);
-
-assign nRST_M_o1  = DRV_RST ? 1'b0 : 1'bz;
-assign nRST_M_o99 = DRV_RST ? 1'b0 : 1'bz;
 
 
 // Part 2 - 4: RGB Demux with De-Blur Add-On
@@ -167,16 +130,15 @@ n64_vinfo_ext get_vinfo(
 // Part 3: DeBlur Management (incl. heuristic)
 // ===========================================
 
-wire nrst_deblur = nRST_M_o1 & nRST_M_o99;
 wire ndo_deblur;
 
 n64_deblur deblur_management(
   .VCLK(VCLK),
   .nDSYNC(nDSYNC),
-  .nRST(nrst_deblur),
+  .nRST(nrst_deblur_L),
   .vdata_pre(vdata_r),
   .D_i(D_i),
-  .deblurparams_i({vinfo_pass,nForceDeBlur,nDeBlurMan}),
+  .deblurparams_i({vinfo_pass,nForceDeBlur_L,nDeBlurMan_L}),
   .ndo_deblur(ndo_deblur)
 );
 

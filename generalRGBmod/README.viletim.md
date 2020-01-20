@@ -50,7 +50,8 @@ The heuristic algorithm estimates whether a game uses the first or the second me
 The 15bit color mode reduces the color depth from 21bit (7bit for each color) downto 15bits (5bit for each color). Some very few games just use the five MSBs of the color information and the two LSBs for some kind of gamma dither. The 15bit color mode simply sets the two LSBs to '0'.
 
 By default this feature is off.
-- 'firmware without IGR': To activate it set pin 36 of the CPLD to GND (short pin 36 and 37). This feature is *off* by default.
+- 'firmware without IGR' (N64RGB10,11 and 12): To activate it set pin 36 of the CPLD to GND (short pin 36 and 37 ). This feature is *off* by default.
+- 'firmware without IGR' (N64RGB20): To activate it set pin 33 of the CPLD to GND (short pin 33 and 32 ). This feature is *off* by default.
 - 'firmware with IGR':
   * to deactivate 15bit mode press Z + Start + R + C-up.
   * to (re)activate 15bit mode press Z + Start + R + C-dw.
@@ -87,6 +88,7 @@ However, as the communication between N64 and the controller goes over a single 
 The firmware is suiteable for all version of the N64RGB modding kits designed by viletim.
 - On V1.0 and V1.1 boards, CPLD pin 100, pin 99 and pin 1 are not connected to anything. You have to connect loose wires here.
 - On V1.2 boards (and later versions?), CPLD pin 100 is connected to pad *A* and pin 99 to pad *M*.
+- V2.0 boards have DAC IOs of red, green and blue on a separate IO bank of the CPLD which operates at 2.5V
 
 
 Lastly, the information how to update can be grabbed incl. some more technical information here: [URL to viletims official website](http://etim.net.au/n64rgb/tech/). The use of the presented firmware is up on everybodies own risk. However, a fallback to the initial firmware is provided on viletims webpage.
@@ -102,3 +104,6 @@ After 19.04.2017:
 - Revision numbering has changed:
   * 1.x - no IGR implemented. Use mechanical (or external electrical) switches
   * 2.x - IGR functions implemented.
+
+After 27.11.2019:
+- new firmware for N64RGB20 boards by viletim. No functional changes.

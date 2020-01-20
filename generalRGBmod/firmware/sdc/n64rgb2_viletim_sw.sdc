@@ -21,7 +21,6 @@ create_clock -name {VCLK} -period $n64_vclk_per -waveform $n64_vclk_waveform [ge
 # Create Generated Clock
 #**************************************************************
 
-create_generated_clock -name CLK_4M -source [get_ports {VCLK}] -divide_by 12 [get_registers {n64_igr:igr|CLK_4M}]
 
 
 #**************************************************************
@@ -59,18 +58,13 @@ set_input_delay -clock {VCLK_N64_VIRT} -max $n64_data_delay_max [get_ports {D_i[
 # Set Clock Groups
 #**************************************************************
 
-set_clock_groups -asynchronous -group \
-                            {VCLK} \
-                            {CLK_4M}
-
 
 
 #**************************************************************
 # Set False Path
 #**************************************************************
 
-set_false_path -from [get_ports {CTRL_A nRST_M_o1 nRST_M_o99 Default_nForceDeBlur Default_DeBlur Default_n15bit_mode}]
-set_false_path -to [get_ports {nRST_M_o1 nRST_M_o99}]
+set_false_path -from [get_ports {nAutoDeBlur nForceDeBlur n15bit_mode}]
 set_false_path -to [get_ports {R_o* G_o* B_o* nHSYNC nVSYNC nCSYNC nCLAMP}]
 
 
