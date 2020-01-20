@@ -36,6 +36,7 @@
 #include "n64.h"
 #include "vd_driver.h"
 
+#define ANALOG_TH     50
 
 #define HOLD_CNT_LOW	5
 #define HOLD_CNT_MID0	8
@@ -105,6 +106,17 @@ cmd_t ctrl_data_to_cmd(alt_u32* ctrl_data, alt_u8 no_fast_skip)
       cmd_new = CMD_MENU_RIGHT;
       break;
   };
+
+  if (cmd_new == CMD_NON) {
+		alt_u16 xy_axis = ALT_CI_NIOS_CUSTOM_INSTR_BITSWAP_0(*ctrl_data);
+		alt_8 x_axis_val = xy_axis >> 8;
+		alt_8 y_axis_val = xy_axis;
+
+		if (x_axis_val  >  ANALOG_TH) cmd_new = CMD_MENU_RIGHT;
+		if (x_axis_val  < -ANALOG_TH) cmd_new = CMD_MENU_LEFT;
+		if (y_axis_val  >  ANALOG_TH) cmd_new = CMD_MENU_UP;
+		if (y_axis_val  < -ANALOG_TH) cmd_new = CMD_MENU_DOWN;
+  }
 
   if (cmd_pre_int != cmd_new) {
     cmd_pre_int = cmd_new;
