@@ -38,9 +38,6 @@ module linemult(
   VCLK_Tx,
   nVRST_Tx,
 
-  VCLK_o,
-  nVRST_o,
-
   vinfo_mult,
 
   vdata_i,
@@ -57,10 +54,8 @@ localparam pcnt_width = $clog2(`BUF_NUM_OF_PAGES);
 input VCLK_Rx;
 input nVRST_Rx;
 
-input [1:0] VCLK_Tx;
-input [1:0] nVRST_Tx;
-output VCLK_o;
-output nVRST_o;
+input VCLK_Tx;
+input nVRST_Tx;
 
 input [16:0] vinfo_mult; // [nLineMult (2bits),lx_ifix (1bit),SLhyb_str (5bits),SL_str (4bits),SL_method,SL_id,SL_en,PAL,interlaced]
 
@@ -211,50 +206,15 @@ always @(posedge VCLK_Rx or negedge nVRST_Rx)
   end
 
 
-wire VCLK_Tx_o;
-
-vclk_tx_3mux vclk_tx_3mux_u (
-  .data2(VCLK_Tx[1]),
-  .data1(VCLK_Tx[0]),
-  .data0(VCLK_Rx),
-  .sel(linemult_sel),
-  .result(VCLK_Tx_o)
-);
-
-reg [1:0] linemult_sel_buf [0:2];
-initial begin
-  for (int_idx = 0; int_idx < 3; int_idx = int_idx+1)
-    linemult_sel_buf[int_idx] = 2'b00;
-end
-reg [3:0] hold_nVRST_Tx_o = 4'h0;
-reg nVRST_Tx_o;
-
-always @(posedge VCLK_Tx_o) begin
-  if (~|hold_nVRST_Tx_o) begin
-    nVRST_Tx_o <= linemult_sel == 2'b10 ? nVRST_Tx[1] :
-                  linemult_sel == 2'b01 ? nVRST_Tx[0] :
-                                          nVRST_Rx;
-  end else begin
-    nVRST_Tx_o <= 1'b0;
-    hold_nVRST_Tx_o <= hold_nVRST_Tx_o - 1'b1;
-  end
-  if (linemult_sel_buf[2] != linemult_sel_buf[1])
-    hold_nVRST_Tx_o <= 4'hf;
-  linemult_sel_buf[2] <= linemult_sel_buf[1];
-  linemult_sel_buf[1] <= linemult_sel_buf[0];
-  linemult_sel_buf[0] <= linemult_sel;
-end
-
-
 wire [pcnt_width-1:0] wrpage_tx_resynced;
 wire wrhcnt_b6_tx_resynced, line_overflow_r_tx_resynced, negedge_nHSYNC_tx_resynced, valid_line_r_tx_resynced, start_rdproc_tx_resynced;
 register_sync #(
   .reg_width(pcnt_width+5),
   .reg_preset({{pcnt_width{1'b0}},5'b0000})
 ) sync4tx_u(
-  .clk(VCLK_Tx_o),
+  .clk(VCLK_Tx),
   .clk_en(1'b1),
-  .nrst(nVRST_Tx_o),
+  .nrst(nVRST_Tx),
   .reg_i({wrpage,wrhcnt[6],line_overflow_r,negedge_nHSYNC,valid_line_r,start_rdproc}),
   .reg_o({wrpage_tx_resynced,wrhcnt_b6_tx_resynced,line_overflow_r_tx_resynced,negedge_nHSYNC_tx_resynced,valid_line_r_tx_resynced,start_rdproc_tx_resynced})
 );
@@ -282,8 +242,8 @@ reg nHSYNC_mult = 1'b0;
 reg nVSYNC_mult = 1'b0;
 reg nCSYNC_mult = 1'b0;
 
-always @(posedge VCLK_Tx_o or negedge nVRST_Tx_o)
-  if (!nVRST_Tx_o) begin
+always @(posedge VCLK_Tx or negedge nVRST_Tx)
+  if (!nVRST_Tx) begin
     rden    <= 3'b0;
     rdrun   <= 2'b00;
     rdcnt   <= 2'b0;
@@ -411,7 +371,7 @@ ram2port #(
   .wrpage(wrpage),
   .wraddr(wraddr[hcnt_witdh-1:1]),
   .wrdata({R_i,G_i,B_i}),
-  .rdCLK(VCLK_Tx_o),
+  .rdCLK(VCLK_Tx),
   .rden(rden[0]),
   .rdpage(rdpage_pp3),
   .rdaddr(rdaddr[hcnt_witdh-1:1]),
@@ -444,8 +404,8 @@ wire [color_width_i-1:0] R_avg = {1'b0,R_mult_pre[color_width_i-1:1]} + {1'b0,R_
 wire [color_width_i-1:0] G_avg = {1'b0,G_mult_pre[color_width_i-1:1]} + {1'b0,G_buf[color_width_i-1:1]} + (G_mult_pre[0] ^ G_buf[0]);
 wire [color_width_i-1:0] B_avg = {1'b0,B_mult_pre[color_width_i-1:1]} + {1'b0,B_buf[color_width_i-1:1]} + (B_mult_pre[0] ^ B_buf[0]);
 
-always @(posedge VCLK_Tx_o or negedge nVRST_Tx_o)
-  if (!nVRST_Tx_o) begin
+always @(posedge VCLK_Tx or negedge nVRST_Tx)
+  if (!nVRST_Tx) begin
     for (int_idx = 0; int_idx < 3; int_idx = int_idx+1) begin
       drawSL[int_idx] <= 1'b0;
       S_mult[int_idx] <= 4'b0000;
@@ -466,7 +426,7 @@ always @(posedge VCLK_Tx_o or negedge nVRST_Tx_o)
     S_mult[0] <= {nVSYNC_mult,1'b0, nHSYNC_mult,nCSYNC_mult};
     drawSL[2] <= drawSL[1];
     drawSL[1] <= drawSL[0];
-    drawSL[0] <= SL_en && (linemult_sel_buf[2] == 2'b01 ? (rdcnt ^ (!SL_id)) :
+    drawSL[0] <= SL_en && (linemult_sel == 2'b01 ? (rdcnt ^ (!SL_id)) :
                            SL_id ? (rdcnt == 2'b10) : (rdcnt == 2'b00));
 
     if (rden[2]) begin
@@ -548,8 +508,8 @@ end
 
 integer pp_idx;
 
-always @(posedge VCLK_Tx_o or negedge nVRST_Tx_o)
-  if (!nVRST_Tx_o) begin
+always @(posedge VCLK_Tx or negedge nVRST_Tx)
+  if (!nVRST_Tx) begin
     for (int_idx = 0; int_idx < 5; int_idx = int_idx+1) begin
       dSL_pp[int_idx] <= 1'b0;
       S_pp[int_idx] <= 4'b0000;
@@ -636,9 +596,6 @@ always @(posedge VCLK_Tx_o or negedge nVRST_Tx_o)
 
 
 // post-assignment
-
-assign VCLK_o = VCLK_Tx_o;
-assign nVRST_o = nVRST_Tx_o;
 assign vdata_o = {S_o,R_o,G_o,B_o};
 
 endmodule 

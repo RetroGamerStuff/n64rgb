@@ -167,20 +167,20 @@ set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to nFilterBypass
 ## =====
 set_global_assignment -name TOP_LEVEL_ENTITY n64adv_top
 
-set_global_assignment -name VERILOG_FILE rtl/n64adv_top.v
-set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64adv_vparams.vh
-set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64adv_cparams.vh
-set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64adv_ppuconfig.vh
-set_global_assignment -name VERILOG_FILE rtl/n64adv_clk_n_rst_hk.v
+#ip
+set_global_assignment -name QSYS_FILE system_n64adv1.qsys
+set_global_assignment -name QIP_FILE system_n64adv1/synthesis/system_n64adv1.qip
 set_global_assignment -name QIP_FILE ip/n64adv1/Cyclone10LP/sys_pll.qip
 set_global_assignment -name QIP_FILE ip/n64adv1/Cyclone10LP/video_pll.qip
-set_global_assignment -name QIP_FILE ip/n64adv1/Cyclone10LP/vclk_tx_2mux.qip
-set_global_assignment -name QIP_FILE ip/n64adv1/Cyclone10LP/vclk_tx_3mux.qip
+set_global_assignment -name QSYS_FILE ip/n64adv1/Cyclone10LP/altclkctrl.qsys
+set_global_assignment -name QIP_FILE ip/n64adv1/Cyclone10LP/altclkctrl/synthesis/altclkctrl.qip
+
+#rtl
+set_global_assignment -name VERILOG_FILE rtl/n64adv_top.v
+set_global_assignment -name VERILOG_FILE rtl/n64adv_clk_n_rst_hk.v
 set_global_assignment -name VERILOG_FILE rtl/misc/reset_generator.v
 set_global_assignment -name VERILOG_FILE rtl/misc/register_sync.v
 set_global_assignment -name VERILOG_FILE rtl/n64adv_controller.v
-set_global_assignment -name QSYS_FILE system_n64adv1.qsys
-set_global_assignment -name QIP_FILE system_n64adv1/synthesis/system_n64adv1.qip
 set_global_assignment -name VERILOG_FILE rtl/n64adv_ppu_top.v
 set_global_assignment -name VERILOG_FILE rtl/ppu/n64_vinfo_ext.v
 set_global_assignment -name VERILOG_FILE rtl/ppu/n64a_deblur.v
@@ -193,8 +193,16 @@ set_global_assignment -name VERILOG_FILE rtl/ppu/vconv.v
 set_global_assignment -name VERILOG_FILE rtl/misc/ram2port.v
 set_global_assignment -name VERILOG_FILE rtl/misc/font_rom.v
 set_global_assignment -name VERILOG_FILE rtl/misc/gamma_table.v
+
+#vh
+set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64adv_vparams.vh
+set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64adv_cparams.vh
+set_global_assignment -name VERILOG_INCLUDE_FILE vh/n64adv_ppuconfig.vh
+
+#sdc
 set_global_assignment -name SDC_FILE sdc/n64adv.sdc
 
+#output directory
 set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files/n64adv1/10cl010ye144
 
 

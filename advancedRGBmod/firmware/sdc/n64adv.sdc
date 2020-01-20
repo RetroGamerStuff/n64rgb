@@ -47,7 +47,6 @@ create_clock -name {VCLK_N64_VIRT} -period $n64_vclk_per -waveform $n64_vclk_wav
 
 # Video Clock (multiple defines for easier definition of clock groups)
 create_clock -name {VCLK_1x_base} -period $n64_vclk_per -waveform $n64_vclk_waveform $vclk_input
-create_clock -name {VCLK_testpattern_base} -period $n64_vclk_per -waveform $n64_vclk_waveform $vclk_input -add
 
 # system clock
 create_clock -name {SYS_CLK} -period $sys_clk_per -waveform $sys_clk_waveform [get_ports {SYS_CLK}]
@@ -67,25 +66,18 @@ create_generated_clock -name {VCLK_3x_base} -source $vclk_pll_in -master_clock {
 
 
 # Other Internal Video Clocks
-# First MUX
-set vclk_mux_0_out [get_pins {n64adv_ppu_u|linemult_u|vclk_tx_3mux_u|LPM_MUX_component|auto_generated|result_node[0]|combout}]
-create_generated_clock -name {VCLK_1x_out_pre0} -source $vclk_input -master_clock {VCLK_1x_base} $vclk_mux_0_out
-create_generated_clock -name {VCLK_2x_out_pre0} -source $vclk_input -master_clock {VCLK_2x_base} $vclk_mux_0_out -add
-create_generated_clock -name {VCLK_3x_out_pre0} -source $vclk_pll_3x_out -master_clock {VCLK_3x_base} $vclk_mux_0_out -add
+# TX Clock MUX
+set vclk_mux_out [get_pins {n64adv_ppu_u|altclkctrl_u|altclkctrl_0|altclkctrl_altclkctrl_0_sub_component|clkctrl1|outclk}]
+create_generated_clock -name {VCLK_1x_out_pre} -source $vclk_input -master_clock {VCLK_1x_base} $vclk_mux_out
+create_generated_clock -name {VCLK_2x_out_pre} -source $vclk_input -master_clock {VCLK_2x_base} $vclk_mux_out -add
+create_generated_clock -name {VCLK_3x_out_pre} -source $vclk_pll_3x_out -master_clock {VCLK_3x_base} $vclk_mux_out -add
 
-# Secound MUX
-set vclk_mux_1_out [get_pins {n64adv_ppu_u|vclk_tx_post_testpattern_2mux_u|LPM_MUX_component|auto_generated|result_node[0]|combout}]
-create_generated_clock -name {VCLK_1x_out_pre1} -source $vclk_mux_0_out -master_clock {VCLK_1x_out_pre0} $vclk_mux_1_out
-create_generated_clock -name {VCLK_2x_out_pre1} -source $vclk_mux_0_out -master_clock {VCLK_2x_out_pre0} $vclk_mux_1_out -add
-create_generated_clock -name {VCLK_3x_out_pre1} -source $vclk_mux_0_out -master_clock {VCLK_3x_out_pre0} $vclk_mux_1_out -add
-create_generated_clock -name {VCLK_testpattern_out_pre} -source $vclk_input -master_clock {VCLK_testpattern_base} $vclk_mux_1_out -add
 
 # Output Video Clocks
 set vclk_out [get_ports {CLK_ADV712x}]
-create_generated_clock -name {VCLK_1x_out} -source $vclk_mux_1_out -master_clock {VCLK_1x_out_pre1} $vclk_out
-create_generated_clock -name {VCLK_2x_out} -source $vclk_mux_1_out -master_clock {VCLK_2x_out_pre1} $vclk_out -add
-create_generated_clock -name {VCLK_3x_out} -source $vclk_mux_1_out -master_clock {VCLK_3x_out_pre1} $vclk_out -add
-create_generated_clock -name {VCLK_testpattern_out} -source $vclk_mux_1_out -master_clock {VCLK_testpattern_out_pre} $vclk_out -add
+create_generated_clock -name {VCLK_1x_out} -source $vclk_mux_out -master_clock {VCLK_1x_out_pre} $vclk_out
+create_generated_clock -name {VCLK_2x_out} -source $vclk_mux_out -master_clock {VCLK_2x_out_pre} $vclk_out -add
+create_generated_clock -name {VCLK_3x_out} -source $vclk_mux_out -master_clock {VCLK_3x_out_pre} $vclk_out -add
 
 # System PLL Clocks
 set sys_pll_in [get_pins {clk_n_rst_hk_u|sys_pll_u|altpll_component|auto_generated|pll1|inclk[0]}]
@@ -146,10 +138,7 @@ set_output_delay -clock {VCLK_2x_out} -max $out_dly_max [get_ports {VD_o* nCSYNC
 set_output_delay -clock {VCLK_2x_out} -min $out_dly_min [get_ports {VD_o* nCSYNC_ADV712x}] -add
 set_output_delay -clock {VCLK_3x_out} -max $out_dly_max [get_ports {VD_o* nCSYNC_ADV712x}] -add
 set_output_delay -clock {VCLK_3x_out} -min $out_dly_min [get_ports {VD_o* nCSYNC_ADV712x}] -add
-set_output_delay -clock {VCLK_testpattern_out} -max $out_dly_max [get_ports {VD_o* nCSYNC_ADV712x}] -add
-set_output_delay -clock {VCLK_testpattern_out} -min $out_dly_min [get_ports {VD_o* nCSYNC_ADV712x}] -add
 
-#set_output_delay -clock {VCLK_1x_testpattern_o} 0 [get_ports {nHSYNC* nVSYNC* nCSYNC}] -add
 #set_output_delay -clock {VCLK_1x_out} 0 [get_ports {nHSYNC* nVSYNC* nCSYNC}] -add
 #set_output_delay -clock {VCLK_2x_out} 0 [get_ports {nHSYNC* nVSYNC* nCSYNC}] -add
 #set_output_delay -clock {VCLK_3x_out} 0 [get_ports {nHSYNC* nVSYNC* nCSYNC}] -add
@@ -164,10 +153,9 @@ set_output_delay -clock {altera_reserved_tck} 20 [get_ports {altera_reserved_tdo
 #**************************************************************
 
 set_clock_groups -logically_exclusive \
-                    -group {VCLK_1x_base VCLK_1x_out_pre0 VCLK_1x_out_pre1 VCLK_1x_out} \
-                    -group {VCLK_2x_base VCLK_2x_out_pre0 VCLK_2x_out_pre1 VCLK_2x_out} \
-                    -group {VCLK_3x_base VCLK_3x_base VCLK_3x_out_pre0 VCLK_3x_out_pre1 VCLK_3x_out} \
-                    -group {VCLK_testpattern_base VCLK_testpattern_out_pre VCLK_testpattern_out} \
+                    -group {VCLK_N64_VIRT VCLK_1x_base VCLK_1x_out_pre VCLK_1x_out} \
+                    -group {VCLK_2x_base VCLK_2x_out_pre VCLK_2x_out} \
+                    -group {VCLK_3x_base VCLK_3x_out_pre VCLK_3x_out} \
                     -group {SYS_CLK CLK_4M CLK_16k CLK_25M}
 
 
@@ -179,6 +167,7 @@ set_clock_groups -logically_exclusive \
 set_false_path -from [get_ports {nRST CTRL_i UseVGA_HVSync nFilterBypass nEN_RGsB nEN_YPbPr SL_str* n240p n480i_bob}]
 
 # configuration registers as false path
+set_false_path -from [get_registers {clk_n_rst_hk_u|nVRST* n64adv_ppu_u|nVRST*}]
 set_false_path -from [get_registers {n64adv_ppu_u|cfg_* n64adv_ppu_u|Filter*}]
 set_false_path -from [get_registers {n64adv_ppu_u|get_vinfo_u|*}] -to [get_registers {n64adv_ppu_u|linemult_u|*}]
 set_false_path -to [get_registers {n64adv_controller_u|use_igr n64adv_controller_u|OSDInfo* n64adv_controller_u|PPUConfigSet*}]
@@ -201,15 +190,17 @@ set list_direct_false_from [list [get_registers {n64adv_ppu_u|linemult_u|nVDSYNC
                                  [get_registers {n64adv_ppu_u|linemult_u|FrameID}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|SL_rval*}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|start_rdproc}] \
-                                 [get_registers {n64adv_ppu_u|linemult_u|linemult_sel_buf*}] \
-                                 [get_registers {n64adv_ppu_u|linemult_u|*nVRST_Tx_o*}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|videobuffer_u|*}]]
+set list_direct_false_to_clk [list [get_clocks {VCLK_1x_out_pre}] [get_clocks {VCLK_2x_out_pre}] [get_clocks {VCLK_3x_out_pre}]]
+
 foreach from_path $list_direct_false_from {
-  set_false_path -from $from_path -to [get_clocks {VCLK_1x_out_pre0}]
+  foreach to_clock $list_direct_false_to_clk {
+    set_false_path -from $from_path -to $to_clock
+  }
 }
 
-set list_direct_false_to [list [get_registers {n64adv_ppu_u|linemult_u|linemult_sel_buf*}] \
-                               [get_registers {n64adv_ppu_u|linemult_u|sync4tx_u|*}] \
+set list_direct_false_from_clk [list [get_clocks {VCLK_1x_base}] [get_clocks {VCLK_2x_base}] [get_clocks {VCLK_3x_base}]]
+set list_direct_false_to [list [get_registers {n64adv_ppu_u|linemult_u|sync4tx_u|*}] \
                                [get_registers {n64adv_ppu_u|linemult_u|hstart_tx*}] \
                                [get_registers {n64adv_ppu_u|linemult_u|hstop_tx*}] \
                                [get_registers {n64adv_ppu_u|linemult_u|nHS_width*}] \
@@ -234,19 +225,16 @@ set list_direct_false_to [list [get_registers {n64adv_ppu_u|linemult_u|linemult_
                                [get_registers {n64adv_ppu_u|linemult_u|Y_ref*}] \
                                [get_registers {n64adv_ppu_u|linemult_u|SLHyb_rval*}] \
                                [get_registers {n64adv_ppu_u|linemult_u|SLHyb_str*}]]
-foreach to_path $list_direct_false_to {
-  set_false_path -from [get_clocks {VCLK_1x_base}] -to $to_path
+
+foreach from_clk $list_direct_false_from_clk {
+  foreach to_path $list_direct_false_to {
+    set_false_path -from $from_clk -to $to_path
+  }
 }
 
 # some misc output ports as false path
 set_false_path -to [get_ports {nRST}]
 set_false_path -to [get_ports {nHSYNC* nVSYNC* nCSYNC}]
-
-# false path for some clock analysis
-set_false_path -from [get_clocks {VCLK_1x_base}] -to [get_registers {n64adv_ppu_u|testpattern_u|*}]
-set_false_path -from [get_registers {n64adv_ppu_u|testpattern_u|*}] -to [get_clocks {VCLK_1x_out_pre1}]
-set_false_path -from [get_registers {n64adv_ppu_u|deblur_management_u|* n64adv_ppu_u|video_demux_u|* n64adv_ppu_u|osd_injection_u|* n64adv_ppu_u|gamma_module_u|* n64adv_ppu_u|linemult_u|*}] \
-               -to [get_clocks {VCLK_testpattern_base}]
 
 
 #**************************************************************
@@ -286,10 +274,9 @@ set_multicycle_path -from [get_registers {n64adv_ppu_u|video_demux_u|vdata_r_0[*
 
 # overconstraining path between clock input, pll outputs, muxes and output (only for fitter)
 if {[string equal $::quartus(nameofexecutable) "quartus_fit"]} {
-  set_max_delay -from $vclk_input -to $vclk_mux_1_out 0.000
-  set_max_delay -from $vclk_pll_3x_out -to $vclk_mux_0_out 0.000
-  set_max_delay -from $vclk_mux_0_out -to $vclk_mux_1_out 0.000
-  set_max_delay -from $vclk_mux_1_out -to $vclk_out 0.000
+  set_max_delay -from $vclk_input -to $vclk_mux_out 0.000
+  set_max_delay -from $vclk_pll_3x_out -to $vclk_mux_out 0.000
+  set_max_delay -from $vclk_mux_out -to $vclk_out 0.000
 }
 
 

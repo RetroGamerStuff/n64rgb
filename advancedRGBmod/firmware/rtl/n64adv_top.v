@@ -71,7 +71,7 @@ module n64adv_top (
 );
 
 parameter [3:0] hdl_fw_main = 4'd1;
-parameter [7:0] hdl_fw_sub  = 8'd50;
+parameter [7:0] hdl_fw_sub  = 8'd51;
 
 `include "vh/n64adv_vparams.vh"
 
@@ -105,7 +105,7 @@ input       n480i_bob;
 // housekeeping of clocks and resets
 
 wire nVRST;
-wire [1:0] VCLK_Tx, nVRST_Tx;
+wire VCLK_VPLL, nVRST_VPLL;
 wire [2:0] CLKs_controller, nSRST;
 wire [1:0] MANAGE_VPLL;
 wire       VCLK_PLL_LOCKED;
@@ -115,8 +115,8 @@ n64adv_clk_n_rst_hk clk_n_rst_hk_u(
   .SYS_CLK(SYS_CLK),
   .nRST(nRST),
   .nVRST(nVRST),
-  .VCLK_Tx(VCLK_Tx),
-  .nVRST_Tx(nVRST_Tx),
+  .VCLK_VPLL(VCLK_VPLL),
+  .nVRST_VPLL(nVRST_VPLL),
   .MANAGE_VPLL(MANAGE_VPLL),
   .VCLK_PLL_LOCKED(VCLK_PLL_LOCKED),
   .CLKs_controller(CLKs_controller),
@@ -162,8 +162,8 @@ n64adv_ppu_top n64adv_ppu_u(
   .OSDCLK(CLKs_controller[0]),
   .OSDWrVector(OSDWrVector),
   .OSDInfo(OSDInfo),
-  .VCLK_Tx(VCLK_Tx),
-  .nVRST_Tx(nVRST_Tx),
+  .VCLK_VPLL(VCLK_VPLL),
+  .nVRST_VPLL(nVRST_VPLL),
   .USE_VPLL(MANAGE_VPLL[1]),
   .VCLK_o(CLK_ADV712x),
 //  .nBLANK(nBLANK_ADV712x),

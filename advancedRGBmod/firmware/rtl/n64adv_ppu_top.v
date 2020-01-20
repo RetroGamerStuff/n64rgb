@@ -47,9 +47,9 @@ module n64adv_ppu_top (
   OSDWrVector,
   OSDInfo,
 
-  // possible VCLKs for the output
-  VCLK_Tx,
-  nVRST_Tx,
+  // VCLK for LineX3 output
+  VCLK_VPLL,
+  nVRST_VPLL,
   USE_VPLL,
 
   // Video Output
@@ -81,9 +81,9 @@ input        OSDCLK;
 input [24:0] OSDWrVector;
 input [ 1:0] OSDInfo;
 
-input [1:0] VCLK_Tx;
-input [1:0] nVRST_Tx;
-input       USE_VPLL;
+input VCLK_VPLL;
+input nVRST_VPLL;
+input USE_VPLL;
 
 output VCLK_o;
 // output reg nBLANK = 1'b0;
@@ -161,10 +161,48 @@ always @(posedge VCLK) begin
     cfg_SL_method    <= 1'b0;
     cfg_SL_en        <= ConfigSet[`v480i_SL_En_bit];
   end
+  if (ConfigSet[`show_testpattern_bit]) begin // overwrite cfg_linemult if testpattern is enabled
+    cfg_linemult <= 2'b00;
+  end
 end
 
 
 wire [`VDATA_I_FU_SLICE] vdata_r[0:3];
+
+// determine the output clock and create reset signal
+wire VCLK_Tx_o;
+
+altclkctrl altclkctrl_u (
+  .inclk1x(VCLK_VPLL),
+  .inclk0x(VCLK),
+  .clkselect(cfg_linemult[1]),
+  .outclk(VCLK_Tx_o)
+);
+
+
+integer int_idx;
+reg [1:0] cfg_linemult_buf [0:2];
+initial begin
+  for (int_idx = 0; int_idx < 3; int_idx = int_idx+1)
+    cfg_linemult_buf[int_idx] = 2'b00;
+end
+reg [3:0] hold_nVRST_Tx_o = 4'h0;
+reg nVRST_Tx_o;
+
+always @(posedge VCLK_Tx_o) begin
+  if (~|hold_nVRST_Tx_o) begin
+    nVRST_Tx_o <= cfg_linemult[1] ? nVRST_VPLL : nVRST;
+  end else begin
+    nVRST_Tx_o <= 1'b0;
+    hold_nVRST_Tx_o <= hold_nVRST_Tx_o - 1'b1;
+  end
+  if (cfg_linemult_buf[2] != cfg_linemult_buf[1])
+    hold_nVRST_Tx_o <= 4'hf;
+  cfg_linemult_buf[2] <= cfg_linemult_buf[1];
+  cfg_linemult_buf[1] <= cfg_linemult_buf[0];
+  cfg_linemult_buf[0] <= cfg_linemult;
+end
+
 
 // Part 1: get all of the vinfo needed for further processing
 // ==========================================================
@@ -242,18 +280,14 @@ gamma_module gamma_module_u(
 // Part 5.2: Line Multiplier
 // =========================
 
-wire [16:0] vinfo_mult = {cfg_linemult,cfg_ifix,cfg_SLHyb_str,cfg_SL_str,cfg_SL_method,cfg_SL_id,cfg_SL_en,vinfo_pass[1:0]};
-
-wire VCLK_Tx_o_pre, nVRST_Tx_o_pre;
+wire [16:0] vinfo_mult = {cfg_linemult_buf[2],cfg_ifix,cfg_SLHyb_str,cfg_SL_str,cfg_SL_method,cfg_SL_id,cfg_SL_en,vinfo_pass[1:0]};
 wire [`VDATA_O_FU_SLICE] vdata_srgb_out;
 
 linemult linemult_u(
   .VCLK_Rx(VCLK),
   .nVRST_Rx(nVRST),
-  .VCLK_Tx(VCLK_Tx),
-  .nVRST_Tx(nVRST_Tx),
-  .VCLK_o(VCLK_Tx_o_pre),
-  .nVRST_o(nVRST_Tx_o_pre),
+  .VCLK_Tx(VCLK_Tx_o),
+  .nVRST_Tx(nVRST_Tx_o),
   .vinfo_mult(vinfo_mult),
   .vdata_i(vdata_r[3]),
   .vdata_o(vdata_srgb_out)
@@ -267,9 +301,9 @@ linemult linemult_u(
 wire [`VDATA_O_FU_SLICE] vdata_testpattern;
 
 testpattern testpattern_u(
-  .VCLK(VCLK),
+  .VCLK(VCLK_Tx_o),
   .nVDSYNC(nVDSYNC),
-  .nRST(nVRST),
+  .nRST(nVRST_Tx_o),
   .vmode(pal_mode),
   .Sync_in(VD_i[3:0]),
   .vdata_out(vdata_testpattern)
@@ -279,31 +313,6 @@ testpattern testpattern_u(
 // (continue with part 5)
 // Part 5.3: Color Transformation
 // ==============================
-
-wire VCLK_Tx_o;
-vclk_tx_2mux vclk_tx_post_testpattern_2mux_u(
-  .data1(VCLK),
-  .data0(VCLK_Tx_o_pre),
-  .sel(cfg_testpat),
-  .result(VCLK_Tx_o)
-);
-
-reg [2:0] cfg_testpat_buf = 3'b000;
-reg [7:0] hold_nVRST_Tx_o = 8'h0;
-reg nVRST_Tx_o;
-always @(posedge VCLK_Tx_o) begin
-  if (~|hold_nVRST_Tx_o) begin
-    nVRST_Tx_o <= cfg_testpat ? nVRST : nVRST_Tx_o_pre;
-  end else begin
-    nVRST_Tx_o <= 1'b0;
-    hold_nVRST_Tx_o <= hold_nVRST_Tx_o - 1'b1;
-  end
-  if (^cfg_testpat_buf[2:1])
-    hold_nVRST_Tx_o <= 8'hff;
-  cfg_testpat_buf[2] <= cfg_testpat_buf[1];
-  cfg_testpat_buf[1] <= cfg_testpat_buf[0];
-  cfg_testpat_buf[0] <= cfg_testpat;
-end
 
 wire [`VDATA_O_FU_SLICE] vdata_vc_in = cfg_testpat ? vdata_testpattern : vdata_srgb_out;
 wire [`VDATA_O_FU_SLICE] vdata_vc_out;

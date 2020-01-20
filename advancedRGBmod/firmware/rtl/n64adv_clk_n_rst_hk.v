@@ -38,8 +38,8 @@ module n64adv_clk_n_rst_hk(
 
   nVRST,
 
-  VCLK_Tx,
-  nVRST_Tx,
+  VCLK_VPLL,
+  nVRST_VPLL,
   MANAGE_VPLL,
   VCLK_PLL_LOCKED,
 
@@ -53,8 +53,8 @@ input nRST;
 
 output nVRST;
 
-output [1:0] VCLK_Tx;
-output [1:0] nVRST_Tx;
+output       VCLK_VPLL;
+output       nVRST_VPLL;
 input  [1:0] MANAGE_VPLL;
 output       VCLK_PLL_LOCKED;
 
@@ -114,9 +114,9 @@ always @(posedge VCLK_75M) begin
   USE_VPLL_buf[2:0] <= {USE_VPLL_buf[1:0],USE_VPLL};
 end
 
-assign nVRST    = nVRST_w;
-assign VCLK_Tx  = {VCLK_75M,VCLK};
-assign nVRST_Tx = {nVRST_75M_Tx,nVRST_w};
+assign nVRST      = nVRST_w;
+assign VCLK_VPLL  = VCLK_75M;
+assign nVRST_VPLL = nVRST_75M_Tx;
 
 
 // system
