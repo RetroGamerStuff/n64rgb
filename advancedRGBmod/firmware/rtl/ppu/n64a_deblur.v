@@ -120,16 +120,19 @@ reg [1:0] gradient[2:0];  // shows the (sharp) gradient direction between neighb
 reg [1:0] gradient_changes = 2'b00; // value is 2'b11 if all gradients has been changed
 
 reg [1:0] nblur_est_cnt     = 2'b00;  // register to estimate whether blur is used or not by the N64
-reg [9:0] nblur_trend = init_trend_p; // trend shows if the algorithm tends to estimate more blur enabled rather than disabled
+reg [9:0] nblur_trend = 10'b0; // trend shows if the algorithm tends to estimate more blur enabled rather than disabled
                                       // this acts as like as a very simple mean filter
 reg nblur_n64 = 1'b1;                 // blur effect is estimated to be off within the N64 if value is 1'b1
 
+reg first_init_trendval = 1'b1;
+reg init_trendval = 1'b1;
+
 always @(posedge VCLK or negedge nRST_Alg)
   if (!nRST_Alg) begin
-    run_estimation  <= 1'b0;
-    nblur_trend <= 10'b0;
-    nblur_trend[nblur_th_bit] <= 1'b1;
-    nblur_n64       <= 1'b1;
+    run_estimation <= 1'b0;
+    nblur_trend    <= 10'b0;
+    nblur_n64      <= 1'b1;
+    init_trendval  <= 1'b1;
   end else begin
     if (!n64_480i) begin
       if (!nVDSYNC) begin
@@ -143,6 +146,15 @@ always @(posedge VCLK or negedge nRST_Alg)
                                             nblur_trend;
 
             nblur_n64 <= nblur_trend[nblur_th_bit];
+          end
+
+          if (init_trendval) begin
+            if (first_init_trendval)
+              nblur_trend[8] <= 1'b1;
+            else
+              nblur_trend[nblur_th_bit] <= 1'b1;
+            first_init_trendval <= 1'b0;
+            init_trendval <= 1'b0;
           end
 
           nblur_est_cnt  <= 2'b00;
