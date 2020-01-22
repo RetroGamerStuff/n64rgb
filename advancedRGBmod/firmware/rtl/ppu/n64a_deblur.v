@@ -65,8 +65,9 @@ wire [1:0] data_cnt = vid_state_i[3:2];
 wire          vmode = vid_state_i[  1];
 wire       n64_480i = vid_state_i[  0];
 
-wire negedge_nVSYNC =  vdata_pre[3*color_width_i+3] & !VD_i[3];
-wire posedge_nCSYNC = !vdata_pre[3*color_width_i  ] &  VD_i[0];
+wire negedge_nVSYNC  =  vdata_pre[3*color_width_i+3] & !VD_i[3];
+wire constlow_nVSYNC = !vdata_pre[3*color_width_i+3] & !VD_i[3];
+wire posedge_nCSYNC  = !vdata_pre[3*color_width_i  ] &  VD_i[0];
 
 wire [2:0] Rcmp_pre = vdata_pre[3*color_width_i-1:3*color_width_i-3];
 wire [2:0] Gcmp_pre = vdata_pre[2*color_width_i-1:2*color_width_i-3];
@@ -77,21 +78,29 @@ wire [2:0] Gcmp_cur = VD_i[color_width_i-1:color_width_i-3];
 wire [2:0] Bcmp_cur = VD_i[color_width_i-1:color_width_i-3];
 
 
-wire                p2p_sens =  ~algorithmsettings_i[14];
-wire [2:0]   nblur_trend_add =   algorithmsettings_i[13:11] + 2'b10;
-wire [2:0]   nblur_trend_sub =   nblur_trend_add - (algorithmsettings_i[10: 8] + 1'b1);
-wire [3:0]      nblur_th_bit =   algorithmsettings_i[ 5:4] + 4'h6;
-wire [1:0] nblur_rstalg_mode =   algorithmsettings_i[ 3:2];
-wire              nDeBlurMan =  ~algorithmsettings_i[   1];
-wire            nForceDeBlur = ~|algorithmsettings_i[ 1:0];
-
-
-// some more definitions for the heuristics
-
-localparam init_trend_p = 10'h100;  // initial value
-
-
 // start of rtl
+
+// some settings for the heuristics
+reg                p2p_sens;
+reg [2:0]   nblur_trend_add;
+reg [2:0]   nblur_trend_sub;
+reg [1:0]      nblur_th_bit;
+reg [1:0] nblur_rstalg_mode;
+reg              nDeBlurMan;
+reg            nForceDeBlur;
+
+always @(posedge VCLK) 
+  if (!nVDSYNC && constlow_nVSYNC) begin
+    p2p_sens          <=  ~algorithmsettings_i[14];
+    nblur_trend_add   <=   algorithmsettings_i[13:11] + 2'b10;
+    nblur_trend_sub   <=   nblur_trend_add - (algorithmsettings_i[10: 8] + 1'b1);
+    nblur_th_bit      <=   algorithmsettings_i[ 5:4];
+    nblur_rstalg_mode <=   algorithmsettings_i[ 3:2];
+    nDeBlurMan        <=  ~algorithmsettings_i[   1];
+    nForceDeBlur      <= ~|algorithmsettings_i[ 1:0];
+  end
+
+// start algorithm
 
 reg blur_pix = 1'b0;
 
@@ -119,42 +128,43 @@ reg [1:0] gradient[2:0];  // shows the (sharp) gradient direction between neighb
                           // else                 -> constant
 reg [1:0] gradient_changes = 2'b00; // value is 2'b11 if all gradients has been changed
 
-reg [1:0] nblur_est_cnt     = 2'b00;  // register to estimate whether blur is used or not by the N64
-reg [9:0] nblur_trend = 10'b0; // trend shows if the algorithm tends to estimate more blur enabled rather than disabled
-                                      // this acts as like as a very simple mean filter
-reg nblur_n64 = 1'b1;                 // blur effect is estimated to be off within the N64 if value is 1'b1
+reg [1:0] nblur_est_cnt     = 2'b00;        // register to estimate whether blur is used or not by the N64
+reg [9:0] nblur_trend_10bit = {1'b1,9'b0};  // trend shows if the algorithm tends to estimate more blur enabled rather than disabled
+reg [8:0] nblur_trend_09bit = {1'b1,8'b0};  // this acts as like as a very simple mean filter
+reg [7:0] nblur_trend_08bit = {1'b1,7'b0};
+reg [6:0] nblur_trend_07bit = {1'b1,6'b0};
+reg nblur_n64 = 1'b1;                       // blur effect is estimated to be off within the N64 if value is 1'b1
 
-reg first_init_trendval = 1'b1;
-reg init_trendval = 1'b1;
 
 always @(posedge VCLK or negedge nRST_Alg)
   if (!nRST_Alg) begin
-    run_estimation <= 1'b0;
-    nblur_trend    <= 10'b0;
-    nblur_n64      <= 1'b1;
-    init_trendval  <= 1'b1;
+    run_estimation    <= 1'b0;
+    nblur_trend_10bit <= {1'b1,9'b0};
+    nblur_trend_09bit <= {1'b1,8'b0};
+    nblur_trend_08bit <= {1'b1,7'b0};
+    nblur_trend_07bit <= {1'b1,6'b0};
+    nblur_n64         <= 1'b1;
   end else begin
     if (!n64_480i) begin
       if (!nVDSYNC) begin
         if(negedge_nVSYNC) begin  // negedge at nVSYNC detected - new frame
           if (run_estimation) begin
-            if (nblur_est_cnt >= nblur_trend_add)                 // add to weight
-              nblur_trend <= &nblur_trend ? nblur_trend :         // saturate if needed
-                                            nblur_trend + 1'b1;
-            else if (nblur_est_cnt <= nblur_trend_sub)            // subtract
-              nblur_trend <= |nblur_trend ? nblur_trend - 1'b1 :  // saturate if needed
-                                            nblur_trend;
+            if (nblur_est_cnt >= nblur_trend_add) begin           // add to weight
+              nblur_trend_10bit <= &nblur_trend_10bit ? nblur_trend_10bit : nblur_trend_10bit + 1'b1;
+              nblur_trend_09bit <= &nblur_trend_09bit ? nblur_trend_09bit : nblur_trend_09bit + 1'b1;
+              nblur_trend_08bit <= &nblur_trend_08bit ? nblur_trend_08bit : nblur_trend_08bit + 1'b1;
+              nblur_trend_07bit <= &nblur_trend_07bit ? nblur_trend_07bit : nblur_trend_07bit + 1'b1;
+            end else if (nblur_est_cnt <= nblur_trend_sub) begin  // subtract
+              nblur_trend_10bit <= |nblur_trend_10bit ? nblur_trend_10bit - 1'b1 : nblur_trend_10bit;
+              nblur_trend_09bit <= |nblur_trend_09bit ? nblur_trend_09bit - 1'b1 : nblur_trend_09bit;
+              nblur_trend_08bit <= |nblur_trend_08bit ? nblur_trend_08bit - 1'b1 : nblur_trend_08bit;
+              nblur_trend_07bit <= |nblur_trend_07bit ? nblur_trend_07bit - 1'b1 : nblur_trend_07bit;
+            end
 
-            nblur_n64 <= nblur_trend[nblur_th_bit];
-          end
-
-          if (init_trendval) begin
-            if (first_init_trendval)
-              nblur_trend[8] <= 1'b1;
-            else
-              nblur_trend[nblur_th_bit] <= 1'b1;
-            first_init_trendval <= 1'b0;
-            init_trendval <= 1'b0;
+            nblur_n64 <= nblur_th_bit == 2'b11 ? nblur_trend_10bit[9] :
+                         nblur_th_bit == 2'b10 ? nblur_trend_09bit[8] :
+                         nblur_th_bit == 2'b01 ? nblur_trend_08bit[7] :
+                                                 nblur_trend_07bit[6] ;
           end
 
           nblur_est_cnt  <= 2'b00;
@@ -196,7 +206,7 @@ always @(posedge VCLK or negedge nRST)
   if (!nRST) begin
     ndo_deblur <= 1'b0;
   end else if (!nVDSYNC) begin
-    if (negedge_nVSYNC) begin // negedge at nVSYNC detected - new frame, new setting
+    if (constlow_nVSYNC) begin // negedge at nVSYNC detected - new frame, new setting
       if (nForceDeBlur)
         ndo_deblur <= n64_480i | nblur_n64;
       else
