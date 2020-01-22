@@ -47,13 +47,13 @@ module n64adv_ppu_top (
   OSDWrVector,
   OSDInfo,
 
-  // VCLK for LineX3 output
-  VCLK_VPLL,
-  nVRST_VPLL,
+  // VCLK for video output
   USE_VPLL,
+  VCLK_Tx_select,
+  VCLK_Tx,
+  nVRST_Tx,
 
   // Video Output
-  VCLK_o,
 //   nBLANK,
   VD_o,
   nCSYNC, // nCSYNC and nCSYNC for ADV712x
@@ -81,11 +81,11 @@ input        OSDCLK;
 input [24:0] OSDWrVector;
 input [ 1:0] OSDInfo;
 
-input VCLK_VPLL;
-input nVRST_VPLL;
-input USE_VPLL;
+input        USE_VPLL;
+output [1:0] VCLK_Tx_select;
+input        VCLK_Tx;
+input        nVRST_Tx;
 
-output VCLK_o;
 // output reg nBLANK = 1'b0;
 output reg [3*color_width_o-1:0] VD_o = {3*color_width_o{1'b0}};
 output reg [                1:0] nCSYNC = 2'b00;
@@ -166,42 +166,9 @@ always @(posedge VCLK) begin
   end
 end
 
+assign VCLK_Tx_select = cfg_linemult;
 
 wire [`VDATA_I_FU_SLICE] vdata_r[0:3];
-
-// determine the output clock and create reset signal
-wire VCLK_Tx_o;
-
-altclkctrl altclkctrl_u (
-  .inclk1x(VCLK_VPLL),
-  .inclk0x(VCLK),
-  .clkselect(cfg_linemult[1]),
-  .outclk(VCLK_Tx_o)
-);
-
-
-integer int_idx;
-reg [1:0] cfg_linemult_buf [0:2];
-initial begin
-  for (int_idx = 0; int_idx < 3; int_idx = int_idx+1)
-    cfg_linemult_buf[int_idx] = 2'b00;
-end
-reg [3:0] hold_nVRST_Tx_o = 4'h0;
-reg nVRST_Tx_o;
-
-always @(posedge VCLK_Tx_o) begin
-  if (~|hold_nVRST_Tx_o) begin
-    nVRST_Tx_o <= cfg_linemult[1] ? nVRST_VPLL : nVRST;
-  end else begin
-    nVRST_Tx_o <= 1'b0;
-    hold_nVRST_Tx_o <= hold_nVRST_Tx_o - 1'b1;
-  end
-  if (cfg_linemult_buf[2] != cfg_linemult_buf[1])
-    hold_nVRST_Tx_o <= 4'hf;
-  cfg_linemult_buf[2] <= cfg_linemult_buf[1];
-  cfg_linemult_buf[1] <= cfg_linemult_buf[0];
-  cfg_linemult_buf[0] <= cfg_linemult;
-end
 
 
 // Part 1: get all of the vinfo needed for further processing
@@ -280,14 +247,14 @@ gamma_module gamma_module_u(
 // Part 5.2: Line Multiplier
 // =========================
 
-wire [16:0] vinfo_mult = {cfg_linemult_buf[2],cfg_ifix,cfg_SLHyb_str,cfg_SL_str,cfg_SL_method,cfg_SL_id,cfg_SL_en,vinfo_pass[1:0]};
+wire [16:0] vinfo_mult = {cfg_linemult,cfg_ifix,cfg_SLHyb_str,cfg_SL_str,cfg_SL_method,cfg_SL_id,cfg_SL_en,vinfo_pass[1:0]};
 wire [`VDATA_O_FU_SLICE] vdata_srgb_out;
 
 linemult linemult_u(
   .VCLK_Rx(VCLK),
   .nVRST_Rx(nVRST),
-  .VCLK_Tx(VCLK_Tx_o),
-  .nVRST_Tx(nVRST_Tx_o),
+  .VCLK_Tx(VCLK_Tx),
+  .nVRST_Tx(nVRST_Tx),
   .vinfo_mult(vinfo_mult),
   .vdata_i(vdata_r[3]),
   .vdata_o(vdata_srgb_out)
@@ -301,9 +268,9 @@ linemult linemult_u(
 wire [`VDATA_O_FU_SLICE] vdata_testpattern;
 
 testpattern testpattern_u(
-  .VCLK(VCLK_Tx_o),
+  .VCLK(VCLK_Tx),
   .nVDSYNC(nVDSYNC),
-  .nRST(nVRST_Tx_o),
+  .nRST(nVRST_Tx),
   .vmode(pal_mode),
   .Sync_in(VD_i[3:0]),
   .vdata_out(vdata_testpattern)
@@ -318,8 +285,8 @@ wire [`VDATA_O_FU_SLICE] vdata_vc_in = cfg_testpat ? vdata_testpattern : vdata_s
 wire [`VDATA_O_FU_SLICE] vdata_vc_out;
 
 vconv vconv_u(
-  .VCLK(VCLK_Tx_o),
-  .nRST(nVRST_Tx_o),
+  .VCLK(VCLK_Tx),
+  .nRST(nVRST_Tx),
   .nEN_YPbPr(cfg_nEN_YPbPr),    // enables color transformation on '0'
   .vdata_i(vdata_vc_in),
   .vdata_o(vdata_vc_out)
@@ -335,30 +302,29 @@ initial begin
   vdata_shifted[1] = {3*color_width_o{1'b0}};
 end
 
-always @(posedge VCLK_Tx_o) begin
-//  nBLANK <= Sync_o[2];
-  nCSYNC[1] <= Sync_o[0];
-  if (cfg_nEN_RGsB & cfg_nEN_YPbPr)
-    nCSYNC[0] <= 1'b0;
-  else
-    nCSYNC[0] <= Sync_o[0];
-
-  vdata_shifted[1] <= vdata_shifted[0];
-  vdata_shifted[0] <= vdata_vc_out[`VDATA_O_CO_SLICE];
-
-  if (!ndo_deblur && !cfg_testpat)
-    VD_o <= vdata_shifted[^cfg_linemult][`VDATA_O_CO_SLICE];
-  else
-    VD_o <= vdata_vc_out[`VDATA_O_CO_SLICE];
-
-  if (!nVRST_Tx_o) begin
+always @(posedge VCLK_Tx or negedge nVRST_Tx)
+  if (!nVRST_Tx) begin
     nCSYNC <= 2'b00;
       VD_o <= {3*color_width_o{1'b0}};
 
     vdata_shifted[0] <= {3*color_width_o{1'b0}};
     vdata_shifted[1] <= {3*color_width_o{1'b0}};
+  end else begin
+  //  nBLANK <= Sync_o[2];
+    nCSYNC[1] <= Sync_o[0];
+    if (cfg_nEN_RGsB & cfg_nEN_YPbPr)
+      nCSYNC[0] <= 1'b0;
+    else
+      nCSYNC[0] <= Sync_o[0];
+
+    vdata_shifted[1] <= vdata_shifted[0];
+    vdata_shifted[0] <= vdata_vc_out[`VDATA_O_CO_SLICE];
+
+    if (!ndo_deblur && !cfg_testpat)
+      VD_o <= vdata_shifted[^cfg_linemult][`VDATA_O_CO_SLICE];
+    else
+      VD_o <= vdata_vc_out[`VDATA_O_CO_SLICE];
   end
-end
 
 
 // Filter Add On:
@@ -382,26 +348,24 @@ end
 reg [1:2] Filter;
 wire AutoFilter_w = cfg_filter == 3'b000;
 
-always @(posedge VCLK_Tx_o) begin
-  Filter <= AutoFilter_w ? cfg_linemult : cfg_filter[1:0] - 1'b1;
-  
-  if (UseVGA_HVSync) begin
-    nVSYNC_or_F2 <= Sync_o[3];
-    nHSYNC_or_F1 <= Sync_o[1];
-  end else begin
-    nVSYNC_or_F2 <= Filter[2];
-    nHSYNC_or_F1 <= Filter[1];
-  end
-
-  if (!nVRST_Tx_o) begin
+always @(posedge VCLK_Tx or negedge nVRST_Tx)
+  if (!nVRST_Tx) begin
     nVSYNC_or_F2 <= 1'b0;
     nHSYNC_or_F1 <= 1'b0;
+  end else begin
+    Filter <= AutoFilter_w ? cfg_linemult : cfg_filter[1:0] - 1'b1;
+    
+    if (UseVGA_HVSync) begin
+      nVSYNC_or_F2 <= Sync_o[3];
+      nHSYNC_or_F1 <= Sync_o[1];
+    end else begin
+      nVSYNC_or_F2 <= Filter[2];
+      nHSYNC_or_F1 <= Filter[1];
+    end
   end
-end
 
 
 // final assignments with register
 assign PPUState = {pal_mode,n64_480i,1'b0,cfg_linemult,~cfg_n15bit_mode,~cfg_nEN_YPbPr,~cfg_nEN_RGsB,~ndo_deblur,~cfg_nforcedeblur,Filter,AutoFilter_w};
-assign VCLK_o = VCLK_Tx_o;
 
 endmodule

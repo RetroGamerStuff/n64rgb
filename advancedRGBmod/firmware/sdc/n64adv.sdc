@@ -67,7 +67,7 @@ create_generated_clock -name {VCLK_3x_base} -source $vclk_pll_in -master_clock {
 
 # Other Internal Video Clocks
 # TX Clock MUX
-set vclk_mux_out [get_pins {n64adv_ppu_u|altclkctrl_u|altclkctrl_0|altclkctrl_altclkctrl_0_sub_component|clkctrl1|outclk}]
+set vclk_mux_out [get_pins {clk_n_rst_hk_u|altclkctrl_u|altclkctrl_0|altclkctrl_altclkctrl_0_sub_component|clkctrl1|outclk}]
 create_generated_clock -name {VCLK_1x_out_pre} -source $vclk_input -master_clock {VCLK_1x_base} $vclk_mux_out
 create_generated_clock -name {VCLK_2x_out_pre} -source $vclk_input -master_clock {VCLK_2x_base} $vclk_mux_out -add
 create_generated_clock -name {VCLK_3x_out_pre} -source $vclk_pll_3x_out -master_clock {VCLK_3x_base} $vclk_mux_out -add
@@ -167,8 +167,7 @@ set_clock_groups -logically_exclusive \
 set_false_path -from [get_ports {nRST CTRL_i UseVGA_HVSync nFilterBypass nEN_RGsB nEN_YPbPr SL_str* n240p n480i_bob}]
 
 # configuration registers as false path
-set_false_path -from [get_registers {clk_n_rst_hk_u|nVRST* n64adv_ppu_u|nVRST*}]
-set_false_path -from [get_registers {n64adv_ppu_u|cfg_* n64adv_ppu_u|Filter*}]
+set_false_path -from [get_registers {*RST* clk_n_rst_hk_u|cfg_linemult_buf* n64adv_ppu_u|cfg_* n64adv_ppu_u|Filter*}]
 set_false_path -from [get_registers {n64adv_ppu_u|get_vinfo_u|*}] -to [get_registers {n64adv_ppu_u|linemult_u|*}]
 set_false_path -to [get_registers {n64adv_controller_u|use_igr n64adv_controller_u|OSDInfo* n64adv_controller_u|PPUConfigSet*}]
 set_false_path -from [get_registers {n64adv_ppu_u|linemult_u|SL_rval*}]

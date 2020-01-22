@@ -38,10 +38,12 @@ module n64adv_clk_n_rst_hk(
 
   nVRST,
 
-  VCLK_VPLL,
-  nVRST_VPLL,
   MANAGE_VPLL,
   VCLK_PLL_LOCKED,
+
+  VCLK_select,
+  VCLK_Tx,
+  nVRST_Tx,
 
   CLKs_controller,
   nSRST
@@ -53,10 +55,12 @@ input nRST;
 
 output nVRST;
 
-output       VCLK_VPLL;
-output       nVRST_VPLL;
-input  [1:0] MANAGE_VPLL;
-output       VCLK_PLL_LOCKED;
+input      [1:0] MANAGE_VPLL;
+output           VCLK_PLL_LOCKED;
+
+input      [1:0] VCLK_select;
+output           VCLK_Tx;
+output reg       nVRST_Tx;
 
 output [2:0] CLKs_controller;
 output [2:0] nSRST;
@@ -114,10 +118,44 @@ always @(posedge VCLK_75M) begin
   USE_VPLL_buf[2:0] <= {USE_VPLL_buf[1:0],USE_VPLL};
 end
 
-assign nVRST      = nVRST_w;
-assign VCLK_VPLL  = VCLK_75M;
-assign nVRST_VPLL = nVRST_75M_Tx;
+assign nVRST = nVRST_w;
 
+
+// determine the output video clock and create reset signal
+wire VCLK_Tx_o;
+
+altclkctrl altclkctrl_u (
+  .inclk1x(VCLK_75M),
+  .inclk0x(VCLK),
+  .clkselect(VCLK_select[1]),
+  .outclk(VCLK_Tx_o)
+);
+
+
+integer int_idx;
+reg [1:0] cfg_linemult_buf [0:2];
+initial begin
+  for (int_idx = 0; int_idx < 3; int_idx = int_idx+1)
+    cfg_linemult_buf[int_idx] = 2'b00;
+end
+reg [3:0] hold_nVRST_Tx_o = 4'h0;
+
+always @(posedge VCLK_Tx_o) begin
+  if (~|hold_nVRST_Tx_o) begin
+    nVRST_Tx <= VCLK_select[1] ? nVRST_75M_Tx : nVRST_w;
+  end else begin
+    nVRST_Tx <= 1'b0;
+    hold_nVRST_Tx_o <= hold_nVRST_Tx_o - 1'b1;
+  end
+  if (cfg_linemult_buf[2] != cfg_linemult_buf[1])
+    hold_nVRST_Tx_o <= 4'hf;
+  cfg_linemult_buf[2] <= cfg_linemult_buf[1];
+  cfg_linemult_buf[1] <= cfg_linemult_buf[0];
+  cfg_linemult_buf[0] <= VCLK_select;
+end
+
+
+assign VCLK_Tx  = VCLK_Tx_o;
 
 // system
 
