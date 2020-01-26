@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="9.3.0">
+<eagle version="9.5.1">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -11822,7 +11822,6 @@ Based on Cypress-EZ-usb-8051.pdf</description>
 <part name="GND2" library="supply1@1" deviceset="GND" device=""/>
 <part name="+3V5" library="supply1" deviceset="+3V3" device=""/>
 <part name="+3V6" library="supply1" deviceset="+3V3" device=""/>
-<part name="+3V10" library="supply1" deviceset="+3V3" device=""/>
 <part name="+3V11" library="supply1" deviceset="+3V3" device=""/>
 <part name="+3V12" library="supply1" deviceset="+3V3" device=""/>
 <part name="P_GND4" library="wirepad@1" deviceset="SMD2" device=""/>
@@ -11856,6 +11855,27 @@ Based on Cypress-EZ-usb-8051.pdf</description>
 <wire x1="146.304" y1="71.882" x2="145.542" y2="72.644" width="0.1524" layer="97"/>
 <wire x1="145.542" y1="72.644" x2="145.542" y2="61.722" width="0.1524" layer="97"/>
 <text x="2.54" y="2.54" size="1.778" layer="97" font="vector">PCB Design (c) 2017-2019 Peter Bartmann</text>
+<text x="109.22" y="76.2" size="1.778" layer="97">3.3V: Bank 1, 2, 6, 7 and 8
+2.5V: Bank 3 - 5 (VCCA)</text>
+<wire x1="194.056" y1="97.79" x2="180.34" y2="97.79" width="0.1524" layer="97"/>
+<wire x1="181.61" y1="99.06" x2="181.61" y2="101.6" width="0.1524" layer="97"/>
+<wire x1="181.102" y1="100.076" x2="181.61" y2="101.6" width="0.1524" layer="97"/>
+<wire x1="181.61" y1="101.6" x2="182.118" y2="100.076" width="0.1524" layer="97"/>
+<wire x1="181.61" y1="96.52" x2="181.61" y2="93.98" width="0.1524" layer="97"/>
+<wire x1="182.118" y1="95.504" x2="181.61" y2="93.98" width="0.1524" layer="97"/>
+<wire x1="181.61" y1="93.98" x2="181.102" y2="95.504" width="0.1524" layer="97"/>
+<text x="182.88" y="99.06" size="1.778" layer="97">3.3V IOs</text>
+<text x="182.88" y="93.98" size="1.778" layer="97">2.5V IOs</text>
+<wire x1="86.36" y1="40.64" x2="108.204" y2="62.484" width="0.1524" layer="97"/>
+<wire x1="106.68" y1="59.436" x2="109.22" y2="59.436" width="0.1524" layer="97"/>
+<wire x1="107.696" y1="59.944" x2="109.22" y2="59.436" width="0.1524" layer="97"/>
+<wire x1="109.22" y1="59.436" x2="107.696" y2="58.928" width="0.1524" layer="97"/>
+<text x="104.14" y="55.88" size="1.778" layer="97">2.5V IOs</text>
+<wire x1="105.41" y1="60.96" x2="105.41" y2="66.04" width="0.1524" layer="97"/>
+<wire x1="104.902" y1="64.516" x2="105.41" y2="66.04" width="0.1524" layer="97"/>
+<wire x1="105.41" y1="66.04" x2="105.918" y2="64.516" width="0.1524" layer="97"/>
+<text x="106.68" y="63.5" size="1.778" layer="97">3.3V IOs</text>
+<wire x1="108.204" y1="62.484" x2="116.586" y2="62.484" width="0.1524" layer="97"/>
 </plain>
 <instances>
 <instance part="GND4" gate="1" x="281.94" y="132.08" smashed="yes">
@@ -12197,9 +12217,6 @@ Based on Cypress-EZ-usb-8051.pdf</description>
 </instance>
 <instance part="+3V6" gate="G$1" x="76.2" y="129.54" smashed="yes" rot="R90">
 <attribute name="VALUE" x="81.28" y="127" size="1.778" layer="96" rot="R180"/>
-</instance>
-<instance part="+3V10" gate="G$1" x="218.44" y="73.66" smashed="yes" rot="R270">
-<attribute name="VALUE" x="213.36" y="76.2" size="1.778" layer="96"/>
 </instance>
 <instance part="+3V11" gate="G$1" x="218.44" y="137.16" smashed="yes" rot="R270">
 <attribute name="VALUE" x="213.36" y="139.7" size="1.778" layer="96"/>
@@ -12548,11 +12565,6 @@ Based on Cypress-EZ-usb-8051.pdf</description>
 <pinref part="+3V6" gate="G$1" pin="+3V3"/>
 </segment>
 <segment>
-<wire x1="213.36" y1="73.66" x2="215.9" y2="73.66" width="0.1524" layer="91"/>
-<pinref part="U1" gate="G$1" pin="VREF/IO80"/>
-<pinref part="+3V10" gate="G$1" pin="+3V3"/>
-</segment>
-<segment>
 <wire x1="213.36" y1="137.16" x2="215.9" y2="137.16" width="0.1524" layer="91"/>
 <pinref part="U1" gate="G$1" pin="VREF/IO105"/>
 <pinref part="+3V11" gate="G$1" pin="+3V3"/>
@@ -12672,11 +12684,11 @@ Based on Cypress-EZ-usb-8051.pdf</description>
 <wire x1="55.88" y1="106.68" x2="55.88" y2="99.06" width="0.1524" layer="91"/>
 <pinref part="J5" gate="-5" pin="KL"/>
 <wire x1="43.18" y1="99.06" x2="55.88" y2="99.06" width="0.1524" layer="91"/>
-<wire x1="55.88" y1="99.06" x2="71.12" y2="99.06" width="0.1524" layer="91"/>
-<wire x1="71.12" y1="99.06" x2="71.12" y2="101.6" width="0.1524" layer="91"/>
+<wire x1="55.88" y1="99.06" x2="68.58" y2="99.06" width="0.1524" layer="91"/>
+<wire x1="68.58" y1="99.06" x2="68.58" y2="101.6" width="0.1524" layer="91"/>
 <junction x="55.88" y="99.06"/>
 <pinref part="U1" gate="G$1" pin="TMS"/>
-<wire x1="71.12" y1="101.6" x2="78.74" y2="101.6" width="0.1524" layer="91"/>
+<wire x1="68.58" y1="101.6" x2="78.74" y2="101.6" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="TCK" class="0">
@@ -12686,11 +12698,11 @@ Based on Cypress-EZ-usb-8051.pdf</description>
 <pinref part="R11" gate="G$1" pin="1"/>
 <pinref part="J5" gate="-1" pin="KL"/>
 <wire x1="43.18" y1="93.98" x2="48.26" y2="93.98" width="0.1524" layer="91"/>
-<wire x1="48.26" y1="93.98" x2="73.66" y2="93.98" width="0.1524" layer="91"/>
-<wire x1="73.66" y1="93.98" x2="73.66" y2="106.68" width="0.1524" layer="91"/>
+<wire x1="48.26" y1="93.98" x2="71.12" y2="93.98" width="0.1524" layer="91"/>
+<wire x1="71.12" y1="93.98" x2="71.12" y2="106.68" width="0.1524" layer="91"/>
 <junction x="48.26" y="93.98"/>
 <pinref part="U1" gate="G$1" pin="TCK"/>
-<wire x1="73.66" y1="106.68" x2="78.74" y2="106.68" width="0.1524" layer="91"/>
+<wire x1="71.12" y1="106.68" x2="78.74" y2="106.68" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="TDI" class="0">
@@ -12700,11 +12712,11 @@ Based on Cypress-EZ-usb-8051.pdf</description>
 <wire x1="48.26" y1="104.14" x2="48.26" y2="106.68" width="0.1524" layer="91"/>
 <pinref part="J5" gate="-9" pin="KL"/>
 <wire x1="43.18" y1="104.14" x2="48.26" y2="104.14" width="0.1524" layer="91"/>
-<wire x1="48.26" y1="104.14" x2="71.12" y2="104.14" width="0.1524" layer="91"/>
-<wire x1="71.12" y1="104.14" x2="71.12" y2="109.22" width="0.1524" layer="91"/>
+<wire x1="48.26" y1="104.14" x2="68.58" y2="104.14" width="0.1524" layer="91"/>
+<wire x1="68.58" y1="104.14" x2="68.58" y2="109.22" width="0.1524" layer="91"/>
 <junction x="48.26" y="104.14"/>
 <pinref part="U1" gate="G$1" pin="TDI"/>
-<wire x1="71.12" y1="109.22" x2="78.74" y2="109.22" width="0.1524" layer="91"/>
+<wire x1="68.58" y1="109.22" x2="78.74" y2="109.22" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="TDO" class="0">
@@ -12837,6 +12849,36 @@ Based on Cypress-EZ-usb-8051.pdf</description>
 <label x="223.52" y="114.3" size="1.778" layer="95" xref="yes"/>
 <pinref part="U1" gate="G$1" pin="MSEL1"/>
 <wire x1="213.36" y1="114.3" x2="223.52" y2="114.3" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="U1" gate="G$1" pin="VCCIO@3"/>
+<wire x1="109.22" y1="33.02" x2="109.22" y2="25.4" width="0.1524" layer="91"/>
+<label x="109.22" y="25.4" size="1.778" layer="95" rot="R270" xref="yes"/>
+</segment>
+<segment>
+<wire x1="127" y1="33.02" x2="127" y2="25.4" width="0.1524" layer="91"/>
+<label x="127" y="25.4" size="1.778" layer="95" rot="R270" xref="yes"/>
+<pinref part="U1" gate="G$1" pin="VCCIO@4"/>
+</segment>
+<segment>
+<wire x1="149.86" y1="33.02" x2="149.86" y2="25.4" width="0.1524" layer="91"/>
+<label x="149.86" y="25.4" size="1.778" layer="95" rot="R270" xref="yes"/>
+<pinref part="U1" gate="G$1" pin="VCCIO@5"/>
+</segment>
+<segment>
+<wire x1="165.1" y1="33.02" x2="165.1" y2="25.4" width="0.1524" layer="91"/>
+<label x="165.1" y="25.4" size="1.778" layer="95" rot="R270" xref="yes"/>
+<pinref part="U1" gate="G$1" pin="VCCIO@6"/>
+</segment>
+<segment>
+<wire x1="213.36" y1="76.2" x2="215.9" y2="76.2" width="0.1524" layer="91"/>
+<label x="220.98" y="76.2" size="1.778" layer="95" xref="yes"/>
+<pinref part="U1" gate="G$1" pin="VCCIO@7"/>
+<wire x1="215.9" y1="76.2" x2="220.98" y2="76.2" width="0.1524" layer="91"/>
+<wire x1="215.9" y1="76.2" x2="215.9" y2="73.66" width="0.1524" layer="91"/>
+<junction x="215.9" y="76.2"/>
+<pinref part="U1" gate="G$1" pin="VREF/IO80"/>
+<wire x1="215.9" y1="73.66" x2="213.36" y2="73.66" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$69" class="0">
@@ -13407,6 +13449,8 @@ Based on Cypress-EZ-usb-8051.pdf</description>
 <sheet>
 <plain>
 <text x="2.54" y="2.54" size="1.778" layer="97" font="vector">PCB Design (c) 2017-2018 Peter Bartmann</text>
+<text x="50.8" y="81.28" size="1.778" layer="97">3.3V: Bank 1, 2, 6, 7 and 8
+2.5V: Bank 3 - 5</text>
 </plain>
 <instances>
 <instance part="FB1" gate="G$1" x="22.86" y="99.06" smashed="yes">
@@ -13469,45 +13513,45 @@ Based on Cypress-EZ-usb-8051.pdf</description>
 <attribute name="NAME" x="85.344" y="94.361" size="1.778" layer="95"/>
 <attribute name="VALUE" x="85.344" y="89.281" size="1.778" layer="96"/>
 </instance>
-<instance part="C104" gate="G$1" x="99.06" y="93.98" smashed="yes">
-<attribute name="NAME" x="100.584" y="94.361" size="1.778" layer="95"/>
-<attribute name="VALUE" x="100.584" y="89.281" size="1.778" layer="96"/>
+<instance part="C104" gate="G$1" x="91.44" y="20.32" smashed="yes">
+<attribute name="NAME" x="92.964" y="20.701" size="1.778" layer="95"/>
+<attribute name="VALUE" x="92.964" y="15.621" size="1.778" layer="96"/>
 </instance>
-<instance part="C105" gate="G$1" x="106.68" y="93.98" smashed="yes">
+<instance part="C105" gate="G$1" x="99.06" y="20.32" smashed="yes">
+<attribute name="NAME" x="100.584" y="20.701" size="1.778" layer="95"/>
+<attribute name="VALUE" x="100.584" y="15.621" size="1.778" layer="96"/>
+</instance>
+<instance part="C106" gate="G$1" x="106.68" y="20.32" smashed="yes">
+<attribute name="NAME" x="108.204" y="20.701" size="1.778" layer="95"/>
+<attribute name="VALUE" x="108.204" y="15.621" size="1.778" layer="96"/>
+</instance>
+<instance part="C107" gate="G$1" x="114.3" y="20.32" smashed="yes">
+<attribute name="NAME" x="115.824" y="20.701" size="1.778" layer="95"/>
+<attribute name="VALUE" x="115.824" y="15.621" size="1.778" layer="96"/>
+</instance>
+<instance part="C108" gate="G$1" x="121.92" y="20.32" smashed="yes">
+<attribute name="NAME" x="123.444" y="20.701" size="1.778" layer="95"/>
+<attribute name="VALUE" x="123.444" y="15.621" size="1.778" layer="96"/>
+</instance>
+<instance part="C110" gate="G$1" x="106.68" y="93.98" smashed="yes">
 <attribute name="NAME" x="108.204" y="94.361" size="1.778" layer="95"/>
 <attribute name="VALUE" x="108.204" y="89.281" size="1.778" layer="96"/>
 </instance>
-<instance part="C106" gate="G$1" x="114.3" y="93.98" smashed="yes">
+<instance part="C111" gate="G$1" x="114.3" y="93.98" smashed="yes">
 <attribute name="NAME" x="115.824" y="94.361" size="1.778" layer="95"/>
 <attribute name="VALUE" x="115.824" y="89.281" size="1.778" layer="96"/>
 </instance>
-<instance part="C107" gate="G$1" x="121.92" y="93.98" smashed="yes">
+<instance part="C109" gate="G$1" x="99.06" y="93.98" smashed="yes">
+<attribute name="NAME" x="100.584" y="94.361" size="1.778" layer="95"/>
+<attribute name="VALUE" x="100.584" y="89.281" size="1.778" layer="96"/>
+</instance>
+<instance part="C112" gate="G$1" x="121.92" y="93.98" smashed="yes">
 <attribute name="NAME" x="123.444" y="94.361" size="1.778" layer="95"/>
 <attribute name="VALUE" x="123.444" y="89.281" size="1.778" layer="96"/>
 </instance>
-<instance part="C108" gate="G$1" x="129.54" y="93.98" smashed="yes">
+<instance part="C113" gate="G$1" x="129.54" y="93.98" smashed="yes">
 <attribute name="NAME" x="131.064" y="94.361" size="1.778" layer="95"/>
 <attribute name="VALUE" x="131.064" y="89.281" size="1.778" layer="96"/>
-</instance>
-<instance part="C110" gate="G$1" x="144.78" y="93.98" smashed="yes">
-<attribute name="NAME" x="146.304" y="94.361" size="1.778" layer="95"/>
-<attribute name="VALUE" x="146.304" y="89.281" size="1.778" layer="96"/>
-</instance>
-<instance part="C111" gate="G$1" x="152.4" y="93.98" smashed="yes">
-<attribute name="NAME" x="153.924" y="94.361" size="1.778" layer="95"/>
-<attribute name="VALUE" x="153.924" y="89.281" size="1.778" layer="96"/>
-</instance>
-<instance part="C109" gate="G$1" x="137.16" y="93.98" smashed="yes">
-<attribute name="NAME" x="138.684" y="94.361" size="1.778" layer="95"/>
-<attribute name="VALUE" x="138.684" y="89.281" size="1.778" layer="96"/>
-</instance>
-<instance part="C112" gate="G$1" x="160.02" y="93.98" smashed="yes">
-<attribute name="NAME" x="161.544" y="94.361" size="1.778" layer="95"/>
-<attribute name="VALUE" x="161.544" y="89.281" size="1.778" layer="96"/>
-</instance>
-<instance part="C113" gate="G$1" x="167.64" y="93.98" smashed="yes">
-<attribute name="NAME" x="169.164" y="94.361" size="1.778" layer="95"/>
-<attribute name="VALUE" x="169.164" y="89.281" size="1.778" layer="96"/>
 </instance>
 <instance part="C103" gate="G$1" x="91.44" y="93.98" smashed="yes">
 <attribute name="NAME" x="92.964" y="94.361" size="1.778" layer="95"/>
@@ -13655,21 +13699,21 @@ Based on Cypress-EZ-usb-8051.pdf</description>
 <attribute name="NAME" x="85.344" y="20.701" size="1.778" layer="95"/>
 <attribute name="VALUE" x="85.344" y="15.621" size="1.778" layer="96"/>
 </instance>
-<instance part="C501" gate="G$1" x="180.34" y="93.98" smashed="yes">
-<attribute name="NAME" x="181.864" y="94.361" size="1.778" layer="95"/>
-<attribute name="VALUE" x="181.864" y="89.281" size="1.778" layer="96"/>
+<instance part="C501" gate="G$1" x="142.24" y="93.98" smashed="yes">
+<attribute name="NAME" x="143.764" y="94.361" size="1.778" layer="95"/>
+<attribute name="VALUE" x="143.764" y="89.281" size="1.778" layer="96"/>
 </instance>
 <instance part="FB3" gate="G$1" x="50.8" y="48.26" smashed="yes" rot="R180">
 <attribute name="NAME" x="54.61" y="46.7614" size="1.778" layer="95" rot="R180"/>
 <attribute name="VALUE" x="54.61" y="51.562" size="1.778" layer="96" rot="R180"/>
 </instance>
-<instance part="C801" gate="G$1" x="208.28" y="93.98" smashed="yes">
-<attribute name="NAME" x="209.804" y="94.361" size="1.778" layer="95"/>
-<attribute name="VALUE" x="209.804" y="89.281" size="1.778" layer="96"/>
+<instance part="C801" gate="G$1" x="170.18" y="93.98" smashed="yes">
+<attribute name="NAME" x="171.704" y="94.361" size="1.778" layer="95"/>
+<attribute name="VALUE" x="171.704" y="89.281" size="1.778" layer="96"/>
 </instance>
-<instance part="FB4" gate="G$1" x="193.04" y="96.52" smashed="yes">
-<attribute name="NAME" x="189.23" y="98.0186" size="1.778" layer="95"/>
-<attribute name="VALUE" x="189.23" y="93.218" size="1.778" layer="96"/>
+<instance part="FB4" gate="G$1" x="154.94" y="96.52" smashed="yes">
+<attribute name="NAME" x="151.13" y="98.0186" size="1.778" layer="95"/>
+<attribute name="VALUE" x="151.13" y="93.218" size="1.778" layer="96"/>
 </instance>
 <instance part="P_GND4" gate="1" x="154.94" y="33.02" smashed="yes">
 <attribute name="NAME" x="153.797" y="34.8742" size="1.778" layer="95"/>
@@ -13715,65 +13759,49 @@ Based on Cypress-EZ-usb-8051.pdf</description>
 <junction x="144.78" y="48.26"/>
 </segment>
 <segment>
-<pinref part="C111" gate="G$1" pin="2"/>
-<wire x1="76.2" y1="88.9" x2="83.82" y2="88.9" width="0.1524" layer="91"/>
+<pinref part="P_GND1" gate="1" pin="P"/>
+<pinref part="C1" gate="G$1" pin="2"/>
+<pinref part="GND15" gate="1" pin="GND"/>
+<wire x1="38.1" y1="86.36" x2="38.1" y2="83.82" width="0.1524" layer="91"/>
+<pinref part="C103" gate="G$1" pin="2"/>
 <pinref part="C102" gate="G$1" pin="2"/>
 <wire x1="83.82" y1="88.9" x2="91.44" y2="88.9" width="0.1524" layer="91"/>
 <junction x="83.82" y="88.9"/>
-<pinref part="C104" gate="G$1" pin="2"/>
-<wire x1="91.44" y1="88.9" x2="99.06" y2="88.9" width="0.1524" layer="91"/>
-<wire x1="99.06" y1="88.9" x2="106.68" y2="88.9" width="0.1524" layer="91"/>
-<junction x="99.06" y="88.9"/>
-<pinref part="C105" gate="G$1" pin="2"/>
-<wire x1="106.68" y1="88.9" x2="114.3" y2="88.9" width="0.1524" layer="91"/>
-<junction x="106.68" y="88.9"/>
-<pinref part="C106" gate="G$1" pin="2"/>
-<wire x1="114.3" y1="88.9" x2="121.92" y2="88.9" width="0.1524" layer="91"/>
-<junction x="114.3" y="88.9"/>
-<pinref part="C107" gate="G$1" pin="2"/>
-<wire x1="121.92" y1="88.9" x2="116.84" y2="88.9" width="0.1524" layer="91"/>
-<junction x="121.92" y="88.9"/>
-<wire x1="121.92" y1="88.9" x2="129.54" y2="88.9" width="0.1524" layer="91"/>
-<pinref part="C108" gate="G$1" pin="2"/>
-<wire x1="129.54" y1="88.9" x2="137.16" y2="88.9" width="0.1524" layer="91"/>
-<junction x="129.54" y="88.9"/>
-<pinref part="C110" gate="G$1" pin="2"/>
-<wire x1="137.16" y1="88.9" x2="144.78" y2="88.9" width="0.1524" layer="91"/>
-<wire x1="144.78" y1="88.9" x2="152.4" y2="88.9" width="0.1524" layer="91"/>
-<junction x="144.78" y="88.9"/>
-<pinref part="C109" gate="G$1" pin="2"/>
-<junction x="137.16" y="88.9"/>
+<wire x1="76.2" y1="88.9" x2="83.82" y2="88.9" width="0.1524" layer="91"/>
 <pinref part="C101" gate="G$1" pin="2"/>
 <junction x="76.2" y="88.9"/>
-<wire x1="152.4" y1="88.9" x2="160.02" y2="88.9" width="0.1524" layer="91"/>
-<junction x="152.4" y="88.9"/>
-<pinref part="C112" gate="G$1" pin="2"/>
-<wire x1="160.02" y1="88.9" x2="167.64" y2="88.9" width="0.1524" layer="91"/>
-<junction x="160.02" y="88.9"/>
-<pinref part="C113" gate="G$1" pin="2"/>
-<junction x="167.64" y="88.9"/>
 <wire x1="76.2" y1="88.9" x2="45.72" y2="88.9" width="0.1524" layer="91"/>
 <wire x1="45.72" y1="88.9" x2="45.72" y2="86.36" width="0.1524" layer="91"/>
-<pinref part="GND15" gate="1" pin="GND"/>
+<wire x1="45.72" y1="86.36" x2="38.1" y2="86.36" width="0.1524" layer="91"/>
+<junction x="38.1" y="86.36"/>
+<wire x1="38.1" y1="86.36" x2="38.1" y2="88.9" width="0.1524" layer="91"/>
 <pinref part="P_GND0" gate="1" pin="P"/>
-<wire x1="38.1" y1="86.36" x2="38.1" y2="83.82" width="0.1524" layer="91"/>
 <wire x1="2.54" y1="86.36" x2="10.16" y2="86.36" width="0.1524" layer="91"/>
 <wire x1="10.16" y1="86.36" x2="38.1" y2="86.36" width="0.1524" layer="91"/>
 <junction x="10.16" y="86.36"/>
 <wire x1="10.16" y1="86.36" x2="10.16" y2="81.28" width="0.1524" layer="91"/>
-<pinref part="P_GND1" gate="1" pin="P"/>
 <wire x1="10.16" y1="81.28" x2="2.54" y2="81.28" width="0.1524" layer="91"/>
-<wire x1="45.72" y1="86.36" x2="38.1" y2="86.36" width="0.1524" layer="91"/>
-<junction x="38.1" y="86.36"/>
+<pinref part="C111" gate="G$1" pin="2"/>
+<pinref part="C110" gate="G$1" pin="2"/>
+<wire x1="99.06" y1="88.9" x2="106.68" y2="88.9" width="0.1524" layer="91"/>
+<wire x1="106.68" y1="88.9" x2="114.3" y2="88.9" width="0.1524" layer="91"/>
+<junction x="106.68" y="88.9"/>
+<pinref part="C109" gate="G$1" pin="2"/>
+<wire x1="114.3" y1="88.9" x2="121.92" y2="88.9" width="0.1524" layer="91"/>
+<junction x="114.3" y="88.9"/>
+<pinref part="C112" gate="G$1" pin="2"/>
+<wire x1="121.92" y1="88.9" x2="129.54" y2="88.9" width="0.1524" layer="91"/>
+<junction x="121.92" y="88.9"/>
+<pinref part="C113" gate="G$1" pin="2"/>
+<junction x="129.54" y="88.9"/>
 <pinref part="C501" gate="G$1" pin="2"/>
-<wire x1="167.64" y1="88.9" x2="180.34" y2="88.9" width="0.1524" layer="91"/>
-<pinref part="C103" gate="G$1" pin="2"/>
-<junction x="91.44" y="88.9"/>
-<pinref part="C1" gate="G$1" pin="2"/>
-<wire x1="38.1" y1="86.36" x2="38.1" y2="88.9" width="0.1524" layer="91"/>
+<wire x1="129.54" y1="88.9" x2="142.24" y2="88.9" width="0.1524" layer="91"/>
 <pinref part="C801" gate="G$1" pin="2"/>
-<wire x1="208.28" y1="88.9" x2="180.34" y2="88.9" width="0.1524" layer="91"/>
-<junction x="180.34" y="88.9"/>
+<wire x1="170.18" y1="88.9" x2="142.24" y2="88.9" width="0.1524" layer="91"/>
+<junction x="142.24" y="88.9"/>
+<wire x1="99.06" y1="88.9" x2="91.44" y2="88.9" width="0.1524" layer="91"/>
+<junction x="99.06" y="88.9"/>
+<junction x="91.44" y="88.9"/>
 </segment>
 <segment>
 <pinref part="C204" gate="G$1" pin="2"/>
@@ -13879,6 +13907,22 @@ Based on Cypress-EZ-usb-8051.pdf</description>
 <pinref part="C142" gate="G$1" pin="2"/>
 <wire x1="83.82" y1="15.24" x2="76.2" y2="15.24" width="0.1524" layer="91"/>
 <junction x="76.2" y="15.24"/>
+<pinref part="C108" gate="G$1" pin="2"/>
+<pinref part="C107" gate="G$1" pin="2"/>
+<wire x1="114.3" y1="15.24" x2="109.22" y2="15.24" width="0.1524" layer="91"/>
+<junction x="114.3" y="15.24"/>
+<wire x1="114.3" y1="15.24" x2="121.92" y2="15.24" width="0.1524" layer="91"/>
+<pinref part="C106" gate="G$1" pin="2"/>
+<wire x1="106.68" y1="15.24" x2="114.3" y2="15.24" width="0.1524" layer="91"/>
+<junction x="106.68" y="15.24"/>
+<pinref part="C105" gate="G$1" pin="2"/>
+<wire x1="99.06" y1="15.24" x2="106.68" y2="15.24" width="0.1524" layer="91"/>
+<junction x="99.06" y="15.24"/>
+<pinref part="C104" gate="G$1" pin="2"/>
+<wire x1="91.44" y1="15.24" x2="99.06" y2="15.24" width="0.1524" layer="91"/>
+<wire x1="91.44" y1="15.24" x2="83.82" y2="15.24" width="0.1524" layer="91"/>
+<junction x="91.44" y="15.24"/>
+<junction x="83.82" y="15.24"/>
 </segment>
 </net>
 <net name="N$54" class="0">
@@ -13947,42 +13991,12 @@ Based on Cypress-EZ-usb-8051.pdf</description>
 </net>
 <net name="VCCIO" class="0">
 <segment>
-<pinref part="C111" gate="G$1" pin="1"/>
 <wire x1="76.2" y1="96.52" x2="83.82" y2="96.52" width="0.1524" layer="91"/>
 <pinref part="C102" gate="G$1" pin="1"/>
 <wire x1="83.82" y1="96.52" x2="91.44" y2="96.52" width="0.1524" layer="91"/>
 <junction x="83.82" y="96.52"/>
-<pinref part="C104" gate="G$1" pin="1"/>
-<wire x1="91.44" y1="96.52" x2="99.06" y2="96.52" width="0.1524" layer="91"/>
-<wire x1="99.06" y1="96.52" x2="106.68" y2="96.52" width="0.1524" layer="91"/>
-<junction x="99.06" y="96.52"/>
-<pinref part="C105" gate="G$1" pin="1"/>
-<wire x1="106.68" y1="96.52" x2="114.3" y2="96.52" width="0.1524" layer="91"/>
-<junction x="106.68" y="96.52"/>
-<pinref part="C106" gate="G$1" pin="1"/>
-<wire x1="114.3" y1="96.52" x2="121.92" y2="96.52" width="0.1524" layer="91"/>
-<junction x="114.3" y="96.52"/>
-<pinref part="C107" gate="G$1" pin="1"/>
-<junction x="121.92" y="96.52"/>
-<wire x1="121.92" y1="96.52" x2="129.54" y2="96.52" width="0.1524" layer="91"/>
-<pinref part="C108" gate="G$1" pin="1"/>
-<wire x1="129.54" y1="96.52" x2="137.16" y2="96.52" width="0.1524" layer="91"/>
-<junction x="129.54" y="96.52"/>
-<pinref part="C110" gate="G$1" pin="1"/>
-<wire x1="137.16" y1="96.52" x2="144.78" y2="96.52" width="0.1524" layer="91"/>
-<wire x1="144.78" y1="96.52" x2="152.4" y2="96.52" width="0.1524" layer="91"/>
-<junction x="144.78" y="96.52"/>
-<pinref part="C109" gate="G$1" pin="1"/>
-<junction x="137.16" y="96.52"/>
 <pinref part="C101" gate="G$1" pin="1"/>
 <junction x="76.2" y="96.52"/>
-<junction x="152.4" y="96.52"/>
-<pinref part="C112" gate="G$1" pin="1"/>
-<wire x1="167.64" y1="96.52" x2="160.02" y2="96.52" width="0.1524" layer="91"/>
-<wire x1="160.02" y1="96.52" x2="152.4" y2="96.52" width="0.1524" layer="91"/>
-<junction x="160.02" y="96.52"/>
-<pinref part="C113" gate="G$1" pin="1"/>
-<junction x="167.64" y="96.52"/>
 <wire x1="76.2" y1="96.52" x2="43.18" y2="96.52" width="0.1524" layer="91"/>
 <wire x1="43.18" y1="96.52" x2="43.18" y2="99.06" width="0.1524" layer="91"/>
 <wire x1="38.1" y1="99.06" x2="38.1" y2="101.6" width="0.1524" layer="91"/>
@@ -13994,15 +14008,30 @@ Based on Cypress-EZ-usb-8051.pdf</description>
 <wire x1="43.18" y1="99.06" x2="60.96" y2="99.06" width="0.1524" layer="91"/>
 <junction x="43.18" y="99.06"/>
 <label x="60.96" y="99.06" size="1.778" layer="95" xref="yes"/>
-<pinref part="C501" gate="G$1" pin="1"/>
-<wire x1="180.34" y1="96.52" x2="167.64" y2="96.52" width="0.1524" layer="91"/>
 <pinref part="C103" gate="G$1" pin="1"/>
-<junction x="91.44" y="96.52"/>
 <pinref part="C1" gate="G$1" pin="1"/>
 <wire x1="38.1" y1="99.06" x2="38.1" y2="96.52" width="0.1524" layer="91"/>
+<pinref part="C111" gate="G$1" pin="1"/>
+<pinref part="C110" gate="G$1" pin="1"/>
+<pinref part="C109" gate="G$1" pin="1"/>
+<wire x1="99.06" y1="96.52" x2="106.68" y2="96.52" width="0.1524" layer="91"/>
+<junction x="106.68" y="96.52"/>
+<wire x1="106.68" y1="96.52" x2="114.3" y2="96.52" width="0.1524" layer="91"/>
+<junction x="114.3" y="96.52"/>
+<pinref part="C112" gate="G$1" pin="1"/>
+<pinref part="C113" gate="G$1" pin="1"/>
+<junction x="129.54" y="96.52"/>
 <pinref part="FB4" gate="G$1" pin="1"/>
-<wire x1="180.34" y1="96.52" x2="187.96" y2="96.52" width="0.1524" layer="91"/>
-<junction x="180.34" y="96.52"/>
+<pinref part="C501" gate="G$1" pin="1"/>
+<wire x1="142.24" y1="96.52" x2="149.86" y2="96.52" width="0.1524" layer="91"/>
+<junction x="142.24" y="96.52"/>
+<wire x1="142.24" y1="96.52" x2="129.54" y2="96.52" width="0.1524" layer="91"/>
+<wire x1="129.54" y1="96.52" x2="121.92" y2="96.52" width="0.1524" layer="91"/>
+<wire x1="121.92" y1="96.52" x2="114.3" y2="96.52" width="0.1524" layer="91"/>
+<junction x="121.92" y="96.52"/>
+<wire x1="99.06" y1="96.52" x2="91.44" y2="96.52" width="0.1524" layer="91"/>
+<junction x="99.06" y="96.52"/>
+<junction x="91.44" y="96.52"/>
 </segment>
 <segment>
 <pinref part="U6" gate="G1" pin="EN"/>
@@ -14048,6 +14077,21 @@ Based on Cypress-EZ-usb-8051.pdf</description>
 <wire x1="58.42" y1="22.86" x2="58.42" y2="25.4" width="0.1524" layer="91"/>
 <junction x="76.2" y="22.86"/>
 <junction x="58.42" y="25.4"/>
+<pinref part="C108" gate="G$1" pin="1"/>
+<pinref part="C107" gate="G$1" pin="1"/>
+<junction x="114.3" y="22.86"/>
+<wire x1="114.3" y1="22.86" x2="121.92" y2="22.86" width="0.1524" layer="91"/>
+<pinref part="C106" gate="G$1" pin="1"/>
+<junction x="106.68" y="22.86"/>
+<wire x1="106.68" y1="22.86" x2="114.3" y2="22.86" width="0.1524" layer="91"/>
+<pinref part="C105" gate="G$1" pin="1"/>
+<junction x="99.06" y="22.86"/>
+<wire x1="99.06" y1="22.86" x2="106.68" y2="22.86" width="0.1524" layer="91"/>
+<pinref part="C104" gate="G$1" pin="1"/>
+<wire x1="91.44" y1="22.86" x2="99.06" y2="22.86" width="0.1524" layer="91"/>
+<wire x1="91.44" y1="22.86" x2="83.82" y2="22.86" width="0.1524" layer="91"/>
+<junction x="91.44" y="22.86"/>
+<junction x="83.82" y="22.86"/>
 </segment>
 </net>
 <net name="VCCD_PLL" class="0">
@@ -14114,10 +14158,10 @@ Based on Cypress-EZ-usb-8051.pdf</description>
 <segment>
 <pinref part="FB4" gate="G$1" pin="2"/>
 <pinref part="C801" gate="G$1" pin="1"/>
-<wire x1="198.12" y1="96.52" x2="208.28" y2="96.52" width="0.1524" layer="91"/>
-<wire x1="208.28" y1="96.52" x2="218.44" y2="96.52" width="0.1524" layer="91"/>
-<junction x="208.28" y="96.52"/>
-<label x="218.44" y="96.52" size="1.778" layer="95" xref="yes"/>
+<wire x1="160.02" y1="96.52" x2="170.18" y2="96.52" width="0.1524" layer="91"/>
+<wire x1="170.18" y1="96.52" x2="180.34" y2="96.52" width="0.1524" layer="91"/>
+<junction x="170.18" y="96.52"/>
+<label x="180.34" y="96.52" size="1.778" layer="95" xref="yes"/>
 </segment>
 </net>
 </nets>
