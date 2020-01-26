@@ -112,12 +112,10 @@ void cfg_set_value(config_t* cfg_data, alt_u8 value)
     if (value) cfg_set_flag(cfg_data);
     else       cfg_clear_flag(cfg_data);
   } else {
-    alt_u32 cfg_word = cfg_data->cfg_word->cfg_word_val;
+    alt_u32 *cfg_word = cfg_data->cfg_word->cfg_word_val;
     alt_u32 cur_val = value > cfg_data->value_details.max_value ? 0 : value;
 
-    cfg_word = (cfg_word & ~cfg_data->value_details.getvalue_mask) | (cur_val << cfg_data->cfg_word_offset);
-
-    cfg_data->cfg_word->cfg_word_val = cfg_word;
+    *cfg_word = (*cfg_word & ~cfg_data->value_details.getvalue_mask) | (cur_val << cfg_data->cfg_word_offset);
   }
 };
 
@@ -302,7 +300,6 @@ void cfg_read_from_logic(configuration_t* sysconfig)
   sysconfig->cfg_word_def[MISC]->cfg_word_val  = (IORD_ALTERA_AVALON_PIO_DATA(CFG_MISC_OUT_BASE)  & sysconfig->cfg_word_def[MISC]->cfg_word_mask);
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val = (IORD_ALTERA_AVALON_PIO_DATA(CFG_VIDEO_OUT_BASE) & sysconfig->cfg_word_def[VIDEO]->cfg_word_mask);
   sysconfig->cfg_word_def[IMAGE]->cfg_word_val = (IORD_ALTERA_AVALON_PIO_DATA(CFG_IMAGE_OUT_BASE) & sysconfig->cfg_word_def[IMAGE]->cfg_word_mask);
-
 }
 
 void cfg_clear_words(configuration_t* sysconfig)

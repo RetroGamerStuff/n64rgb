@@ -55,8 +55,8 @@ static void gamma2txt_func(alt_u8 v) { sprintf(szText,"%u.%02u", v > 4, 5* v + 7
 // misc
 cfg_b32word_t cfg_data_misc =
   { .cfg_word_mask    = CFG_MISC_GETALL_MASK,
-    .cfg_word_val     = 0x0000,
-    .cfg_ref_word_val = 0x0000
+    .cfg_word_val     = 0x00000000,
+    .cfg_ref_word_val = 0x00000000
   };
 
 config_t use_vpll = {
@@ -146,8 +146,8 @@ config_t igr_quickchange = {
 // video
 cfg_b32word_t cfg_data_video =
   { .cfg_word_mask    = CFG_VIDEO_GETALL_MASK,
-    .cfg_word_val     = 0x0000,
-    .cfg_ref_word_val = 0x0000
+    .cfg_word_val     = 0x00000000,
+    .cfg_ref_word_val = 0x00000000
   };
 
 config_t filteraddon_cutoff = {
@@ -265,8 +265,8 @@ config_t deblur_mode = {
 
 cfg_b32word_t cfg_data_image =
   { .cfg_word_mask    = CFG_IMAGE_GETALL_MASK,
-    .cfg_word_val     = 0x0000,
-    .cfg_ref_word_val = 0x0000
+    .cfg_word_val     = 0x00000000,
+    .cfg_ref_word_val = 0x00000000
   };
 
 config_t linex_240p = {

@@ -400,7 +400,8 @@ updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t
         if (is_deblur_screen((*current_menu)) && (sel == 1 || sel ==2)) cfg_check_deblur_frame_cnt(sel == 1);
         return NEW_CONF_VALUE;
       default:
-        break;    }
+        break;
+    }
   }
 
   if ((*current_menu)->leaves[sel].leavetype == IFUNC) {

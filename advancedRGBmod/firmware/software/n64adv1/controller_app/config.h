@@ -60,13 +60,13 @@ typedef enum {
 } config_type_t;
 
 typedef struct {
-  alt_u32 setflag_mask;
-  alt_u32 clrflag_mask;
+  const alt_u32 setflag_mask;
+  const alt_u32 clrflag_mask;
 } config_flag_t;
 
 typedef struct {
-  alt_u32 getvalue_mask;
-  alt_u32 max_value;
+  const alt_u32 getvalue_mask;
+  const alt_u8 max_value;
 } config_value_t;
 
 typedef void (*val2char_func_call)(alt_u8);
