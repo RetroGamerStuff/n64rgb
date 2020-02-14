@@ -104,6 +104,7 @@
 #define MISC_IGR_RESET_V_OFFSET   ( 1 + MISC_VALS_V_OFFSET)
 #define MISC_IGR_QUICK_V_OFFSET   ( 2 + MISC_VALS_V_OFFSET)
 #define MISC_FILTERADDON_V_OFFSET ( 4 + MISC_VALS_V_OFFSET)
+#define MISC_EXCH_RB_OUT_V_OFFSET ( 5 + MISC_VALS_V_OFFSET)
 #define MISC_SHOWTESTPAT_V_OFFSET ( 6 + MISC_VALS_V_OFFSET)
 
 #define RWDATA_OVERLAY_H_OFFSET  OVERLAY_H_OFFSET
@@ -233,7 +234,8 @@ static const char *misc_overlay =
     "  - Reset:\n"
     "  - Quick-Access:\n"
     "* Filter AddOn:\n"
-    "  - Filter Cut-Off:\n\n"
+    "  - Filter Cut-Off:\n"
+    "* Exchange R&B out:\n"
     "* Show Test-Pattern (alpha state)\n"
     "  [A to enter, B to exit]";
 

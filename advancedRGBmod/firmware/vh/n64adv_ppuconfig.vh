@@ -41,7 +41,7 @@
   //    [15: 8] {(2bits reserve),use_vpll,test_vpll,show_testpattern,show_osd_logo,show_osd,mute_osd}
   //    [ 7: 0] {(5bits reserve),use_igr,igr for 15bit mode and deblur (not used in logic)}
   //  wire [31:0] SysConfigSet1;
-  //    [31:24] {(3bits reserve),FilterSet (3bits),YPbPr,RGsB}
+  //    [31:24] {(2bits reserve),Exchange_RB_out,FilterSet (3bits),YPbPr,RGsB}
   //    [23:16] {(3bits reserve), gamma (4bits),15bit mode}
   //    [15: 8] {DeBlur High: (1bit reserve) P2P-Sens, FrameCnt (3bit), Dead-Zone (3bit)}
   //    [ 7: 0] {DeBlur Low:  (2bit reserve) Stability/TH (2bit), Reset (2bit), VI-DeBlur (2bit)}
@@ -56,6 +56,7 @@
   `define show_testpattern_bit  11 + `SysConfigSet2_Offset - 12
 
   `define SysConfigSet1_Offset  32
+  `define Exchange_RB_out_bit   29 + `SysConfigSet1_Offset
   `define FilterSet_slice       28 + `SysConfigSet1_Offset : 26 + `SysConfigSet1_Offset
   `define YPbPr_bit             25 + `SysConfigSet1_Offset
   `define RGsB_bit              24 + `SysConfigSet1_Offset

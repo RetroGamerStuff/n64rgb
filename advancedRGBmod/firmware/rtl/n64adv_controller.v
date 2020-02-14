@@ -134,7 +134,7 @@ wire [31:0] SysConfigSet2;
 // [15: 8] {(2bits reserve),USE_VPLL, TEST_VPLL, show_testpattern, show_osd_logo, show_osd, mute_osd}
 // [ 7: 0] {(5bits reserve),use_igr,igr for 15bit mode and deblur (not used in logic)}
 wire [31:0] SysConfigSet1;
-// [31:24] {(3bits reserve),FilterSet (3bits),YPbPr,RGsB}
+// [31:24] {(2bits reserve),Invert_RB_out,FilterSet (3bits),YPbPr,RGsB}
 // [23:16] {(3bits reserve), gamma (4bits),15bit mode}
 // [15: 8] {DeBlur High: (1bit reserve) P2P-Sens, FrameCnt (3bit), Dead-Zone (3bit)}
 // [ 7: 0] {DeBlur Low:  (2bit reserve) Stability/TH (2bit), Reset (2bit), VI-DeBlur (2bit)}

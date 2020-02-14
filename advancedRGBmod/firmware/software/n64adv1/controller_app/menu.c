@@ -96,7 +96,7 @@ static const arrow_t cfg_vpll_sel_arrow = {
 };
 
 static const arrow_t misc_screen_arrow = {
-    .shape = &selection_arrow,
+    .shape = &optval_arrow,
     .hpos = (MISC_VALS_H_OFFSET - 2)
 };
 
@@ -108,7 +108,7 @@ extern config_t deblur_p2p_sense, deblur_frame_cnt_high, deblur_frame_cnt_low, d
 extern config_t linex_240p, sl_en, sl_method, sl_id, sl_str, slhyb_str;
 extern config_t bob_deinter_480i, field_shift_fix_480i, sl_en_480i, sl_link_480i, sl_id_480i, sl_str_480i, slhyb_str_480i;
 extern config_t use_vpll;
-extern config_t igr_reset, igr_quickchange, filteraddon_cutoff;
+extern config_t igr_reset, igr_quickchange, filteraddon_cutoff, exchange_rb_out;
 
 
 menu_t home_menu = {
@@ -225,11 +225,12 @@ menu_t misc_screen = {
     .overlay = &misc_overlay,
     .parent = &home_menu,
     .current_selection = 0,
-    .number_selections = 4,
+    .number_selections = 5,
     .leaves = {
         {.id = MISC_IGR_RESET_V_OFFSET  , .arrow_desc = &misc_screen_arrow, .leavetype = ICONFIG, .config_value = &igr_reset},
         {.id = MISC_IGR_QUICK_V_OFFSET  , .arrow_desc = &misc_screen_arrow, .leavetype = ICONFIG, .config_value = &igr_quickchange},
         {.id = MISC_FILTERADDON_V_OFFSET, .arrow_desc = &misc_screen_arrow, .leavetype = ICONFIG, .config_value = &filteraddon_cutoff},
+        {.id = MISC_EXCH_RB_OUT_V_OFFSET, .arrow_desc = &misc_screen_arrow, .leavetype = ICONFIG, .config_value = &exchange_rb_out},
         {.id = MISC_SHOWTESTPAT_V_OFFSET, .arrow_desc = &front_sel_arrow,   .leavetype = IFUNC,   .test_fun     = &cfg_show_testpattern}
     }
 };

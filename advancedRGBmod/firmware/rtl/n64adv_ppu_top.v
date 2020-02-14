@@ -105,61 +105,63 @@ wire pal_mode = vinfo_pass[1];
 wire n64_480i = vinfo_pass[0];
 
 // general structure of ConfigSet
-// [63:48] Others: {show_testpattern, (2bits reserve),FilterSet (3bits),YPbPr,RGsB,(3bits reserve), gamma (4bits),15bit mode}
+// [63:48] Others: {show_testpattern, (1bit reserve),Exchange RB out, FilterSet (3bits),YPbPr,RGsB,(3bits reserve), gamma (4bits),15bit mode}
 // [47:32] DeBlur: {(1bit reserve) P2P-Sens, FrameCnt (3bit), Dead-Zone (3bit), (2bit reserve) Stability/TH (2bit), Reset (2bit), VI-DeBlur (2bit)}
 // [31:16] 240p:   {(1bit reserve),linemult (2bits),Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_Method,Sl_ID,Sl_En}
 // [15: 0] 480i:   {(1bit reserve),field_fix,bob_deint.,Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_link,Sl_ID,Sl_En}
 
-reg        cfg_testpat      = 1'b0;
-reg [ 2:0] cfg_filter       = 3'b000;
-reg        cfg_nEN_YPbPr    = 1'b0;
-reg        cfg_nEN_RGsB     = 1'b0;
-reg [ 3:0] cfg_gamma        = 4'b0000;
-reg [15:0] cfg_deblurparams = 16'h0000; // ToDo: setup default
-reg        cfg_nforcedeblur = 1'b0;
-reg        cfg_n15bit_mode  = 1'b0;
-reg        cfg_ifix         = 1'b0;
-reg [ 1:0] cfg_linemult     = 2'b00;
-reg [ 4:0] cfg_SLHyb_str    = 5'b00000;
-reg [ 3:0] cfg_SL_str       = 4'b0000;
-reg        cfg_SL_method    = 1'b0;
-reg        cfg_SL_id        = 1'b0;
-reg        cfg_SL_en        = 1'b0;
+reg        cfg_testpat       = 1'b0;
+reg        cfg_exchange_rb_o = 1'b0;
+reg [ 2:0] cfg_filter        = 3'b000;
+reg        cfg_nEN_YPbPr     = 1'b0;
+reg        cfg_nEN_RGsB      = 1'b0;
+reg [ 3:0] cfg_gamma         = 4'b0000;
+reg [15:0] cfg_deblurparams  = 16'h0000; // ToDo: setup default
+reg        cfg_nforcedeblur  = 1'b0;
+reg        cfg_n15bit_mode   = 1'b0;
+reg        cfg_ifix          = 1'b0;
+reg [ 1:0] cfg_linemult      = 2'b00;
+reg [ 4:0] cfg_SLHyb_str     = 5'b00000;
+reg [ 3:0] cfg_SL_str        = 4'b0000;
+reg        cfg_SL_method     = 1'b0;
+reg        cfg_SL_id         = 1'b0;
+reg        cfg_SL_en         = 1'b0;
 
 always @(posedge VCLK) begin
-  cfg_testpat      <=  ConfigSet[`show_testpattern_bit];
-  cfg_filter       <=  ConfigSet[`FilterSet_slice];
-  cfg_nEN_YPbPr    <= ~ConfigSet[`YPbPr_bit];
-  cfg_nEN_RGsB     <= ~ConfigSet[`RGsB_bit];
-  cfg_gamma        <=  ConfigSet[`gamma_slice];
-  cfg_nforcedeblur <= ~|ConfigSet[`ndeblurman_bit:`nforcedeblur_bit];
-  cfg_deblurparams <=  ConfigSet[`deblurparams_slice];
-  cfg_n15bit_mode  <= ~ConfigSet[`n15bit_mode_bit];
+  cfg_testpat       <=  ConfigSet[`show_testpattern_bit];
+  cfg_exchange_rb_o <=  ConfigSet[`Exchange_RB_out_bit];
+  cfg_filter        <=  ConfigSet[`FilterSet_slice];
+  cfg_nEN_YPbPr     <= ~ConfigSet[`YPbPr_bit];
+  cfg_nEN_RGsB      <= ~ConfigSet[`RGsB_bit];
+  cfg_gamma         <=  ConfigSet[`gamma_slice];
+  cfg_nforcedeblur  <= ~|ConfigSet[`ndeblurman_bit:`nforcedeblur_bit];
+  cfg_deblurparams  <=  ConfigSet[`deblurparams_slice];
+  cfg_n15bit_mode   <= ~ConfigSet[`n15bit_mode_bit];
   if (!n64_480i) begin
-    cfg_ifix         <= 1'b0;
+    cfg_ifix          <= 1'b0;
     if (pal_mode | !USE_VPLL)
-      cfg_linemult     <= {1'b0,^ConfigSet[`v240p_linemult_slice]}; // do not allow LineX3 in PAL mode or if PLL of VCLK (for LineX3) is not locked (or not used)
+      cfg_linemult      <= {1'b0,^ConfigSet[`v240p_linemult_slice]}; // do not allow LineX3 in PAL mode or if PLL of VCLK (for LineX3) is not locked (or not used)
     else
-      cfg_linemult     <= ConfigSet[`v240p_linemult_slice];
-    cfg_SLHyb_str    <= ConfigSet[`v240p_SL_hybrid_slice];
-    cfg_SL_str       <= ConfigSet[`v240p_SL_str_slice];
-    cfg_SL_method    <= ConfigSet[`v240p_SL_method_bit];
-    cfg_SL_id        <= ConfigSet[`v240p_SL_ID_bit];
-    cfg_SL_en        <= ConfigSet[`v240p_SL_En_bit];
+      cfg_linemult      <= ConfigSet[`v240p_linemult_slice];
+    cfg_SLHyb_str     <= ConfigSet[`v240p_SL_hybrid_slice];
+    cfg_SL_str        <= ConfigSet[`v240p_SL_str_slice];
+    cfg_SL_method     <= ConfigSet[`v240p_SL_method_bit];
+    cfg_SL_id         <= ConfigSet[`v240p_SL_ID_bit];
+    cfg_SL_en         <= ConfigSet[`v240p_SL_En_bit];
   end else begin
-    cfg_ifix         <= ConfigSet[`v480i_field_fix_bit];
-    cfg_linemult     <= {1'b0,ConfigSet[`v480i_linex2_bit]};
+    cfg_ifix          <= ConfigSet[`v480i_field_fix_bit];
+    cfg_linemult      <= {1'b0,ConfigSet[`v480i_linex2_bit]};
     if (ConfigSet[`v480i_SL_linked_bit]) begin // check if SL mode is linked to 240p
-      cfg_SLHyb_str    <= ConfigSet[`v240p_SL_hybrid_slice];
-      cfg_SL_str       <= ConfigSet[`v240p_SL_str_slice];
-      cfg_SL_id        <= ConfigSet[`v240p_SL_ID_bit];
+      cfg_SLHyb_str     <= ConfigSet[`v240p_SL_hybrid_slice];
+      cfg_SL_str        <= ConfigSet[`v240p_SL_str_slice];
+      cfg_SL_id         <= ConfigSet[`v240p_SL_ID_bit];
     end else begin
-      cfg_SLHyb_str    <= ConfigSet[`v480i_SL_hybrid_slice];
-      cfg_SL_str       <= ConfigSet[`v480i_SL_str_slice];
-      cfg_SL_id        <= ConfigSet[`v480i_SL_ID_bit];
+      cfg_SLHyb_str     <= ConfigSet[`v480i_SL_hybrid_slice];
+      cfg_SL_str        <= ConfigSet[`v480i_SL_str_slice];
+      cfg_SL_id         <= ConfigSet[`v480i_SL_ID_bit];
     end
-    cfg_SL_method    <= 1'b0;
-    cfg_SL_en        <= ConfigSet[`v480i_SL_En_bit];
+    cfg_SL_method     <= 1'b0;
+    cfg_SL_en         <= ConfigSet[`v480i_SL_En_bit];
   end
   if (ConfigSet[`show_testpattern_bit]) begin // overwrite cfg_linemult if testpattern is enabled
     cfg_linemult <= 2'b00;
@@ -318,12 +320,12 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
       nCSYNC[0] <= Sync_o[0];
 
     vdata_shifted[1] <= vdata_shifted[0];
-    vdata_shifted[0] <= vdata_vc_out[`VDATA_O_CO_SLICE];
+    vdata_shifted[0] <= cfg_exchange_rb_o ? {vdata_vc_out[`VDATA_O_BL_SLICE],vdata_vc_out[`VDATA_O_GR_SLICE],vdata_vc_out[`VDATA_O_RE_SLICE]} : vdata_vc_out[`VDATA_O_CO_SLICE];
 
     if (!ndo_deblur && !cfg_testpat)
       VD_o <= vdata_shifted[^cfg_linemult][`VDATA_O_CO_SLICE];
     else
-      VD_o <= vdata_vc_out[`VDATA_O_CO_SLICE];
+      VD_o <= cfg_exchange_rb_o ? {vdata_vc_out[`VDATA_O_BL_SLICE],vdata_vc_out[`VDATA_O_GR_SLICE],vdata_vc_out[`VDATA_O_RE_SLICE]} : vdata_vc_out[`VDATA_O_CO_SLICE];
   end
 
 

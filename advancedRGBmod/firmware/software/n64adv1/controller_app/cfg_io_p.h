@@ -150,6 +150,17 @@ cfg_b32word_t cfg_data_video =
     .cfg_ref_word_val = 0x00000000
   };
 
+config_t exchange_rb_out = {
+    .cfg_word        = &cfg_data_video,
+    .cfg_word_offset = CFG_EXC_RB_OUT_OFFSET,
+    .cfg_type        = FLAG,
+    .flag_masks      = {
+        .setflag_mask = CFG_EXC_RB_OUT_SETMASK,
+        .clrflag_mask = CFG_EXC_RB_OUT_CLRMASK
+    },
+    .value_string = &OffOn
+};
+
 config_t filteraddon_cutoff = {
     .cfg_word        = &cfg_data_video,
     .cfg_word_offset = CFG_FILTERADDON_OFFSET,
