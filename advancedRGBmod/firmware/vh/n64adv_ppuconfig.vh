@@ -42,7 +42,7 @@
   //    [ 7: 0] {(5bits reserve),use_igr,igr for 15bit mode and deblur (not used in logic)}
   //  wire [31:0] SysConfigSet1;
   //    [31:24] {(2bits reserve),Exchange_RB_out,FilterSet (3bits),YPbPr,RGsB}
-  //    [23:16] {(3bits reserve), gamma (4bits),15bit mode}
+  //    [23:16] {(2bits reserve), gamma (4bits),15bit mode,pal_awareness (not used in logic)}
   //    [15: 8] {DeBlur High: (1bit reserve) P2P-Sens, FrameCnt (3bit), Dead-Zone (3bit)}
   //    [ 7: 0] {DeBlur Low:  (2bit reserve) Stability/TH (2bit), Reset (2bit), VI-DeBlur (2bit)}
   //  wire [31:0] SysConfigSet2;
@@ -60,8 +60,8 @@
   `define FilterSet_slice       28 + `SysConfigSet1_Offset : 26 + `SysConfigSet1_Offset
   `define YPbPr_bit             25 + `SysConfigSet1_Offset
   `define RGsB_bit              24 + `SysConfigSet1_Offset
-  `define gamma_slice           20 + `SysConfigSet1_Offset : 17 + `SysConfigSet1_Offset
-  `define n15bit_mode_bit       16 + `SysConfigSet1_Offset
+  `define gamma_slice           21 + `SysConfigSet1_Offset : 18 + `SysConfigSet1_Offset
+  `define n15bit_mode_bit       17 + `SysConfigSet1_Offset
   `define deblurparams_slice    15 + `SysConfigSet1_Offset :  0 + `SysConfigSet1_Offset
     `define ndeblurman_bit       1 + `SysConfigSet1_Offset
     `define nforcedeblur_bit     0 + `SysConfigSet1_Offset

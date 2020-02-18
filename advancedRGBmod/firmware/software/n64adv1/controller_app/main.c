@@ -46,6 +46,16 @@
 const alt_u8 RW_Message_FontColor[] = {FONTCOLOR_GREEN,FONTCOLOR_RED,FONTCOLOR_MAGENTA};
 const char   *RW_Message[] = {"< Success >","< Failed > ","< Aborted >"};
 
+extern const char *NTSCPAL_SEL[];
+config_t ntsc_pal_selection = {
+    // .cfg_b32word_t* must be NULL to show that this is a local value
+    .cfg_type     = TXTVALUE, // treat as txtvalue for modifying function
+    .value_details = {
+      .max_value = 1,
+    },
+    .value_string = &NTSCPAL_SEL
+};
+
 
 /* ToDo's:
  * - Display warning messages
@@ -106,6 +116,7 @@ int main()
   cfg_clear_flag(&show_testpat);
   cfg_clear_flag(&test_vpll);
 
+  cfg_load_image_word(&sysconfig,0);
   cfg_apply_to_logic(&sysconfig);
 
   vpll_lock_first_boot = 1;
@@ -126,6 +137,10 @@ int main()
 
 
     if(cfg_get_value(&show_osd,0)) {
+
+      alt_u8 image_word_selection = cfg_get_value(&ntsc_pal_selection,0);
+      if (cfg_get_value(&pal_awareness,0)) // show the correct options
+        cfg_load_image_word(&sysconfig,image_word_selection);
 
       if (message_cnt > 0) {
         if (command != CMD_NON) {
@@ -177,6 +192,10 @@ int main()
                                      (todo == NEW_CONF_VALUE) ||
                                      (todo == NEW_SELECTION)  ))
         update_cfg_screen(menu);
+
+      cfg_store_image_word(&sysconfig,image_word_selection);
+      if (!cfg_get_value(&pal_awareness,0))
+        cfg_set_value(&ntsc_pal_selection,0);
 
     } else { /* END OF if(cfg_get_value(&show_osd)) */
 
@@ -240,6 +259,11 @@ int main()
         else                                                 vpll_state_frame_delay++;
       }
     }
+
+    if (cfg_get_value(&pal_awareness,0))
+      cfg_load_image_word(&sysconfig,(ppu_state & PPU_STATE_PALMODE_GETMASK) >> PPU_STATE_PALMODE_OFFSET);
+    else
+      cfg_load_image_word(&sysconfig,0);
 
     cfg_apply_to_logic(&sysconfig);
 

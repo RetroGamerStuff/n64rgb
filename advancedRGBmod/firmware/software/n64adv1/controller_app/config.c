@@ -42,7 +42,7 @@
 typedef struct {
   alt_u8  vers_cfg_main;
   alt_u8  vers_cfg_sub;
-  alt_u8  cfg_words[CFG2FLASH_WORD_FACTOR*NUM_CFG_B32WORDS];
+  alt_u8  cfg_words[CFG2FLASH_WORD_FACTOR*(NUM_CFG_B32WORDS + 1)];
 } cfg4flash_t;
 
 static const char *confirm_message = "< Really? >";
@@ -52,10 +52,32 @@ extern const char *btn_overlay_1, *btn_overlay_2;
 extern cfg_b32word_t cfg_data_video;
 extern config_t deblur_frame_cnt_high, deblur_frame_cnt_low;
 
+extern alt_u32 cfg_data_image_ntsc_word_val_tray, cfg_data_image_ntsc_word_ref_tray,
+               cfg_data_image_pal_word_val_tray, cfg_data_image_pal_word_ref_tray;
+
 alt_u8 use_filteraddon;
+
+
+void cfg_toggle_flag(config_t* cfg_data) {
+  if (cfg_data->cfg_type == FLAG)
+    cfg_data->cfg_word->cfg_word_val ^= cfg_data->flag_masks.setflag_mask;
+};
+void cfg_set_flag(config_t* cfg_data) {
+  if (cfg_data->cfg_type == FLAG)
+    cfg_data->cfg_word->cfg_word_val |= cfg_data->flag_masks.setflag_mask;
+};
+void cfg_clear_flag(config_t* cfg_data) {
+  if (cfg_data->cfg_type == FLAG)
+    cfg_data->cfg_word->cfg_word_val &= cfg_data->flag_masks.clrflag_mask;
+};
 
 void cfg_inc_value(config_t* cfg_data)
 {
+  if (is_local_cfg(cfg_data)) {
+    cfg_data->cfg_value = cfg_data->cfg_value == cfg_data->value_details.max_value ? 0 : cfg_data->cfg_value + 1;
+    return;
+  }
+
   if (cfg_data->cfg_type == FLAG) {
     cfg_toggle_flag(cfg_data);
     return;
@@ -70,6 +92,11 @@ void cfg_inc_value(config_t* cfg_data)
 
 void cfg_dec_value(config_t* cfg_data)
 {
+  if (is_local_cfg(cfg_data)) {
+    cfg_data->cfg_value = cfg_data->cfg_value == 0 ? cfg_data->value_details.max_value : cfg_data->cfg_value - 1;
+    return;
+  }
+
   if (cfg_data->cfg_type == FLAG) {
     cfg_toggle_flag(cfg_data);
     return;
@@ -98,6 +125,9 @@ void cfg_check_deblur_frame_cnt(alt_u8 set_low) {
 
 alt_u8 cfg_get_value(config_t* cfg_data, alt_u8 get_reference)
 {
+  if (is_local_cfg(cfg_data))
+    return cfg_data->cfg_value;
+
   alt_u32 cfg_word;
   if (!get_reference) cfg_word = cfg_data->cfg_word->cfg_word_val;
   else                cfg_word = cfg_data->cfg_word->cfg_ref_word_val;
@@ -108,6 +138,11 @@ alt_u8 cfg_get_value(config_t* cfg_data, alt_u8 get_reference)
 
 void cfg_set_value(config_t* cfg_data, alt_u8 value)
 {
+  if (is_local_cfg(cfg_data)) {
+    cfg_data->cfg_value = value;
+    return;
+  }
+
   if (cfg_data->cfg_type == FLAG) {
     if (value) cfg_set_flag(cfg_data);
     else       cfg_clear_flag(cfg_data);
@@ -186,13 +221,23 @@ int cfg_save_to_flash(configuration_t* sysconfig, alt_u8 need_confirm)
 
   ((cfg4flash_t*) databuf)->vers_cfg_main = CFG_FW_MAIN;
   ((cfg4flash_t*) databuf)->vers_cfg_sub = CFG_FW_SUB;
-  for (idx = 0; idx < NUM_CFG_B32WORDS; idx++) {
+  for (idx = 0; idx < NUM_CFG_B32WORDS - 1; idx++) {
     for (jdx = 0; jdx < CFG2FLASH_WORD_FACTOR; jdx++)
       ((cfg4flash_t*) databuf)->cfg_words[CFG2FLASH_WORD_FACTOR*idx+jdx] = ((0xFF << (8*jdx) & sysconfig->cfg_word_def[idx]->cfg_word_val) >> (8*jdx));
     sysconfig->cfg_word_def[idx]->cfg_ref_word_val = sysconfig->cfg_word_def[idx]->cfg_word_val;
   }
 
-  return write_flash_page((alt_u8*) databuf, sizeof(cfg4flash_t), USERDATA_OFFSET/PAGESIZE);
+  for (jdx = 0; jdx < CFG2FLASH_WORD_FACTOR; jdx++) {
+    ((cfg4flash_t*) databuf)->cfg_words[CFG2FLASH_WORD_FACTOR*2+jdx] = ((0xFF << (8*jdx) & cfg_data_image_ntsc_word_val_tray) >> (8*jdx)); // global/ntsc
+    ((cfg4flash_t*) databuf)->cfg_words[CFG2FLASH_WORD_FACTOR*3+jdx] = ((0xFF << (8*jdx) & cfg_data_image_pal_word_val_tray) >> (8*jdx)); // pal
+  }
+
+  int retval = write_flash_page((alt_u8*) databuf, sizeof(cfg4flash_t), USERDATA_OFFSET/PAGESIZE);
+
+  if (retval == 0)
+    cfg_update_reference(sysconfig);
+
+  return retval;
 };
 
 int cfg_load_from_flash(configuration_t* sysconfig, alt_u8 need_confirm)
@@ -214,10 +259,17 @@ int cfg_load_from_flash(configuration_t* sysconfig, alt_u8 need_confirm)
   if ((((cfg4flash_t*) databuf)->vers_cfg_main != CFG_FW_MAIN) ||
       (((cfg4flash_t*) databuf)->vers_cfg_sub  != CFG_FW_SUB)   ) return -CFG_VERSION_INVALID;
 
-  for (idx = 0; idx < NUM_CFG_B32WORDS; idx++) {
+  for (idx = 0; idx < NUM_CFG_B32WORDS - 1; idx++) {
 	  sysconfig->cfg_word_def[idx]->cfg_word_val = 0;
     for (jdx = 0; jdx < CFG2FLASH_WORD_FACTOR; jdx++)
       sysconfig->cfg_word_def[idx]->cfg_word_val |= (((cfg4flash_t*) databuf)->cfg_words[CFG2FLASH_WORD_FACTOR*idx + jdx] << (8*jdx));
+  }
+
+  cfg_data_image_ntsc_word_val_tray = 0;
+  cfg_data_image_pal_word_val_tray = 0;
+  for (jdx = 0; jdx < CFG2FLASH_WORD_FACTOR; jdx++) {
+      cfg_data_image_ntsc_word_val_tray |= (((cfg4flash_t*) databuf)->cfg_words[CFG2FLASH_WORD_FACTOR*2+jdx]  << (8*jdx)); // global/ntsc
+      cfg_data_image_pal_word_val_tray |= (((cfg4flash_t*) databuf)->cfg_words[CFG2FLASH_WORD_FACTOR*3+jdx]  << (8*jdx));  // pal
   }
 
   cfg_update_reference(sysconfig);
@@ -239,6 +291,9 @@ int cfg_load_defaults(configuration_t* sysconfig, alt_u8 need_confirm)
   sysconfig->cfg_word_def[MISC]->cfg_word_val |= CFG_MISC_DEFAULT;
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= CFG_VIDEO_DEFAULT;
   sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= CFG_IMAGE_DEFAULT;
+
+  cfg_store_image_word(sysconfig,0);
+  cfg_store_image_word(sysconfig,1);
 
   return 0;
 }
@@ -285,7 +340,30 @@ int cfg_load_jumperset(configuration_t* sysconfig, alt_u8 need_confirm)
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val &= CFG_VFORMAT_CLRMASK;
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= (((jumper_word & JUMPER_SOG_GETMASK) >> JUMPER_VFORMAT_OFFSET) << CFG_VFORMAT_OFFSET);
 
+  cfg_store_image_word(sysconfig,0);
+  cfg_store_image_word(sysconfig,1);
+
   return 0;
+}
+
+void cfg_store_image_word(configuration_t* sysconfig, alt_u8 pal) {
+  if (!pal) {
+    cfg_data_image_ntsc_word_val_tray = sysconfig->cfg_word_def[IMAGE]->cfg_word_val;
+    cfg_data_image_ntsc_word_ref_tray = sysconfig->cfg_word_def[IMAGE]->cfg_ref_word_val;
+  } else {
+    cfg_data_image_pal_word_val_tray = sysconfig->cfg_word_def[IMAGE]->cfg_word_val;
+    cfg_data_image_pal_word_ref_tray = sysconfig->cfg_word_def[IMAGE]->cfg_ref_word_val;
+  }
+}
+
+void cfg_load_image_word(configuration_t* sysconfig, alt_u8 pal) {
+  if (!pal) {
+    sysconfig->cfg_word_def[IMAGE]->cfg_word_val = cfg_data_image_ntsc_word_val_tray;
+    sysconfig->cfg_word_def[IMAGE]->cfg_ref_word_val = cfg_data_image_ntsc_word_ref_tray;
+  } else {
+    sysconfig->cfg_word_def[IMAGE]->cfg_word_val = cfg_data_image_pal_word_val_tray;
+    sysconfig->cfg_word_def[IMAGE]->cfg_ref_word_val = cfg_data_image_pal_word_ref_tray;
+  }
 }
 
 void cfg_apply_to_logic(configuration_t* sysconfig)
@@ -314,6 +392,9 @@ void cfg_update_reference(configuration_t* sysconfig)
   int idx;
   for (idx = 0; idx < NUM_CFG_B32WORDS; idx++)
     sysconfig->cfg_word_def[idx]->cfg_ref_word_val = sysconfig->cfg_word_def[idx]->cfg_word_val;
+
+  cfg_data_image_ntsc_word_ref_tray = cfg_data_image_ntsc_word_val_tray;
+  cfg_data_image_pal_word_ref_tray  = cfg_data_image_pal_word_val_tray;
 }
 
 void enable_vpll_test()

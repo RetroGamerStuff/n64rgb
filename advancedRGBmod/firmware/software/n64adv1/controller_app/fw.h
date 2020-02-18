@@ -33,7 +33,7 @@
 #define SW_FW_SUB   51
 
 #define CFG_FW_MAIN SW_FW_MAIN
-#define CFG_FW_SUB  2
+#define CFG_FW_SUB  3
 
 
 

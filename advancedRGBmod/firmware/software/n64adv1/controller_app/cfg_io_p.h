@@ -205,6 +205,17 @@ config_t mode15bit = {
     .value_string = &OffOn
 };
 
+config_t pal_awareness = {
+    .cfg_word        = &cfg_data_video,
+    .cfg_word_offset = CFG_PALAWARENESS_OFFSET,
+    .cfg_type        = FLAG,
+    .flag_masks      = {
+        .setflag_mask = CFG_PALAWARENESS_SETMASK,
+        .clrflag_mask = CFG_PALAWARENESS_CLRMASK
+    },
+    .value_string = &OffOn
+};
+
 config_t deblur_p2p_sense = {
     .cfg_word        = &cfg_data_video,
     .cfg_word_offset = CFG_DEBLUR_P2PS_OFFSET,
@@ -279,6 +290,12 @@ cfg_b32word_t cfg_data_image =
     .cfg_word_val     = 0x00000000,
     .cfg_ref_word_val = 0x00000000
   };
+
+alt_u32 cfg_data_image_ntsc_word_val_tray = 0x00000000;
+alt_u32 cfg_data_image_ntsc_word_ref_tray = 0x00000000;
+
+alt_u32 cfg_data_image_pal_word_val_tray = 0x00000000;
+alt_u32 cfg_data_image_pal_word_ref_tray = 0x00000000;
 
 config_t linex_240p = {
     .cfg_word        = &cfg_data_image,

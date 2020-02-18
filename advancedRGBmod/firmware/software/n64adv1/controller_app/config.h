@@ -73,7 +73,10 @@ typedef void (*val2char_func_call)(alt_u8);
 
 typedef struct {
   cfg_b32word_t       *cfg_word;
-  const alt_u8        cfg_word_offset;
+  union {
+    alt_u8              cfg_word_offset;
+    alt_u8              cfg_value;
+  };
   const config_type_t cfg_type;
   union {
     const config_flag_t  flag_masks;
@@ -95,10 +98,10 @@ typedef struct {
 #define CFG_JUMPER_LOAD_ABORT CFG_FLASH_SAVE_ABORT
 
 // the overall masks
-
 #define CFG_MISC_GETALL_MASK      0x00003F07
-#define CFG_VIDEO_GETALL_MASK     0x3F1F7F3F
+#define CFG_VIDEO_GETALL_MASK     0x3F3F7F3F
 #define CFG_IMAGE_GETALL_MASK     0x7FF77FF7
+
 
 // misc  (set 2)
 #define CFG_MISC_OUT_BASE   CFG_SET2_OUT_BASE
@@ -153,8 +156,9 @@ typedef struct {
 #define CFG_VFORMAT_OFFSET      24
   #define CFG_YPBPR_OFFSET        25
   #define CFG_RGSB_OFFSET         24
-#define CFG_GAMMA_OFFSET        17
-#define CFG_15BITMODE_OFFSET    16
+#define CFG_GAMMA_OFFSET        18
+#define CFG_15BITMODE_OFFSET    17
+#define CFG_PALAWARENESS_OFFSET 16
 #define CFG_DEBLUR_P2PS_OFFSET  14
 #define CFG_DEBLUR_FCNT_HIGH_OFFSET  11
 #define CFG_DEBLUR_FCNT_LOW_OFFSET   8
@@ -185,6 +189,9 @@ typedef struct {
 #define CFG_15BITMODE_GETMASK         (1<<CFG_15BITMODE_OFFSET)
   #define CFG_15BITMODE_SETMASK         (1<<CFG_15BITMODE_OFFSET)
   #define CFG_15BITMODE_CLRMASK         (CFG_VIDEO_GETALL_MASK & ~CFG_15BITMODE_SETMASK)
+#define CFG_PALAWARENESS_GETMASK      (1<<CFG_PALAWARENESS_OFFSET)
+  #define CFG_PALAWARENESS_SETMASK      (1<<CFG_PALAWARENESS_OFFSET)
+  #define CFG_PALAWARENESS_CLRMASK      (CFG_VIDEO_GETALL_MASK & ~CFG_PALAWARENESS_SETMASK)
 #define CFG_DEBLUR_P2PS_GETMASK       (1<<CFG_DEBLUR_P2PS_OFFSET)
   #define CFG_DEBLUR_P2PS_SETMASK       (1<<CFG_DEBLUR_P2PS_OFFSET)
   #define CFG_DEBLUR_P2PS_CLRMASK       (CFG_VIDEO_GETALL_MASK & ~CFG_DEBLUR_P2PS_SETMASK)
@@ -350,12 +357,12 @@ typedef struct {
 
 extern alt_u8 use_filteraddon;
 
-inline void cfg_toggle_flag(config_t* cfg_data)
-  {  if (cfg_data->cfg_type == FLAG) cfg_data->cfg_word->cfg_word_val ^= cfg_data->flag_masks.setflag_mask;  };
-inline void cfg_set_flag(config_t* cfg_data)
-  {  if (cfg_data->cfg_type == FLAG) cfg_data->cfg_word->cfg_word_val |= cfg_data->flag_masks.setflag_mask;  };
-inline void cfg_clear_flag(config_t* cfg_data)
-  {  if (cfg_data->cfg_type == FLAG) cfg_data->cfg_word->cfg_word_val &= cfg_data->flag_masks.clrflag_mask;  };
+static inline alt_u8 is_local_cfg(config_t* cfg_data)
+  { return cfg_data->cfg_word == NULL;  }
+
+void cfg_toggle_flag(config_t* cfg_data);
+void cfg_set_flag(config_t* cfg_data);
+void cfg_clear_flag(config_t* cfg_data);
 void cfg_inc_value(config_t* cfg_data);
 void cfg_dec_value(config_t* cfg_data);
 void cfg_check_deblur_frame_cnt(alt_u8 set_low);
@@ -366,6 +373,8 @@ int cfg_save_to_flash(configuration_t* sysconfig, alt_u8 need_confirm);
 int cfg_load_from_flash(configuration_t* sysconfig, alt_u8 need_confirm);
 int cfg_load_defaults(configuration_t* sysconfig, alt_u8 need_confirm);
 int cfg_load_jumperset(configuration_t* sysconfig, alt_u8 need_confirm);
+void cfg_store_image_word(configuration_t* sysconfig, alt_u8 pal);
+void cfg_load_image_word(configuration_t* sysconfig, alt_u8 pal);
 void cfg_apply_to_logic(configuration_t* sysconfig);
 void cfg_read_from_logic(configuration_t* sysconfig);
 inline alt_u8 cfg_get_jumper()

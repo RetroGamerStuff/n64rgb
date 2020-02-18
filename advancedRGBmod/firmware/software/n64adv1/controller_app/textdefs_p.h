@@ -43,6 +43,11 @@
 #define TEXTOVERLAY_H_OFFSET   0
 #define HOMEOVERLAY_H_OFFSET   3
 
+#define VD_240P_HEADER_H_OFFSET   9
+#define VD_240P_OVERLAY_V_OFFSET  4
+#define VD_480I_OVERLAY_V_OFFSET  5
+#define VD_240P_OVERLAY_H_OFFSET  7
+
 #define COPYRIGHT_SIGN          0x0A
 #define COPYRIGHT_H_OFFSET      (VD_WIDTH - 14)
 #define COPYRIGHT_V_OFFSET      (VD_HEIGHT - 1)
@@ -57,15 +62,16 @@
 
 #define CFG_OVERLAY_H_OFFSET    OVERLAY_H_OFFSET
 #define CFG_OVERLAY_V_OFFSET    OVERLAY_V_OFFSET_WH
-#define CFG_VALS_H_OFFSET       (23 + CFG_OVERLAY_H_OFFSET)
+#define CFG_VALS_H_OFFSET       (26 + CFG_OVERLAY_H_OFFSET)
 #define CFG_VALS_V_OFFSET       CFG_OVERLAY_V_OFFSET
-#define CFG_240P_SET_V_OFFSET   ( 1 + CFG_VALS_V_OFFSET)
-#define CFG_480I_SET_V_OFFSET   ( 2 + CFG_VALS_V_OFFSET)
-#define CFG_FORMAT_V_OFFSET     ( 3 + CFG_VALS_V_OFFSET)
-#define CFG_DEBLURMODE_V_OFFSET ( 4 + CFG_VALS_V_OFFSET)
-#define CFG_DEBLURADV_V_OFFSET  ( 5 + CFG_VALS_V_OFFSET)
-#define CFG_15BIT_V_OFFSET      ( 6 + CFG_VALS_V_OFFSET)
-#define CFG_GAMMA_V_OFFSET      ( 7 + CFG_VALS_V_OFFSET)
+#define CFG_NTSC_PAL_AWARENESS_V_OFFSET ( 0 + CFG_VALS_V_OFFSET)
+#define CFG_NTSC_PAL_SELECT_V_OFFSET    ( 1 + CFG_VALS_V_OFFSET)
+#define CFG_240P_SET_V_OFFSET           ( 2 + CFG_VALS_V_OFFSET)
+#define CFG_480I_SET_V_OFFSET           ( 3 + CFG_VALS_V_OFFSET)
+#define CFG_DEBLURMODE_V_OFFSET         ( 4+ CFG_VALS_V_OFFSET)
+#define CFG_DEBLURADV_V_OFFSET          ( 5 + CFG_VALS_V_OFFSET)
+#define CFG_15BIT_V_OFFSET              ( 6 + CFG_VALS_V_OFFSET)
+#define CFG_GAMMA_V_OFFSET              ( 7 + CFG_VALS_V_OFFSET)
 
 #define CFG_VSUB_OVERLAY_H_OFFSET   OVERLAY_H_OFFSET
 #define CFG_VSUB_OVERLAY_V_OFFSET   OVERLAY_V_OFFSET_WH
@@ -101,11 +107,12 @@
 #define MISC_OVERLAY_V_OFFSET     OVERLAY_V_OFFSET_WH
 #define MISC_VALS_H_OFFSET        (23 + MISC_OVERLAY_H_OFFSET)
 #define MISC_VALS_V_OFFSET        CFG_OVERLAY_V_OFFSET
-#define MISC_IGR_RESET_V_OFFSET   ( 1 + MISC_VALS_V_OFFSET)
-#define MISC_IGR_QUICK_V_OFFSET   ( 2 + MISC_VALS_V_OFFSET)
-#define MISC_FILTERADDON_V_OFFSET ( 4 + MISC_VALS_V_OFFSET)
-#define MISC_EXCH_RB_OUT_V_OFFSET ( 5 + MISC_VALS_V_OFFSET)
-#define MISC_SHOWTESTPAT_V_OFFSET ( 6 + MISC_VALS_V_OFFSET)
+#define MISC_COLOR_SPACE_V_OFFSET ( 0 + MISC_VALS_V_OFFSET)
+#define MISC_EXCH_RB_OUT_V_OFFSET ( 1 + MISC_VALS_V_OFFSET)
+#define MISC_IGR_RESET_V_OFFSET   ( 3 + MISC_VALS_V_OFFSET)
+#define MISC_IGR_QUICK_V_OFFSET   ( 4 + MISC_VALS_V_OFFSET)
+#define MISC_FILTERADDON_V_OFFSET ( 6 + MISC_VALS_V_OFFSET)
+#define MISC_SHOWTESTPAT_V_OFFSET ( 7 + MISC_VALS_V_OFFSET)
 
 #define RWDATA_OVERLAY_H_OFFSET  OVERLAY_H_OFFSET
 #define RWDATA_OVERLAY_V_OFFSET  OVERLAY_V_OFFSET_WH
@@ -171,11 +178,11 @@ static const char *vinfo_overlay =
 static const char *cfg_header =
     "Configuration";
 static const char *cfg_overlay =
+    "* NTSC/PAL awareness:\n"
     "* Linemultiplier:\n"
     "  - 240p settings:\n"
     "  - 480i settings:\n"
-    "* Output Format:\n"
-    "* 240p-DeBlur:\n"
+    "* LowRes.-DeBlur:\n"
     "  - Adv. settings:\n"
     "* 15bit Mode:\n"
     "* Gamma Value:";
@@ -230,14 +237,14 @@ static const char *cfg_vpll_opt_overlay =
 static const char *misc_header =
     "Miscellaneous";
 static const char *misc_overlay =
+    "* Color Space:\n"
+    "* Exchange R&B out:\n"
     "* In-Game Routines:\n"
     "  - Reset:\n"
     "  - Quick-Access:\n"
     "* Filter AddOn:\n"
     "  - Filter Cut-Off:\n"
-    "* Exchange R&B out:\n"
-    "* Show Test-Pattern (alpha state)\n"
-    "  [A to enter, B to exit]";
+    "* Show Test-Pattern";
 
 static const char *rwdata_header =
     "Load/Save";
@@ -300,11 +307,14 @@ static const char *home_overlay =
     "License...";
 
 const char *EnterSubMenu    = "[Enter submenu]";
+const char *RunTestPattern  = "[run (alpha)]";
 const char *StartTest       = "[Start VPLL Test]";
 const char *LineX3VPLLHint  = "*LineX3: needs VPLL enabled";
 const char *LineX3Hint      = "*LineX3: only available in NTSC video mode";
+const char *Global          = "Global";
 
 const char *OffOn[]         = {"Off","On"};
+const char *NTSCPAL_SEL[]   = {"NTSC  ","PAL   "};
 const char *LineX_240p[]    = {"LineX Off","LineX2","LineX3*"};
 const char *VideoPLL[]      = {"Off","Locked"};
 const char *EvenOdd[]       = {"Even","Odd "};
@@ -320,5 +330,8 @@ const char *DeBlurRst[]     = {"Never","On Vmode change","On reset","On both"};
 const char *FilterAddOn[]   = {"(Auto)"," 9.5MHz","18.0MHz","36.0MHz","(bypassed)","(not installed)"};
 
 const char *QuickChange[]   = {"Off","DeBlur","15bit mode","All"};
+
+const char *text_240p_288p[]  = {"240p","288p"};
+const char *text_480i_576i[]  = {"480i","576i"};
 
 #endif /* MENU_TEXT_TEXTDEFS_P_H_ */

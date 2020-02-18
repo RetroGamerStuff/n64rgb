@@ -105,7 +105,7 @@ wire pal_mode = vinfo_pass[1];
 wire n64_480i = vinfo_pass[0];
 
 // general structure of ConfigSet
-// [63:48] Others: {show_testpattern, (1bit reserve),Exchange RB out, FilterSet (3bits),YPbPr,RGsB,(3bits reserve), gamma (4bits),15bit mode}
+// [63:48] Others: {show_testpattern, (1bit reserve),Exchange RB out, FilterSet (3bits),YPbPr,RGsB,(2bits reserve), gamma (4bits),15bit mode, pal_awareness}
 // [47:32] DeBlur: {(1bit reserve) P2P-Sens, FrameCnt (3bit), Dead-Zone (3bit), (2bit reserve) Stability/TH (2bit), Reset (2bit), VI-DeBlur (2bit)}
 // [31:16] 240p:   {(1bit reserve),linemult (2bits),Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_Method,Sl_ID,Sl_En}
 // [15: 0] 480i:   {(1bit reserve),field_fix,bob_deint.,Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_link,Sl_ID,Sl_En}
