@@ -385,9 +385,9 @@ updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t
                                              (command == CMD_MENU_UP) ?   2 : 0;
     }
 
-    if (is_misc_screen(*current_menu) && sel == 2 && !use_filteraddon)
+    if (is_misc_screen(*current_menu) && sel == 4 && !use_filteraddon)
       // (*current_menu)->current_selection = (command == CMD_MENU_UP) ? 1 : (*current_menu)->number_selections - 1;
-      (*current_menu)->current_selection = (command == CMD_MENU_UP) ? 1 : 3;
+      (*current_menu)->current_selection = (command == CMD_MENU_UP) ? sel - 1 : sel + 1;
 
     return todo;
   }
@@ -707,8 +707,8 @@ int update_cfg_screen(menu_t* current_menu)
         if (v_run == current_menu->current_selection)
           vd_clear_area(h_l_offset,h_l_offset + OPT_WINDOW_WIDTH,v_offset,v_offset);
 
-        if (is_misc_screen(current_menu) && v_run == 2 && !use_filteraddon)
-          vd_print_string(h_l_offset-2,v_offset - 1,background_color,FONTCOLOR_GREY,FilterAddOn[5]);
+        if (is_misc_screen(current_menu) && v_run == 4 && !use_filteraddon)
+          vd_print_string(h_l_offset,v_offset,background_color,FONTCOLOR_GREY,FilterAddOn[5]);
         else if (use_240p_linked_values)
           if (cfg_240p_opt_subscreen.leaves[v_run].config_value->cfg_type == NUMVALUE) {
             cfg_240p_opt_subscreen.leaves[v_run].config_value->val2char_func(val_select);
