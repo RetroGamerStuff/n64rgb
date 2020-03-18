@@ -13,7 +13,7 @@ set_time_format -unit ns -decimal_places 3
 #**************************************************************
 
 set n64_vclk_per 20.000
-set n64_vclk_waveform [list 0.000 [expr $n64_vclk_per*3/4]]
+set n64_vclk_waveform [list 0.000 [expr $n64_vclk_per*3/5]]
 
 create_clock -name {VCLK_N64_VIRT} -period $n64_vclk_per -waveform $n64_vclk_waveform
 create_clock -name {VCLK} -period $n64_vclk_per -waveform $n64_vclk_waveform [get_ports { VCLK }]
