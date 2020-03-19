@@ -128,12 +128,12 @@ alt_u8 cfg_get_value(config_t* cfg_data, alt_u8 get_reference)
   if (is_local_cfg(cfg_data))
     return cfg_data->cfg_value;
 
-  alt_u32 cfg_word;
-  if (!get_reference) cfg_word = cfg_data->cfg_word->cfg_word_val;
-  else                cfg_word = cfg_data->cfg_word->cfg_ref_word_val;
+  alt_u32 *cfg_word;
+  if (!get_reference) cfg_word = &(cfg_data->cfg_word->cfg_word_val);
+  else                cfg_word = &(cfg_data->cfg_word->cfg_ref_word_val);
 
-  if (cfg_data->cfg_type == FLAG) return ((cfg_word & cfg_data->flag_masks.setflag_mask)     >> cfg_data->cfg_word_offset);
-  else                            return ((cfg_word & cfg_data->value_details.getvalue_mask) >> cfg_data->cfg_word_offset);
+  if (cfg_data->cfg_type == FLAG) return ((*cfg_word & cfg_data->flag_masks.setflag_mask)     >> cfg_data->cfg_word_offset);
+  else                            return ((*cfg_word & cfg_data->value_details.getvalue_mask) >> cfg_data->cfg_word_offset);
 };
 
 void cfg_set_value(config_t* cfg_data, alt_u8 value)
@@ -147,7 +147,7 @@ void cfg_set_value(config_t* cfg_data, alt_u8 value)
     if (value) cfg_set_flag(cfg_data);
     else       cfg_clear_flag(cfg_data);
   } else {
-    alt_u32 *cfg_word = cfg_data->cfg_word->cfg_word_val;
+    alt_u32 *cfg_word = &(cfg_data->cfg_word->cfg_word_val);
     alt_u32 cur_val = value > cfg_data->value_details.max_value ? 0 : value;
 
     *cfg_word = (*cfg_word & ~cfg_data->value_details.getvalue_mask) | (cur_val << cfg_data->cfg_word_offset);
