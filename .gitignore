@@ -44,3 +44,4 @@ fir_audio_sim/
 *.spd
 *.f
 *.ppf
+advancedRGBmod/firmware/ip/n64adv1/*/altclkctrl/*
