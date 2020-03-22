@@ -122,7 +122,7 @@
 <text x="8.175" y="-2.925" size="0.8128" layer="21" font="vector" ratio="15">Rst</text>
 <text x="8.35" y="-1.775" size="0.8128" layer="21" font="vector" ratio="15" align="bottom-center">to N64</text>
 <text x="4.6" y="5.85" size="0.8128" layer="21" font="vector" ratio="15" rot="R90" align="bottom-center">RCP-NUS</text>
-<text x="21.6" y="-2.6" size="1.016" layer="25" font="vector" ratio="15">RCP2N64Adv
+<text x="21.6" y="-2.6" size="1.016" layer="25" font="vector" ratio="15">RCP2N64RGB
 v20200315</text>
 <dimension x1="0" y1="12.192" x2="47.558" y2="12.192" x3="23.779" y3="-9.398" textsize="1.778" layer="51"/>
 <wire x1="53.012" y1="9.292" x2="42.778" y2="-0.942" width="0.1524" layer="21" style="shortdash"/>
@@ -164,7 +164,7 @@ __/)__/)_
 
 RCP-NUS
 to
-N64Adv</text>
+N64RGB</text>
 <polygon width="0.127" layer="42">
 <vertex x="149.02" y="-8"/>
 <vertex x="149.02" y="7.112"/>

@@ -117,7 +117,7 @@ here     </text>
 <dimension x1="66.802" y1="20.701" x2="28.067" y2="20.701" x3="47.4345" y3="32.893" textsize="1.778" layer="51"/>
 <dimension x1="66.802" y1="20.701" x2="92.329" y2="20.701" x3="79.5655" y3="32.893" textsize="1.778" layer="51"/>
 <dimension x1="0" y1="25.019" x2="28.067" y2="25.019" x3="14.0335" y3="32.893" textsize="1.778" layer="51"/>
-<text x="39.37" y="25.273" size="1.016" layer="25" font="vector" ratio="15" align="center">N64Adv to MultiOut
+<text x="39.37" y="25.273" size="1.016" layer="25" font="vector" ratio="15" align="center">N64RGB to MultiOut
 with Filter option</text>
 <text x="53.086" y="25.273" size="1.27" layer="25" font="vector" ratio="15" align="center">borti4938
 __/)__/)_</text>
@@ -142,7 +142,7 @@ __/)__/)_</text>
 </polygon>
 <text x="23.622" y="21.209" size="1.016" layer="21" font="vector" ratio="15" rot="SR45">bend cable here</text>
 <text x="33.147" y="28.448" size="1.016" layer="22" font="vector" ratio="15" rot="SMR315">bend cable here</text>
-<text x="21.336" y="0.889" size="1.016" layer="25" font="vector" ratio="15" rot="SR90">N64Adv to MultiOut
+<text x="21.336" y="0.889" size="1.016" layer="25" font="vector" ratio="15" rot="SR90">N64RGB to MultiOut
 with Filter option
 v20200209</text>
 <polygon width="0.1524" layer="22" spacing="0.8128" pour="hatch">
