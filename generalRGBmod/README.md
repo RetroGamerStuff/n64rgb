@@ -13,11 +13,9 @@ If you are looking for a ready to install kit, just look on your own for a selle
 - Supporting for different CPLDs on a common PCB design:
   * MaxII EPM240T100C5
   * MaxII EPM570T100C5
-  * MaxV 5M240ZT100C4 (a 5M240ZT100C5 does not met timing requirements [1])
-  * MaxV 5M570ZT100C5 (older versions only support 5M570ZT100C4 due to timing [1])
+  * MaxV 5M240ZT100C5
+  * MaxV 5M570ZT100C5
 - Video DAC:
-  * V1: R2R ladder with video amplifier THS7374 or THS7373  
-    **V1 is not recommended for new builds.** Please use the N64RGB20 board by viletim instead!
   * V2: Video DAC ADV7125
 - Detection of 240p/288p vs. 480i/576i together with detection of NTSC vs. PAL mode
 - Heuristic for de-blur function [2], De-Blur in 240p/288p (horizontal resolution decreased from 640 to 320 pixels)
@@ -33,13 +31,6 @@ If you are looking for a ready to install kit, just look on your own for a selle
 The following shortly describes the main features of the firmware and how to use / control them.
 
 #### Notes
-##### [1]
-Clocks are defined in the SDC-files place in the firmware folder.
-The 5M240ZT100C5 does not met the timing requirements checked during the Timing Analysis. However, the default model is the so called *slow model*. If one uses the *fast model* for analysis, the timings are met without any problems.
-So one could also give a try with the 5M240ZT100C5, which should also works with 95% of all units produced in 'common' environments (e.g. living room temperature environment). Nevertheless, I won't guarantee that.
-
-Update: If you are looking for a 5M240ZT100C4 and 5M570ZT100C4, you probably realize that they are not in stock (e.g. at Mouser or Digikey). Then you can also use the 5M240ZT100I5 and 5M570ZT100I5, which are actually the same CPLDs.
-
 
 ##### [2]
 Heuristic for de-blur function highly depends on the image content. So it might be the case that de-blur is switched on and off rapidly even on small content changes. In any case you can override the heuristic by forcing de-blur on or off.  
@@ -99,11 +90,12 @@ _(Button combinations can be modified according to your needs - see note below @
 There are three jumpers jumpers on the modding board - one double solder jumper and one 'hidden' jumper - to set up deblur (IGR installation) and 15bit mode.  
 The hidden jumper are nothing else then neighbouring pins. This pin is marked with an arrow. If you short a pair of pins you can change the default of the above noted features.  
 
-- J11.1 -> deactivates de-blur by default (only applied if de-blur heuristic is off by default) **[1]**
-- J11.2 -> deactivate the de-blur heuristic. **[1]**
+- J11.1 -> deactivate the de-blur heuristic. **[1]**
+- J11.2 -> deactivates de-blur by default (only applied if de-blur heuristic is off by default) **[1]**
 - pin 36 and 37 (hidden jumper on v1) / J12.1 -> activates the 15bit color mode by default
-- J12 (v1) / J12.2 (v2) -> Altering installation type **[2]** 
-- J21 -> enable Sync on Green if closed (N64RGBv2 only)
+- J12.1 -> Altering installation type **[2]** 
+- J12.2 -> Enable 15bit mode by default
+- J21 -> enable Sync on Green if closed
 
 **Notes**:  
 
@@ -112,26 +104,16 @@ Board Version September 2017 and later have a dedicated double solder jumper for
 On older revisions _J11.1_ (pin 90 and 91) and _J11.2_ (pin 1 and 2) are hidden jumpers.  
 
 **[2]**  
-To use switches for de-blur (similar to viletims board) on can set the jumper _J12_ on the board. This deactivates the IGR functionalities and the user can use the in-/ouputs for controller and reset for switches.  
-These switches are used as on viletims commercial board: **A**uto and **M**anual. The corresponding inputs are _Ctrl_ and _Rst#_, respectively. On newer boards (September 2017 and later) these pads are relabeled with _Ctrl/ A_ and _Rst#/ M_.
+To use switches for de-blur (similar to viletims board) on can set the jumper _J12_.1 on the board. This deactivates the IGR functionalities and the user can use the in-/ouputs for controller and reset for switches.  
+These switches are used as on viletims commercial board: **A**uto and **M**anual. The corresponding inputs are _Ctrl_ and _Rst#_, respectively. Pads are quite small.
 
 - If pad _Ctrl/ A_ is shorted to GND via a switch, the de-blur heuristic is used to switch de-blur on and off.
 - If pad _Rst#/ M_ is shorted to GND via a switch, the de-blur is forced to be on (beats heuristic).
-
-_J12_ is connected to pin 66 of the CPLD. Next to it is pin 65 which is connected to GND. If you have an older version of the board (August 2017 and earlier) running with the current firmware (September 2017 and later) you can short pin 65 and 66 to activate the alternative installation type.
 
 
 ### Slow Slew Rate
 
 This feature reduces the rising and falling time of the outputs. This reduces artefacts due to fast rising/falling edges at the outputs and the resulting over-/undershoots. The drawback is that the edges are not as sharp as with fast slew rates (at least in theory), which is not noticeable.
-
-
-### Low Pass Filter Bypass Mode of the THS7374 (v1 only)
-
-The bypass mode of the internal filters is controlled by the CPLD. At the moment the CPLD forwards just the setting one can input to the CPLD over pad *Fil*.
-
-- To leave the internal filters enabled you can left the pad open
-- To bypass the filter set this pad to GND.
 
 ## Technical Information
 
@@ -142,33 +124,22 @@ A complete installation and setup guide to this modding kit is provided in the m
 - Use PCB files to order your own PCB or simply use the shared project on OSHPark
 - Source the components you need, e.g. from Mouser
 - Wait for everything to arrive
-- Assemble your PCB (**N64RGBv1**):
-  * If you use a MaxII CPLD, you have to assemble FB2 and must not use U3, C31 and C32.
-  * If you use a MaxV CPLD, you need U3 (a 1.8V voltage regulator), C31 and C32. Don't touch FB2 in this case!
-  * Formerly FB2 was J1 at versions 5M_20171211 and earlier 
-- Assemble your PCB (**N64RGBv2**):
+- Assemble your PCB:
   * If you use a MaxII CPLD, you have to assemble FB3 and must not use U4, C41 and C42.
   * If you use a MaxV CPLD, you need U4 (a 1.8V voltage regulator), C41 and C42. Don't touch FB3 in this case!
-- If you use a 570LEs CPLD, close J1
 - Flash the firmware to the CPLD:
   * You need a Altera USB Blaster
   * The board needs to be powered; so you may consider to install the PCB into your N64 first and then use the N64 for powering the board
   * If you want to build an adapter, you may take a look onto [my DIY adapter](https://oshpark.com/shared_projects/mEwjoesz) at [my profile on OSHPark](https://oshpark.com/profiles/borti4938)
 - Install the modding board:
   * Installation description is part of the guide located in the top folder.
-  * However an installation guide of a similar product made by viletim is provided [here](http://etim.net.au/n64rgb/). The minor differences / extra pads are as follows:
-    * (_outdated_) N64RGBv2: J2 (formerly J1 on earlier versions, where J1 is not at bottom side) shorts 3.3V from CPLD with power rail of the ADV7125 (DAC). **If you use 5V at the analog power rail of the ADV7125, you must not close J2!**
-    * Pad *Fil* (N64RGBv1 only): controls the low pass filter mode (v1 only, see above)
-    * Pad *Rst#*: connect this pad to the PIF-NUS pin 27
-    * Pad *Ctrl*: connect this pin to the middle pin of the controller port you want to use for the IGR functions (controller port 1 is probably connected to PIF-NUS pin 16; check that before soldering a wire)
+  * However an installation guide of a similar product made by viletim is provided [here](http://etim.net.au/n64rgb/). Keep in mind that there are minor differences.
   * You have to be aware of the pinout of your video-encoder build into your N64. Pads on the DIY modding board are labeled.
-  * If you have a MAV-NUS in your N64, you may want to use either the DIY break out board provided with this project and on OSHPark or buy a [flex cable from viletims shop](http://etim.net.au/shop/shop.php?crn=209&rn=555&action=show_detail)
 
 ### Source the PCB
 Choose the PCB service which suits you. Here are some:
 
-- OSHPark: [Link to the Main PCB v1](https://oshpark.com/shared_projects/zPCxky4e) (If the PCB was updated and I forgot to update this link, look onto [my profile](https://oshpark.com/profiles/borti4938))
-- OSHPark: [Link to the Main PCB v2](https://oshpark.com/shared_projects/WYtE5A1v) (If the PCB was updated and I forgot to update this link, look onto [my profile](https://oshpark.com/profiles/borti4938))
+- OSHPark: look onto [my profile](https://oshpark.com/profiles/borti4938)
 - PCBWay.com: [Link](http://www.pcbway.com/), [Affiliate Link](http://www.pcbway.com/setinvite.aspx?inviteid=10658)
 
 ### BOM / Part List for the PCB
@@ -186,15 +157,4 @@ For flashing you need:
 - Altera USB Blaster
 - Standalone Quartus Prime Programmer and Tools
 
-#### Firmware Revision Numbering
 
-Revision numbering goes along with the revision numbering I use for the alternative firmware for viletims N64RGB modding kit.
-
-#### Road Map / New Ideas
-
-- don't use quite dark / light pictures for the de-blur heuristic algorithm (possibly only for the CPLDs with 570LEs)
-- Simple onscreen feedback for user controled changes (only for the CPLDs with 570LEs (for the 240LEs CPLDs instead of the heuristic?))
-- dynamic de-blur: decide on demand wether a pixel is used for a blurry effect or not (possible for the N64 to decide on demand? (e.g. background gaming with blur, front text without blur))
-- HDMI?
-
-Any other ideas: email me :)
