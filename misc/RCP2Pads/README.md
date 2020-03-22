@@ -42,7 +42,7 @@ From top to bottom (RCP on left, connector right)
 
 You need
 
-- four resistor arrays: 4x47ohm parallel, SMD1206, e.g. CAT16-47R0F4LF / CAY16-47R0F4LF
+- components as listed in BOM
 - if you have resistors at the input of your N64RGB modding board, you need to replace them with ferrit beads (see BOM if for proper replacements)
 
 Assemble the board. The resistor arrays don't have an orientation.
