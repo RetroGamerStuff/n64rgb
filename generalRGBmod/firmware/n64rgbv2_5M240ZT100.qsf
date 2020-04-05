@@ -134,15 +134,11 @@ set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to install_type
 
 ## others
 ## ======
-set_location_assignment PIN_33 -to PIN_33
-set_location_assignment PIN_34 -to PIN_34
-set_location_assignment PIN_35 -to PIN_35
-set_location_assignment PIN_36 -to PIN_36
-
-set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to PIN_33
-set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to PIN_34
-set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to PIN_35
-set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to PIN_36
+set_location_assignment PIN_33 -to dummy_i[4]
+set_location_assignment PIN_34 -to dummy_i[3]
+set_location_assignment PIN_35 -to dummy_i[2]
+set_location_assignment PIN_36 -to dummy_i[1]
+set_location_assignment PIN_92 -to dummy_i[0]
 
 
 ## Files
@@ -177,3 +173,4 @@ set_global_assignment -name USE_CONFIGURATION_DEVICE ON
 set_global_assignment -name AUTO_RESTART_CONFIGURATION OFF
 set_global_assignment -name ENABLE_CONFIGURATION_PINS OFF
 set_global_assignment -name ENABLE_BOOT_SEL_PIN OFF
+set_global_assignment -name SEED 2

@@ -134,15 +134,12 @@ set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to install_type
 
 ## Others
 ## ======
-set_location_assignment PIN_33 -to PIN_33
-set_location_assignment PIN_34 -to PIN_34
-set_location_assignment PIN_35 -to PIN_35
-set_location_assignment PIN_36 -to PIN_36
+set_location_assignment PIN_33 -to dummy_i[4]
+set_location_assignment PIN_34 -to dummy_i[3]
+set_location_assignment PIN_35 -to dummy_i[2]
+set_location_assignment PIN_36 -to dummy_i[1]
+set_location_assignment PIN_92 -to dummy_i[0]
 
-set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to PIN_33
-set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to PIN_34
-set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to PIN_35
-set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to PIN_36
 
 
 ## Files

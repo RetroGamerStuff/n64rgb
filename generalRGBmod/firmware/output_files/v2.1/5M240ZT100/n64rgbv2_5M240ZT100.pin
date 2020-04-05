@@ -95,10 +95,10 @@ D_i[1]                       : 29        : input  : 3.3-V LVTTL       :         
 D_i[0]                       : 30        : input  : 3.3-V LVTTL       :         : 1         : Y              
 VCCIO1                       : 31        : power  :                   : 3.3V    : 1         :                
 GND                          : 32        : gnd    :                   :         :           :                
-PIN_33                       : 33        : input  : 3.3-V LVTTL       :         : 1         : Y              
-PIN_34                       : 34        : input  : 3.3-V LVTTL       :         : 1         : Y              
-PIN_35                       : 35        : input  : 3.3-V LVTTL       :         : 1         : Y              
-PIN_36                       : 36        : input  : 3.3-V LVTTL       :         : 1         : Y              
+dummy_i[4]                   : 33        : input  : 3.3-V LVTTL       :         : 1         : Y              
+dummy_i[3]                   : 34        : input  : 3.3-V LVTTL       :         : 1         : Y              
+dummy_i[2]                   : 35        : input  : 3.3-V LVTTL       :         : 1         : Y              
+dummy_i[1]                   : 36        : input  : 3.3-V LVTTL       :         : 1         : Y              
 RESERVED_INPUT_WITH_WEAK_PULLUP : 37        :        :                   :         : 1         :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : 38        :        :                   :         : 1         :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : 39        :        :                   :         : 1         :                
@@ -154,7 +154,7 @@ RESERVED_INPUT_WITH_WEAK_PULLUP : 88        :        :                   :      
 R_o[1]                       : 89        : output : 3.3-V LVTTL       :         : 2         : Y              
 RESERVED_INPUT_WITH_WEAK_PULLUP : 90        :        :                   :         : 2         :                
 R_o[0]                       : 91        : output : 3.3-V LVTTL       :         : 2         : Y              
-RESERVED_INPUT_WITH_WEAK_PULLUP : 92        :        :                   :         : 2         :                
+dummy_i[0]                   : 92        : input  : 3.3-V LVTTL       :         : 2         : Y              
 GND                          : 93        : gnd    :                   :         :           :                
 VCCIO2                       : 94        : power  :                   : 3.3V    : 2         :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : 95        :        :                   :         : 2         :                

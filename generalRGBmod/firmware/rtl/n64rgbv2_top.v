@@ -87,7 +87,9 @@ module n64rgbv2_top (
 
   CLK_ADV712x,
   nCSYNC_ADV712x,
-  nBLANK_ADV712x
+  nBLANK_ADV712x,
+  
+  dummy_i
 );
 
 `include "vh/n64rgb_params.vh"
@@ -121,6 +123,8 @@ output reg [color_width:0] B_o;
 output reg CLK_ADV712x;
 output reg nCSYNC_ADV712x;
 output reg nBLANK_ADV712x;
+
+input [4:0] dummy_i;
 
 
 `define SWITCH_INSTALL  !install_type
