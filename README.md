@@ -25,9 +25,6 @@ A collection of RGB mods for the N64. This repository includes:
   * used to filter the video signal comming out of the ADV7125 or to adjust signal levels such that one can use SNES PAL RGB cables
   * PCB files provided
   * folder: misc/FilterAddOn
-- an alternative firmware for viletims commercial N64 RGB modding kit
-  * include in firmware folder of generalRGBmod
-  * project: n64rgb_viletim.qpf
 
 
 ## Acknowledgement
