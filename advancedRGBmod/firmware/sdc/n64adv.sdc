@@ -62,7 +62,7 @@ create_clock -name {VCLK_2x_base} -period $n64_vclk_per -waveform $n64_vclk_wave
 
 set vclk_pll_in [get_pins {clk_n_rst_hk_u|video_pll_u|altpll_component|auto_generated|pll1|inclk[0]}]
 set vclk_pll_3x_out [get_pins {clk_n_rst_hk_u|video_pll_u|altpll_component|auto_generated|pll1|clk[0]}]
-create_generated_clock -name {VCLK_3x_base} -source $vclk_pll_in -master_clock {VCLK_1x_base} -divide_by 2 -multiply_by 3 -duty_cycle 75 $vclk_pll_3x_out
+create_generated_clock -name {VCLK_3x_base} -source $vclk_pll_in -master_clock {VCLK_1x_base} -divide_by 2 -multiply_by 3 -duty_cycle 60 $vclk_pll_3x_out
 
 
 # Other Internal Video Clocks
