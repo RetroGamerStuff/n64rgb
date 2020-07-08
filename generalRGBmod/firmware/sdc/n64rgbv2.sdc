@@ -12,10 +12,12 @@ set_time_format -unit ns -decimal_places 3
 #**************************************************************
 
 set n64_vclk_per 20.000
-set n64_vclk_waveform [list 0.000 [expr $n64_vclk_per*3/5]]
+set n64_vclk_pos_width [expr $n64_vclk_per*3/5]
+set n64_vclk_waveform [list 0.000 $n64_vclk_pos_width]
 
 create_clock -name {VCLK_N64_VIRT} -period $n64_vclk_per -waveform $n64_vclk_waveform
 create_clock -name {VCLK} -period $n64_vclk_per -waveform $n64_vclk_waveform [get_ports {VCLK}]
+
 
 
 
@@ -42,14 +44,11 @@ create_generated_clock -name {CLK_ADV712x} -source [get_ports {VCLK}] -divide_by
 #**************************************************************
 # Set Input Delay
 #**************************************************************
+set data_delay_min 2.0
+set data_delay_max 10.0
 
-set n64_data_delay_min 0.0
-set n64_data_delay_max 6.5
-
-set_input_delay -clock {VCLK_N64_VIRT} -min $n64_data_delay_min [get_ports {nDSYNC}]
-set_input_delay -clock {VCLK_N64_VIRT} -max $n64_data_delay_max [get_ports {nDSYNC}]
-set_input_delay -clock {VCLK_N64_VIRT} -min $n64_data_delay_min [get_ports {D_i[*]}]
-set_input_delay -clock {VCLK_N64_VIRT} -max $n64_data_delay_max [get_ports {D_i[*]}]
+set_input_delay -clock {VCLK_N64_VIRT} -min $data_delay_min [get_ports {nDSYNC D_i[*]}]
+set_input_delay -clock {VCLK_N64_VIRT} -max $data_delay_max [get_ports {nDSYNC D_i[*]}]
 
 
 #**************************************************************
@@ -57,8 +56,9 @@ set_input_delay -clock {VCLK_N64_VIRT} -max $n64_data_delay_max [get_ports {D_i[
 #**************************************************************
 set adv_tsu 0.5
 set adv_th  1.5
-set out_dly_max $adv_tsu
-set out_dly_min [expr -$adv_th]
+set adv_margin 0.2
+set out_dly_max [expr $adv_tsu + $adv_margin]
+set out_dly_min [expr -$adv_th - $adv_margin]
 
 set_output_delay -clock {CLK_ADV712x} -max $out_dly_max [get_ports {R_o* G_o* B_o* nCSYNC_ADV712x nBLANK_ADV712x}]
 set_output_delay -clock {CLK_ADV712x} -min $out_dly_min [get_ports {R_o* G_o* B_o* nCSYNC_ADV712x nBLANK_ADV712x}]
@@ -71,7 +71,7 @@ set_output_delay -clock {CLK_ADV712x} -min $out_dly_min [get_ports {R_o* G_o* B_
 #**************************************************************
 
 set_clock_groups -asynchronous -group \
-                            {VCLK CLK_ADV712x} \
+                            {VCLK_N64_VIRT VCLK CLK_ADV712x} \
                             {CLK_4M}
 
 
@@ -105,8 +105,6 @@ foreach from_path $dbl_cycle_paths_from {
 # revert some multicycle paths to their default values
 set_multicycle_path -from [get_registers {deblur_management|gradient_changes[*]}] -setup 1
 set_multicycle_path -from [get_registers {deblur_management|gradient_changes[*]}] -hold 0
-set_multicycle_path -from [get_registers {video_demux|n15bit_mode}] -setup 1
-set_multicycle_path -from [get_registers {video_demux|n15bit_mode}] -hold 0
 set_multicycle_path -from [get_registers {video_demux|vdata_r_0[*]}] -to [get_registers {video_demux|vdata_r_1[*]}] -setup 1
 set_multicycle_path -from [get_registers {video_demux|vdata_r_0[*]}] -to [get_registers {video_demux|vdata_r_1[*]}] -hold 0
 

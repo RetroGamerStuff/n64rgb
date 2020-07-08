@@ -110,8 +110,8 @@ derive_clock_uncertainty
 #**************************************************************
 
 # delays were carried out at the modding board and includes some potential skew
-set n64_data_delay_min 0.0
-set n64_data_delay_max 6.5
+set n64_data_delay_min 2.0
+set n64_data_delay_max 10.0
 
 set_input_delay -clock {VCLK_N64_VIRT} -min $n64_data_delay_min [get_ports {nVDSYNC}]
 set_input_delay -clock {VCLK_N64_VIRT} -max $n64_data_delay_max [get_ports {nVDSYNC}]
@@ -129,8 +129,9 @@ set_input_delay -clock altera_reserved_tck 20 [get_ports altera_reserved_tms]
 #**************************************************************
 set adv_tsu 0.5
 set adv_th  1.5
-set out_dly_max $adv_tsu
-set out_dly_min [expr -$adv_th]
+set adv_margin 0.2
+set out_dly_max [expr $adv_tsu + $adv_margin]
+set out_dly_min [expr -$adv_th - $adv_margin]
 
 set_output_delay -clock {VCLK_1x_out} -max $out_dly_max [get_ports {VD_o* nCSYNC_ADV712x}]
 set_output_delay -clock {VCLK_1x_out} -min $out_dly_min [get_ports {VD_o* nCSYNC_ADV712x}]
@@ -272,11 +273,11 @@ set_multicycle_path -from [get_registers {n64adv_ppu_u|video_demux_u|vdata_r_0[*
 #**************************************************************
 
 # overconstraining path between clock input, pll outputs, muxes and output (only for fitter)
-if {[string equal $::quartus(nameofexecutable) "quartus_fit"]} {
-  set_max_delay -from $vclk_input -to $vclk_mux_out 0.000
-  set_max_delay -from $vclk_pll_3x_out -to $vclk_mux_out 0.000
-  set_max_delay -from $vclk_mux_out -to $vclk_out 0.000
-}
+#if {[string equal $::quartus(nameofexecutable) "quartus_fit"]} {
+#  set_max_delay -from $vclk_input -to $vclk_mux_out 0.000
+#  set_max_delay -from $vclk_pll_3x_out -to $vclk_mux_out 0.000
+#  set_max_delay -from $vclk_mux_out -to $vclk_out 0.000
+#}
 
 
 #**************************************************************

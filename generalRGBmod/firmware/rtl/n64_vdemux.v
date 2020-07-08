@@ -60,10 +60,10 @@ output reg [`VDATA_FU_SLICE] vdata_r_1; // (unpacked array types in ports requir
 
 // unpack demux params
 
-wire [1:0] data_cnt     = demuxparams_i[4:3];
-wire       vmode        = demuxparams_i[  2];
-wire       ndo_deblur   = demuxparams_i[  1];
-reg        n15bit_mode; // = demuxparams_i[  0] (updated each frame)
+wire [1:0] data_cnt    = demuxparams_i[4:3];
+wire       vmode       = demuxparams_i[  2];
+wire       ndo_deblur  = demuxparams_i[  1];
+wire       n15bit_mode = demuxparams_i[  0];
 
 wire posedge_nCSYNC = !vdata_r_0[3*color_width] &  D_i[0];
 
@@ -87,7 +87,6 @@ always @(posedge VCLK)
 always @(posedge VCLK) begin // data register management
   if (!nDSYNC) begin
     if (vdata_r_0[vdata_width-1] & !D_i[3]) // negedge at nVSYNC detected - new frame, new setting for 15bit mode
-      n15bit_mode <= demuxparams_i[0];
 
     // shift data to output registers
     if (ndo_deblur)
