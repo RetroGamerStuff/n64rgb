@@ -153,7 +153,7 @@ set_global_assignment -name VERILOG_FILE rtl/n64_deblur.v
 set_global_assignment -name VERILOG_FILE rtl/n64_vdemux.v
 set_global_assignment -name VERILOG_INCLUDE_FILE vh/igr_params.vh
 set_global_assignment -name SDC_FILE sdc/n64rgbv2.sdc
-set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files/v2.1/5M570ZT100
+set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files/5M570ZT100
 
 
 ## Synthesis and Fitter Settings
@@ -161,17 +161,6 @@ set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files/v2.1/5M570ZT10
 set_global_assignment -name SMART_RECOMPILE ON
 set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED WITH BUS-HOLD"
 set_global_assignment -name OPTIMIZATION_MODE "HIGH PERFORMANCE EFFORT"
-
-
-## Synthesis and Fitter Settings
-## =============================
-#set_global_assignment -name SMART_RECOMPILE ON
-#set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED WITH BUS-HOLD"
-#set_global_assignment -name OPTIMIZATION_MODE "HIGH PERFORMANCE EFFORT"
-#set_global_assignment -name REMOVE_DUPLICATE_REGISTERS OFF
-#set_global_assignment -name PHYSICAL_SYNTHESIS_EFFORT EXTRA
-#set_global_assignment -name ALM_REGISTER_PACKING_EFFORT LOW
-#set_global_assignment -name ALLOW_REGISTER_MERGING OFF
 
 
 ## Additions by Quartus Prime
