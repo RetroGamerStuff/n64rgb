@@ -33,6 +33,7 @@
 #include "alt_types.h"
 #include "altera_avalon_pio_regs.h"
 #include "system.h"
+#include "config.h"
 #include "n64.h"
 #include "vd_driver.h"
 
@@ -46,8 +47,10 @@
 #define HOLD_CNT_REP	2
 
 extern char szText[];
+static const char *running_message = "< Running >";
 
 alt_u8 vpll_lock;
+
 
 void print_ctrl_data(alt_u32* ctrl_data) {
   sprintf(szText,"Ctrl.Data: 0x%08x",(uint) *ctrl_data);
@@ -143,4 +146,39 @@ cmd_t ctrl_data_to_cmd(alt_u32* ctrl_data, alt_u8 no_fast_skip)
   }
 
   return CMD_NON;
-};
+}
+
+void enable_vpll_test()
+{
+  alt_u32 cfg_word = IORD_ALTERA_AVALON_PIO_DATA(CFG_MISC_OUT_BASE) | CFG_TEST_VPLL_SETMASK;
+  IOWR_ALTERA_AVALON_PIO_DATA(CFG_MISC_OUT_BASE,cfg_word);
+}
+
+void disable_vpll_test()
+{
+  alt_u32 cfg_word = IORD_ALTERA_AVALON_PIO_DATA(CFG_MISC_OUT_BASE) & CFG_TEST_VPLL_CLRMASK;
+  IOWR_ALTERA_AVALON_PIO_DATA(CFG_MISC_OUT_BASE,cfg_word);
+}
+
+int run_vpll_test(configuration_t* sysconfig)
+{
+  int retval = 0;
+  alt_u8 vpll_lock_loc = update_vpll_lock_state();
+  alt_u8 vpll_lock_pre;
+
+  vd_print_string(RWM_H_OFFSET,RWM_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_YELLOW,running_message);
+  enable_vpll_test();
+
+  int i;
+  for (i = 0; i < VPLL_TEST_FRAMES; i++) { /* wait for VPLL_TEST_FRAMES frames for PLL */
+    vpll_lock_pre = vpll_lock_loc;
+    while(!get_nvsync()){};  /* wait for nVSYNC goes high */
+    while( get_nvsync()){};  /* wait for nVSYNC goes low  */
+    vpll_lock_loc = update_vpll_lock_state();
+    if (vpll_lock_pre && !vpll_lock_loc) retval = -VPLL_TEST_FAILED;
+  }
+  disable_vpll_test();
+  if (!vpll_lock_loc) retval = -VPLL_TEST_FAILED;
+
+  return retval;
+}

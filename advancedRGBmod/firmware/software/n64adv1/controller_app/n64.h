@@ -29,6 +29,7 @@
 #include "alt_types.h"
 #include "altera_avalon_pio_regs.h"
 #include "system.h"
+#include "config.h"
 
 
 #ifndef N64_H_
@@ -131,6 +132,10 @@
 #define FALLBACKMODE_GETMASK        (1<<FALLBACKMODE_OFFSET)
 #define FALLBACKMODE_VALID_GETMASK  (1<<FALLBACKMODE_VALID_OFFSET)
 
+#define VPLL_START_FRAMES     5
+#define VPLL_TEST_FRAMES      25
+#define VPLL_LOCK_LOST_FRAMES 1
+
 #define NVSYNC_IN_MASK        0x01
 #define NEW_CTRL_DATA_IN_MASK 0x02
 
@@ -169,6 +174,9 @@ inline alt_u16 get_ppu_state()
   {  return (IORD_ALTERA_AVALON_PIO_DATA(PPU_STATE_IN_BASE) & PPU_STATE_GETALL_MASK);  };
 inline alt_u8 update_vpll_lock_state()
   {  return ((IORD_ALTERA_AVALON_PIO_DATA(PPU_STATE_IN_BASE) & PPU_STATE_VPLL_LOCKED_GETMASK) >> PPU_STATE_VPLL_LOCKED_OFFSET); };
+void enable_vpll_test(void);
+void disable_vpll_test(void);
+int run_vpll_test(configuration_t* sysconfig);
 inline alt_u8 get_nvsync()
   {  return (IORD_ALTERA_AVALON_PIO_DATA(SYNC_IN_BASE) & NVSYNC_IN_MASK);  };
 inline alt_u8 new_ctrl_available()

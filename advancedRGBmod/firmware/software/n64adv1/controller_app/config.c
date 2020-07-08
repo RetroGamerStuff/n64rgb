@@ -46,7 +46,6 @@ typedef struct {
 } cfg4flash_t;
 
 static const char *confirm_message = "< Really? >";
-static const char *running_message = "< Running >";
 extern const char *btn_overlay_1, *btn_overlay_2;
 
 extern cfg_b32word_t cfg_data_video;
@@ -395,34 +394,4 @@ void cfg_update_reference(configuration_t* sysconfig)
 
   cfg_data_image_ntsc_word_ref_tray = cfg_data_image_ntsc_word_val_tray;
   cfg_data_image_pal_word_ref_tray  = cfg_data_image_pal_word_val_tray;
-}
-
-void enable_vpll_test()
-{
-  alt_u32 cfg_word = IORD_ALTERA_AVALON_PIO_DATA(CFG_MISC_OUT_BASE) | CFG_TEST_VPLL_SETMASK;
-  IOWR_ALTERA_AVALON_PIO_DATA(CFG_MISC_OUT_BASE,cfg_word);
-}
-
-void disable_vpll_test()
-{
-  alt_u32 cfg_word = IORD_ALTERA_AVALON_PIO_DATA(CFG_MISC_OUT_BASE) & CFG_TEST_VPLL_CLRMASK;
-  IOWR_ALTERA_AVALON_PIO_DATA(CFG_MISC_OUT_BASE,cfg_word);
-}
-
-int run_vpll_test(configuration_t* sysconfig)
-{
-  alt_u8 vpll_lock = update_vpll_lock_state();
-  if (vpll_lock) return 0;
-
-  vd_print_string(RWM_H_OFFSET,RWM_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_YELLOW,running_message);
-  enable_vpll_test();
-  int i;
-  for ( i = 0; i < VPLL_START_FRAMES; i++) { /* wait for five frames for PLL */
-    while(!get_nvsync()){};  /* wait for nVSYNC goes high */
-    while( get_nvsync()){};  /* wait for nVSYNC goes low  */
-    vpll_lock = update_vpll_lock_state();
-    if (vpll_lock) return 0;
-  }
-  disable_vpll_test();
-  return -VPLL_TEST_FAILED;
 }

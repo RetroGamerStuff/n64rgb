@@ -346,9 +346,6 @@ typedef struct {
   #define JUMPER_RGSB_GETMASK            (1<<JUMPER_RGSB_OFFSET)
 
 
-#define VPLL_START_FRAMES     5
-#define VPLL_LOCK_LOST_FRAMES 1
-
 #define RWM_H_OFFSET 5
 #define RWM_V_OFFSET (VD_HEIGHT - 3)
 #define RWM_LENGTH   10
@@ -383,8 +380,5 @@ void cfg_clear_words(configuration_t* sysconfig);
 void cfg_update_reference(configuration_t* sysconfig);
 inline void check_filteraddon()
   {  use_filteraddon = ((IORD_ALTERA_AVALON_PIO_DATA(JUMPER_CFG_SET_IN_BASE) & JUMPER_FILTERADDON_GETMASK) >> JUMPER_FILTERADDON_OFFSET) ? 0 : 1;  };
-void enable_vpll_test(void);
-void disable_vpll_test(void);
-int run_vpll_test(configuration_t* sysconfig);
 
 #endif /* CONFIG_H_ */
