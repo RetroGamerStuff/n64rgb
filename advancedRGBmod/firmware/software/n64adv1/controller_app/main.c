@@ -39,7 +39,7 @@
 #include "vd_driver.h"
 #include "flash.h"
 
-
+#define CTRL_IGNORE_FRAMES 10;
 #define DEBLUR_FORCE_OFF 1
 #define DEBLUR_FORCE_ON  2
 
@@ -78,6 +78,7 @@ int main()
 
   alt_u8 ctrl_update = 1;
   alt_u32 ctrl_data;
+  alt_u8 ctrl_ignore = 0;
   alt_u16 ppu_state, ppu_state_pre;
   alt_u8 vpll_lock_first_boot;
   alt_u8 vpll_state_frame_delay;
@@ -128,10 +129,11 @@ int main()
 
   /* Event loop never exits. */
   while (1) {
-    if (ctrl_update) {
+    if (ctrl_update && !ctrl_ignore) {
       ctrl_data = get_ctrl_data();
       command = ctrl_data_to_cmd(&ctrl_data,0);
     } else {
+      ctrl_ignore = ctrl_ignore == 0 ? 0 : ctrl_ignore - 1;
       command = CMD_NON;
     }
 
@@ -205,6 +207,7 @@ int main()
         print_selection_arrow(menu);
         cfg_set_flag(&show_osd);
         cfg_clear_flag(&mute_osd_tmp);
+        ctrl_ignore = CTRL_IGNORE_FRAMES;
       }
 
       if ((cfg_get_value(&igr_quickchange,0) & CFG_QUDEBLUR_GETMASK))
