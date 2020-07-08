@@ -3,14 +3,14 @@
 
 ## Purpose
 
-This PCB enables you to apply conditioning resistors to the RCP output pins. This is useful for any CPLD and FPGA RGB Kit like viletims N64RGB (public and commercial), N64RGBv1, N64RGBv2, N64Advanced and many more variations spreaded over the internet.
+This PCB enables you to apply appropriate buffering to the RCP output pins for N64RGB installs. This is useful for any CPLD and FPGA RGB Kit like viletims N64RGB (public and commercial), N64RGBv2.1, N64Advanced and many more variations spreaded over the internet.
 
 
 ## Where to Order?
 
-This board can be ordered from every service you want to choose, e.g. PCBWay (I personally ordered around 100 boards for around $100).
-An easy small prototype solution though might be the flex cable service by [OSHPark](https://oshpark.com/shared_projects/WxRgf9Iw).
-Make sure to tick the flex service before going to the checkout!
+This board can be ordered from every service you want to choose, e.g. PCBWay.  
+An easy small prototype solution though might be the flex cable service by [OSHPark](https://oshpark.com/).
+Make sure to tick the flex service before going to the checkout when chosing for OSHPark!
 
 
 ## Pinout
@@ -19,20 +19,16 @@ From top to bottom (RCP on left, connector right)
 
 | **Pin** | **Signal** |
 |:-------:|:-----------|
-| 17 | GND |
-| 16 | D0 |
-| 15 | D1 |
-| 14 | D2 |
-| 13 | D3 |
-| 12 | D4 |
-| 11 | D5 |
-| 10 | D6 |
-| 9 | #DSYNC |
-| 8 | VCLK |
-| 7 | GND |
-| 6 | LRCLK (Audio, A2) |
-| 5 | SDATA (Audio, A1) |
-| 4 | SCLK (Audio, A0) |
+| 13 | GND |
+| 12 | D0 |
+| 11 | D1 |
+| 10 | D2 |
+| 9 | D3 |
+| 8 | D4 |
+| 7 | D5 |
+| 6 | D6 |
+| 5 | #DSYNC |
+| 4 | VCLK |
 | 3 | GND |
 | 2 | Ctrl. (controller port pin 2, pin 16 PIF-NUS) |
 | 1 | Rst (pin 27 PIF-NUS) |
@@ -40,17 +36,14 @@ From top to bottom (RCP on left, connector right)
 
 ## Preparation
 
-You need
-
-- components as listed in BOM
-- if you have resistors at the input of your N64RGB modding board, you need to replace them with ferrit beads (see BOM if for proper replacements)
-
-Assemble the board. The resistor arrays don't have an orientation.
+You need components as listed in BOM.
+Assemble the board.
+The ferrite bead / resistor arrays don't have an orientation.
 
 
 ## Installation
 
-Solder the FPC board to the output pins 6 - 28 (pin 5 has a dot, pin 30 also) of the RCP-NUS.
+Solder the FPC board to the output pins 8 - 28 (pin 5 has a dot, pin 30 also) of the RCP-NUS.
 
 Connect pad for Ctrl. and Rst. as stated in the table above. More information about appropriate solder points can be found in the Guide.
 
