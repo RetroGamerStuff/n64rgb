@@ -14,17 +14,26 @@ A collection of RGB mods for the N64. This repository includes:
   * PCB files (common for all supported devices) and firmware (separate programming files) are provided
   * additional Filter board for the outputted video signal if you need that
   * folder: advancedRGBmod
-- additional MAV-NUS Adapter:
-  * pin breakout from 0.8mm pitch to 1.27mm pitch
+- additional RCP-NUS Adapter (flexible PCB):
+  * buffering of video signals for N64RGB/N64Adv installs with wires
   * PCB files provided
-  * folder: misc/MAV-NUS-BreakOut
-- additional power supply PCB for viletime N64RGB DAC and N64RGBv1
+  * folder: misc/RCP2Pads
+- additional RCP-NUS to N64RGBv2.1/N64Adv install adapter (long flexible PCB):
+  * buffering of video signals for N64RGBv2.1/N64Adv
+  * can be directly connected to modding board
   * PCB files provided
-  * folder: misc/PowerReg
+  * folder: misc/RCP2N64RGB
 - Filter AddOn for N64RGBv2 and N64 Advanced:
   * used to filter the video signal comming out of the ADV7125 or to adjust signal levels such that one can use SNES PAL RGB cables
   * PCB files provided
   * folder: misc/FilterAddOn
+- Filter AddOn as flexible PCB for N64RGBv2.1 and N64 Advanced:
+  * used to filter the video signal comming out of the ADV7125 or to adjust signal levels such that one can use SNES PAL RGB cables
+  * PCB files provided
+  * folder: misc/N64RGB2MoutFilter
+- additional power supply PCB for viletime N64RGB DAC and N64RGBv1
+  * PCB files provided
+  * folder: misc/PowerReg
 
 
 ## Acknowledgement
