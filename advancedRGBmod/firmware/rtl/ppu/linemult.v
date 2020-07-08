@@ -366,7 +366,7 @@ ram2port #(
   .pagesize(`BUF_DEPTH_PER_PAGE),
   .data_width(3*color_width_i)
 ) videobuffer_u(
-  .wrCLK(VCLK_Tx),
+  .wrCLK(VCLK_Rx),
   .wren(&{wren,!line_overflow,nVDSYNC_dbl,!wraddr[0]}),
   .wrpage(wrpage),
   .wraddr(wraddr[hcnt_witdh-1:1]),
