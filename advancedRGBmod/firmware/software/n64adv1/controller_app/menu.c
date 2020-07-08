@@ -361,7 +361,6 @@ updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t
 
   if (is_cfg_vpll_screen(*current_menu)) {
     if (!vpll_lock) (*current_menu)->current_selection = 0;
-    else            (*current_menu)->current_selection = 1;
     todo = (pre_sel == (*current_menu)->current_selection) ? NON : NEW_SELECTION;
   }
 
@@ -459,7 +458,14 @@ updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t
 
       if (is_cfg_vpll_screen((*current_menu))) {
         retval = (*current_menu)->leaves[sel].test_fun(sysconfig);
-        return (retval == 0 ? RW_DONE : RW_FAILED);
+        if (retval == 0) {
+          (*current_menu)->current_selection = 1;
+          print_selection_arrow((*current_menu));
+          alt_u8 font_color = (cfg_get_value((*current_menu)->leaves[1].config_value,0) == cfg_get_value((*current_menu)->leaves[1].config_value,use_flash)) ? FONTCOLOR_WHITE : FONTCOLOR_YELLOW;
+          vd_print_string((*current_menu)->leaves[1].arrow_desc->hpos + 3,(*current_menu)->leaves[1].id,BACKGROUNDCOLOR_STANDARD,font_color,(*current_menu)->leaves[1].config_value->value_string[cfg_get_value((*current_menu)->leaves[1].config_value,0)]);
+          return RW_DONE;
+        }
+        return RW_FAILED;
       }
 
       retval = (*current_menu)->leaves[sel].load_fun(sysconfig,1);
@@ -654,7 +660,8 @@ int update_cfg_screen(menu_t* current_menu)
         break;
       case IFUNC:
         if (is_cfg_vpll_screen(current_menu)) {
-          font_color = vpll_lock ? FONTCOLOR_GREY : FONTCOLOR_WHITE;
+//          font_color = vpll_lock ? FONTCOLOR_GREY : FONTCOLOR_WHITE;
+          font_color = FONTCOLOR_WHITE;
           vd_print_string(h_l_offset,v_offset,background_color,font_color,StartTest);
         }
         if (is_misc_screen(current_menu)) {
