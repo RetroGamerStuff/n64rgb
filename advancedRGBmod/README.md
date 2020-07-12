@@ -149,9 +149,9 @@ There are some jumpers spreaded over the PCB, namely _J1_, _J2_, _J3_, _J4_, _J5
 - closed / opened: 50%
 - closed / closed: 100%
 
-#### J33 (CSYNC level)
+#### J33 (CSYNC level @ _/CS (75ohm)_ pad)
 
-- opened: appr. 1.87V @ 75ohm termination i.e. needs a resistor inside the sync wire further attanuating the signal. Designed to work for cables with 470 ohm resistor inside resulting in appr. 450mV @ 75ohm termination
+- opened: appr. 1.87V @ 75ohm termination i.e. needs a resistor inside the sync wire further attenuating the signal. Designed to work for cables with 470 ohm resistor inside resulting in appr. 450mV @ 75ohm termination
 - closed: appr. 300mV @ 75ohm termination suitable for pass through wired cables at sync, works with standard TV / scaler setup
 
 #### J4 (Linemode)
