@@ -140,7 +140,7 @@ wire nForceDeBlur_IGR, nDeBlur_IGR, n15bit_mode_IGR;
 
 reg nRST_IGR = 1'b0;
 
-always @(posedge VCLK) begin
+always @(*) begin
   if (`IGR_INSTALL)
     nRST_IGR <= nRST_nManualDB;
   else
@@ -200,7 +200,7 @@ n64_vinfo_ext get_vinfo(
 
 reg nForceDeBlur, nDeBlurMan, n15bit_mode, nrst_deblur;
 
-always @(posedge VCLK) begin
+always @(*) begin
   if (`IGR_INSTALL) begin
     nForceDeBlur <= nForceDeBlur_IGR;
     nDeBlurMan   <= nDeBlur_IGR;
