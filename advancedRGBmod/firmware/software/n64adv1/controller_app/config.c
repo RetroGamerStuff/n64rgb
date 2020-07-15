@@ -324,13 +324,16 @@ int cfg_load_jumperset(configuration_t* sysconfig, alt_u8 need_confirm)
                                                    CFG_480I_SL_ID_SETMASK | CFG_480I_SL_EN_SETMASK);
   switch ((jumper_word & JUMPER_SLSTR_GETMASK) >> JUMPER_SLSTR_OFFSET) {
     case 1:
-      sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= ((0x3<<CFG_240P_SLSTR_OFFSET) | (0x3<<CFG_480I_SLSTR_OFFSET)); // 25%
+      sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= ((0x3<<CFG_240P_SLSTR_OFFSET) |
+                                                       (0x3<<CFG_480I_SLSTR_OFFSET)); // 25%
       break;
     case 2:
-      sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= ((0x7<<CFG_240P_SLSTR_OFFSET) | (0x7<<CFG_480I_SLSTR_OFFSET)); // 50%
+      sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= ((0x7<<CFG_240P_SLSTR_OFFSET) |
+                                                       (0x7<<CFG_480I_SLSTR_OFFSET)); // 50%
       break;
     case 3:
-      sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= ((0xF<<CFG_240P_SLSTR_OFFSET) | (0xF<<CFG_480I_SLSTR_OFFSET)); // 100%
+      sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= ((0xF<<CFG_240P_SLSTR_OFFSET) |
+                                                       (0xF<<CFG_480I_SLSTR_OFFSET)); // 100%
       break;
     default:
       sysconfig->cfg_word_def[IMAGE]->cfg_word_val &= (CFG_240P_SL_EN_CLRMASK &
