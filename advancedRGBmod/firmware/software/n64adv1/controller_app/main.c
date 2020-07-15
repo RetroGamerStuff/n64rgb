@@ -63,6 +63,16 @@ config_t ntsc_pal_selection = {
  * - Additional windows (Ctrl. input, Video Output as OSD without menu)
  */
 
+void open_osd_main(menu_t **menu)
+{
+  *menu = &home_menu;
+  print_overlay(*menu);
+  cfg_set_flag(&show_logo);
+  print_selection_arrow(*menu);
+  cfg_set_flag(&show_osd);
+  cfg_clear_flag(&mute_osd_tmp);
+}
+
 int main()
 {
   cmd_t command;
@@ -94,9 +104,12 @@ int main()
     load_from_jumperset = cfg_load_from_flash(&sysconfig,0);
   }
 
+  alt_u8 powercycle_show_menu = 0;
+
   if (load_from_jumperset != 0) {
     cfg_clear_words(&sysconfig);  // just in case anything went wrong while loading from flash
     cfg_load_jumperset(&sysconfig,0);
+    powercycle_show_menu = 1;
 //    cfg_save_to_flash(&sysconfig,0);
   }
 
@@ -106,15 +119,15 @@ int main()
   if (use_fallback) {
     cfg_clear_words(&sysconfig);  // just in case anything went wrong while loading from flash
     cfg_load_defaults(&sysconfig,0);
-    print_overlay(menu);
-    cfg_set_flag(&show_logo);
-    print_selection_arrow(menu);
-    cfg_set_flag(&show_osd);
+    powercycle_show_menu = 1;
+  }
+
+  if (powercycle_show_menu) {
+      open_osd_main(&menu);
   } else {
     cfg_clear_flag(&show_osd);
     cfg_clear_flag(&show_logo);
   }
-  cfg_clear_flag(&mute_osd_tmp);
   cfg_clear_flag(&show_testpat);
   cfg_clear_flag(&test_vpll);
 
@@ -203,11 +216,7 @@ int main()
     } else { /* END OF if(cfg_get_value(&show_osd)) */
 
       if (command == CMD_OPEN_MENU) {
-        print_overlay(menu);
-        cfg_set_flag(&show_logo);
-        print_selection_arrow(menu);
-        cfg_set_flag(&show_osd);
-        cfg_clear_flag(&mute_osd_tmp);
+        open_osd_main(&menu);
         ctrl_ignore = CTRL_IGNORE_FRAMES;
       }
 
