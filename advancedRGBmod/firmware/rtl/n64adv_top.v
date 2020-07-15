@@ -127,7 +127,7 @@ n64adv_clk_n_rst_hk clk_n_rst_hk_u(
 // controller module
 
 wire [12:0] PPUState;
-wire [ 7:0] JumperCfgSet = {UseVGA_HVSync,nFilterBypass,n240p,~n480i_bob,~SL_str,~nEN_YPbPr,(nEN_YPbPr & ~nEN_RGsB)}; // (~nEN_YPbPr | nEN_RGsB) ensures that not both jumpers are set and passed through the NIOS II
+wire [ 7:0] JumperCfgSet = {UseVGA_HVSync,~nFilterBypass,n240p,~n480i_bob,~SL_str,~nEN_YPbPr,(nEN_YPbPr & ~nEN_RGsB)}; // (~nEN_YPbPr | nEN_RGsB) ensures that not both jumpers are set and passed through the NIOS II
 wire [63:0] PPUConfigSet;
 wire [24:0] OSDWrVector;
 wire [ 1:0] OSDInfo;

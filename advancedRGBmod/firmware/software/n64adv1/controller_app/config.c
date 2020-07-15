@@ -308,9 +308,9 @@ int cfg_load_jumperset(configuration_t* sysconfig, alt_u8 need_confirm)
 
   alt_u8 jumper_word = cfg_get_jumper();
 
-  if (~(jumper_word & JUMPER_BYPASS_FILTER_GETMASK)) {
-    sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= CFG_FILTER_AUTO_SETMASK;
-  }
+  if (jumper_word & JUMPER_BYPASS_FILTER_GETMASK) sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= CFG_FILTER_OFF_SETMASK;
+  else sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= CFG_FILTER_AUTO_SETMASK;
+  
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val &= CFG_DEBLUR_MODE_RSTMASK;
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= CFG_DEBLUR_MODE_AUTO_SETMASK;
 
@@ -320,7 +320,8 @@ int cfg_load_jumperset(configuration_t* sysconfig, alt_u8 need_confirm)
       sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= (CFG_480I_FIELDFIX_SETMASK | CFG_480I_BOB_DEINTER_SETMASK);
   }
 
-  sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= (CFG_240P_SL_ID_SETMASK | CFG_240P_SL_EN_SETMASK);
+  sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= (CFG_240P_SL_ID_SETMASK | CFG_240P_SL_EN_SETMASK |
+                                                   CFG_480I_SL_ID_SETMASK | CFG_480I_SL_EN_SETMASK);
   switch ((jumper_word & JUMPER_SLSTR_GETMASK) >> JUMPER_SLSTR_OFFSET) {
     case 1:
       sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= ((0x3<<CFG_240P_SLSTR_OFFSET) | (0x3<<CFG_480I_SLSTR_OFFSET)); // 25%
@@ -332,7 +333,8 @@ int cfg_load_jumperset(configuration_t* sysconfig, alt_u8 need_confirm)
       sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= ((0xF<<CFG_240P_SLSTR_OFFSET) | (0xF<<CFG_480I_SLSTR_OFFSET)); // 100%
       break;
     default:
-      sysconfig->cfg_word_def[IMAGE]->cfg_word_val &= (CFG_240P_SL_EN_CLRMASK);                                      // 0%
+      sysconfig->cfg_word_def[IMAGE]->cfg_word_val &= (CFG_240P_SL_EN_CLRMASK &
+                                                       CFG_480I_SL_EN_CLRMASK);       // 0%
       break;
   }
 
