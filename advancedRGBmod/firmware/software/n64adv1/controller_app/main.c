@@ -50,8 +50,9 @@ extern const char *NTSCPAL_SEL[];
 config_t ntsc_pal_selection = {
     // .cfg_b32word_t* must be NULL to show that this is a local value
     .cfg_type     = TXTVALUE, // treat as txtvalue for modifying function
+    .cfg_value    = NTSC,
     .value_details = {
-      .max_value = 1,
+      .max_value = PAL,
     },
     .value_string = &NTSCPAL_SEL
 };
@@ -197,7 +198,7 @@ int main()
 
       cfg_store_image_word(&sysconfig,image_word_selection);
       if (!cfg_get_value(&pal_awareness,0))
-        cfg_set_value(&ntsc_pal_selection,0);
+        cfg_set_value(&ntsc_pal_selection,NTSC);
 
     } else { /* END OF if(cfg_get_value(&show_osd)) */
 

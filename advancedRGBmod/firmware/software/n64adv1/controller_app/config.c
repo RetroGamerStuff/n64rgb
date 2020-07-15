@@ -344,8 +344,8 @@ int cfg_load_jumperset(configuration_t* sysconfig, alt_u8 need_confirm)
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val &= CFG_VFORMAT_CLRMASK;
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= (((jumper_word & JUMPER_SOG_GETMASK) >> JUMPER_VFORMAT_OFFSET) << CFG_VFORMAT_OFFSET);
 
-  cfg_store_image_word(sysconfig,0);
-  cfg_store_image_word(sysconfig,1);
+  cfg_store_image_word(sysconfig,NTSC);
+  cfg_store_image_word(sysconfig,PAL);
 
   return 0;
 }

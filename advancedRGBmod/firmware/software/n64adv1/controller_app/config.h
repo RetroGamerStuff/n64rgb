@@ -43,6 +43,11 @@ typedef enum {
 
 #define NUM_CFG_B32WORDS    3
 
+typedef enum {
+  NTSC = 0,
+  PAL
+} cfg_image_sel_type_t;
+
 typedef struct {
   const alt_u32         cfg_word_mask;
   alt_u32               cfg_word_val;
