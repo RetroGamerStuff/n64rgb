@@ -60,17 +60,25 @@ parameter vdata_width_o = 4 + 3*color_width_o;
 
   `define GAMMA_TABLE_OFF   4'b0101
 
-  `define HSTART_NTSC 11'd0225
-  `define HSTOP_NTSC  11'd1500
-  `define HSTART_PAL  11'd0275
-  `define HSTOP_PAL   11'd1550
+  `define ACTIVE_PIXEL_PER_LINE     640
+  `define ACTIVE_PIXEL_PER_LINE_2x  1280
+
+  `define HSTART_NTSC     10'd0111
+  `define HSTOP_NTSC      (`HSTART_NTSC + `ACTIVE_PIXEL_PER_LINE - 10'd1)
+  `define HSTART_PAL      10'd0136
+  `define HSTOP_PAL       (`HSTART_PAL + `ACTIVE_PIXEL_PER_LINE - 10'd1)
+  `define HSTART_NTSC_2x  11'd0223
+  `define HSTOP_NTSC_2x   (`HSTART_NTSC_2x + `ACTIVE_PIXEL_PER_LINE_2x - 11'd1)
+  `define HSTART_PAL_2x   11'd0273
+  `define HSTOP_PAL_2x    (`HSTART_PAL_2x + `ACTIVE_PIXEL_PER_LINE_2x - 11'd1)
 
   `define BUF_NUM_OF_PAGES    4
-  `define BUF_DEPTH_PER_PAGE  (`HSTOP_NTSC - `HSTART_NTSC + 1)/2
+//  `define BUF_DEPTH_PER_PAGE  (`HSTOP_NTSC - `HSTART_NTSC + 1)/2
+  `define BUF_DEPTH_PER_PAGE  `ACTIVE_PIXEL_PER_LINE
   
-  `define PIXEL_PER_LINE_2x_NTSC  1545
-  `define PIXEL_PER_LINE_2x_PAL   1587
-  `define PIXEL_PER_LINE_2x_MAX   1600
+  `define PIXEL_PER_LINE_NTSC_2x  1545
+  `define PIXEL_PER_LINE_PAL_2x   1587
+  `define PIXEL_PER_LINE_MAX_2x   1600
 
   `define HS_WIDTH_NTSC_LX2     7'd113
   `define H_SHIFT_NTSC_240P_LX2 5'b00010

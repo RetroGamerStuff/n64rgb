@@ -48,7 +48,7 @@ module linemult(
 
 `include "vh/n64adv_vparams.vh"
 
-localparam hcnt_witdh  = $clog2(`PIXEL_PER_LINE_2x_MAX);
+localparam hcnt_witdh  = $clog2(`PIXEL_PER_LINE_MAX_2x);
 localparam Y_width     = color_width_o+1;
 localparam SLHyb_width = 8; // do not change this localparam!
 localparam pcnt_width = $clog2(`BUF_NUM_OF_PAGES);
@@ -128,15 +128,15 @@ always @(posedge VCLK_Rx or negedge nVRST_Rx)
   end
 
 
-reg [hcnt_witdh-1:0] hstart_rx = `HSTART_NTSC;
-reg [hcnt_witdh-1:0] hstop_rx  = `HSTOP_NTSC;
+reg [hcnt_witdh-1:0] hstart_rx = `HSTART_NTSC_2x;
+reg [hcnt_witdh-1:0] hstop_rx  = `HSTOP_NTSC_2x;
 
 reg                  wren   = 1'b0;
 reg [pcnt_width-1:0] wrpage = {pcnt_width{1'b0}};
 reg [hcnt_witdh-1:0] wrhcnt = {hcnt_witdh{1'b1}};
 reg [hcnt_witdh-1:0] wraddr = {hcnt_witdh{1'b0}};
 
-wire line_overflow = wrhcnt == `PIXEL_PER_LINE_2x_MAX;  // close approach for NTSC and PAL (equals 1600)
+wire line_overflow = wrhcnt == `PIXEL_PER_LINE_MAX_2x;  // close approach for NTSC and PAL (equals 1600)
 wire valid_line    = wrhcnt > hstop_rx;                 // for evaluation
 
 reg line_overflow_r = 1'b0;
@@ -173,11 +173,11 @@ always @(posedge VCLK_Rx or negedge nVRST_Rx)
 
       // set new info
       if (pal_mode) begin
-        hstart_rx <= `HSTART_PAL;
-        hstop_rx  <= `HSTOP_PAL;
+        hstart_rx <= `HSTART_PAL_2x;
+        hstop_rx  <= `HSTOP_PAL_2x;
       end else begin
-        hstart_rx <= `HSTART_NTSC;
-        hstop_rx  <= `HSTOP_NTSC;
+        hstart_rx <= `HSTART_NTSC_2x;
+        hstop_rx  <= `HSTOP_NTSC_2x;
       end
 
       if (negedge_nHSYNC)
@@ -227,8 +227,8 @@ register_sync #(
 );
 
 
-reg [hcnt_witdh-1:0] hstart_tx = `HSTART_NTSC;
-reg [hcnt_witdh-1:0] hstop_tx  = `HSTOP_NTSC;
+reg [hcnt_witdh-1:0] hstart_tx = `HSTART_NTSC_2x;
+reg [hcnt_witdh-1:0] hstop_tx  = `HSTOP_NTSC_2x;
 
 reg [ 6:0] nHS_width = `HS_WIDTH_NTSC_LX2;
 reg [ 4:0] pic_shift = `H_SHIFT_NTSC_480I_LX2;
@@ -269,14 +269,14 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
     if (!rdrun[1] & ^newFrame) begin
       // set new info
       if (pal_mode) begin
-        hstart_tx <= `HSTART_PAL;
-        hstop_tx  <= `HSTOP_PAL;
+        hstart_tx <= `HSTART_PAL_2x;
+        hstop_tx  <= `HSTOP_PAL_2x;
         nHS_width <= `HS_WIDTH_PAL_LX2;
         pic_shift <= n64_480i ? `H_SHIFT_PAL_576I_LX2 : `H_SHIFT_PAL_288P_LX2;
         nVS_width <= `VS_WIDTH_PAL_LX2;
       end else begin
-        hstart_tx <= `HSTART_NTSC;
-        hstop_tx  <= `HSTOP_NTSC;
+        hstart_tx <= `HSTART_NTSC_2x;
+        hstop_tx  <= `HSTOP_NTSC_2x;
         nHS_width <= linemult_sel == 2'b10 ? `HS_WIDTH_NTSC_LX3 : `HS_WIDTH_NTSC_LX2;
         pic_shift <= linemult_sel == 2'b10 ? `H_SHIFT_NTSC_240P_LX3 :
                                   n64_480i ? `H_SHIFT_NTSC_480I_LX2 : `H_SHIFT_NTSC_240P_LX2;
@@ -302,14 +302,14 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
         if (^newFrame) begin
           // set new info (delayed)
           if (pal_mode) begin
-            hstart_tx <= `HSTART_PAL;
-            hstop_tx  <= `HSTOP_PAL;
+            hstart_tx <= `HSTART_PAL_2x;
+            hstop_tx  <= `HSTOP_PAL_2x;
             nHS_width <= `HS_WIDTH_PAL_LX2;
             pic_shift <= n64_480i ? `H_SHIFT_PAL_576I_LX2 : `H_SHIFT_PAL_288P_LX2;
             nVS_width <= `VS_WIDTH_PAL_LX2;
           end else begin
-            hstart_tx <= `HSTART_NTSC;
-            hstop_tx  <= `HSTOP_NTSC;
+            hstart_tx <= `HSTART_NTSC_2x;
+            hstop_tx  <= `HSTOP_NTSC_2x;
             nHS_width <= linemult_sel == 2'b10 ? `HS_WIDTH_NTSC_LX3 : `HS_WIDTH_NTSC_LX2;
             pic_shift <= linemult_sel == 2'b10 ? `H_SHIFT_NTSC_240P_LX3 :
                                       n64_480i ? `H_SHIFT_NTSC_480I_LX2 : `H_SHIFT_NTSC_240P_LX2;
