@@ -32,7 +32,7 @@
 
 module gamma_module(
   VCLK,
-  nVDSYNC,
+  nVDSYNC_i,
   nRST,
   gammaparams_i,
   video_data_i,
@@ -42,7 +42,7 @@ module gamma_module(
 `include "vh/n64adv_vparams.vh"
 
 input VCLK;
-input nVDSYNC;
+input nVDSYNC_i;
 input nRST;
 
 input [ 3:0] gammaparams_i;
@@ -61,40 +61,92 @@ wire [2:0] gamma_rom_page = gamma_rom_page_tmp[2:0];
 // connect data tables (output has delay of two)
 wire [`VDATA_I_CO_SLICE] gamma_vdata_out;
 
+reg [1:0] vdata_i_cnt = 2'b00;
+reg [color_width_i-1:0] gamma_vdata_i = {color_width_i{1'b0}};
+wire [color_width_i-1:0] gamma_vdata_o;
+
+always @(posedge VCLK or negedge nRST)
+  if (!nRST) begin
+    vdata_i_cnt <= 2'b00;
+    gamma_vdata_i <= {color_width_i{1'b0}};
+  end else begin
+    if (!nVDSYNC_i) begin
+      vdata_i_cnt <= 2'b01;
+      gamma_vdata_i <= video_data_i[`VDATA_I_RE_SLICE];
+    end else begin
+      if (vdata_i_cnt == 2'b01)
+        gamma_vdata_i <= video_data_i[`VDATA_I_GR_SLICE];
+      if (vdata_i_cnt == 2'b10)
+        gamma_vdata_i <= video_data_i[`VDATA_I_BL_SLICE];
+      vdata_i_cnt <= vdata_i_cnt + 2'b01;
+    end
+  end
+
 gamma_table gamma_table_re_u(
   .VCLK(VCLK),
   .nRST(nRST),
   .gamma_val(gamma_rom_page),
-  .vdata_in(video_data_i[`VDATA_I_RE_SLICE]),
+  .vdata_in(gamma_vdata_i),
   .nbypass(en_gamma_boost),
-  .vdata_out(gamma_vdata_out[`VDATA_I_RE_SLICE])
+  .vdata_out(gamma_vdata_o)
 );
 
-gamma_table gamma_table_gr_u(
-  .VCLK(VCLK),
-  .nRST(nRST),
-  .gamma_val(gamma_rom_page),
-  .vdata_in(video_data_i[`VDATA_I_GR_SLICE]),
-  .nbypass(en_gamma_boost),
-  .vdata_out(gamma_vdata_out[`VDATA_I_GR_SLICE])
-);
+// delay of remaining components
 
-gamma_table gamma_table_bl_u(
-  .VCLK(VCLK),
-  .nRST(nRST),
-  .gamma_val(gamma_rom_page),
-  .vdata_in(video_data_i[`VDATA_I_BL_SLICE]),
-  .nbypass(en_gamma_boost),
-  .vdata_out(gamma_vdata_out[`VDATA_I_BL_SLICE])
-);
+reg nVDSYNC_L[0:2];
+reg [3:0] vdata_sync_L[0:2];
+integer int_idx;
+initial begin
+  for (int_idx = 0; int_idx < 3; int_idx = int_idx+1) begin
+    nVDSYNC_L[int_idx] = 1'b0;
+    vdata_sync_L[int_idx] = 4'h0;
+  end
+end
 
+always @(posedge VCLK or negedge nRST)
+  if (!nRST) begin
+    for (int_idx = 0; int_idx < 3; int_idx = int_idx+1) begin
+      nVDSYNC_L[int_idx] <= 1'b0;
+      vdata_sync_L[int_idx] <= 4'h0;
+    end
+  end else begin
+    nVDSYNC_L[2] <= nVDSYNC_L[1];
+    nVDSYNC_L[1] <= nVDSYNC_L[0];
+    nVDSYNC_L[0] <= nVDSYNC_i;
+    vdata_sync_L[2] <= vdata_sync_L[1];
+    vdata_sync_L[1] <= vdata_sync_L[0];
+    vdata_sync_L[0] <= video_data_i[`VDATA_I_SY_SLICE];
+  end
+
+// collect outputs
+reg [1:0] vdata_o_cnt = 2'b00;
+reg [`VDATA_I_FU_SLICE] vdata_o_pre = {vdata_width_i{1'b0}};
+
+always @(posedge VCLK or negedge nRST)
+  if (!nRST) begin
+    vdata_o_cnt <= 2'b00;
+    vdata_o_pre <= {vdata_width_i{1'b0}};
+  end else begin
+    if (!nVDSYNC_L[2]) begin
+      vdata_o_cnt <= 2'b01;
+      vdata_o_pre[`VDATA_I_SY_SLICE] <= vdata_sync_L[2];
+      vdata_o_pre[`VDATA_I_RE_SLICE] <= gamma_vdata_o;
+    end else begin
+      if (vdata_o_cnt == 2'b01)
+        vdata_o_pre[`VDATA_I_GR_SLICE] <= gamma_vdata_o;
+      if (vdata_o_cnt == 2'b10)
+        vdata_o_pre[`VDATA_I_BL_SLICE] <= gamma_vdata_o;
+      vdata_o_cnt <= vdata_o_cnt + 2'b01;
+    end
+  end
 
 // registered output
 always @(posedge VCLK or negedge nRST)
-  if (!nRST)
+  if (!nRST) begin
     video_data_o <= {vdata_width_i{1'b0}};
-  else if (!nVDSYNC)
-    video_data_o <= {video_data_i[`VDATA_I_SY_SLICE],gamma_vdata_out};
-
+  end else begin
+    if (!nVDSYNC_L[2])
+      video_data_o <= vdata_o_pre;
+  end
 
 endmodule
