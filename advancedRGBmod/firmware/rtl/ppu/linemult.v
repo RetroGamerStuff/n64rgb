@@ -33,9 +33,11 @@
 
 module linemult(
   VCLK_Rx,
+  nVDSYNC_Rx,
   nVRST_Rx,
 
   VCLK_Tx,
+  nVDSYNC_Tx,
   nVRST_Tx,
 
   vinfo_mult,
@@ -52,10 +54,12 @@ localparam SLHyb_width = 8; // do not change this localparam!
 localparam pcnt_width = $clog2(`BUF_NUM_OF_PAGES);
 
 input VCLK_Rx;
+input nVDSYNC_Rx;
 input nVRST_Rx;
 
-input VCLK_Tx;
-input nVRST_Tx;
+input  VCLK_Tx;
+output nVDSYNC_Tx;
+input  nVRST_Tx;
 
 input [16:0] vinfo_mult; // [nLineMult (2bits),lx_ifix (1bit),SLhyb_str (5bits),SL_str (4bits),SL_method,SL_id,SL_en,PAL,interlaced]
 
@@ -117,7 +121,10 @@ always @(posedge VCLK_Rx or negedge nVRST_Rx)
       end
     end
 
-    nVDSYNC_dbl <= ~nVDSYNC_dbl;
+    if (!nVDSYNC_Rx)
+      nVDSYNC_dbl <= 1'b0;
+    else
+      nVDSYNC_dbl <= ~nVDSYNC_dbl;
   end
 
 
@@ -372,14 +379,16 @@ ram2port #(
   .wraddr(wraddr[hcnt_witdh-1:1]),
   .wrdata({R_i,G_i,B_i}),
   .rdCLK(VCLK_Tx),
-  .rden(rden[0]),
+  .rden(&{rden[0],!rdaddr[0]}),
   .rdpage(rdpage_pp3),
   .rdaddr(rdaddr[hcnt_witdh-1:1]),
   .rddata({R_buf,G_buf,B_buf})
 );
 
 
-
+reg nVDSYNC_buf = 1'b0;
+reg nVDSYNC_mult_pre = 1'b0;
+reg nVDSYNC_mult = 1'b0;
 reg                     drawSL [0:2];
 reg               [3:0] S_mult [0:2];
 reg [color_width_i-1:0] R_mult_pre = {color_width_i{1'b0}};
@@ -406,6 +415,9 @@ wire [color_width_i-1:0] B_avg = {1'b0,B_mult_pre[color_width_i-1:1]} + {1'b0,B_
 
 always @(posedge VCLK_Tx or negedge nVRST_Tx)
   if (!nVRST_Tx) begin
+    nVDSYNC_buf <= 1'b0;
+    nVDSYNC_mult_pre <= 1'b0;
+    nVDSYNC_mult <= 1'b0;
     for (int_idx = 0; int_idx < 3; int_idx = int_idx+1) begin
       drawSL[int_idx] <= 1'b0;
       S_mult[int_idx] <= 4'b0000;
@@ -421,6 +433,13 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
     B_mult     <= {color_width_i{1'b0}};
     Y_sl_pre   <= {Y_width{1'b0}};
   end else begin
+    nVDSYNC_mult <= nVDSYNC_mult_pre;
+    nVDSYNC_mult_pre <= nVDSYNC_buf;
+    if (!rdaddr[0]) // reading buffer has exactly two delay steps - so we can safetely use !rdaddr[0]
+      nVDSYNC_buf <= 1'b0;
+    else
+      nVDSYNC_buf <= ~nVDSYNC_buf;
+
     S_mult[2] <=  S_mult[1];
     S_mult[1] <=  S_mult[0];
     S_mult[0] <= {nVSYNC_mult,1'b0, nHSYNC_mult,nCSYNC_mult};
@@ -430,7 +449,7 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
                            SL_id ? (rdcnt == 2'b10) : (rdcnt == 2'b00));
 
     if (rden[2]) begin
-      if (!rdaddr[0]) begin // reading buffer has exactly two delay steps - so we can safetely use !rdaddr[0]
+      if (!rdaddr[0]) begin  // reading buffer has exactly two delay steps - so we can safetely use !rdaddr[0]
         R_mult_pre <= R_buf;
         G_mult_pre <= G_buf;
         B_mult_pre <= B_buf;
@@ -452,7 +471,6 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
       B_sl_pre   <= {color_width_i{1'b0}};
       Y_sl_pre   <= {      Y_width{1'b0}};
     end
-
     R_mult <= R_mult_pre;
     G_mult <= G_mult_pre;
     B_mult <= B_mult_pre;
@@ -461,6 +479,8 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
 
 // post-processing (scanline generation)
 
+reg                     nVDSYNC_pp[0:4]                 /* synthesis ramstyle = "logic" */;
+reg                     nVDSYNC_o                       /* synthesis ramstyle = "logic" */;
 reg                     dSL_pp[0:4]                     /* synthesis ramstyle = "logic" */;
 reg               [3:0] S_pp[0:4], S_o                  /* synthesis ramstyle = "logic" */;
 reg [color_width_i-1:0] R_sl_pre_pp[0:3],
@@ -471,6 +491,7 @@ reg [color_width_o-1:0] R_o, G_o, B_o                   /* synthesis ramstyle = 
 
 initial begin
   for (int_idx = 0; int_idx < 5; int_idx = int_idx+1) begin
+    nVDSYNC_pp[int_idx] <= 1'b0;
     dSL_pp[int_idx] <= 1'b0;
     S_pp[int_idx] <= 4'b0000;
     R_pp[int_idx] <= {color_width_i{1'b0}};
@@ -482,6 +503,7 @@ initial begin
     G_sl_pre_pp[int_idx] <= {color_width_i{1'b0}};
     B_sl_pre_pp[int_idx] <= {color_width_i{1'b0}};
   end
+  nVDSYNC_o <= 1'b0;
   R_o <= {color_width_o{1'b0}};
   G_o <= {color_width_o{1'b0}};
   B_o <= {color_width_o{1'b0}};
@@ -511,6 +533,7 @@ integer pp_idx;
 always @(posedge VCLK_Tx or negedge nVRST_Tx)
   if (!nVRST_Tx) begin
     for (int_idx = 0; int_idx < 5; int_idx = int_idx+1) begin
+      nVDSYNC_pp[int_idx] <= 1'b0;
       dSL_pp[int_idx] <= 1'b0;
       S_pp[int_idx] <= 4'b0000;
       R_pp[int_idx] <= {color_width_i{1'b0}};
@@ -522,6 +545,7 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
       G_sl_pre_pp[int_idx] <= {color_width_i{1'b0}};
       B_sl_pre_pp[int_idx] <= {color_width_i{1'b0}};
     end
+    nVDSYNC_o <= 1'b0;
     R_o <= {color_width_o{1'b0}};
     G_o <= {color_width_o{1'b0}};
     B_o <= {color_width_o{1'b0}};
@@ -536,6 +560,7 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
     G_sl <= {color_width_o{1'b0}};
     B_sl <= {color_width_o{1'b0}};
   end else begin
+     nVDSYNC_pp[0] <= nVDSYNC_mult;
          dSL_pp[0] <= drawSL[2];
            S_pp[0] <= S_mult[2];
     R_sl_pre_pp[0] <= R_sl_pre;
@@ -545,6 +570,7 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
            G_pp[0] <= G_mult;
            B_pp[0] <= B_mult;
     for (pp_idx = 0; pp_idx < 3; pp_idx = pp_idx + 1) begin
+         nVDSYNC_pp[pp_idx+1] <=  nVDSYNC_pp[pp_idx];
              dSL_pp[pp_idx+1] <=      dSL_pp[pp_idx];
                S_pp[pp_idx+1] <=        S_pp[pp_idx];
         R_sl_pre_pp[pp_idx+1] <= R_sl_pre_pp[pp_idx];
@@ -554,12 +580,14 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
                G_pp[pp_idx+1] <=        G_pp[pp_idx];
                B_pp[pp_idx+1] <=        B_pp[pp_idx];
     end
-    dSL_pp[4] <= dSL_pp[3];
-      S_pp[4] <=   S_pp[3];
-      R_pp[4] <=   R_pp[3];
-      G_pp[4] <=   G_pp[3];
-      B_pp[4] <=   B_pp[3];
-       S_o    <=   S_pp[4];
+     nVDSYNC_o    <= nVDSYNC_pp[4];
+    nVDSYNC_pp[4] <= nVDSYNC_pp[3];
+        dSL_pp[4] <=     dSL_pp[3];
+          S_pp[4] <=       S_pp[3];
+          R_pp[4] <=       R_pp[3];
+          G_pp[4] <=       G_pp[3];
+          B_pp[4] <=       B_pp[3];
+           S_o    <=       S_pp[4];
 
     // hybrid strength reference (2 pp stages)
     Y_ref_pre <= Y_ref_pre_full[Y_width+4:5];
@@ -587,6 +615,7 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
 
     // use standard input if no line-doubling
     if (nENABLE_linemult) begin
+      nVDSYNC_o <= nVDSYNC_Rx;
       S_o <= vdata_i[`VDATA_I_SY_SLICE];
       R_o <= {R_i,R_i[color_width_i-1]};
       G_o <= {G_i,G_i[color_width_i-1]};
@@ -596,6 +625,7 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
 
 
 // post-assignment
+assign nVDSYNC_Tx = nVDSYNC_o;
 assign vdata_o = {S_o,R_o,G_o,B_o};
 
 endmodule 

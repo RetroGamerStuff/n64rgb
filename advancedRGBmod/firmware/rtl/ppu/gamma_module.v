@@ -33,6 +33,7 @@
 module gamma_module(
   VCLK,
   nVDSYNC_i,
+  nVDSYNC_o,
   nRST,
   gammaparams_i,
   video_data_i,
@@ -43,6 +44,7 @@ module gamma_module(
 
 input VCLK;
 input nVDSYNC_i;
+output reg nVDSYNC_o;
 input nRST;
 
 input [ 3:0] gammaparams_i;
@@ -143,8 +145,10 @@ always @(posedge VCLK or negedge nRST)
 // registered output
 always @(posedge VCLK or negedge nRST)
   if (!nRST) begin
+    nVDSYNC_o <= 1'b0;
     video_data_o <= {vdata_width_i{1'b0}};
   end else begin
+    nVDSYNC_o <= nVDSYNC_L[2];
     if (!nVDSYNC_L[2])
       video_data_o <= vdata_o_pre;
   end

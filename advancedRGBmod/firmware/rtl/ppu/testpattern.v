@@ -33,7 +33,8 @@
 
 module testpattern(
   VCLK,
-  nVDSYNC,
+  nVDSYNC_i,
+  nVDSYNC_o,
   nRST,
 
   vmode,
@@ -44,7 +45,8 @@ module testpattern(
 `include "vh/n64adv_vparams.vh"
 
 input VCLK;
-input nVDSYNC;
+input nVDSYNC_i;
+output reg nVDSYNC_o;
 input nRST;
 
 input vmode;
@@ -71,29 +73,34 @@ always @(posedge VCLK or negedge nRST)
 
     vcnt <= 9'b0;
     hcnt <= 10'b0;
-  end else if (!nVDSYNC) begin
-    if (posedge_nHSYNC) begin
-      hcnt <= 10'b0;
-      vcnt <= &vcnt ? vcnt : vcnt + 1'b1;
-    end else begin
-      hcnt <= &hcnt ? hcnt : hcnt + 1'b1;
-    end
-    if (posedge_nVSYNC)
-      vcnt <= 9'b0;
+  end else begin
+    if (!nVDSYNC_i) begin
+      if (posedge_nHSYNC) begin
+        hcnt <= 10'b0;
+        vcnt <= &vcnt ? vcnt : vcnt + 1'b1;
+      end else begin
+        hcnt <= &hcnt ? hcnt : hcnt + 1'b1;
+      end
+      if (posedge_nVSYNC)
+        vcnt <= 9'b0;
 
-    if ((vcnt > pattern_vstart) && (vcnt < pattern_vstop)) begin
-      if ((hcnt > pattern_hstart) && (hcnt < pattern_hstop))
-        vdata_out[`VDATA_O_CO_SLICE] <= {3*color_width_o{~vdata_out[0]}};
-      else
+      if ((vcnt > pattern_vstart) && (vcnt < pattern_vstop)) begin
+        if ((hcnt > pattern_hstart) && (hcnt < pattern_hstop))
+          vdata_out[`VDATA_O_CO_SLICE] <= {3*color_width_o{~vdata_out[0]}};
+        else
+          vdata_out[`VDATA_O_CO_SLICE] <= {3*color_width_o{1'b0}};
+
+        if (hcnt == pattern_hstart)
+          vdata_out[`VDATA_O_CO_SLICE] <= {3*color_width_o{vcnt[0]}};
+      end else begin
         vdata_out[`VDATA_O_CO_SLICE] <= {3*color_width_o{1'b0}};
+      end
 
-      if (hcnt == pattern_hstart)
-        vdata_out[`VDATA_O_CO_SLICE] <= {3*color_width_o{vcnt[0]}};
-    end else begin
-      vdata_out[`VDATA_O_CO_SLICE] <= {3*color_width_o{1'b0}};
+      vdata_out[`VDATA_O_SY_SLICE] <= Sync_in;
     end
 
-    vdata_out[`VDATA_O_SY_SLICE] <= Sync_in;
+    nVDSYNC_o <= nVDSYNC_i;
+
   end
 
 endmodule

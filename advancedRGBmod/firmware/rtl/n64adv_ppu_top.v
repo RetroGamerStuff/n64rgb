@@ -170,6 +170,7 @@ end
 
 assign VCLK_Tx_select = cfg_linemult;
 
+wire nVDSYNC_r[2:3]; // 0 and 1 are synchron with initial nVDSYNC
 wire [`VDATA_I_FU_SLICE] vdata_r[0:3];
 
 
@@ -225,7 +226,8 @@ osd_injection osd_injection_u(
   .OSDWrVector(OSDWrVector),
   .OSDInfo(OSDInfo),
   .VCLK(VCLK),
-  .nVDSYNC(nVDSYNC),
+  .nVDSYNC_i(nVDSYNC),
+  .nVDSYNC_o(nVDSYNC_r[2]),
   .nVRST(nVRST),
   .video_data_i(vdata_r[1]),
   .video_data_o(vdata_r[2])
@@ -239,7 +241,8 @@ osd_injection osd_injection_u(
 
 gamma_module gamma_module_u(
   .VCLK(VCLK),
-  .nVDSYNC(nVDSYNC),
+  .nVDSYNC_i(nVDSYNC_r[2]),
+  .nVDSYNC_o(nVDSYNC_r[3]),
   .nRST(nVRST),
   .gammaparams_i(cfg_gamma),
   .video_data_i(vdata_r[2]),
@@ -250,12 +253,15 @@ gamma_module gamma_module_u(
 // =========================
 
 wire [16:0] vinfo_mult = {cfg_linemult,cfg_ifix,cfg_SLHyb_str,cfg_SL_str,cfg_SL_method,cfg_SL_id,cfg_SL_en,vinfo_pass[1:0]};
+wire nVDSYNC_srgb_out;
 wire [`VDATA_O_FU_SLICE] vdata_srgb_out;
 
 linemult linemult_u(
   .VCLK_Rx(VCLK),
+  .nVDSYNC_Rx(nVDSYNC_r[3]),
   .nVRST_Rx(nVRST),
   .VCLK_Tx(VCLK_Tx),
+  .nVDSYNC_Tx(nVDSYNC_srgb_out),
   .nVRST_Tx(nVRST_Tx),
   .vinfo_mult(vinfo_mult),
   .vdata_i(vdata_r[3]),
@@ -267,11 +273,13 @@ linemult linemult_u(
 // ==============================
 // (intersects part 5)
 
+wire nVDSYNC_testpattern;
 wire [`VDATA_O_FU_SLICE] vdata_testpattern;
 
 testpattern testpattern_u(
   .VCLK(VCLK_Tx),
-  .nVDSYNC(nVDSYNC),
+  .nVDSYNC_i(nVDSYNC),
+  .nVDSYNC_o(nVDSYNC_testpattern),
   .nRST(nVRST_Tx),
   .vmode(pal_mode),
   .Sync_in(VD_i[3:0]),
@@ -283,20 +291,26 @@ testpattern testpattern_u(
 // Part 5.3: Color Transformation
 // ==============================
 
+wire vdata_vc_valid = cfg_testpat ? !nVDSYNC_testpattern : !nVDSYNC_srgb_out;
 wire [`VDATA_O_FU_SLICE] vdata_vc_in = cfg_testpat ? vdata_testpattern : vdata_srgb_out;
+wire vdata_vc_out_valid;
 wire [`VDATA_O_FU_SLICE] vdata_vc_out;
 
 vconv vconv_u(
   .VCLK(VCLK_Tx),
   .nRST(nVRST_Tx),
   .nEN_YPbPr(cfg_nEN_YPbPr),    // enables color transformation on '0'
+  .vdata_i_valid(vdata_vc_valid),
   .vdata_i(vdata_vc_in),
+  .vdata_o_valid(vdata_vc_out_valid),
   .vdata_o(vdata_vc_out)
 );
+
 
 // Part 7: assign final outputs
 // ============================
 
+reg [1:0] vdata_valid_shifted = 2'b00;
 wire [3:0] Sync_o = vdata_vc_out[`VDATA_O_SY_SLICE];
 reg [`VDATA_O_CO_SLICE] vdata_shifted[0:1];
 initial begin
@@ -309,23 +323,38 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
     nCSYNC <= 2'b00;
       VD_o <= {3*color_width_o{1'b0}};
 
+    vdata_valid_shifted <= 2'b00;
     vdata_shifted[0] <= {3*color_width_o{1'b0}};
     vdata_shifted[1] <= {3*color_width_o{1'b0}};
   end else begin
-  //  nBLANK <= Sync_o[2];
-    nCSYNC[1] <= Sync_o[0];
-    if (cfg_nEN_RGsB & cfg_nEN_YPbPr)
-      nCSYNC[0] <= 1'b0;
-    else
-      nCSYNC[0] <= Sync_o[0];
+    if (vdata_vc_out_valid) begin
+    //  nBLANK <= Sync_o[2];
+      nCSYNC[1] <= Sync_o[0];
+      if (cfg_nEN_RGsB & cfg_nEN_YPbPr)
+        nCSYNC[0] <= 1'b0;
+      else
+        nCSYNC[0] <= Sync_o[0];
+        
+      vdata_shifted[0] <= cfg_exchange_rb_o ? {vdata_vc_out[`VDATA_O_BL_SLICE],vdata_vc_out[`VDATA_O_GR_SLICE],vdata_vc_out[`VDATA_O_RE_SLICE]} : vdata_vc_out[`VDATA_O_CO_SLICE];
+    end
 
-    vdata_shifted[1] <= vdata_shifted[0];
-    vdata_shifted[0] <= cfg_exchange_rb_o ? {vdata_vc_out[`VDATA_O_BL_SLICE],vdata_vc_out[`VDATA_O_GR_SLICE],vdata_vc_out[`VDATA_O_RE_SLICE]} : vdata_vc_out[`VDATA_O_CO_SLICE];
+    if (vdata_valid_shifted[0])
+      vdata_shifted[1] <= vdata_shifted[0];
 
-    if (!ndo_deblur && !cfg_testpat)
-      VD_o <= vdata_shifted[^cfg_linemult][`VDATA_O_CO_SLICE];
-    else
-      VD_o <= cfg_exchange_rb_o ? {vdata_vc_out[`VDATA_O_BL_SLICE],vdata_vc_out[`VDATA_O_GR_SLICE],vdata_vc_out[`VDATA_O_RE_SLICE]} : vdata_vc_out[`VDATA_O_CO_SLICE];
+    if (!ndo_deblur && !cfg_testpat) begin
+      if (^cfg_linemult) begin
+        if (vdata_valid_shifted[1])
+          VD_o <= vdata_shifted[1];
+      end else begin
+        if (vdata_valid_shifted[0])
+          VD_o <= vdata_shifted[0];
+      end
+    end else begin
+      if (vdata_vc_out_valid)
+        VD_o <= cfg_exchange_rb_o ? {vdata_vc_out[`VDATA_O_BL_SLICE],vdata_vc_out[`VDATA_O_GR_SLICE],vdata_vc_out[`VDATA_O_RE_SLICE]} : vdata_vc_out[`VDATA_O_CO_SLICE];
+    end
+
+    vdata_valid_shifted <= {vdata_valid_shifted[0],vdata_vc_out_valid};
   end
 
 
@@ -358,8 +387,10 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
     Filter <= AutoFilter_w ? cfg_linemult : cfg_filter[1:0] - 1'b1;
     
     if (UseVGA_HVSync) begin
-      nVSYNC_or_F2 <= Sync_o[3];
-      nHSYNC_or_F1 <= Sync_o[1];
+      if (vdata_vc_out_valid) begin
+        nVSYNC_or_F2 <= Sync_o[3];
+        nHSYNC_or_F1 <= Sync_o[1];
+      end
     end else begin
       nVSYNC_or_F2 <= Filter[2];
       nHSYNC_or_F1 <= Filter[1];

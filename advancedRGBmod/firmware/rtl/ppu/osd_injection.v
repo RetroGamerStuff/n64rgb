@@ -37,7 +37,8 @@ module osd_injection (
   OSDInfo,
 
   VCLK,
-  nVDSYNC,
+  nVDSYNC_i,
+  nVDSYNC_o,
   nVRST,
 
   video_data_i,
@@ -54,7 +55,8 @@ input [24:0] OSDWrVector;
 input [ 1:0] OSDInfo;
 
 input VCLK;
-input nVDSYNC;
+input nVDSYNC_i;
+output reg nVDSYNC_o;
 input nVRST;
 
 input      [`VDATA_I_FU_SLICE] video_data_i;
@@ -124,7 +126,7 @@ always @(posedge VCLK or negedge nVRST)
     en_txtrd        <= 6'h0;
     en_fontrd       <= 3'b000;
   end else begin
-    if (!nVDSYNC) begin
+    if (!nVDSYNC_i) begin
       h_cnt <= ~&h_cnt ? h_cnt + 1'b1 : h_cnt;
 
       if (negedge_nHSYNC) begin
@@ -313,6 +315,7 @@ always @(posedge VCLK or negedge nVRST)
   if (!nVRST)
     video_data_o <= {vdata_width_i{1'b0}};
   else begin
+    nVDSYNC_o <= nVDSYNC_i;
     // pass through sync
     video_data_o[`VDATA_I_SY_SLICE] <= video_data_i[`VDATA_I_SY_SLICE];
 
