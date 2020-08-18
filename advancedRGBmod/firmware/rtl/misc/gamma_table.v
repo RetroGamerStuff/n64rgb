@@ -24,9 +24,9 @@
 //
 // Module Name:    gamma_table
 // Project Name:   N64 Advanced RGB/YPbPr DAC Mod
-// Target Devices: Max10, Cyclone IV and Cyclone 10 LP devices
+// Target Devices: universial
 // Tool versions:  Altera Quartus Prime
-// Description:    simple line-multiplying
+// Description:    
 //
 // Features: ip independent implementation of gamma rom
 //
@@ -1095,7 +1095,7 @@ always @(posedge VCLK or negedge nRST)
     endcase
 
     if (!nbypass_r)
-      vdata_out <= addr_r[color_width_i-1:0];
+      vdata_out <= {addr_r[color_width_i-1:0],{0{vdata_in[color_width_i-1]}}};
   end
 
 endmodule
