@@ -58,8 +58,6 @@ create_clock -name {SYS_CLK} -period $sys_clk_per -waveform $sys_clk_waveform [g
 
 # Video Clocks
 
-create_clock -name {VCLK_2x_base} -period $n64_vclk_per -waveform $n64_vclk_waveform $vclk_input -add
-
 set vclk_pll_in [get_pins {clk_n_rst_hk_u|video_pll_u|altpll_component|auto_generated|pll1|inclk[0]}]
 set vclk_pll_3x_out [get_pins {clk_n_rst_hk_u|video_pll_u|altpll_component|auto_generated|pll1|clk[0]}]
 create_generated_clock -name {VCLK_3x_base} -source $vclk_pll_in -master_clock {VCLK_1x_base} -divide_by 2 -multiply_by 3 -duty_cycle 60 $vclk_pll_3x_out
@@ -69,7 +67,7 @@ create_generated_clock -name {VCLK_3x_base} -source $vclk_pll_in -master_clock {
 # TX Clock MUX
 set vclk_mux_out [get_pins {clk_n_rst_hk_u|altclkctrl_u|altclkctrl_0|altclkctrl_altclkctrl_0_sub_component|clkctrl1|outclk}]
 create_generated_clock -name {VCLK_1x_out_pre} -source $vclk_input -master_clock {VCLK_1x_base} $vclk_mux_out
-create_generated_clock -name {VCLK_2x_out_pre} -source $vclk_input -master_clock {VCLK_2x_base} $vclk_mux_out -add
+create_generated_clock -name {VCLK_2x_out_pre} -source $vclk_input -master_clock {VCLK_1x_base} $vclk_mux_out -add
 create_generated_clock -name {VCLK_3x_out_pre} -source $vclk_pll_3x_out -master_clock {VCLK_3x_base} $vclk_mux_out -add
 
 
@@ -155,9 +153,11 @@ set_output_delay -clock {altera_reserved_tck} 20 [get_ports {altera_reserved_tdo
 
 set_clock_groups -logically_exclusive \
                     -group {VCLK_N64_VIRT VCLK_1x_base VCLK_1x_out_pre VCLK_1x_out} \
-                    -group {VCLK_2x_base VCLK_2x_out_pre VCLK_2x_out} \
+                    -group {VCLK_2x_out_pre VCLK_2x_out} \
                     -group {VCLK_3x_base VCLK_3x_out_pre VCLK_3x_out} \
-                    -group {SYS_CLK CLK_4M CLK_16k CLK_25M}
+                    -group {SYS_CLK CLK_25M} \
+                    -group {CLK_4M} \
+                    -group {CLK_16k}
 
 
 #**************************************************************
