@@ -170,7 +170,7 @@ end
 
 assign VCLK_Tx_select = cfg_linemult;
 
-wire nVDSYNC_r[2:3]; // 0 and 1 are synchron with initial nVDSYNC
+wire nVDSYNC_r[1:3]; // 0 is synchron with initial nVDSYNC
 wire [`VDATA_I_FU_SLICE] vdata_r[0:3];
 
 
@@ -210,7 +210,8 @@ n64a_deblur deblur_management_u(
 
 n64a_vdemux video_demux_u(
   .VCLK(VCLK),
-  .nVDSYNC(nVDSYNC),
+  .nVDSYNC_i(nVDSYNC),
+  .nVDSYNC_o(nVDSYNC_r[1]),
   .nRST(nVRST),
   .VD_i(VD_i),
   .demuxparams_i({vinfo_pass[3:1],ndo_deblur,cfg_n15bit_mode}),
@@ -226,7 +227,7 @@ osd_injection osd_injection_u(
   .OSDWrVector(OSDWrVector),
   .OSDInfo(OSDInfo),
   .VCLK(VCLK),
-  .nVDSYNC_i(nVDSYNC),
+  .nVDSYNC_i(nVDSYNC_r[1]),
   .nVDSYNC_o(nVDSYNC_r[2]),
   .nVRST(nVRST),
   .video_data_i(vdata_r[1]),

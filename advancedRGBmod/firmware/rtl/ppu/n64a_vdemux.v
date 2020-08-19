@@ -35,7 +35,8 @@
 
 module n64a_vdemux(
   VCLK,
-  nVDSYNC,
+  nVDSYNC_i,
+  nVDSYNC_o,
   nRST,
 
   VD_i,
@@ -48,7 +49,8 @@ module n64a_vdemux(
 `include "vh/n64adv_vparams.vh"
 
 input VCLK;
-input nVDSYNC;
+input nVDSYNC_i;
+output reg nVDSYNC_o;
 input nRST;
 
 input  [color_width_i-1:0] VD_i;
@@ -75,7 +77,7 @@ reg nblank_rgb = 1'b1;
 always @(posedge VCLK or negedge nRST)
   if (!nRST) begin
     nblank_rgb <= 1'b1;
-  end else if (!nVDSYNC) begin
+  end else if (!nVDSYNC_i) begin
     if (ndo_deblur) begin
       nblank_rgb <= 1'b1;
     end else begin
@@ -92,7 +94,7 @@ always @(posedge VCLK or negedge nRST) // data register management
     vdata_r_0 <= {vdata_width_i{1'b0}};
     vdata_r_1 <= {vdata_width_i{1'b0}};
   end else begin
-    if (!nVDSYNC) begin
+    if (!nVDSYNC_i) begin
       // shift data to output registers
       vdata_r_1[`VDATA_I_SY_SLICE] <= vdata_r_0[`VDATA_I_SY_SLICE];
       if (nblank_rgb)  // deblur active: pass RGB only if not blanked
@@ -108,6 +110,7 @@ always @(posedge VCLK or negedge nRST) // data register management
         2'b11: vdata_r_0[`VDATA_I_BL_SLICE] <= n15bit_mode ? VD_i : {VD_i[6:2], 2'b00};
       endcase
     end
+  nVDSYNC_o <= nVDSYNC_i;
   end
 
 endmodule
