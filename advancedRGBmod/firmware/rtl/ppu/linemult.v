@@ -58,7 +58,7 @@ input nVDSYNC_Rx;
 input nVRST_Rx;
 
 input  VCLK_Tx;
-output nVDSYNC_Tx;
+output reg nVDSYNC_Tx = 1'b0;
 input  nVRST_Tx;
 
 input [16:0] vinfo_mult; // [nLineMult (2bits),lx_ifix (1bit),SLhyb_str (5bits),SL_str (4bits),SL_method,SL_id,SL_en,PAL,interlaced]
@@ -480,7 +480,6 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
 // post-processing (scanline generation)
 
 reg                     nVDSYNC_pp[0:4]                 /* synthesis ramstyle = "logic" */;
-reg                     nVDSYNC_o                       /* synthesis ramstyle = "logic" */;
 reg                     dSL_pp[0:4]                     /* synthesis ramstyle = "logic" */;
 reg               [3:0] S_pp[0:4], S_o                  /* synthesis ramstyle = "logic" */;
 reg [color_width_i-1:0] R_sl_pre_pp[0:3],
@@ -503,7 +502,7 @@ initial begin
     G_sl_pre_pp[int_idx] <= {color_width_i{1'b0}};
     B_sl_pre_pp[int_idx] <= {color_width_i{1'b0}};
   end
-  nVDSYNC_o <= 1'b0;
+  nVDSYNC_Tx <= 1'b0;
   R_o <= {color_width_o{1'b0}};
   G_o <= {color_width_o{1'b0}};
   B_o <= {color_width_o{1'b0}};
@@ -545,7 +544,7 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
       G_sl_pre_pp[int_idx] <= {color_width_i{1'b0}};
       B_sl_pre_pp[int_idx] <= {color_width_i{1'b0}};
     end
-    nVDSYNC_o <= 1'b0;
+    nVDSYNC_Tx <= 1'b0;
     R_o <= {color_width_o{1'b0}};
     G_o <= {color_width_o{1'b0}};
     B_o <= {color_width_o{1'b0}};
@@ -580,7 +579,7 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
                G_pp[pp_idx+1] <=        G_pp[pp_idx];
                B_pp[pp_idx+1] <=        B_pp[pp_idx];
     end
-     nVDSYNC_o    <= nVDSYNC_pp[4];
+    nVDSYNC_Tx    <= nVDSYNC_pp[4];
     nVDSYNC_pp[4] <= nVDSYNC_pp[3];
         dSL_pp[4] <=     dSL_pp[3];
           S_pp[4] <=       S_pp[3];
@@ -615,7 +614,7 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
 
     // use standard input if no line-doubling
     if (nENABLE_linemult) begin
-      nVDSYNC_o <= nVDSYNC_Rx;
+      nVDSYNC_Tx <= nVDSYNC_Rx;
       S_o <= vdata_i[`VDATA_I_SY_SLICE];
       R_o <= {R_i,R_i[color_width_i-1]};
       G_o <= {G_i,G_i[color_width_i-1]};
@@ -625,7 +624,6 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
 
 
 // post-assignment
-assign nVDSYNC_Tx = nVDSYNC_o;
 assign vdata_o = {S_o,R_o,G_o,B_o};
 
 endmodule 

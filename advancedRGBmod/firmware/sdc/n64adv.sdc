@@ -181,7 +181,7 @@ set_false_path -from [get_registers {*RST* clk_n_rst_hk_u|cfg_linemult_buf*}]
 
 # Controller Unit
 #*************************************
-set_false_path -to [get_registers {n64adv_controller_u|use_igr n64adv_controller_u|OSDInfo* n64adv_controller_u|PPUConfigSet*}]
+set_false_path -from [get_registers {n64adv_controller_u|MANAGE_VPLL* n64adv_controller_u|OSDInfo* n64adv_controller_u|use_igr n64adv_controller_u|PPUConfigSet*}]
 
 
 # PPU top
@@ -252,7 +252,7 @@ set_false_path -from [get_registers {n64adv_ppu_u|deblur_management_u|p2p_sens \
 #*************************************
 set dbl_cycle_path_vdemux_clk [get_clocks {VCLK_1x_base}]
 set dbl_cycle_path_vdemux_regs [list [get_registers {n64adv_ppu_u|video_demux_u|nblank_rgb}] \
-                                        [get_registers {n64adv_ppu_u|video_demux_u|vdata_r_1[*]}] \
+                                     [get_registers {n64adv_ppu_u|video_demux_u|vdata_r_1[*]}] \
                                ]
 
 foreach reg_list_elem $dbl_cycle_path_vdemux_regs {
@@ -286,6 +286,7 @@ set_false_path -from [get_registers {n64adv_ppu_u|linemult_u|SL_rval*}]
 set dbl_cycle_path_linemult_in_clk [get_clocks {VCLK_1x_base}]
 set dbl_cycle_path_linemult_in_regs [list [get_registers {n64adv_ppu_u|linemult_u|nHS_i_buf}] \
                                           [get_registers {n64adv_ppu_u|linemult_u|nVS_i_buf}] \
+                                          [get_registers {n64adv_ppu_u|linemult_u|FrameID}] \
                                           [get_registers {n64adv_ppu_u|linemult_u|wren}] \
                                           [get_registers {n64adv_ppu_u|linemult_u|wrpage[*]}] \
                                           [get_registers {n64adv_ppu_u|linemult_u|wrhcnt[*]}] \
@@ -330,7 +331,6 @@ set list_direct_false_from [list [get_registers {n64adv_ppu_u|linemult_u|nVDSYNC
                                  [get_registers {n64adv_ppu_u|linemult_u|wren}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|wrpage*}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|wrhcnt*}] \
-                                 [get_registers {n64adv_ppu_u|linemult_u|wraddr*}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|line_overflow_r}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|valid_line_r}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|line_width*}] \
@@ -370,7 +370,6 @@ foreach to_path $list_direct_false_to {
 
 set_false_path -from [get_registers {n64adv_ppu_u|linemult_u|FrameID \
                                      n64adv_ppu_u|linemult_u|hstart_* \
-                                     n64adv_ppu_u|linemult_u|hstart_* \
                                      n64adv_ppu_u|linemult_u|hstop_* \
                                      n64adv_ppu_u|linemult_u|nHS_width* \
                                      n64adv_ppu_u|linemult_u|pic_shift* \
@@ -379,17 +378,11 @@ set_false_path -from [get_registers {n64adv_ppu_u|linemult_u|FrameID \
                                      n64adv_ppu_u|linemult_u|drawSL* \
                                      n64adv_ppu_u|linemult_u|dSL_pp*}]
 
-set_false_path -to [get_registers {n64adv_ppu_u|linemult_u|FrameID \
-                                   n64adv_ppu_u|linemult_u|nHS_width* \
-                                   n64adv_ppu_u|linemult_u|pic_shift* \
-                                   n64adv_ppu_u|linemult_u|nVS_width* \
-                                   n64adv_ppu_u|linemult_u|nVS_delay*}]
-
 
 # Testpattern
 #*************************************
 set dbl_cycle_path_testpattern_clk [get_clocks {VCLK_1x_base}]
-set dbl_cycle_path_testpattern_regs [list [get_registers {n64adv_ppu_u|testpattern_u|vcnt[*]}] \
+set dbl_cycle_path_testpattern_regs [list [get_registers {n64adv_ppu_u|testpattern_u|vcnt[*]*}] \
                                           [get_registers {n64adv_ppu_u|testpattern_u|hcnt[*]}] \
                                           [get_registers {n64adv_ppu_u|testpattern_u|vdata_out[*]}] \
                                     ]
@@ -436,9 +429,6 @@ foreach clk_list_elem $dbl_cycle_path_vconv_clks {
 #*************************************
 set_false_path -to [get_ports {nRST}]
 set_false_path -to [get_ports {nHSYNC* nVSYNC* nCSYNC}]
-
-
-
 
 
 #**************************************************************
