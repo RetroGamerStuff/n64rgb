@@ -48,7 +48,7 @@ module linemult(
 
 `include "vh/n64adv_vparams.vh"
 
-localparam hcnt_witdh  = $clog2(`PIXEL_PER_LINE_MAX_2x);
+localparam hcnt_width  = $clog2(`PIXEL_PER_LINE_MAX_2x);
 localparam Y_width     = color_width_o+1;
 localparam SLHyb_width = 8; // do not change this localparam!
 localparam pcnt_width = $clog2(`BUF_NUM_OF_PAGES);
@@ -128,13 +128,13 @@ always @(posedge VCLK_Rx or negedge nVRST_Rx)
   end
 
 
-reg [hcnt_witdh-1:0] hstart_rx = `HSTART_NTSC_2x;
-reg [hcnt_witdh-1:0] hstop_rx  = `HSTOP_NTSC_2x;
+reg [hcnt_width-1:0] hstart_rx = `HSTART_NTSC_2x;
+reg [hcnt_width-1:0] hstop_rx  = `HSTOP_NTSC_2x;
 
 reg                  wren   = 1'b0;
 reg [pcnt_width-1:0] wrpage = {pcnt_width{1'b0}};
-reg [hcnt_witdh-1:0] wrhcnt = {hcnt_witdh{1'b1}};
-reg [hcnt_witdh-1:0] wraddr = {hcnt_witdh{1'b0}};
+reg [hcnt_width-1:0] wrhcnt = {hcnt_width{1'b1}};
+reg [hcnt_width-1:0] wraddr = {hcnt_width{1'b0}};
 
 wire line_overflow = wrhcnt == `PIXEL_PER_LINE_MAX_2x;  // close approach for NTSC and PAL (equals 1600)
 wire valid_line    = wrhcnt > hstop_rx;                 // for evaluation
@@ -143,11 +143,11 @@ reg line_overflow_r = 1'b0;
 reg valid_line_r    = 1'b0;
 
 
-reg [hcnt_witdh-1:0] line_width[0:`BUF_NUM_OF_PAGES-1];
+reg [hcnt_width-1:0] line_width[0:`BUF_NUM_OF_PAGES-1];
 integer int_idx;
 initial begin
   for (int_idx = 0; int_idx < `BUF_NUM_OF_PAGES; int_idx = int_idx+1)
-    line_width[int_idx] = {hcnt_witdh{1'b0}};
+    line_width[int_idx] = {hcnt_width{1'b0}};
 end
 
 reg [1:0] newFrame = 2'b0; // newFrame[1] used by reading process
@@ -158,8 +158,8 @@ always @(posedge VCLK_Rx or negedge nVRST_Rx)
   if (!nVRST_Rx) begin
     wren   <= 1'b0;
     wrpage <= {pcnt_width{1'b0}};
-    wrhcnt <= {hcnt_witdh{1'b1}};
-    wraddr <= {hcnt_witdh{1'b0}};
+    wrhcnt <= {hcnt_width{1'b1}};
+    wraddr <= {hcnt_width{1'b0}};
 
     line_overflow_r <= 1'b0;
     valid_line_r    <= 1'b0;
@@ -186,7 +186,7 @@ always @(posedge VCLK_Rx or negedge nVRST_Rx)
 
     if (negedge_nHSYNC) begin // negedge nHSYNC -> reset wrhcnt and inc. wrpage
       line_width[wrpage] <= wrhcnt;
-      wrhcnt <= {hcnt_witdh{1'b0}};
+      wrhcnt <= {hcnt_width{1'b0}};
       if (wrpage == `BUF_NUM_OF_PAGES-1)
         wrpage <= {pcnt_width{1'b0}};
       else
@@ -203,12 +203,12 @@ always @(posedge VCLK_Rx or negedge nVRST_Rx)
 
     if (wrhcnt == hstart_rx) begin
       wren   <= 1'b1;
-      wraddr <= {hcnt_witdh{1'b0}};
+      wraddr <= {hcnt_width{1'b0}};
     end else if (wrhcnt > hstart_rx && wrhcnt < hstop_rx) begin
       wraddr <= wraddr + 1'b1;
     end else begin
       wren   <= 1'b0;
-      wraddr <= {hcnt_witdh{1'b0}};
+      wraddr <= {hcnt_width{1'b0}};
     end
   end
 
@@ -227,8 +227,8 @@ register_sync #(
 );
 
 
-reg [hcnt_witdh-1:0] hstart_tx = `HSTART_NTSC_2x;
-reg [hcnt_witdh-1:0] hstop_tx  = `HSTOP_NTSC_2x;
+reg [hcnt_width-1:0] hstart_tx = `HSTART_NTSC_2x;
+reg [hcnt_width-1:0] hstop_tx  = `HSTOP_NTSC_2x;
 
 reg [ 6:0] nHS_width = `HS_WIDTH_NTSC_LX2;
 reg [ 4:0] pic_shift = `H_SHIFT_NTSC_480I_LX2;
@@ -239,9 +239,9 @@ reg            [2:0] rden    = 3'b0;
 reg            [1:0] rdrun   = 2'b00;
 reg            [1:0] rdcnt   = 2'b0;
 reg [pcnt_width-1:0] rdpage  = {pcnt_width{1'b0}};
-reg [hcnt_witdh-1:0] rdhcnt  = {hcnt_witdh{1'b1}};
+reg [hcnt_width-1:0] rdhcnt  = {hcnt_width{1'b1}};
 reg [          10:0] rdvcnt  = 11'd0;
-reg [hcnt_witdh-1:0] rdaddr  = {hcnt_witdh{1'b0}};
+reg [hcnt_width-1:0] rdaddr  = {hcnt_width{1'b0}};
 
 reg start_rdproc_tx_resynced_pre = 1'b0;
 
@@ -255,9 +255,9 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
     rdrun   <= 2'b00;
     rdcnt   <= 2'b0;
     rdpage  <= {pcnt_width{1'b0}};
-    rdhcnt  <= {hcnt_witdh{1'b1}};
+    rdhcnt  <= {hcnt_width{1'b1}};
     rdvcnt  <= 11'd0;
-    rdaddr  <= {hcnt_witdh{1'b0}};
+    rdaddr  <= {hcnt_width{1'b0}};
 
     newFrame[1] <= 1'b0;
     start_rdproc_tx_resynced_pre <= 1'b0;
@@ -288,7 +288,7 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
     end
     if (rdrun[1]) begin
       if (rdhcnt == line_width[rdpage_pp1]) begin
-        rdhcnt   <= {hcnt_witdh{1'b0}};
+        rdhcnt   <= {hcnt_width{1'b0}};
         if (rdcnt == linemult_sel) begin
           rdcnt <= 2'b00;
           if (rdpage == `BUF_NUM_OF_PAGES-1)
@@ -326,20 +326,20 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
         rdhcnt <= rdhcnt + 1'b1;
       end
 
-      if ((rdhcnt+{{(hcnt_witdh-5){pic_shift[4]}},pic_shift}) == hstart_tx) begin
+      if ((rdhcnt+{{(hcnt_width-5){pic_shift[4]}},pic_shift}) == hstart_tx) begin
         rden[0] <= 1'b1;
-        rdaddr  <= {hcnt_witdh{1'b0}};
-      end else if ((rdhcnt+{{(hcnt_witdh-5){pic_shift[4]}},pic_shift}) > hstart_tx && (rdhcnt+{{(hcnt_witdh-5){pic_shift[4]}},pic_shift}) < hstop_tx) begin
+        rdaddr  <= {hcnt_width{1'b0}};
+      end else if ((rdhcnt+{{(hcnt_width-5){pic_shift[4]}},pic_shift}) > hstart_tx && (rdhcnt+{{(hcnt_width-5){pic_shift[4]}},pic_shift}) < hstop_tx) begin
         rdaddr <= rdaddr + 1'b1;
       end else begin
         rden[0] <= 1'b0;
-        rdaddr  <= {hcnt_witdh{1'b0}};
+        rdaddr  <= {hcnt_width{1'b0}};
       end
     end else if (rdrun[0] && (wrpage_tx_resynced == (`BUF_NUM_OF_PAGES>>1)) && wrhcnt_b6_tx_resynced) begin
       rdrun[1] <= 1'b1;
       rdcnt    <= 2'b00;
       rdpage   <= {pcnt_width{1'b0}};
-      rdhcnt   <= {hcnt_witdh{1'b0}};
+      rdhcnt   <= {hcnt_width{1'b0}};
       rdvcnt   <= (`BUF_NUM_OF_PAGES>>1);
     end else if (start_rdproc_tx_resynced ^ start_rdproc_tx_resynced_pre) begin
       rdrun[0] <= 1'b1; // move to steady state
@@ -376,12 +376,12 @@ ram2port #(
   .wrCLK(VCLK_Rx),
   .wren(&{wren,!line_overflow,nVDSYNC_dbl,!wraddr[0]}),
   .wrpage(wrpage),
-  .wraddr(wraddr[hcnt_witdh-1:1]),
+  .wraddr(wraddr[hcnt_width-1:1]),
   .wrdata({R_i,G_i,B_i}),
   .rdCLK(VCLK_Tx),
   .rden(&{rden[0],!rdaddr[0]}),
   .rdpage(rdpage_pp3),
-  .rdaddr(rdaddr[hcnt_witdh-1:1]),
+  .rdaddr(rdaddr[hcnt_width-1:1]),
   .rddata({R_buf,G_buf,B_buf})
 );
 
