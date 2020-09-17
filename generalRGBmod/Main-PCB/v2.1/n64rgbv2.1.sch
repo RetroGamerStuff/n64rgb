@@ -1,5 +1,6 @@
 EESchema Schematic File Version 4
-EELAYER 30 0
+LIBS:n64rgbv2.1-cache
+EELAYER 29 0
 EELAYER END
 $Descr A4 8268 11693 portrait
 encoding utf-8
@@ -1406,9 +1407,9 @@ F 3 "~" H 1150 7550 50  0001 C CNN
 	0    -1   -1   0   
 $EndComp
 Wire Wire Line
-	1700 7200 1150 7200
+	1800 7200 1150 7200
 Wire Wire Line
-	1800 6800 1150 6800
+	1900 6800 1150 6800
 $Comp
 L power:GNDD #PWR0160
 U 1 1 5E87149E
@@ -1421,9 +1422,9 @@ F 3 "" H 1300 7000 50  0001 C CNN
 	0    -1   -1   0   
 $EndComp
 Text Label 1200 7200 0    50   ~ 0
-~FORCE_VI_DB
+VIDeBlur_t
 Text Label 1200 6800 0    50   ~ 0
-~VI_DB
+~15b_mode_t
 $Comp
 L power:GNDD #PWR0161
 U 1 1 5E882500
@@ -1436,13 +1437,13 @@ F 3 "" H 1300 7550 50  0001 C CNN
 	0    -1   -1   0   
 $EndComp
 Wire Wire Line
-	1150 7350 1650 7350
+	1150 7350 1750 7350
 Wire Wire Line
-	1650 7350 1650 7550
-Text Label 1250 7750 0    50   ~ 0
-~IT_SW
-Text Label 1250 7350 0    50   ~ 0
-~15b_MODE
+	1750 7350 1750 7550
+Text Label 1200 7750 0    50   ~ 0
+en_IGR_DeBl_15b_Func
+Text Label 1150 7350 0    50   ~ 0
+en_IGR_Rst_Func
 $Comp
 L n64rgbv2.1-rescue:TLV70018_SOT23-5-Regulator_Linear U4
 U 1 1 5E607A31
@@ -3083,21 +3084,19 @@ TMS
 Text Notes 2800 7050 1    50   ~ 0
 reserve Pins 33 - 36 in Fw\nJTAG signals assigned for easier routing\n
 Wire Wire Line
-	1150 7750 1650 7750
+	1150 7750 1750 7750
 Wire Wire Line
-	2100 7550 1650 7550
+	2100 7550 1750 7550
 Wire Wire Line
-	2100 7650 1650 7650
+	2100 7650 1750 7650
 Wire Wire Line
-	1650 7650 1650 7750
+	1750 7650 1750 7750
 Wire Wire Line
-	2100 7450 1700 7450
+	2100 7450 1800 7450
 Wire Wire Line
-	1700 7450 1700 7200
+	1800 7450 1800 7200
 Wire Wire Line
-	2100 7350 1800 7350
-Wire Wire Line
-	1800 6800 1800 7350
+	2100 7350 1900 7350
 Text GLabel 4300 7550 2    50   Input ~ 0
 Filter_Bypass
 $Comp
@@ -3122,10 +3121,6 @@ F 3 "" H 2600 3150 50  0001 C CNN
 	1    2600 3150
 	0    1    1    0   
 $EndComp
-Wire Bus Line
-	4800 4200 4800 7350
-Wire Bus Line
-	5150 4200 5150 7250
 $Comp
 L Device:R_Pack04 RN11
 U 1 1 5E5D7AD4
@@ -3137,4 +3132,10 @@ F 3 "~" H 1300 5850 50  0001 C CNN
 	1    1300 5850
 	0    1    1    0   
 $EndComp
+Wire Wire Line
+	1900 6800 1900 7350
+Wire Bus Line
+	5150 4200 5150 7250
+Wire Bus Line
+	4800 4200 4800 7350
 $EndSCHEMATC

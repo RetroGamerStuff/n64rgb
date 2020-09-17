@@ -6,7 +6,6 @@
 set_time_format -unit ns -decimal_places 3
 
 
-
 #**************************************************************
 # Create Clock
 #**************************************************************
@@ -19,36 +18,25 @@ create_clock -name {VCLK_N64_VIRT} -period $n64_vclk_per -waveform $n64_vclk_wav
 create_clock -name {VCLK} -period $n64_vclk_per -waveform $n64_vclk_waveform [get_ports {VCLK}]
 
 
-
-
 #**************************************************************
 # Create Generated Clock
 #**************************************************************
 
-create_generated_clock -name {CLK_4M} -source [get_ports {VCLK}] -divide_by 12 [get_registers {igr|CLK_4M}]
+create_generated_clock -name {CLK_4M} -source [get_ports {VCLK}] -divide_by 12 [get_registers {hk_u|CLK_4M}]
 create_generated_clock -name {CLK_ADV712x} -source [get_ports {VCLK}] -divide_by 1 -multiply_by 1 [get_ports {CLK_ADV712x}]
-
-
-#**************************************************************
-# Set Clock Latency
-#**************************************************************
-
-
-
-#**************************************************************
-# Set Clock Uncertainty
-#**************************************************************
-
 
 
 #**************************************************************
 # Set Input Delay
 #**************************************************************
 set data_delay_min 2.0
-set data_delay_max 10.0
+set data_delay_max 8.0
+set data_delay_margin 0.2
+set input_delay_min [expr $data_delay_min - $data_delay_margin]
+set input_delay_max [expr $data_delay_max + $data_delay_margin]
 
-set_input_delay -clock {VCLK_N64_VIRT} -min $data_delay_min [get_ports {nDSYNC D_i[*]}]
-set_input_delay -clock {VCLK_N64_VIRT} -max $data_delay_max [get_ports {nDSYNC D_i[*]}]
+set_input_delay -clock {VCLK_N64_VIRT} -min $input_delay_min [get_ports {nDSYNC D_i[*]}]
+set_input_delay -clock {VCLK_N64_VIRT} -max $input_delay_max [get_ports {nDSYNC D_i[*]}]
 
 
 #**************************************************************
@@ -75,53 +63,11 @@ set_clock_groups -asynchronous -group \
                             {CLK_4M}
 
 
-
 #**************************************************************
 # Set False Path
 #**************************************************************
 
-set_false_path -from [get_ports {nRST_nManualDB CTRL_nAutoDB nSYNC_ON_GREEN install_type Default_nForceDeBlur Default_DeBlur Default_n15bit_mode}]
-set_false_path -to [get_ports {nRST_nManualDB}]
+set_false_path -from [get_ports {nRST_io CTRL_i nSYNC_ON_GREEN n15bit_mode_t VIDeBlur_t en_IGR_Rst_Func en_IGR_DeBl_15b_Func}]
+set_false_path -to [get_ports {nRST_io}]
 
 set_false_path -to [get_ports {nHSYNC nVSYNC nCSYNC nCLAMP}]
-
-
-#**************************************************************
-# Set Multicycle Path
-#**************************************************************
-
-set dbl_cycle_paths_from [list [get_ports {D_i[*]}] [get_registers {video_demux|*}] [get_registers {get_vinfo|*}] [get_registers {deblur_management|*}]]
-set dbl_cycle_paths_to [list [get_registers {video_demux|*}] [get_registers {get_vinfo|*}] [get_registers {deblur_management|*}]]
-
-foreach from_path $dbl_cycle_paths_from {
-  foreach to_path $dbl_cycle_paths_to {
-    if {!($from_path == "[get_registers {deblur_management|*}]" && $to_path == "[get_registers {get_vinfo|*}]")} {
-      set_multicycle_path -from $from_path -to $to_path -setup 2
-      set_multicycle_path -from $from_path -to $to_path -hold 1
-    }
-  }
-}
-
-# revert some multicycle paths to their default values
-set_multicycle_path -from [get_registers {deblur_management|gradient_changes[*]}] -setup 1
-set_multicycle_path -from [get_registers {deblur_management|gradient_changes[*]}] -hold 0
-set_multicycle_path -from [get_registers {video_demux|vdata_r_0[*]}] -to [get_registers {video_demux|vdata_r_1[*]}] -setup 1
-set_multicycle_path -from [get_registers {video_demux|vdata_r_0[*]}] -to [get_registers {video_demux|vdata_r_1[*]}] -hold 0
-
-
-#**************************************************************
-# Set Maximum Delay
-#**************************************************************
-
-
-
-#**************************************************************
-# Set Minimum Delay
-#**************************************************************
-
-
-
-#**************************************************************
-# Set Input Transition
-#**************************************************************
-
