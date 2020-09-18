@@ -1,5 +1,11 @@
 # Simple RGB Mod
 
+
+
+**Before you go ahead, please watch out the THS7374 based amp PCB by TzorriMahm (submodule or  [his GitHub repository](https://github.com/TzorriMahm/N64_RGB_Amp))**
+
+
+
 ## General Information
 
 Technical information about this mod...
