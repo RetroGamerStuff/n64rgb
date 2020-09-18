@@ -48,8 +48,7 @@ typedef struct {
 static const char *confirm_message = "< Really? >";
 extern const char *btn_overlay_1, *btn_overlay_2;
 
-extern cfg_b32word_t cfg_data_video;
-extern config_t deblur_frame_cnt_high, deblur_frame_cnt_low;
+extern config_t deblur_mode, deblur_mode_current, mode15bit, mode15bit_current;
 
 extern alt_u32 cfg_data_image_ntsc_word_val_tray, cfg_data_image_ntsc_word_ref_tray,
                cfg_data_image_pal_word_val_tray, cfg_data_image_pal_word_ref_tray;
@@ -58,14 +57,29 @@ alt_u8 use_filteraddon;
 
 
 void cfg_toggle_flag(config_t* cfg_data) {
+  if (is_local_cfg(cfg_data)) {
+    cfg_data->cfg_value = ~cfg_data->cfg_value;
+    return;
+  }
+
   if (cfg_data->cfg_type == FLAG)
     cfg_data->cfg_word->cfg_word_val ^= cfg_data->flag_masks.setflag_mask;
 };
 void cfg_set_flag(config_t* cfg_data) {
+  if (is_local_cfg(cfg_data)) {
+    cfg_data->cfg_value = 1;
+    return;
+  }
+
   if (cfg_data->cfg_type == FLAG)
     cfg_data->cfg_word->cfg_word_val |= cfg_data->flag_masks.setflag_mask;
 };
 void cfg_clear_flag(config_t* cfg_data) {
+  if (is_local_cfg(cfg_data)) {
+    cfg_data->cfg_value = 0;
+    return;
+  }
+
   if (cfg_data->cfg_type == FLAG)
     cfg_data->cfg_word->cfg_word_val &= cfg_data->flag_masks.clrflag_mask;
 };
@@ -106,20 +120,6 @@ void cfg_dec_value(config_t* cfg_data)
 
   cur_val = cur_val == 0 ? cfg_data->value_details.max_value : cur_val - 1;
   *cfg_word = (*cfg_word & ~cfg_data->value_details.getvalue_mask) | (cur_val << cfg_data->cfg_word_offset);
-};
-
-void cfg_check_deblur_frame_cnt(alt_u8 set_low) {
-  alt_u8 cur_val_high = cfg_get_value(&deblur_frame_cnt_high,0);
-  alt_u8 cur_val_low = cfg_get_value(&deblur_frame_cnt_low,0);
-  if (cur_val_low >= cur_val_high + 1) {
-    if (set_low) {
-      cur_val_low = cur_val_high;
-      cfg_data_video.cfg_word_val = (cfg_data_video.cfg_word_val & ~deblur_frame_cnt_low.value_details.getvalue_mask) | (cur_val_low << deblur_frame_cnt_low.cfg_word_offset);
-    } else {
-      cur_val_high = cur_val_low;
-      cfg_data_video.cfg_word_val = (cfg_data_video.cfg_word_val & ~deblur_frame_cnt_high.value_details.getvalue_mask) | (cur_val_high << deblur_frame_cnt_high.cfg_word_offset);
-    }
-  }
 };
 
 alt_u8 cfg_get_value(config_t* cfg_data, alt_u8 get_reference)
@@ -285,14 +285,14 @@ int cfg_load_defaults(configuration_t* sysconfig, alt_u8 need_confirm)
 
   sysconfig->cfg_word_def[MISC]->cfg_word_val &= CFG_MISC_GET_NODEFAULTS;
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val &= CFG_VIDEO_GET_NODEFAULTS;
-  sysconfig->cfg_word_def[IMAGE]->cfg_word_val &= CFG_IMAGE_GET_NODEFAULTS;
+  sysconfig->cfg_word_def[LINEX]->cfg_word_val &= CFG_LINEX_GET_NODEFAULTS;
 
   sysconfig->cfg_word_def[MISC]->cfg_word_val |= CFG_MISC_DEFAULT;
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= CFG_VIDEO_DEFAULT;
-  sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= CFG_IMAGE_DEFAULT;
+  sysconfig->cfg_word_def[LINEX]->cfg_word_val |= CFG_LINEX_DEFAULT;
 
-  cfg_store_image_word(sysconfig,0);
-  cfg_store_image_word(sysconfig,1);
+  cfg_store_linex_word(sysconfig,0);
+  cfg_store_linex_word(sysconfig,1);
 
   return 0;
 }
@@ -311,32 +311,32 @@ int cfg_load_jumperset(configuration_t* sysconfig, alt_u8 need_confirm)
   if (jumper_word & JUMPER_BYPASS_FILTER_GETMASK) sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= CFG_FILTER_OFF_SETMASK;
   else sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= CFG_FILTER_AUTO_SETMASK;
   
-  sysconfig->cfg_word_def[VIDEO]->cfg_word_val &= CFG_DEBLUR_MODE_RSTMASK;
-  sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= CFG_DEBLUR_MODE_AUTO_SETMASK;
+  sysconfig->cfg_word_def[VIDEO]->cfg_word_val &= CFG_DEBLUR_MODE_CLRMASK;
+  sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= CFG_DEBLUR_MODE_SETMASK;
 
   if (jumper_word & JUMPER_LINEX2_GETMASK) {
-    sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= (1 << CFG_240P_LINEX_OFFSET);
+    sysconfig->cfg_word_def[LINEX]->cfg_word_val |= (1 << CFG_240P_LINEX_OFFSET);
     if (jumper_word & JUMPER_480I_BOB_DEINTER_GETMASK)
-      sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= (CFG_480I_FIELDFIX_SETMASK | CFG_480I_BOB_DEINTER_SETMASK);
+      sysconfig->cfg_word_def[LINEX]->cfg_word_val |= (CFG_480I_FIELDFIX_SETMASK | CFG_480I_BOB_DEINTER_SETMASK);
   }
 
-  sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= (CFG_240P_SL_ID_SETMASK | CFG_240P_SL_EN_SETMASK |
+  sysconfig->cfg_word_def[LINEX]->cfg_word_val |= (CFG_240P_SL_ID_SETMASK | CFG_240P_SL_EN_SETMASK |
                                                    CFG_480I_SL_ID_SETMASK | CFG_480I_SL_EN_SETMASK);
   switch ((jumper_word & JUMPER_SLSTR_GETMASK) >> JUMPER_SLSTR_OFFSET) {
     case 1:
-      sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= ((0x3<<CFG_240P_SLSTR_OFFSET) |
+      sysconfig->cfg_word_def[LINEX]->cfg_word_val |= ((0x3<<CFG_240P_SLSTR_OFFSET) |
                                                        (0x3<<CFG_480I_SLSTR_OFFSET)); // 25%
       break;
     case 2:
-      sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= ((0x7<<CFG_240P_SLSTR_OFFSET) |
+      sysconfig->cfg_word_def[LINEX]->cfg_word_val |= ((0x7<<CFG_240P_SLSTR_OFFSET) |
                                                        (0x7<<CFG_480I_SLSTR_OFFSET)); // 50%
       break;
     case 3:
-      sysconfig->cfg_word_def[IMAGE]->cfg_word_val |= ((0xF<<CFG_240P_SLSTR_OFFSET) |
+      sysconfig->cfg_word_def[LINEX]->cfg_word_val |= ((0xF<<CFG_240P_SLSTR_OFFSET) |
                                                        (0xF<<CFG_480I_SLSTR_OFFSET)); // 100%
       break;
     default:
-      sysconfig->cfg_word_def[IMAGE]->cfg_word_val &= (CFG_240P_SL_EN_CLRMASK &
+      sysconfig->cfg_word_def[LINEX]->cfg_word_val &= (CFG_240P_SL_EN_CLRMASK &
                                                        CFG_480I_SL_EN_CLRMASK);       // 0%
       break;
   }
@@ -344,44 +344,53 @@ int cfg_load_jumperset(configuration_t* sysconfig, alt_u8 need_confirm)
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val &= CFG_VFORMAT_CLRMASK;
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= (((jumper_word & JUMPER_SOG_GETMASK) >> JUMPER_VFORMAT_OFFSET) << CFG_VFORMAT_OFFSET);
 
-  cfg_store_image_word(sysconfig,NTSC);
-  cfg_store_image_word(sysconfig,PAL);
+  cfg_store_linex_word(sysconfig,NTSC);
+  cfg_store_linex_word(sysconfig,PAL);
 
   return 0;
 }
 
-void cfg_store_image_word(configuration_t* sysconfig, alt_u8 pal) {
+void cfg_store_linex_word(configuration_t* sysconfig, alt_u8 pal) {
   if (!pal) {
-    cfg_data_image_ntsc_word_val_tray = sysconfig->cfg_word_def[IMAGE]->cfg_word_val;
-    cfg_data_image_ntsc_word_ref_tray = sysconfig->cfg_word_def[IMAGE]->cfg_ref_word_val;
+    cfg_data_image_ntsc_word_val_tray = sysconfig->cfg_word_def[LINEX]->cfg_word_val;
+    cfg_data_image_ntsc_word_ref_tray = sysconfig->cfg_word_def[LINEX]->cfg_ref_word_val;
   } else {
-    cfg_data_image_pal_word_val_tray = sysconfig->cfg_word_def[IMAGE]->cfg_word_val;
-    cfg_data_image_pal_word_ref_tray = sysconfig->cfg_word_def[IMAGE]->cfg_ref_word_val;
+    cfg_data_image_pal_word_val_tray = sysconfig->cfg_word_def[LINEX]->cfg_word_val;
+    cfg_data_image_pal_word_ref_tray = sysconfig->cfg_word_def[LINEX]->cfg_ref_word_val;
   }
 }
 
-void cfg_load_image_word(configuration_t* sysconfig, alt_u8 pal) {
+void cfg_load_linex_word(configuration_t* sysconfig, alt_u8 pal) {
   if (!pal) {
-    sysconfig->cfg_word_def[IMAGE]->cfg_word_val = cfg_data_image_ntsc_word_val_tray;
-    sysconfig->cfg_word_def[IMAGE]->cfg_ref_word_val = cfg_data_image_ntsc_word_ref_tray;
+    sysconfig->cfg_word_def[LINEX]->cfg_word_val = cfg_data_image_ntsc_word_val_tray;
+    sysconfig->cfg_word_def[LINEX]->cfg_ref_word_val = cfg_data_image_ntsc_word_ref_tray;
   } else {
-    sysconfig->cfg_word_def[IMAGE]->cfg_word_val = cfg_data_image_pal_word_val_tray;
-    sysconfig->cfg_word_def[IMAGE]->cfg_ref_word_val = cfg_data_image_pal_word_ref_tray;
+    sysconfig->cfg_word_def[LINEX]->cfg_word_val = cfg_data_image_pal_word_val_tray;
+    sysconfig->cfg_word_def[LINEX]->cfg_ref_word_val = cfg_data_image_pal_word_ref_tray;
   }
 }
 
 void cfg_apply_to_logic(configuration_t* sysconfig)
 {
+  alt_u8 deblur_bak = cfg_get_value(&deblur_mode,0);
+  alt_u8 mode15bit_bak = cfg_get_value(&mode15bit,0);
+
+  cfg_set_value(&deblur_mode,cfg_get_value(&deblur_mode_current,0));
+  cfg_set_value(&mode15bit,cfg_get_value(&mode15bit_current,0));
+
   IOWR_ALTERA_AVALON_PIO_DATA(CFG_MISC_OUT_BASE,sysconfig->cfg_word_def[MISC]->cfg_word_val);
   IOWR_ALTERA_AVALON_PIO_DATA(CFG_VIDEO_OUT_BASE,sysconfig->cfg_word_def[VIDEO]->cfg_word_val);
-  IOWR_ALTERA_AVALON_PIO_DATA(CFG_IMAGE_OUT_BASE,sysconfig->cfg_word_def[IMAGE]->cfg_word_val);
+  IOWR_ALTERA_AVALON_PIO_DATA(CFG_IMAGE_OUT_BASE,sysconfig->cfg_word_def[LINEX]->cfg_word_val);
+
+  cfg_set_value(&deblur_mode,deblur_bak);
+  cfg_set_value(&mode15bit,mode15bit_bak);
 }
 
 void cfg_read_from_logic(configuration_t* sysconfig)
 {
   sysconfig->cfg_word_def[MISC]->cfg_word_val  = (IORD_ALTERA_AVALON_PIO_DATA(CFG_MISC_OUT_BASE)  & sysconfig->cfg_word_def[MISC]->cfg_word_mask);
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val = (IORD_ALTERA_AVALON_PIO_DATA(CFG_VIDEO_OUT_BASE) & sysconfig->cfg_word_def[VIDEO]->cfg_word_mask);
-  sysconfig->cfg_word_def[IMAGE]->cfg_word_val = (IORD_ALTERA_AVALON_PIO_DATA(CFG_IMAGE_OUT_BASE) & sysconfig->cfg_word_def[IMAGE]->cfg_word_mask);
+  sysconfig->cfg_word_def[LINEX]->cfg_word_val = (IORD_ALTERA_AVALON_PIO_DATA(CFG_IMAGE_OUT_BASE) & sysconfig->cfg_word_def[LINEX]->cfg_word_mask);
 }
 
 void cfg_clear_words(configuration_t* sysconfig)

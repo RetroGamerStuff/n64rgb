@@ -33,8 +33,7 @@
 
 module testpattern(
   VCLK,
-  nVDSYNC_i,
-  nVDSYNC_o,
+  nVDSYNC,
   nRST,
 
   vmode,
@@ -45,8 +44,7 @@ module testpattern(
 `include "vh/n64adv_vparams.vh"
 
 input VCLK;
-input nVDSYNC_i;
-output reg nVDSYNC_o;
+input nVDSYNC;
 input nRST;
 
 input vmode;
@@ -74,7 +72,7 @@ always @(posedge VCLK or negedge nRST)
     vcnt <= 9'b0;
     hcnt <= 10'b0;
   end else begin
-    if (!nVDSYNC_i) begin
+    if (!nVDSYNC) begin
       if (posedge_nHSYNC) begin
         hcnt <= 10'b0;
         vcnt <= &vcnt ? vcnt : vcnt + 1'b1;
@@ -98,9 +96,6 @@ always @(posedge VCLK or negedge nRST)
 
       vdata_out[`VDATA_O_SY_SLICE] <= Sync_in;
     end
-
-    nVDSYNC_o <= nVDSYNC_i;
-
   end
 
 endmodule

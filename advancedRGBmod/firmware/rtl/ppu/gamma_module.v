@@ -32,8 +32,7 @@
 
 module gamma_module(
   VCLK,
-  nVDSYNC_i,
-  nVDSYNC_o,
+  nVDSYNC,
   nRST,
   gammaparams_i,
   video_data_i,
@@ -43,8 +42,7 @@ module gamma_module(
 `include "vh/n64adv_vparams.vh"
 
 input VCLK;
-input nVDSYNC_i;
-output reg nVDSYNC_o;
+input nVDSYNC;
 input nRST;
 
 input [ 3:0] gammaparams_i;
@@ -72,7 +70,7 @@ always @(posedge VCLK or negedge nRST)
     vdata_i_cnt <= 2'b00;
     gamma_vdata_i <= {color_width_i{1'b0}};
   end else begin
-    if (!nVDSYNC_i) begin
+    if (!nVDSYNC) begin
       vdata_i_cnt <= 2'b01;
       gamma_vdata_i <= video_data_i[`VDATA_I_RE_SLICE];
     end else begin
@@ -114,7 +112,7 @@ always @(posedge VCLK or negedge nRST)
   end else begin
     nVDSYNC_L[2] <= nVDSYNC_L[1];
     nVDSYNC_L[1] <= nVDSYNC_L[0];
-    nVDSYNC_L[0] <= nVDSYNC_i;
+    nVDSYNC_L[0] <= nVDSYNC;
     vdata_sync_L[2] <= vdata_sync_L[1];
     vdata_sync_L[1] <= vdata_sync_L[0];
     vdata_sync_L[0] <= video_data_i[`VDATA_I_SY_SLICE];
@@ -145,10 +143,8 @@ always @(posedge VCLK or negedge nRST)
 // registered output
 always @(posedge VCLK or negedge nRST)
   if (!nRST) begin
-    nVDSYNC_o <= 1'b0;
     video_data_o <= {vdata_width_i{1'b0}};
   end else begin
-    nVDSYNC_o <= nVDSYNC_L[2];
     if (!nVDSYNC_L[2])
       video_data_o <= vdata_o_pre;
   end

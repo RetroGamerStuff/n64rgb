@@ -41,9 +41,7 @@ module vconv(
 
   nEN_YPbPr,    // enables color transformation on '0'
 
-  vdata_i_valid,
   vdata_i,
-  vdata_o_valid,
   vdata_o
 );
 
@@ -56,9 +54,7 @@ input nRST;
 
 input nEN_YPbPr;
 
-input                      vdata_i_valid;
 input  [`VDATA_O_FU_SLICE] vdata_i;
-output reg                 vdata_o_valid;
 output [`VDATA_O_FU_SLICE] vdata_o;
 
 
@@ -79,14 +75,12 @@ reg unsigned [color_width_o-1:0] V3_o = {color_width_o{1'b0}};
 
 // delay Sync along with the pipeline stages of the video conversion
 
-reg [2:0] vdata_valid;
 reg [3:0] S[0:2];
 reg [color_width_o-1:0] R[0:2], G[0:2], B[0:2];
 
 integer i;
 initial begin
   for (i = 0; i < 3; i = i+1) begin
-    vdata_valid[i] = 1'b0;
     S[i] = 4'h0;
     R[i] = {color_width_o{1'b0}};
     G[i] = {color_width_o{1'b0}};
@@ -97,7 +91,6 @@ end
 always @(posedge VCLK or negedge nRST)
   if (!nRST) begin
     for (i = 0; i < 3; i = i+1) begin
-      vdata_valid[i] <= 1'b0;
       S[i] <= 4'h0;
       R[i] <= {color_width_o{1'b0}};
       G[i] <= {color_width_o{1'b0}};
@@ -111,7 +104,6 @@ always @(posedge VCLK or negedge nRST)
       B[i] <= B[i-1];
     end
 
-    vdata_valid <= {vdata_valid[1:0],vdata_i_valid};
     S[0] <= S_i;
     R[0] <= R_i;
     G[0] <= G_i;
@@ -167,12 +159,9 @@ always @(posedge VCLK or negedge nRST)
     R4Pb_scaled      <= {(color_width_o+coeff_width){1'b0}};
     G4Pb_scaled      <= {(color_width_o+coeff_width){1'b0}};
   end else begin
-    if (vdata_valid[1])
-      Pb_nPart_addmult <= R4Pb_scaled + G4Pb_scaled;
-    if (vdata_valid[0]) begin
-      R4Pb_scaled      <= fpbr * (* multstyle = "dsp" *) R[0];
-      G4Pb_scaled      <= fpbg * (* multstyle = "dsp" *) G[0];
-    end
+    Pb_nPart_addmult <= R4Pb_scaled + G4Pb_scaled;
+    R4Pb_scaled      <= fpbr * (* multstyle = "dsp" *) R[0];
+    G4Pb_scaled      <= fpbg * (* multstyle = "dsp" *) G[0];
   end
 
 
@@ -192,12 +181,9 @@ always @(posedge VCLK or negedge nRST)
     G4Pr_scaled      <= {(color_width_o+coeff_width){1'b0}};
     B4Pr_scaled      <= {(color_width_o+coeff_width){1'b0}};
   end else begin
-    if (vdata_valid[1])
-      Pr_nPart_addmult <= G4Pr_scaled + B4Pr_scaled;
-    if (vdata_valid[0]) begin
-      G4Pr_scaled      <= fprg * (* multstyle = "dsp" *) G[0];
-      B4Pr_scaled      <= fprb * (* multstyle = "dsp" *) B[0];
-    end
+    Pr_nPart_addmult <= G4Pr_scaled + B4Pr_scaled;
+    G4Pr_scaled      <= fprg * (* multstyle = "dsp" *) G[0];
+    B4Pr_scaled      <= fprb * (* multstyle = "dsp" *) B[0];
   end
 
 wire [color_width_o+1:0] Pr_addmult = {1'b0,R[2],1'b0}- Pr_nPart_addmult[msb_vo+1:lsb_vo-1];
@@ -217,19 +203,16 @@ always @(posedge VCLK or negedge nRST)
     V2_o <= {color_width_o{1'b0}};
     V3_o <= {color_width_o{1'b0}};
   end else begin
-    vdata_o_valid <= vdata_valid[2];
-    if (vdata_valid[2]) begin
-      if (!nEN_YPbPr) begin
-         S_o <= S[2];
-        V1_o <= {~Pr_tmp[color_width_o],Pr_tmp[color_width_o-1:1]};
-        V2_o <= Y_tmp;
-        V3_o <= {~Pb_tmp[color_width_o],Pb_tmp[color_width_o-1:1]};
-      end else begin
-         S_o <= S[2];
-        V1_o <= R[2];
-        V2_o <= G[2];
-        V3_o <= B[2];
-      end
+    if (!nEN_YPbPr) begin
+       S_o <= S[2];
+      V1_o <= {~Pr_tmp[color_width_o],Pr_tmp[color_width_o-1:1]};
+      V2_o <= Y_tmp;
+      V3_o <= {~Pb_tmp[color_width_o],Pb_tmp[color_width_o-1:1]};
+    end else begin
+       S_o <= S[2];
+      V1_o <= R[2];
+      V2_o <= G[2];
+      V3_o <= B[2];
     end
   end
 

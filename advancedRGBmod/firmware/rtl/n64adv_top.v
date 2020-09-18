@@ -126,9 +126,9 @@ n64adv_clk_n_rst_hk clk_n_rst_hk_u(
 
 // controller module
 
-wire [12:0] PPUState;
+wire [11:0] PPUState;
 wire [ 7:0] JumperCfgSet = {UseVGA_HVSync,~nFilterBypass,n240p,~n480i_bob,~SL_str,~nEN_YPbPr,(nEN_YPbPr & ~nEN_RGsB)}; // (~nEN_YPbPr | nEN_RGsB) ensures that not both jumpers are set and passed through the NIOS II
-wire [63:0] PPUConfigSet;
+wire [46:0] PPUConfigSet;
 wire [24:0] OSDWrVector;
 wire [ 1:0] OSDInfo;
 
@@ -137,7 +137,7 @@ n64adv_controller #({hdl_fw_main,hdl_fw_sub}) n64adv_controller_u(
   .nRST(nRST),
   .nSRST(nSRST),
   .CTRL(CTRL_i),
-  .PPUState({PPUState[12:11],VCLK_PLL_LOCKED,PPUState[9:0]}),
+  .PPUState({PPUState[11:10],VCLK_PLL_LOCKED,PPUState[8:0]}),
   .JumperCfgSet(JumperCfgSet),
   .MANAGE_VPLL(MANAGE_VPLL),
   .PPUConfigSet(PPUConfigSet),

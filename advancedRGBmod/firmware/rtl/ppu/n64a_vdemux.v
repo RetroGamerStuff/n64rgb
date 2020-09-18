@@ -35,28 +35,26 @@
 
 module n64a_vdemux(
   VCLK,
-  nVDSYNC_i,
-  nVDSYNC_o,
+  nVDSYNC,
   nRST,
 
   VD_i,
   demuxparams_i,
 
-  vdata_r_0,
+  vdata_r_sy_0,
   vdata_r_1
 );
 
 `include "vh/n64adv_vparams.vh"
 
 input VCLK;
-input nVDSYNC_i;
-output reg nVDSYNC_o;
+input nVDSYNC;
 input nRST;
 
 input  [color_width_i-1:0] VD_i;
 input  [              4:0] demuxparams_i;
 
-output reg [`VDATA_I_FU_SLICE] vdata_r_0 = {vdata_width_i{1'b0}}; // buffer for sync, red, green and blue
+output [`VDATA_I_SY_SLICE] vdata_r_sy_0;
 output reg [`VDATA_I_FU_SLICE] vdata_r_1 = {vdata_width_i{1'b0}}; // (unpacked array types in ports requires system verilog)
 
 
@@ -73,11 +71,13 @@ wire posedge_nCSYNC = !vdata_r_0[3*color_width_i] &  VD_i[0];
 // start of rtl
 
 reg nblank_rgb = 1'b1;
+reg [`VDATA_I_FU_SLICE] vdata_r_0 = {vdata_width_i{1'b0}}; // buffer for sync, red, green and blue
+
 
 always @(posedge VCLK or negedge nRST)
   if (!nRST) begin
     nblank_rgb <= 1'b1;
-  end else if (!nVDSYNC_i) begin
+  end else if (!nVDSYNC) begin
     if (ndo_deblur) begin
       nblank_rgb <= 1'b1;
     end else begin
@@ -88,13 +88,13 @@ always @(posedge VCLK or negedge nRST)
     end
   end
 
-  
+
 always @(posedge VCLK or negedge nRST) // data register management
   if (!nRST) begin
     vdata_r_0 <= {vdata_width_i{1'b0}};
     vdata_r_1 <= {vdata_width_i{1'b0}};
   end else begin
-    if (!nVDSYNC_i) begin
+    if (!nVDSYNC) begin
       // shift data to output registers
       vdata_r_1[`VDATA_I_SY_SLICE] <= vdata_r_0[`VDATA_I_SY_SLICE];
       if (nblank_rgb)  // deblur active: pass RGB only if not blanked
@@ -110,7 +110,8 @@ always @(posedge VCLK or negedge nRST) // data register management
         2'b11: vdata_r_0[`VDATA_I_BL_SLICE] <= n15bit_mode ? VD_i : {VD_i[6:2], 2'b00};
       endcase
     end
-  nVDSYNC_o <= nVDSYNC_i;
   end
+  
+assign vdata_r_sy_0 = vdata_r_0[`VDATA_I_SY_SLICE];
 
 endmodule

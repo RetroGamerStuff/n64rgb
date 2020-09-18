@@ -19,7 +19,7 @@
  *
  *********************************************************************************
  *
- * cfg_header/cfg_io_p.h
+ * cfg_io_p.h
  *
  *  Created on: 17.01.2018
  *      Author: Peter Bartmann
@@ -44,9 +44,6 @@ extern const char *OffOn[], *LineX_240p[], *AdvSL[], *LinkSL[], *EvenOdd[],
                   *QuickChange[], *FilterAddOn[];
 
 static void val2txt_func(alt_u8 v) { sprintf(szText,"%u", v); };
-static void val_plus1_2txt_func(alt_u8 v) { sprintf(szText,"%u", v + 1); };
-static void val_plus2_2txt_func(alt_u8 v) { sprintf(szText,"%u", v + 2); };
-static void val_plus6_2txt_func(alt_u8 v) { sprintf(szText,"%u", v + 6); };
 static void scanline_str2txt_func(alt_u8 v) { v++; sprintf(szText,"%3u.%02u%%", (v*625)/100, 25*(v&3)); };
 static void scanline_hybrstr2txt_func(alt_u8 v) { sprintf(szText,"%3u.%02u%%", (v*625)/100, 25*(v&3)); };
 static void gamma2txt_func(alt_u8 v) { sprintf(szText,"%u.%02u", v > 4, 5* v + 75 - (100 * (v > 4))); };
@@ -142,6 +139,16 @@ config_t igr_quickchange = {
     .value_string = &QuickChange
 };
 
+config_t pal_awareness = {
+    .cfg_word        = &cfg_data_misc,
+    .cfg_word_offset = CFG_PALAWARENESS_OFFSET,
+    .cfg_type        = FLAG,
+    .flag_masks      = {
+        .setflag_mask = CFG_PALAWARENESS_SETMASK,
+        .clrflag_mask = CFG_PALAWARENESS_CLRMASK
+    },
+    .value_string = &OffOn
+};
 
 // video
 cfg_b32word_t cfg_data_video =
@@ -194,6 +201,17 @@ config_t gamma_lut = {
     .val2char_func = &gamma2txt_func
 };
 
+config_t deblur_mode = {
+    .cfg_word        = &cfg_data_video,
+    .cfg_word_offset = CFG_DEBLUR_MODE_OFFSET,
+    .cfg_type        = FLAG,
+    .flag_masks      = {
+        .setflag_mask = CFG_DEBLUR_MODE_SETMASK,
+        .clrflag_mask = CFG_DEBLUR_MODE_CLRMASK
+    },
+    .value_string = &OffOn
+};
+
 config_t mode15bit = {
     .cfg_word        = &cfg_data_video,
     .cfg_word_offset = CFG_15BITMODE_OFFSET,
@@ -205,88 +223,11 @@ config_t mode15bit = {
     .value_string = &OffOn
 };
 
-config_t pal_awareness = {
-    .cfg_word        = &cfg_data_video,
-    .cfg_word_offset = CFG_PALAWARENESS_OFFSET,
-    .cfg_type        = FLAG,
-    .flag_masks      = {
-        .setflag_mask = CFG_PALAWARENESS_SETMASK,
-        .clrflag_mask = CFG_PALAWARENESS_CLRMASK
-    },
-    .value_string = &OffOn
-};
-
-config_t deblur_p2p_sense = {
-    .cfg_word        = &cfg_data_video,
-    .cfg_word_offset = CFG_DEBLUR_P2PS_OFFSET,
-    .cfg_type        = FLAG,
-    .flag_masks      = {
-        .setflag_mask = CFG_DEBLUR_P2PS_SETMASK,
-        .clrflag_mask = CFG_DEBLUR_P2PS_CLRMASK
-    },
-    .value_string = &DeBlurPixSens
-};
-
-config_t deblur_frame_cnt_high = {
-    .cfg_word        = &cfg_data_video,
-    .cfg_word_offset = CFG_DEBLUR_FCNT_HIGH_OFFSET,
-    .cfg_type        = NUMVALUE,
-    .value_details   = {
-        .max_value     = CFG_DEBLUR_FCNT_HIGH_MAX_VALUE,
-        .getvalue_mask = CFG_DEBLUR_FCNT_HIGH_GETMASK,
-    },
-    .val2char_func = &val_plus2_2txt_func
-};
-
-config_t deblur_frame_cnt_low = {
-    .cfg_word        = &cfg_data_video,
-    .cfg_word_offset = CFG_DEBLUR_FCNT_LOW_OFFSET,
-    .cfg_type        = NUMVALUE,
-    .value_details   = {
-        .max_value     = CFG_DEBLUR_FCNT_LOW_MAX_VALUE,
-        .getvalue_mask = CFG_DEBLUR_FCNT_LOW_GETMASK,
-    },
-    .val2char_func = &val_plus1_2txt_func
-};
-
-config_t deblur_stability = {
-    .cfg_word        = &cfg_data_video,
-    .cfg_word_offset = CFG_DEBLUR_STAB_OFFSET,
-    .cfg_type        = NUMVALUE,
-    .value_details   = {
-        .max_value     = CFG_DEBLUR_STAB_MAX_VALUE,
-        .getvalue_mask = CFG_DEBLUR_STAB_GETMASK,
-    },
-    .val2char_func = &val_plus6_2txt_func
-};
-
-config_t deblur_rst_behavior = {
-    .cfg_word        = &cfg_data_video,
-    .cfg_word_offset = CFG_DEBLUR_RST_OFFSET,
-    .cfg_type        = TXTVALUE,
-    .value_details   = {
-        .max_value     = CFG_DEBLUR_RST_MAX_VALUE,
-        .getvalue_mask = CFG_DEBLUR_RST_GETMASK,
-    },
-    .value_string = &DeBlurRst
-};
-
-config_t deblur_mode = {
-    .cfg_word        = &cfg_data_video,
-    .cfg_word_offset = CFG_DEBLUR_MODE_OFFSET,
-    .cfg_type        = TXTVALUE,
-    .value_details   = {
-        .max_value     = CFG_DEBLUR_MODE_MAX_VALUE,
-        .getvalue_mask = CFG_DEBLUR_MODE_GETMASK,
-    },
-    .value_string = &DeBlurMode
-};
-
 
 // image 240p and 480i
 
-cfg_b32word_t cfg_data_image =
-  { .cfg_word_mask    = CFG_IMAGE_GETALL_MASK,
+cfg_b32word_t cfg_data_linex =
+  { .cfg_word_mask    = CFG_LINEX_GETALL_MASK,
     .cfg_word_val     = 0x00000000,
     .cfg_ref_word_val = 0x00000000
   };
@@ -298,7 +239,7 @@ alt_u32 cfg_data_image_pal_word_val_tray = 0x00000000;
 alt_u32 cfg_data_image_pal_word_ref_tray = 0x00000000;
 
 config_t linex_240p = {
-    .cfg_word        = &cfg_data_image,
+    .cfg_word        = &cfg_data_linex,
     .cfg_word_offset = CFG_240P_LINEX_OFFSET,
     .cfg_type        = TXTVALUE,
     .value_details   = {
@@ -309,7 +250,7 @@ config_t linex_240p = {
 };
 
 config_t slhyb_str = {
-    .cfg_word        = &cfg_data_image,
+    .cfg_word        = &cfg_data_linex,
     .cfg_word_offset = CFG_240P_SLHYBDEP_OFFSET,
     .cfg_type        = NUMVALUE,
     .value_details   = {
@@ -320,7 +261,7 @@ config_t slhyb_str = {
 };
 
 config_t sl_str = {
-    .cfg_word        = &cfg_data_image,
+    .cfg_word        = &cfg_data_linex,
     .cfg_word_offset = CFG_240P_SLSTR_OFFSET,
     .cfg_type        = NUMVALUE,
     .value_details   = {
@@ -331,7 +272,7 @@ config_t sl_str = {
 };
 
 config_t sl_method = {
-    .cfg_word        = &cfg_data_image,
+    .cfg_word        = &cfg_data_linex,
     .cfg_word_offset = CFG_240P_SL_METHOD_OFFSET,
     .cfg_type        = FLAG,
     .flag_masks   = {
@@ -342,7 +283,7 @@ config_t sl_method = {
 };
 
 config_t sl_id = {
-    .cfg_word        = &cfg_data_image,
+    .cfg_word        = &cfg_data_linex,
     .cfg_word_offset = CFG_240P_SL_ID_OFFSET,
     .cfg_type        = FLAG,
     .flag_masks   = {
@@ -353,7 +294,7 @@ config_t sl_id = {
 };
 
 config_t sl_en = {
-    .cfg_word = &cfg_data_image,
+    .cfg_word = &cfg_data_linex,
     .cfg_word_offset = CFG_240P_SL_EN_OFFSET,
     .cfg_type        = FLAG,
     .flag_masks      = {
@@ -364,7 +305,7 @@ config_t sl_en = {
 };
 
 config_t bob_deinter_480i = {
-    .cfg_word        = &cfg_data_image,
+    .cfg_word        = &cfg_data_linex,
     .cfg_word_offset = CFG_480I_BOB_DEINTER_OFFSET,
     .cfg_type        = FLAG,
     .flag_masks      = {
@@ -375,7 +316,7 @@ config_t bob_deinter_480i = {
 };
 
 config_t field_shift_fix_480i = {
-    .cfg_word        = &cfg_data_image,
+    .cfg_word        = &cfg_data_linex,
     .cfg_word_offset = CFG_480I_FIELDFIX_OFFSET,
     .cfg_type        = FLAG,
     .flag_masks      = {
@@ -386,7 +327,7 @@ config_t field_shift_fix_480i = {
 };
 
 config_t slhyb_str_480i = {
-    .cfg_word        = &cfg_data_image,
+    .cfg_word        = &cfg_data_linex,
     .cfg_word_offset = CFG_480I_SLHYBDEP_OFFSET,
     .cfg_type        = NUMVALUE,
     .value_details   = {
@@ -397,7 +338,7 @@ config_t slhyb_str_480i = {
 };
 
 config_t sl_str_480i = {
-    .cfg_word        = &cfg_data_image,
+    .cfg_word        = &cfg_data_linex,
     .cfg_word_offset = CFG_480I_SLSTR_OFFSET,
     .cfg_type        = NUMVALUE,
     .value_details   = {
@@ -408,7 +349,7 @@ config_t sl_str_480i = {
 };
 
 config_t sl_link_480i = {
-    .cfg_word        = &cfg_data_image,
+    .cfg_word        = &cfg_data_linex,
     .cfg_word_offset = CFG_480I_SL_LINK240P_OFFSET,
     .cfg_type        = FLAG,
     .flag_masks   = {
@@ -419,7 +360,7 @@ config_t sl_link_480i = {
 };
 
 config_t sl_id_480i = {
-    .cfg_word        = &cfg_data_image,
+    .cfg_word        = &cfg_data_linex,
     .cfg_word_offset = CFG_480I_SL_ID_OFFSET,
     .cfg_type        = FLAG,
     .flag_masks   = {
@@ -430,7 +371,7 @@ config_t sl_id_480i = {
 };
 
 config_t sl_en_480i = {
-    .cfg_word = &cfg_data_image,
+    .cfg_word = &cfg_data_linex,
     .cfg_word_offset = CFG_480I_SL_EN_OFFSET,
     .cfg_type        = FLAG,
     .flag_masks      = {

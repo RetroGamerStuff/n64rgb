@@ -161,13 +161,9 @@ set_clock_groups -logically_exclusive \
 
 
 #**************************************************************
-# Set Multicycle and False Path by Module
+# Set False Path by Module
 #**************************************************************
 # (might be not exhaustive)
-
-# general
-#*************************************
-
 
 # some misc intput ports as false path
 #*************************************
@@ -186,143 +182,20 @@ set_false_path -from [get_registers {n64adv_controller_u|MANAGE_VPLL* n64adv_con
 
 # PPU top
 #*************************************
-set dbl_cycle_path_ppu_out_clks [list [get_clocks {VCLK_1x_out_pre}] \
-                                      [get_clocks {VCLK_2x_out_pre}] \
-                                      [get_clocks {VCLK_3x_out_pre}] \
-                                      [get_clocks {VCLK_1x_out}] \
-                                      [get_clocks {VCLK_2x_out}] \
-                                      [get_clocks {VCLK_3x_out}] \
-                                ]
-set dbl_cycle_path_ppu_out_regs [list [get_registers {n64adv_ppu_u|vdata_shifted[*][*]}] \
-                                      [get_registers {n64adv_ppu_u|VD_o[*]}] \
-                                      [get_registers {n64adv_ppu_u|nCSYNC[*]}] \
-                                      [get_registers {n64adv_ppu_u|n*SYNC_or_F*}] \
-                                ]
-foreach clk_list_elem $dbl_cycle_path_ppu_out_clks {
-  foreach reg_list_elem $dbl_cycle_path_ppu_out_regs {
-    set_multicycle_path -from $clk_list_elem -to $reg_list_elem -setup 2
-    set_multicycle_path -from $clk_list_elem -to $reg_list_elem -hold 1
-  }
-}
-
 set_false_path -from [get_registers {n64adv_ppu_u|cfg_* n64adv_ppu_u|Filter*}]
 
 
 # Video Info
 #*************************************
-set dbl_cycle_path_vinfo_clk [get_clocks {VCLK_1x_base}]
-set dbl_cycle_path_vinfo_reg [get_registers {n64adv_ppu_u|get_vinfo_u|line_cnt[*]}]
-
-set_multicycle_path -from $dbl_cycle_path_vinfo_clk -to $dbl_cycle_path_vinfo_reg -setup 2
-set_multicycle_path -from $dbl_cycle_path_vinfo_clk -to $dbl_cycle_path_vinfo_reg -hold 1
-
 set_false_path -from [get_registers {n64adv_ppu_u|get_vinfo_u|FrameID \
                                      n64adv_ppu_u|get_vinfo_u|n64_480i \
                                      n64adv_ppu_u|get_vinfo_u|vmode} \
                      ]
 
 
-# Deblur Management Unit
-#*************************************
-set dbl_cycle_path_deblurmgm_clk [get_clocks {VCLK_1x_base}]
-set dbl_cycle_path_deblurmgm_regs [list [get_registers {n64adv_ppu_u|deblur_management_u|blur_pix}] \
-                                        [get_registers {n64adv_ppu_u|deblur_management_u|run_estimation}] \
-                                        [get_registers {n64adv_ppu_u|deblur_management_u|nblur_est_cnt[*]}] \
-                                        [get_registers {n64adv_ppu_u|deblur_management_u|nblur_trend_*bit[*]}] \
-                                        [get_registers {n64adv_ppu_u|deblur_management_u|nblur_n64}] \
-                                  ]
-
-foreach reg_list_elem $dbl_cycle_path_deblurmgm_regs {
-  set_multicycle_path -from $dbl_cycle_path_deblurmgm_clk -to $reg_list_elem -setup 2
-  set_multicycle_path -from $dbl_cycle_path_deblurmgm_clk -to $reg_list_elem -hold 1
-}
-
-set_false_path -from [get_registers {n64adv_ppu_u|deblur_management_u|p2p_sens \
-                                     n64adv_ppu_u|deblur_management_u|nblur_trend_add[*] \
-                                     n64adv_ppu_u|deblur_management_u|nblur_trend_sub[*] \
-                                     n64adv_ppu_u|deblur_management_u|nblur_th_bit[*] \
-                                     n64adv_ppu_u|deblur_management_u|nblur_rstalg_mode[*] \
-                                     n64adv_ppu_u|deblur_management_u|nDeBlurMan \
-                                     n64adv_ppu_u|deblur_management_u|nForceDeBlur \
-                                     n64adv_ppu_u|deblur_management_u|ndo_deblur} \
-                     ]
-
-
-# Video Demux Unit
-#*************************************
-set dbl_cycle_path_vdemux_clk [get_clocks {VCLK_1x_base}]
-set dbl_cycle_path_vdemux_regs [list [get_registers {n64adv_ppu_u|video_demux_u|nblank_rgb}] \
-                                     [get_registers {n64adv_ppu_u|video_demux_u|vdata_r_1[*]}] \
-                               ]
-
-foreach reg_list_elem $dbl_cycle_path_vdemux_regs {
-  set_multicycle_path -from $dbl_cycle_path_vdemux_clk -to $reg_list_elem -setup 2
-  set_multicycle_path -from $dbl_cycle_path_vdemux_clk -to $reg_list_elem -hold 1
-}
-
-
-# OSD module
-#*************************************
-set dbl_cycle_path_osd_inj_clk [get_clocks {VCLK_1x_base}]
-set dbl_cycle_path_osd_inj_regs [list [get_registers {n64adv_ppu_u|osd_injection_u|h_cnt[*]}] \
-                                      [get_registers {n64adv_ppu_u|osd_injection_u|v_cnt[*]}] \
-                                      [get_registers {n64adv_ppu_u|osd_injection_u|logo_h_cnt[*]}] \
-                                      [get_registers {n64adv_ppu_u|osd_injection_u|logo_v_cnt[*]}] \
-                                      [get_registers {n64adv_ppu_u|osd_injection_u|txt_h_cnt[*]}] \
-                                      [get_registers {n64adv_ppu_u|osd_injection_u|txt_v_cnt[*]}] \
-                                      [get_registers {n64adv_ppu_u|osd_injection_u|nHSYNC_pre}] \
-                                      [get_registers {n64adv_ppu_u|osd_injection_u|nVSYNC_pre}]
-                                ]
-
-foreach reg_list_elem $dbl_cycle_path_osd_inj_regs {
-  set_multicycle_path -from $dbl_cycle_path_osd_inj_clk -to $reg_list_elem -setup 2
-  set_multicycle_path -from $dbl_cycle_path_osd_inj_clk -to $reg_list_elem -hold 1
-}
-
-
 # linemultiplier
 #*************************************
 set_false_path -from [get_registers {n64adv_ppu_u|linemult_u|SL_rval*}]
-set dbl_cycle_path_linemult_in_clk [get_clocks {VCLK_1x_base}]
-set dbl_cycle_path_linemult_in_regs [list [get_registers {n64adv_ppu_u|linemult_u|nHS_i_buf}] \
-                                          [get_registers {n64adv_ppu_u|linemult_u|nVS_i_buf}] \
-                                          [get_registers {n64adv_ppu_u|linemult_u|FrameID}] \
-                                          [get_registers {n64adv_ppu_u|linemult_u|wren}] \
-                                          [get_registers {n64adv_ppu_u|linemult_u|wrpage[*]}] \
-                                          [get_registers {n64adv_ppu_u|linemult_u|wrhcnt[*]}] \
-                                          [get_registers {n64adv_ppu_u|linemult_u|wraddr[*]}] \
-                                          [get_registers {n64adv_ppu_u|linemult_u|videobuffer_u|wrmem_r[*]}] \
-                                          [get_registers {n64adv_ppu_u|linemult_u|videobuffer_u|wrdata_r[*]}] \
-                                    ]
-
-foreach reg_list_elem $dbl_cycle_path_linemult_in_regs {
-  set_multicycle_path -from $dbl_cycle_path_linemult_in_clk -to $reg_list_elem -setup 2
-  set_multicycle_path -from $dbl_cycle_path_linemult_in_clk -to $reg_list_elem -hold 1
-}
-
-
-set dbl_cycle_path_linemult_out_clks [list [get_clocks {VCLK_1x_out_pre}] \
-                                           [get_clocks {VCLK_2x_out_pre}] \
-                                           [get_clocks {VCLK_3x_out_pre}] \
-                                           [get_clocks {VCLK_1x_out}] \
-                                           [get_clocks {VCLK_2x_out}] \
-                                           [get_clocks {VCLK_3x_out}] \
-                                     ]
-set dbl_cycle_path_linemult_out_regs [list [get_registers {n64adv_ppu_u|linemult_u|videobuffer_u|rddata[*]}] \
-                                           [get_registers {n64adv_ppu_u|linemult_u|*_mult*}] \
-                                           [get_registers {n64adv_ppu_u|linemult_u|*_pp*}] \
-                                           [get_registers {n64adv_ppu_u|linemult_u|Y_ref*}] \
-                                           [get_registers {n64adv_ppu_u|linemult_u|SLHyb_rval*}] \
-                                           [get_registers {n64adv_ppu_u|linemult_u|SLHyb_str*}] \
-                                           [get_registers {n64adv_ppu_u|linemult_u|*_o*}] \
-                                    ]
-
-foreach clk_list_elem $dbl_cycle_path_linemult_out_clks {
-  foreach reg_list_elem $dbl_cycle_path_linemult_out_regs {
-    set_multicycle_path -from $clk_list_elem -to $reg_list_elem -setup 2
-    set_multicycle_path -from $clk_list_elem -to $reg_list_elem -hold 1
-  }
-}
 
 # tell the timer to not analyse these paths of the linemult unit in direct mode
 set list_direct_false_from [list [get_registers {n64adv_ppu_u|linemult_u|nVDSYNC_dbl}] \
@@ -367,7 +240,6 @@ foreach to_path $list_direct_false_to {
   set_false_path -from $direct_false_from_clk -to $to_path
 }
 
-
 set_false_path -from [get_registers {n64adv_ppu_u|linemult_u|FrameID \
                                      n64adv_ppu_u|linemult_u|hstart_* \
                                      n64adv_ppu_u|linemult_u|hstop_* \
@@ -379,71 +251,7 @@ set_false_path -from [get_registers {n64adv_ppu_u|linemult_u|FrameID \
                                      n64adv_ppu_u|linemult_u|dSL_pp*}]
 
 
-# Testpattern
-#*************************************
-set dbl_cycle_path_testpattern_clk [get_clocks {VCLK_1x_base}]
-set dbl_cycle_path_testpattern_regs [list [get_registers {n64adv_ppu_u|testpattern_u|vcnt[*]*}] \
-                                          [get_registers {n64adv_ppu_u|testpattern_u|hcnt[*]}] \
-                                          [get_registers {n64adv_ppu_u|testpattern_u|vdata_out[*]}] \
-                                    ]
-
-foreach reg_list_elem $dbl_cycle_path_testpattern_regs {
-    set_multicycle_path -from $dbl_cycle_path_testpattern_clk -to $reg_list_elem -setup 2
-    set_multicycle_path -from $dbl_cycle_path_testpattern_clk -to $reg_list_elem -hold 1
-}
-
-
-# RGB2YPbPr converter
-#*************************************
-set dbl_cycle_path_vconv_clks [list [get_clocks {VCLK_1x_out_pre}] \
-                                    [get_clocks {VCLK_2x_out_pre}] \
-                                    [get_clocks {VCLK_3x_out_pre}] \
-                                    [get_clocks {VCLK_1x_out}] \
-                                    [get_clocks {VCLK_2x_out}] \
-                                    [get_clocks {VCLK_3x_out}] \
-                              ]
-set dbl_cycle_path_vconv_regs [list [get_registers {n64adv_ppu_u|vconv_u|S[*][*]}] \
-                                    [get_registers {n64adv_ppu_u|vconv_u|R[*][*]}] \
-                                    [get_registers {n64adv_ppu_u|vconv_u|G[*][*]}] \
-                                    [get_registers {n64adv_ppu_u|vconv_u|B[*][*]}] \
-                                    [get_registers {n64adv_ppu_u|vconv_u|Y_addmult[*]}] \
-                                    [get_registers {n64adv_ppu_u|vconv_u|R4Y_scaled[*]}] \
-                                    [get_registers {n64adv_ppu_u|vconv_u|G4Y_scaled[*]}] \
-                                    [get_registers {n64adv_ppu_u|vconv_u|B4Y_scaled[*]}] \
-                                    [get_registers {n64adv_ppu_u|vconv_u|Pb_nPart_addmult[*]}] \
-                                    [get_registers {n64adv_ppu_u|vconv_u|R4Pb_scaled[*]}] \
-                                    [get_registers {n64adv_ppu_u|vconv_u|G4Pb_scaled[*]}] \
-                                    [get_registers {n64adv_ppu_u|vconv_u|Pr_nPart_addmult[*]}] \
-                                    [get_registers {n64adv_ppu_u|vconv_u|G4Pr_scaled[*]}] \
-                                    [get_registers {n64adv_ppu_u|vconv_u|B4Pr_scaled[*]}] \
-                                    [get_registers {n64adv_ppu_u|vconv_u|*_o[*]}] \
-                              ]
-foreach clk_list_elem $dbl_cycle_path_vconv_clks {
-  foreach reg_list_elem $dbl_cycle_path_vconv_regs {
-    set_multicycle_path -from $clk_list_elem -to $reg_list_elem -setup 2
-    set_multicycle_path -from $clk_list_elem -to $reg_list_elem -hold 1
-  }
-}
-
 # some misc output ports as false path
 #*************************************
 set_false_path -to [get_ports {nRST}]
 set_false_path -to [get_ports {nHSYNC* nVSYNC* nCSYNC}]
-
-
-#**************************************************************
-# Set Maximum Delay
-#**************************************************************
-
-
-
-#**************************************************************
-# Set Minimum Delay
-#**************************************************************
-
-
-
-#**************************************************************
-# Set Input Transition
-#**************************************************************
-

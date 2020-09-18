@@ -62,10 +62,10 @@ input [2:0] nSRST;
 
 input CTRL;
 
-input      [12:0] PPUState;
+input      [11:0] PPUState;
 input      [ 7:0] JumperCfgSet;
 output reg [ 1:0] MANAGE_VPLL;
-output reg [63:0] PPUConfigSet;
+output reg [46:0] PPUConfigSet;
 output     [24:0] OSDWrVector;
 output reg [ 1:0] OSDInfo;
 
@@ -129,19 +129,10 @@ wire [ 9:0] vd_wraddr;
 wire [ 1:0] vd_wrctrl;
 wire [12:0] vd_wrdata;
 
+// general structure of ConfigSet -> see vh/n64adv_ppiconfig.vh
 wire [31:0] SysConfigSet2;
-// [31:16] {(16bits reserved)}
-// [15: 8] {(2bits reserve),USE_VPLL, TEST_VPLL, show_testpattern, show_osd_logo, show_osd, mute_osd}
-// [ 7: 0] {(5bits reserve),use_igr,igr for 15bit mode and deblur (not used in logic)}
 wire [31:0] SysConfigSet1;
-// [31:24] {(2bits reserve),Invert_RB_out,FilterSet (3bits),YPbPr,RGsB}
-// [23:16] {(2bits reserve), gamma (4bits),15bit mode, pal_awareness}
-// [15: 8] {DeBlur High: (1bit reserve) P2P-Sens, FrameCnt (3bit), Dead-Zone (3bit)}
-// [ 7: 0] {DeBlur Low:  (2bit reserve) Stability/TH (2bit), Reset (2bit), VI-DeBlur (2bit)}
 wire [31:0] SysConfigSet0;
-// general structure [31:16] 240p settings, [15:0] 480i settings
-// [31:16] 240p: {(1bit reserve),linemult (2bits),Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_Method,Sl_ID,Sl_En}
-// [15: 0] 480i: {(1bit reserve),field_fix,bob_deint.,Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_link,Sl_ID,Sl_En}
 
 
 
@@ -171,9 +162,8 @@ always @(posedge VCLK)
     MANAGE_VPLL      <= SysConfigSet2[13:12];
     OSDInfo[1]       <= &{SysConfigSet2[10:9],!SysConfigSet2[8]};  // show logo only in OSD
     OSDInfo[0]       <= SysConfigSet2[9] & !SysConfigSet2[8];
-    use_igr          <= SysConfigSet2[2];
-    PPUConfigSet     <= {SysConfigSet1,SysConfigSet0};
-    PPUConfigSet[63] <= SysConfigSet2[11];
+    use_igr          <= SysConfigSet2[3];
+    PPUConfigSet     <= {SysConfigSet2[11],SysConfigSet1[13:0],SysConfigSet0};
   end
 
 

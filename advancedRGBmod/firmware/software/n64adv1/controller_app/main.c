@@ -33,6 +33,7 @@
 #include "system.h"
 
 #include "cfg_io_p.h"
+#include "cfg_int_p.h"
 #include "n64.h"
 #include "config.h"
 #include "menu.h"
@@ -45,17 +46,6 @@
 
 const alt_u8 RW_Message_FontColor[] = {FONTCOLOR_GREEN,FONTCOLOR_RED,FONTCOLOR_MAGENTA};
 const char   *RW_Message[] = {"< Success >","< Failed > ","< Aborted >"};
-
-extern const char *NTSCPAL_SEL[];
-config_t ntsc_pal_selection = {
-    // .cfg_b32word_t* must be NULL to show that this is a local value
-    .cfg_type     = TXTVALUE, // treat as txtvalue for modifying function
-    .cfg_value    = NTSC,
-    .value_details = {
-      .max_value = PAL,
-    },
-    .value_string = &NTSCPAL_SEL
-};
 
 
 /* ToDo's:
@@ -82,7 +72,7 @@ int main()
   configuration_t sysconfig = {
       .cfg_word_def[MISC]  = &cfg_data_misc,
       .cfg_word_def[VIDEO] = &cfg_data_video,
-      .cfg_word_def[IMAGE] = &cfg_data_image,
+      .cfg_word_def[LINEX] = &cfg_data_linex,
   };
 
   cfg_clear_words(&sysconfig);
@@ -131,7 +121,9 @@ int main()
   cfg_clear_flag(&show_testpat);
   cfg_clear_flag(&test_vpll);
 
-  cfg_load_image_word(&sysconfig,0);
+  cfg_load_linex_word(&sysconfig,NTSC);
+  cfg_set_value(&deblur_mode_current,cfg_get_value(&deblur_mode,0));
+  cfg_set_value(&mode15bit_current,cfg_get_value(&mode15bit,0));
   cfg_apply_to_logic(&sysconfig);
 
   vpll_lock_first_boot = 1;
@@ -154,9 +146,9 @@ int main()
 
     if(cfg_get_value(&show_osd,0)) {
 
-      alt_u8 image_word_selection = cfg_get_value(&ntsc_pal_selection,0);
+      alt_u8 linex_word_selection = cfg_get_value(&ntsc_pal_selection,0);
       if (cfg_get_value(&pal_awareness,0)) // show the correct options
-        cfg_load_image_word(&sysconfig,image_word_selection);
+        cfg_load_linex_word(&sysconfig,linex_word_selection);
 
       if (message_cnt > 0) {
         if (command != CMD_NON) {
@@ -209,7 +201,7 @@ int main()
                                      (todo == NEW_SELECTION)  ))
         update_cfg_screen(menu);
 
-      cfg_store_image_word(&sysconfig,image_word_selection);
+      cfg_store_linex_word(&sysconfig,linex_word_selection);
       if (!cfg_get_value(&pal_awareness,0))
         cfg_set_value(&ntsc_pal_selection,NTSC);
 
@@ -220,29 +212,29 @@ int main()
         ctrl_ignore = CTRL_IGNORE_FRAMES;
       }
 
-      if ((cfg_get_value(&igr_quickchange,0) & CFG_QUDEBLUR_GETMASK))
+      if ((cfg_get_value(&igr_quickchange,0) & (CFG_QUDEBLUR_GETMASK >> CFG_QUICKCHANGE_OFFSET)))
         switch (command) {
           case CMD_DEBLUR_QUICK_ON:
             if (!(ppu_state & PPU_STATE_480I_GETMASK)) {
-              cfg_set_value(&deblur_mode,DEBLUR_FORCE_ON);
+              cfg_set_flag(&deblur_mode_current);
             };
             break;
           case CMD_DEBLUR_QUICK_OFF:
             if (!(ppu_state & PPU_STATE_480I_GETMASK)) {
-              cfg_set_value(&deblur_mode,DEBLUR_FORCE_OFF);
+              cfg_clear_flag(&deblur_mode_current);
             };
             break;
           default:
             break;
         }
 
-      if ((cfg_get_value(&igr_quickchange,0) & CFG_QU15BITMODE_GETMASK))
+      if ((cfg_get_value(&igr_quickchange,0) & (CFG_QU15BITMODE_GETMASK >> CFG_QUICKCHANGE_OFFSET)))
           switch (command) {
             case CMD_15BIT_QUICK_ON:
-              cfg_set_flag(&mode15bit);
+              cfg_set_flag(&mode15bit_current);
               break;
             case CMD_15BIT_QUICK_OFF:
-              cfg_clear_flag(&mode15bit);
+              cfg_clear_flag(&mode15bit_current);
               break;
             default:
               break;
@@ -273,10 +265,10 @@ int main()
       }
     }
 
-    if (cfg_get_value(&pal_awareness,0))
-      cfg_load_image_word(&sysconfig,(ppu_state & PPU_STATE_PALMODE_GETMASK) >> PPU_STATE_PALMODE_OFFSET);
+    if (cfg_get_value(&pal_awareness,NTSC))
+      cfg_load_linex_word(&sysconfig,(ppu_state & PPU_STATE_PALMODE_GETMASK) >> PPU_STATE_PALMODE_OFFSET);
     else
-      cfg_load_image_word(&sysconfig,0);
+      cfg_load_linex_word(&sysconfig,NTSC);
 
     cfg_apply_to_logic(&sysconfig);
 

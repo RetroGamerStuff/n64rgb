@@ -74,8 +74,8 @@ input nVRST;
 input nVDSYNC;
 input [color_width_i-1:0] VD_i;
 
-output [12:0] PPUState;
-input  [63:0] ConfigSet;
+output [11:0] PPUState;
+input  [46:0] ConfigSet;
 
 input        OSDCLK;
 input [24:0] OSDWrVector;
@@ -87,8 +87,8 @@ input        VCLK_Tx;
 input        nVRST_Tx;
 
 // output reg nBLANK = 1'b0;
-output reg [3*color_width_o-1:0] VD_o = {3*color_width_o{1'b0}};
-output reg [                1:0] nCSYNC = 2'b00;
+output reg [`VDATA_O_CO_SLICE] VD_o = {3*color_width_o{1'b0}};
+output reg [              1:0] nCSYNC = 2'b00;
 
 input UseVGA_HVSync;
 output reg nVSYNC_or_F2 = 1'b0;
@@ -98,17 +98,31 @@ output reg nHSYNC_or_F1 = 1'b0;
 
 // start of rtl
 
-// structure of vinfo
-// [3:0] {data_cnt,vmode,n64_480i}
-wire [3:0] vinfo_pass;
-wire pal_mode = vinfo_pass[1];
-wire n64_480i = vinfo_pass[0];
+wire [3:0] vinfo_pass;  // [3:0] {data_cnt,vmode,n64_480i}
+wire pal_mode, n64_480i;
 
-// general structure of ConfigSet
-// [63:48] Others: {show_testpattern, (1bit reserve),Exchange RB out, FilterSet (3bits),YPbPr,RGsB,(2bits reserve), gamma (4bits),15bit mode, pal_awareness}
-// [47:32] DeBlur: {(1bit reserve) P2P-Sens, FrameCnt (3bit), Dead-Zone (3bit), (2bit reserve) Stability/TH (2bit), Reset (2bit), VI-DeBlur (2bit)}
-// [31:16] 240p:   {(1bit reserve),linemult (2bits),Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_Method,Sl_ID,Sl_En}
-// [15: 0] 480i:   {(1bit reserve),field_fix,bob_deint.,Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_link,Sl_ID,Sl_En}
+wire [`VDATA_I_SY_SLICE] vdata_r_sy_0;
+wire [`VDATA_I_FU_SLICE] vdata_r[1:3];
+
+wire [16:0] vinfo_mult;
+wire nVDSYNC_srgb_out;
+wire [`VDATA_O_FU_SLICE] vdata_srgb_out;
+
+wire [`VDATA_O_FU_SLICE] vdata_testpattern;
+
+wire [`VDATA_O_FU_SLICE] vdata_vc_in;
+wire [`VDATA_O_FU_SLICE] vdata_vc_out;
+
+wire [3:0] Sync_o;
+
+reg [`VDATA_O_CO_SLICE] vdata_shifted[0:1];
+initial begin
+  vdata_shifted[0] = {3*color_width_o{1'b0}};
+  vdata_shifted[1] = {3*color_width_o{1'b0}};
+end
+
+reg [1:2] Filter;
+wire AutoFilter_w;
 
 reg        cfg_testpat       = 1'b0;
 reg        cfg_exchange_rb_o = 1'b0;
@@ -116,8 +130,7 @@ reg [ 2:0] cfg_filter        = 3'b000;
 reg        cfg_nEN_YPbPr     = 1'b0;
 reg        cfg_nEN_RGsB      = 1'b0;
 reg [ 3:0] cfg_gamma         = 4'b0000;
-reg [15:0] cfg_deblurparams  = 16'h0000; // ToDo: setup default
-reg        cfg_nforcedeblur  = 1'b0;
+reg        cfg_nvideblur     = 1'b0;
 reg        cfg_n15bit_mode   = 1'b0;
 reg        cfg_ifix          = 1'b0;
 reg [ 1:0] cfg_linemult      = 2'b00;
@@ -127,6 +140,27 @@ reg        cfg_SL_method     = 1'b0;
 reg        cfg_SL_id         = 1'b0;
 reg        cfg_SL_en         = 1'b0;
 
+
+// apply some assignments
+// ----------------------
+
+assign pal_mode = vinfo_pass[1];
+assign n64_480i = vinfo_pass[0];
+
+assign VCLK_Tx_select = cfg_linemult;
+
+assign vinfo_mult = {cfg_linemult,cfg_ifix,cfg_SLHyb_str,cfg_SL_str,cfg_SL_method,cfg_SL_id,cfg_SL_en,vinfo_pass[1:0]};
+
+assign vdata_vc_in = cfg_testpat ? vdata_testpattern : vdata_srgb_out;
+
+assign Sync_o = vdata_vc_out[`VDATA_O_SY_SLICE];
+assign AutoFilter_w = cfg_filter == 3'b000;
+assign PPUState = {pal_mode,n64_480i,1'b0,cfg_linemult,~cfg_nEN_YPbPr,~cfg_nEN_RGsB,~cfg_nvideblur,~cfg_n15bit_mode,Filter,AutoFilter_w};
+
+
+// write configuration register
+// ----------------------------
+
 always @(posedge VCLK) begin
   cfg_testpat       <=  ConfigSet[`show_testpattern_bit];
   cfg_exchange_rb_o <=  ConfigSet[`Exchange_RB_out_bit];
@@ -134,10 +168,9 @@ always @(posedge VCLK) begin
   cfg_nEN_YPbPr     <= ~ConfigSet[`YPbPr_bit];
   cfg_nEN_RGsB      <= ~ConfigSet[`RGsB_bit];
   cfg_gamma         <=  ConfigSet[`gamma_slice];
-  cfg_nforcedeblur  <= ~|ConfigSet[`ndeblurman_bit:`nforcedeblur_bit];
-  cfg_deblurparams  <=  ConfigSet[`deblurparams_slice];
   cfg_n15bit_mode   <= ~ConfigSet[`n15bit_mode_bit];
   if (!n64_480i) begin
+    cfg_nvideblur     <= ~ConfigSet[`videblur_bit];
     cfg_ifix          <= 1'b0;
     if (pal_mode | !USE_VPLL)
       cfg_linemult      <= {1'b0,^ConfigSet[`v240p_linemult_slice]}; // do not allow LineX3 in PAL mode or if PLL of VCLK (for LineX3) is not locked (or not used)
@@ -149,6 +182,7 @@ always @(posedge VCLK) begin
     cfg_SL_id         <= ConfigSet[`v240p_SL_ID_bit];
     cfg_SL_en         <= ConfigSet[`v240p_SL_En_bit];
   end else begin
+    cfg_nvideblur     <= 1'b1;
     cfg_ifix          <= ConfigSet[`v480i_field_fix_bit];
     cfg_linemult      <= {1'b0,ConfigSet[`v480i_linex2_bit]};
     if (ConfigSet[`v480i_SL_linked_bit]) begin // check if SL mode is linked to 240p
@@ -163,106 +197,77 @@ always @(posedge VCLK) begin
     cfg_SL_method     <= 1'b0;
     cfg_SL_en         <= ConfigSet[`v480i_SL_En_bit];
   end
-  if (ConfigSet[`show_testpattern_bit]) begin // overwrite cfg_linemult if testpattern is enabled
+  if (ConfigSet[`show_testpattern_bit]) // overwrite cfg_linemult if testpattern is enabled
     cfg_linemult <= 2'b00;
-  end
 end
 
-assign VCLK_Tx_select = cfg_linemult;
-
-wire nVDSYNC_r[1:3]; // 0 is synchron with initial nVDSYNC
-wire [`VDATA_I_FU_SLICE] vdata_r[0:3];
 
 
-// Part 1: get all of the vinfo needed for further processing
-// ==========================================================
+// get vinfo
+// =========
 
 n64_vinfo_ext get_vinfo_u(
   .VCLK(VCLK),
   .nVDSYNC(nVDSYNC),
   .nRST(nVRST),
-  .Sync_pre(vdata_r[0][`VDATA_I_SY_SLICE]),
+  .Sync_pre(vdata_r_sy_0),
   .Sync_cur(VD_i[3:0]),
   .vinfo_o(vinfo_pass)
 );
 
 
-// Part 2: DeBlur Management (incl. heuristic)
-// ===========================================
-
-wire ndo_deblur;
-
-n64a_deblur deblur_management_u(
-  .VCLK(VCLK),
-  .nVDSYNC(nVDSYNC),
-  .nRST(nVRST),
-  .vdata_pre(vdata_r[0]),
-  .VD_i(VD_i),
-  .vid_state_i(vinfo_pass),
-  .algorithmsettings_i(cfg_deblurparams),
-  .ndo_deblur(ndo_deblur)
-);
-
-
-
-// Part 3: data demux
-// ==================
+// video data demux
+// ================
 
 n64a_vdemux video_demux_u(
   .VCLK(VCLK),
-  .nVDSYNC_i(nVDSYNC),
-  .nVDSYNC_o(nVDSYNC_r[1]),
+  .nVDSYNC(nVDSYNC),
   .nRST(nVRST),
   .VD_i(VD_i),
-  .demuxparams_i({vinfo_pass[3:1],ndo_deblur,cfg_n15bit_mode}),
-  .vdata_r_0(vdata_r[0]),
+  .demuxparams_i({vinfo_pass[3:1],cfg_nvideblur,cfg_n15bit_mode}),
+  .vdata_r_sy_0(vdata_r_sy_0),
   .vdata_r_1(vdata_r[1])
 );
 
-// Part 4: OSD Menu Injection
-// ==========================
+
+// OSD Menu Injection
+// ==================
 
 osd_injection osd_injection_u(
   .OSDCLK(OSDCLK),
   .OSDWrVector(OSDWrVector),
   .OSDInfo(OSDInfo),
   .VCLK(VCLK),
-  .nVDSYNC_i(nVDSYNC_r[1]),
-  .nVDSYNC_o(nVDSYNC_r[2]),
+  .nVDSYNC(nVDSYNC),
   .nVRST(nVRST),
   .video_data_i(vdata_r[1]),
   .video_data_o(vdata_r[2])
 );
 
-// Part 5: Post-Processing
-// =======================
 
-// Part 5.1: Gamma Correction
-// ==========================
+// Post-Processing
+// ===============
+
+// Gamma Correction
+// ----------------
 
 gamma_module gamma_module_u(
   .VCLK(VCLK),
-  .nVDSYNC_i(nVDSYNC_r[2]),
-  .nVDSYNC_o(nVDSYNC_r[3]),
+  .nVDSYNC(nVDSYNC),
   .nRST(nVRST),
   .gammaparams_i(cfg_gamma),
   .video_data_i(vdata_r[2]),
   .video_data_o(vdata_r[3])
 );
 
-// Part 5.2: Line Multiplier
-// =========================
 
-wire [16:0] vinfo_mult = {cfg_linemult,cfg_ifix,cfg_SLHyb_str,cfg_SL_str,cfg_SL_method,cfg_SL_id,cfg_SL_en,vinfo_pass[1:0]};
-wire nVDSYNC_srgb_out;
-wire [`VDATA_O_FU_SLICE] vdata_srgb_out;
+// Line Multiplier
+// ---------------
 
 linemult linemult_u(
   .VCLK_Rx(VCLK),
-  .nVDSYNC_Rx(nVDSYNC_r[3]),
   .nVRST_Rx(nVRST),
   .VCLK_Tx(VCLK_Tx),
-  .nVDSYNC_Tx(nVDSYNC_srgb_out),
   .nVRST_Tx(nVRST_Tx),
   .vinfo_mult(vinfo_mult),
   .vdata_i(vdata_r[3]),
@@ -270,17 +275,12 @@ linemult linemult_u(
 );
 
 
-// Part 6: Test Pattern Generator
-// ==============================
-// (intersects part 5)
-
-wire nVDSYNC_testpattern;
-wire [`VDATA_O_FU_SLICE] vdata_testpattern;
+// Test Pattern Generator
+// ----------------------
 
 testpattern testpattern_u(
   .VCLK(VCLK_Tx),
-  .nVDSYNC_i(nVDSYNC),
-  .nVDSYNC_o(nVDSYNC_testpattern),
+  .nVDSYNC(nVDSYNC),
   .nRST(nVRST_Tx),
   .vmode(pal_mode),
   .Sync_in(VD_i[3:0]),
@@ -288,22 +288,14 @@ testpattern testpattern_u(
 );
 
 
-// (continue with part 5)
-// Part 5.3: Color Transformation
-// ==============================
-
-wire vdata_vc_valid = cfg_testpat ? !nVDSYNC_testpattern : !nVDSYNC_srgb_out;
-wire [`VDATA_O_FU_SLICE] vdata_vc_in = cfg_testpat ? vdata_testpattern : vdata_srgb_out;
-wire vdata_vc_out_valid;
-wire [`VDATA_O_FU_SLICE] vdata_vc_out;
+// Color Transformation
+// --------------------
 
 vconv vconv_u(
   .VCLK(VCLK_Tx),
   .nRST(nVRST_Tx),
   .nEN_YPbPr(cfg_nEN_YPbPr),    // enables color transformation on '0'
-  .vdata_i_valid(vdata_vc_valid),
   .vdata_i(vdata_vc_in),
-  .vdata_o_valid(vdata_vc_out_valid),
   .vdata_o(vdata_vc_out)
 );
 
@@ -311,51 +303,26 @@ vconv vconv_u(
 // Part 7: assign final outputs
 // ============================
 
-reg [1:0] vdata_valid_shifted = 2'b00;
-wire [3:0] Sync_o = vdata_vc_out[`VDATA_O_SY_SLICE];
-reg [`VDATA_O_CO_SLICE] vdata_shifted[0:1];
-initial begin
-  vdata_shifted[0] = {3*color_width_o{1'b0}};
-  vdata_shifted[1] = {3*color_width_o{1'b0}};
-end
-
 always @(posedge VCLK_Tx or negedge nVRST_Tx)
   if (!nVRST_Tx) begin
     nCSYNC <= 2'b00;
       VD_o <= {3*color_width_o{1'b0}};
-
-    vdata_valid_shifted <= 2'b00;
-    vdata_shifted[0] <= {3*color_width_o{1'b0}};
-    vdata_shifted[1] <= {3*color_width_o{1'b0}};
   end else begin
-    if (vdata_vc_out_valid) begin
-    //  nBLANK <= Sync_o[2];
-      nCSYNC[1] <= Sync_o[0];
-      if (cfg_nEN_RGsB & cfg_nEN_YPbPr)
-        nCSYNC[0] <= 1'b0;
-      else
-        nCSYNC[0] <= Sync_o[0];
-        
-      vdata_shifted[0] <= cfg_exchange_rb_o ? {vdata_vc_out[`VDATA_O_BL_SLICE],vdata_vc_out[`VDATA_O_GR_SLICE],vdata_vc_out[`VDATA_O_RE_SLICE]} : vdata_vc_out[`VDATA_O_CO_SLICE];
-    end
+  //  nBLANK <= Sync_o[2];
+    nCSYNC[1] <= Sync_o[0];
+    if (cfg_nEN_RGsB & cfg_nEN_YPbPr)
+      nCSYNC[0] <= 1'b0;
+    else
+      nCSYNC[0] <= Sync_o[0];
 
-    if (vdata_valid_shifted[0])
-      vdata_shifted[1] <= vdata_shifted[0];
+    vdata_shifted[1] <= vdata_shifted[0];
+    vdata_shifted[0] <= cfg_exchange_rb_o ? {vdata_vc_out[`VDATA_O_BL_SLICE],vdata_vc_out[`VDATA_O_GR_SLICE],vdata_vc_out[`VDATA_O_RE_SLICE]} : vdata_vc_out[`VDATA_O_CO_SLICE];
 
-    if (!ndo_deblur && !cfg_testpat) begin
-      if (^cfg_linemult) begin
-        if (vdata_valid_shifted[1])
-          VD_o <= vdata_shifted[1];
-      end else begin
-        if (vdata_valid_shifted[0])
-          VD_o <= vdata_shifted[0];
-      end
-    end else begin
-      if (vdata_vc_out_valid)
-        VD_o <= cfg_exchange_rb_o ? {vdata_vc_out[`VDATA_O_BL_SLICE],vdata_vc_out[`VDATA_O_GR_SLICE],vdata_vc_out[`VDATA_O_RE_SLICE]} : vdata_vc_out[`VDATA_O_CO_SLICE];
-    end
+    if (!cfg_nvideblur && !cfg_testpat)
+      VD_o <= vdata_shifted[^cfg_linemult][`VDATA_O_CO_SLICE];
+    else
+      VD_o <= cfg_exchange_rb_o ? {vdata_vc_out[`VDATA_O_BL_SLICE],vdata_vc_out[`VDATA_O_GR_SLICE],vdata_vc_out[`VDATA_O_RE_SLICE]} : vdata_vc_out[`VDATA_O_CO_SLICE];
 
-    vdata_valid_shifted <= {vdata_valid_shifted[0],vdata_vc_out_valid};
   end
 
 
@@ -377,29 +344,19 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
 //
 // (Bypass SF is hard wired to 1)
 
-reg [1:2] Filter;
-wire AutoFilter_w = cfg_filter == 3'b000;
-
 always @(posedge VCLK_Tx or negedge nVRST_Tx)
   if (!nVRST_Tx) begin
     nVSYNC_or_F2 <= 1'b0;
     nHSYNC_or_F1 <= 1'b0;
   end else begin
     Filter <= AutoFilter_w ? cfg_linemult : cfg_filter[1:0] - 1'b1;
-    
     if (UseVGA_HVSync) begin
-      if (vdata_vc_out_valid) begin
-        nVSYNC_or_F2 <= Sync_o[3];
-        nHSYNC_or_F1 <= Sync_o[1];
-      end
+      nVSYNC_or_F2 <= Sync_o[3];
+      nHSYNC_or_F1 <= Sync_o[1];
     end else begin
       nVSYNC_or_F2 <= Filter[2];
       nHSYNC_or_F1 <= Filter[1];
     end
   end
-
-
-// final assignments with register
-assign PPUState = {pal_mode,n64_480i,1'b0,cfg_linemult,~cfg_n15bit_mode,~cfg_nEN_YPbPr,~cfg_nEN_RGsB,~ndo_deblur,~cfg_nforcedeblur,Filter,AutoFilter_w};
 
 endmodule
