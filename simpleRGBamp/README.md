@@ -34,7 +34,7 @@ can be found in this document.
 | **U1** | THS7374 | TSSOP-14 | 1 | 595-THS7374IPWR | |
 | | THS7373 | TSSOP-14 | 1 | 595-THS7373IPWR | **Alternative** for the THS7374 [1] |
 | **C1** | 22uF / 6.3V (tantal) | SMD case B (typical: 3.50mm x 2.80mm) | 1 | 74-593D226X96R3B2TE3 | |
-| **C2** | 0.1uF / 50V (10%) | SMD 0603 | 1 | 80-C0603C104K9R | |  
+| **C2** | 0.1uF / 50V (10%) | SMD 0603 | 1 | 80-C0603C104K9R | |
 | | | | | | |
 | **R1, R41** | 4.7kohm (1%) | SMD 0603 | 2 | 71-CRCW06034K70FKEAH | |
 | **R42** | 475ohm (1%) | SMD 0603 | 1 | 71-CRCW0603-475-E3 | csync compatible with 75ohm termination [2,3] |
@@ -44,7 +44,7 @@ can be found in this document.
 | | | | | | |
 | **R13,R23,R33** | 75ohm (1%) | SMD 0603 | 3 | 71-RCS060375R0FKEA | NTSC-SNES RGB cable setup or direct wiring on RGB wires [4] |
 | | 39ohm (1%) | SMD 0603 | 3 | 71-CRCW060339R0FKEAH | PAL-SNES cable setup on RGB wires [4] |
-| **C14,C24,C34** | 47pF / 25V (5%) | SMD 0603 | 3 | 77-VJ0603A470JXXPBC | | 
+| **C14,C24,C34** | 47pF / 25V (5%) | SMD 0603 | 3 | 77-VJ0603A470JXXPBC | |
 | | | | | | |
 | **C43** | tantal 220uF / 6.3V (tantal) | SMD case D (typical: 7.30mm x 4.30mm) | 1 | 74-593D227X96R3D2TE3 | csync compatible with 75ohm termination[2,3] |
 | | 330uF / 6.3V (tantal) | SMD case D (typical: 7.30mm x 4.30mm) | 1 | 74-TR3D337K6R3E0100 | /CSYNC compatible with 75ohm termination, **Alternative** to 220uF tantal [2,3] |
@@ -52,12 +52,12 @@ can be found in this document.
 | **R43** | 75ohm (1%) | SMD 0603 | 1 | 71-RCS060375R0FKEA | csync compatible with 75ohm termination [2,3], NTSC-SNES RGB cable setup [4] |
 || 39ohm (1%) | SMD 0603 | 1 | 71-CRCW060339R0FKEAH | /CSYNC compatible with 75ohm termination [2,3], PAL-SNES cable setup on RGB wires [4] |
 | | 0ohm | SMD 0603 | 1 | *use a piece of silver wire* |  TTL compatible /CSYNC [2,3] |
-| **C44** | 47pF / 25V (5%) | SMD 0603 | 1 | 77-VJ0603A470JXXPBC | [3] | 
+| **C44** | 47pF / 25V (5%) | SMD 0603 | 1 | 77-VJ0603A470JXXPBC | [3] |
 
 
 ### Additional Comments:
 
-  
+
 ##### [1]  
 Both ICs are supported. The THS7373 has one SD-video low pass filter (used for /CSYNC) and three HD-video filters (used for R, G and B). The THS7374 has four SD-video filters.  
 At the THS7373 the HD-video LPFs can be bypassed and at the THS7374 all four SD-video filters can be bypassed (using J1).
