@@ -106,15 +106,16 @@ derive_clock_uncertainty
 #**************************************************************
 # Set Input Delay
 #**************************************************************
-
 # delays were carried out at the modding board and includes some potential skew
 set n64_data_delay_min 2.0
-set n64_data_delay_max 10.0
+set n64_data_delay_max 8.0
+set n64_margin 0.2
+set n64_in_dly_min [expr $n64_data_delay_min - $n64_margin]
+set n64_in_dly_max [expr -$n64_data_delay_max + $n64_margin]
 
-set_input_delay -clock {VCLK_N64_VIRT} -min $n64_data_delay_min [get_ports {nVDSYNC}]
-set_input_delay -clock {VCLK_N64_VIRT} -max $n64_data_delay_max [get_ports {nVDSYNC}]
-set_input_delay -clock {VCLK_N64_VIRT} -min $n64_data_delay_min [get_ports {VD_i[*]}]
-set_input_delay -clock {VCLK_N64_VIRT} -max $n64_data_delay_max  [get_ports {VD_i[*]}]
+set_input_delay -clock {VCLK_N64_VIRT} -min $n64_in_dly_min [get_ports {nVDSYNC VD_i[*]}]
+set_input_delay -clock {VCLK_N64_VIRT} -max $n64_in_dly_max [get_ports {nVDSYNC VD_i[*]}]
+
 
 set_input_delay -clock { CLK_25M } 0 [get_ports *ALTERA_DATA0]
 
