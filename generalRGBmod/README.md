@@ -33,7 +33,7 @@ The following shortly describes the main features of the firmware and how to use
 
 ### In-Game Routines (IGR)
 
-Three functionalities are implemented: toggle de-blur feature and toggle the 15bit mode (see above) as well as resetting the console.
+Three functionalities are implemented: toggle de-blur feature and toggle the 15bit mode as well as resetting the console.
 
 The button combination are as follows:
 
@@ -66,7 +66,7 @@ The 15bit color mode reduces the color depth from 21bit (7bit for each color) do
 There are five jumpers on the modding board - two double solder jumper and three standard jumper.  
 For double jumper, jumper Jxx.1 is indicated by an arrow, Jxx.2 is on the opposite side.
 
-- J11.1 -> deactivates VI-deblur if closed. **[1]**
+- J11.1 -> activates VI-deblur if closed. **[1]**
 - J11.2 -> activates 15bit color mode **[1]**
 - J12.x -> disables IGR functions if closed
   - x.1: VI-DeBlur and 15bit mode toggle by controller

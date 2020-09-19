@@ -69,7 +69,7 @@ set_clock_groups -asynchronous -group \
 # Set False Path
 #**************************************************************
 
-set_false_path -from [get_ports {nRST_io CTRL_i nSYNC_ON_GREEN n15bit_mode_t VIDeBlur_t en_IGR_Rst_Func en_IGR_DeBl_15b_Func}]
+set_false_path -from [get_ports {nRST_io CTRL_i nSYNC_ON_GREEN n15bit_mode_t nVIDeBlur_t en_IGR_Rst_Func en_IGR_DeBl_15b_Func}]
 set_false_path -to [get_ports {nRST_io}]
 
 set_false_path -to [get_ports {nHSYNC nVSYNC nCSYNC nCLAMP}]

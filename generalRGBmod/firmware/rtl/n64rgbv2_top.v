@@ -63,7 +63,7 @@ module n64rgbv2_top (
   // Jumper
   nSYNC_ON_GREEN,
   n15bit_mode_t,
-  VIDeBlur_t,
+  nVIDeBlur_t,
   en_IGR_Rst_Func,
   en_IGR_DeBl_15b_Func,
 
@@ -97,7 +97,7 @@ input CTRL_i;
 input  nSYNC_ON_GREEN;
 
 input n15bit_mode_t;
-input VIDeBlur_t;
+input nVIDeBlur_t;
 input en_IGR_Rst_Func;
 input en_IGR_DeBl_15b_Func;
 
@@ -135,7 +135,7 @@ n64rgb_hk hk_u(
   .CTRL_i(CTRL_i),
   .n64_480i(vinfo_pass[0]),
   .n15bit_mode_t(n15bit_mode_t),
-  .VIDeBlur_t(VIDeBlur_t),
+  .nVIDeBlur_t(nVIDeBlur_t),
   .en_IGR_Rst_Func(en_IGR_Rst_Func),
   .en_IGR_DeBl_15b_Func(en_IGR_DeBl_15b_Func),
   .n15bit_o(n15bit_mode_o),
