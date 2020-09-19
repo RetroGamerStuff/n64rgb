@@ -29,6 +29,7 @@ create_generated_clock -name {CLK_ADV712x} -source [get_ports {VCLK}] -divide_by
 #**************************************************************
 # Set Input Delay
 #**************************************************************
+
 set data_delay_min 2.0
 set data_delay_max 8.0
 set data_delay_margin 0.2
@@ -42,6 +43,7 @@ set_input_delay -clock {VCLK_N64_VIRT} -max $input_delay_max [get_ports {nDSYNC 
 #**************************************************************
 # Set Output Delay
 #**************************************************************
+
 set adv_tsu 0.5
 set adv_th  1.5
 set adv_margin 0.2
