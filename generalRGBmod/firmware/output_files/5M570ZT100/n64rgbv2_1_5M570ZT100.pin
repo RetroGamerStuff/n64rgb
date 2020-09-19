@@ -110,7 +110,7 @@ RESERVED_INPUT_WITH_BUS_HOLD : 44        :        :                   :         
 VCCIO1                       : 45        : power  :                   : 3.3V    : 1         :                
 GND                          : 46        : gnd    :                   :         :           :                
 n15bit_mode_t                : 47        : input  : 3.3-V LVTTL       :         : 1         : Y              
-VIDeBlur_t                   : 48        : input  : 3.3-V LVTTL       :         : 1         : Y              
+nVIDeBlur_t                  : 48        : input  : 3.3-V LVTTL       :         : 1         : Y              
 en_IGR_Rst_Func              : 49        : input  : 3.3-V LVTTL       :         : 1         : Y              
 en_IGR_DeBl_15b_Func         : 50        : input  : 3.3-V LVTTL       :         : 1         : Y              
 RESERVED_INPUT_WITH_BUS_HOLD : 51        :        :                   :         : 1         :                
