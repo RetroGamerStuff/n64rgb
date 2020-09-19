@@ -19,16 +19,16 @@
 #
 # Quartus Prime
 # Version 18.1.1 Build 646 04/11/2019 SJ Lite Edition
-# Date created = 00:45:50  July 14, 2020
+# Date created = 10:38:29  September 19, 2020
 #
 # -------------------------------------------------------------------------- #
 
 QUARTUS_VERSION = "18.1"
-DATE = "00:45:50  July 14, 2020"
+DATE = "10:38:29  September 19, 2020"
 
 # Revisions
 
 PROJECT_REVISION = "n64rgbv2_1_5M240ZT100"
-PROJECT_REVISION = "n64rgbv2_1_EPM570T100"
-PROJECT_REVISION = "n64rgbv2_1_EPM240T100"
 PROJECT_REVISION = "n64rgbv2_1_5M570ZT100"
+PROJECT_REVISION = "n64rgbv2_1_EPM240T100"
+PROJECT_REVISION = "n64rgbv2_1_EPM570T100"

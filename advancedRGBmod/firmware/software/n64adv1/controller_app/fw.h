@@ -30,10 +30,10 @@
 #define FW_H_
 
 #define SW_FW_MAIN  1
-#define SW_FW_SUB   58
+#define SW_FW_SUB   60
 
 #define CFG_FW_MAIN SW_FW_MAIN
-#define CFG_FW_SUB  3
+#define CFG_FW_SUB  5
 
 
 
