@@ -1,6 +1,5 @@
 EESchema Schematic File Version 4
-LIBS:n64rgbv2.1-cache
-EELAYER 29 0
+EELAYER 30 0
 EELAYER END
 $Descr A4 8268 11693 portrait
 encoding utf-8
@@ -3073,14 +3072,6 @@ F 3 "" H 3000 3950 50  0001 C CNN
 	1    3000 3950
 	1    0    0    -1  
 $EndComp
-Text GLabel 2100 6550 0    50   Input ~ 0
-TDI
-Text GLabel 2100 6450 0    50   Input ~ 0
-TCK
-Text GLabel 2100 6350 0    50   Input ~ 0
-TDO
-Text GLabel 2100 6650 0    50   Input ~ 0
-TMS
 Text Notes 2800 7050 1    50   ~ 0
 reserve Pins 33 - 36 in Fw\nJTAG signals assigned for easier routing\n
 Wire Wire Line
