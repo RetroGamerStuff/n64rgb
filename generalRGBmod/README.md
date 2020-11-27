@@ -4,7 +4,7 @@ This folder contains all you need for a complete DIY RGB mod.
 
 Please don't ask me for selling a modding. I either sell some prototypes on some forums marketplaces (which is very unlikely) or I don't have any of the boards.
 This is a complete DIY modding project. So everybody is on his own here.
-If you are looking for a ready to install kit, just look on your own for a seller. Preferably you should invest your money into a [kit made by viletim](http://etim.net.au/shop/shop.php?crn=209). I also provide similar firmware files for his board in this GitHub repository, too.
+If you are looking for a ready to install kit, just look on your own for a seller. Preferably you should invest your money into a [kit made by viletim](http://etim.net.au/shop/shop.php?crn=209). I also provide similar firmware files for his board in another GitHub repository named [n64rgb_fw4viletim](https://github.com/borti4938/n64rgb_fw4viletim) (note that I do not provide support for the firmware port there).
 
 **WARNING:** This is an advanced DIY project if you do everything on your own. You need decent soldering skills. The CPLD has 0.5mm fine pitch with 100pins. Next to it the video amp has a 0.65mm pin pitch on the board there are some SMD1206 resistor and ferrit bead arrays.
 
