@@ -166,24 +166,16 @@ extern alt_u8 vpll_lock;
 
 void print_ctrl_data(alt_u32 *ctrl_data);
 cmd_t ctrl_data_to_cmd(alt_u32* ctrl_data, alt_u8 no_fast_skip);
-inline alt_u32 get_ctrl_data()
-  {  return IORD_ALTERA_AVALON_PIO_DATA(CTRL_DATA_IN_BASE);  };
-inline alt_u16 get_ppu_state()
-  {  return (IORD_ALTERA_AVALON_PIO_DATA(PPU_STATE_IN_BASE) & PPU_STATE_GETALL_MASK);  };
-inline alt_u8 update_vpll_lock_state()
-  {  return ((IORD_ALTERA_AVALON_PIO_DATA(PPU_STATE_IN_BASE) & PPU_STATE_VPLL_LOCKED_GETMASK) >> PPU_STATE_VPLL_LOCKED_OFFSET); };
+alt_u32 get_ctrl_data(void);
+alt_u16 get_ppu_state(void);
+alt_u8 update_vpll_lock_state(void);
 void enable_vpll_test(void);
 void disable_vpll_test(void);
 int run_vpll_test(configuration_t* sysconfig);
-inline alt_u8 get_nvsync()
-  {  return (IORD_ALTERA_AVALON_PIO_DATA(SYNC_IN_BASE) & NVSYNC_IN_MASK);  };
-inline alt_u8 new_ctrl_available()
-  {  return (IORD_ALTERA_AVALON_PIO_DATA(SYNC_IN_BASE) & NEW_CTRL_DATA_IN_MASK);  };
-inline alt_u8 get_fallback_mode()
-  {  return ((IORD_ALTERA_AVALON_PIO_DATA(FALLBACK_IN_BASE) & FALLBACK_GETALL_MASK) >> FALLBACKMODE_OFFSET);  };
-inline alt_u8 is_fallback_mode_valid()
-  {  return (IORD_ALTERA_AVALON_PIO_DATA(FALLBACK_IN_BASE) & FALLBACKMODE_VALID_GETMASK);  };
-inline alt_u16 get_hdl_version()
-  {  return (IORD_ALTERA_AVALON_PIO_DATA(HDL_FW_IN_BASE) & HDL_FW_GETALL_MASK);  };
+alt_u8 get_nvsync(void);
+alt_u8 new_ctrl_available(void);
+alt_u8 get_fallback_mode(void);
+alt_u8 is_fallback_mode_valid(void);
+alt_u16 get_hdl_version(void);
 
 #endif /* N64_H_ */

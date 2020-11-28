@@ -158,7 +158,7 @@ menu_t vicfg2_screen = {
     .header = &vicfg2_header,
     .overlay = &vicfg2_overlay,
     .parent = &home_menu,
-    .current_selection = 0,
+    .current_selection = 5,
     .number_selections = 6,
     .leaves = {
         {.id = VICFG2_COLOR_SPACE_V_OFFSET, .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &vformat},
@@ -486,7 +486,7 @@ void print_fw_version()
 
   sprintf(szText,"%1d.%02d",SW_FW_MAIN,SW_FW_SUB);
   vd_print_string(VERSION_H_OFFSET,VERSION_V_OFFSET+1,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,&szText[0]);
-}
+};
 
 void print_overlay(menu_t* current_menu)
 {
@@ -631,7 +631,6 @@ int update_vinfo_screen(menu_t* current_menu, alt_u16* ppu_state)
 
   return 0;
 }
-
 
 int update_cfg_screen(menu_t* current_menu)
 {

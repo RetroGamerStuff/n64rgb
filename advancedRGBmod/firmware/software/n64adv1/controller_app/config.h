@@ -203,7 +203,7 @@ typedef struct {
 
 
 // linex for 240p and 480i (set 0)
-#define CFG_IMAGE_OUT_BASE  CFG_SET0_OUT_BASE
+#define CFG_LINEX_OUT_BASE  CFG_SET0_OUT_BASE
 
 #define CFG_240P_LINEX_OFFSET       29
 #define CFG_240P_SLHYBDEP_OFFSET    24
@@ -347,11 +347,9 @@ void cfg_store_linex_word(configuration_t* sysconfig, alt_u8 pal);
 void cfg_load_linex_word(configuration_t* sysconfig, alt_u8 pal);
 void cfg_apply_to_logic(configuration_t* sysconfig);
 void cfg_read_from_logic(configuration_t* sysconfig);
-inline alt_u8 cfg_get_jumper()
-  {  return (IORD_ALTERA_AVALON_PIO_DATA(JUMPER_CFG_SET_IN_BASE) & JUMPER_GETALL_MASK);  };
+alt_u8 cfg_get_jumper();
 void cfg_clear_words(configuration_t* sysconfig);
 void cfg_update_reference(configuration_t* sysconfig);
-inline void check_filteraddon()
-  {  use_filteraddon = ((IORD_ALTERA_AVALON_PIO_DATA(JUMPER_CFG_SET_IN_BASE) & JUMPER_FILTERADDON_GETMASK) >> JUMPER_FILTERADDON_OFFSET) ? 0 : 1;  };
+void check_filteraddon();
 
 #endif /* CONFIG_H_ */

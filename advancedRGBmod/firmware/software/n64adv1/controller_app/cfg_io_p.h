@@ -40,8 +40,7 @@
 extern char szText[VD_WIDTH];
 
 extern const char *OffOn[], *LineX_240p[], *AdvSL[], *LinkSL[], *EvenOdd[],
-                  *VideoFormat[], *DeBlurMode[], *DeBlurPixSens[], *DeBlurRst[],
-                  *QuickChange[], *FilterAddOn[];
+                  *VideoFormat[], *QuickChange[], *FilterAddOn[];
 
 static void val2txt_func(alt_u8 v) { sprintf(szText,"%u", v); };
 static void scanline_str2txt_func(alt_u8 v) { v++; sprintf(szText,"%3u.%02u%%", (v*625)/100, 25*(v&3)); };

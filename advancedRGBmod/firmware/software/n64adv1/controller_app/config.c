@@ -64,7 +64,8 @@ void cfg_toggle_flag(config_t* cfg_data) {
 
   if (cfg_data->cfg_type == FLAG)
     cfg_data->cfg_word->cfg_word_val ^= cfg_data->flag_masks.setflag_mask;
-};
+}
+
 void cfg_set_flag(config_t* cfg_data) {
   if (is_local_cfg(cfg_data)) {
     cfg_data->cfg_value = 1;
@@ -73,7 +74,8 @@ void cfg_set_flag(config_t* cfg_data) {
 
   if (cfg_data->cfg_type == FLAG)
     cfg_data->cfg_word->cfg_word_val |= cfg_data->flag_masks.setflag_mask;
-};
+}
+
 void cfg_clear_flag(config_t* cfg_data) {
   if (is_local_cfg(cfg_data)) {
     cfg_data->cfg_value = 0;
@@ -82,7 +84,7 @@ void cfg_clear_flag(config_t* cfg_data) {
 
   if (cfg_data->cfg_type == FLAG)
     cfg_data->cfg_word->cfg_word_val &= cfg_data->flag_masks.clrflag_mask;
-};
+}
 
 void cfg_inc_value(config_t* cfg_data)
 {
@@ -101,7 +103,7 @@ void cfg_inc_value(config_t* cfg_data)
 
   cur_val = cur_val == cfg_data->value_details.max_value ? 0 : cur_val + 1;
   *cfg_word = (*cfg_word & ~cfg_data->value_details.getvalue_mask) | (cur_val << cfg_data->cfg_word_offset);
-};
+}
 
 void cfg_dec_value(config_t* cfg_data)
 {
@@ -120,7 +122,7 @@ void cfg_dec_value(config_t* cfg_data)
 
   cur_val = cur_val == 0 ? cfg_data->value_details.max_value : cur_val - 1;
   *cfg_word = (*cfg_word & ~cfg_data->value_details.getvalue_mask) | (cur_val << cfg_data->cfg_word_offset);
-};
+}
 
 alt_u8 cfg_get_value(config_t* cfg_data, alt_u8 get_reference)
 {
@@ -133,7 +135,7 @@ alt_u8 cfg_get_value(config_t* cfg_data, alt_u8 get_reference)
 
   if (cfg_data->cfg_type == FLAG) return ((*cfg_word & cfg_data->flag_masks.setflag_mask)     >> cfg_data->cfg_word_offset);
   else                            return ((*cfg_word & cfg_data->value_details.getvalue_mask) >> cfg_data->cfg_word_offset);
-};
+}
 
 void cfg_set_value(config_t* cfg_data, alt_u8 value)
 {
@@ -151,7 +153,7 @@ void cfg_set_value(config_t* cfg_data, alt_u8 value)
 
     *cfg_word = (*cfg_word & ~cfg_data->value_details.getvalue_mask) | (cur_val << cfg_data->cfg_word_offset);
   }
-};
+}
 
 
 int cfg_show_testpattern(configuration_t* sysconfig)
@@ -237,7 +239,7 @@ int cfg_save_to_flash(configuration_t* sysconfig, alt_u8 need_confirm)
     cfg_update_reference(sysconfig);
 
   return retval;
-};
+}
 
 int cfg_load_from_flash(configuration_t* sysconfig, alt_u8 need_confirm)
 {
@@ -274,7 +276,7 @@ int cfg_load_from_flash(configuration_t* sysconfig, alt_u8 need_confirm)
   cfg_update_reference(sysconfig);
 
   return 0;
-};
+}
 
 int cfg_load_defaults(configuration_t* sysconfig, alt_u8 need_confirm)
 {
@@ -377,7 +379,7 @@ void cfg_apply_to_logic(configuration_t* sysconfig)
 
   IOWR_ALTERA_AVALON_PIO_DATA(CFG_MISC_OUT_BASE,sysconfig->cfg_word_def[MISC]->cfg_word_val);
   IOWR_ALTERA_AVALON_PIO_DATA(CFG_VIDEO_OUT_BASE,sysconfig->cfg_word_def[VIDEO]->cfg_word_val);
-  IOWR_ALTERA_AVALON_PIO_DATA(CFG_IMAGE_OUT_BASE,sysconfig->cfg_word_def[LINEX]->cfg_word_val);
+  IOWR_ALTERA_AVALON_PIO_DATA(CFG_LINEX_OUT_BASE,sysconfig->cfg_word_def[LINEX]->cfg_word_val);
 
   cfg_set_value(&deblur_mode,deblur_bak);
   cfg_set_value(&mode15bit,mode15bit_bak);
@@ -387,7 +389,12 @@ void cfg_read_from_logic(configuration_t* sysconfig)
 {
   sysconfig->cfg_word_def[MISC]->cfg_word_val  = (IORD_ALTERA_AVALON_PIO_DATA(CFG_MISC_OUT_BASE)  & sysconfig->cfg_word_def[MISC]->cfg_word_mask);
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val = (IORD_ALTERA_AVALON_PIO_DATA(CFG_VIDEO_OUT_BASE) & sysconfig->cfg_word_def[VIDEO]->cfg_word_mask);
-  sysconfig->cfg_word_def[LINEX]->cfg_word_val = (IORD_ALTERA_AVALON_PIO_DATA(CFG_IMAGE_OUT_BASE) & sysconfig->cfg_word_def[LINEX]->cfg_word_mask);
+  sysconfig->cfg_word_def[LINEX]->cfg_word_val = (IORD_ALTERA_AVALON_PIO_DATA(CFG_LINEX_OUT_BASE) & sysconfig->cfg_word_def[LINEX]->cfg_word_mask);
+}
+
+alt_u8 cfg_get_jumper()
+{
+  return (IORD_ALTERA_AVALON_PIO_DATA(JUMPER_CFG_SET_IN_BASE) & JUMPER_GETALL_MASK);
 }
 
 void cfg_clear_words(configuration_t* sysconfig)
@@ -405,4 +412,9 @@ void cfg_update_reference(configuration_t* sysconfig)
 
   cfg_data_image_ntsc_word_ref_tray = cfg_data_image_ntsc_word_val_tray;
   cfg_data_image_pal_word_ref_tray  = cfg_data_image_pal_word_val_tray;
+}
+
+void check_filteraddon()
+{
+  use_filteraddon = ((IORD_ALTERA_AVALON_PIO_DATA(JUMPER_CFG_SET_IN_BASE) & JUMPER_FILTERADDON_GETMASK) >> JUMPER_FILTERADDON_OFFSET) ? 0 : 1;
 }
