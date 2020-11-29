@@ -141,14 +141,13 @@ menu_t vicfg1_screen = {
     .overlay = &vicfg1_overlay,
     .parent = &home_menu,
     .current_selection = 0,
-    .number_selections = 7,
+    .number_selections = 6,
     .leaves = {
         {.id = VICFG1_NTSC_PAL_AWARENESS_V_OFFSET, .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &pal_awareness},
         {.id = VICFG1_NTSC_PAL_SELECT_V_OFFSET   , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &ntsc_pal_selection},
         {.id = VICFG1_240P_SET_V_OFFSET          , .arrow_desc = &vicfg_sel_arrow, .leavetype = ISUBMENU, .submenu      = &vicfg_240p_opt_subscreen},
         {.id = VICFG1_480I_SET_V_OFFSET          , .arrow_desc = &vicfg_sel_arrow, .leavetype = ISUBMENU, .submenu      = &vicfg_480i_opt_subscreen},
-        {.id = VICFG1_DEBLURMODE_V_OFFSET        , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &deblur_mode_current},
-        {.id = VICFG1_DEBLURMODE_DEF_V_OFFSET    , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &deblur_mode},
+        {.id = VICFG1_GAMMA_V_OFFSET             , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &gamma_lut},
         {.id = VICFG1_PAGE2_V_OFFSET             , .arrow_desc = &vicfg_sel_arrow, .leavetype = ISUBMENU, .submenu      = &vicfg2_screen}
     }
 };
@@ -158,15 +157,16 @@ menu_t vicfg2_screen = {
     .header = &vicfg2_header,
     .overlay = &vicfg2_overlay,
     .parent = &home_menu,
-    .current_selection = 5,
-    .number_selections = 6,
+    .current_selection = 6,
+    .number_selections = 7,
     .leaves = {
-        {.id = VICFG2_COLOR_SPACE_V_OFFSET, .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &vformat},
-        {.id = VICFG2_EXCH_RB_OUT_V_OFFSET, .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &exchange_rb_out},
-        {.id = VICFG2_GAMMA_V_OFFSET      , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &gamma_lut},
-        {.id = VICFG2_15BIT_V_OFFSET      , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &mode15bit_current},
-        {.id = VICFG2_15BIT_DEF_V_OFFSET  , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &mode15bit},
-        {.id = VICFG2_PAGE1_V_OFFSET      , .arrow_desc = &vicfg_sel_arrow, .leavetype = ISUBMENU, .submenu      = &vicfg1_screen}
+        {.id = VICFG2_COLOR_SPACE_V_OFFSET   , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &vformat},
+        {.id = VICFG2_EXCH_RB_OUT_V_OFFSET   , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &exchange_rb_out},
+        {.id = VICFG2_DEBLURMODE_V_OFFSET    , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &deblur_mode_current},
+        {.id = VICFG2_DEBLURMODE_DEF_V_OFFSET, .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &deblur_mode},
+        {.id = VICFG2_15BIT_V_OFFSET         , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &mode15bit_current},
+        {.id = VICFG2_15BIT_DEF_V_OFFSET     , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &mode15bit},
+        {.id = VICFG2_PAGE1_V_OFFSET         , .arrow_desc = &vicfg_sel_arrow, .leavetype = ISUBMENU, .submenu      = &vicfg1_screen}
     }
 };
 
@@ -657,7 +657,7 @@ int update_cfg_screen(menu_t* current_menu)
         if (is_vicfg_vpll_screen(current_menu)) {
 //          font_color = vpll_lock ? FONTCOLOR_GREY : FONTCOLOR_WHITE;
           font_color = FONTCOLOR_WHITE;
-          vd_print_string(h_l_offset,v_offset,background_color,font_color,StartTest);
+          vd_print_string(h_l_offset,v_offset,background_color,font_color,StartVPLLTest);
         }
         if (is_misc_screen(current_menu)) {
           font_color = FONTCOLOR_WHITE;
@@ -681,7 +681,7 @@ int update_cfg_screen(menu_t* current_menu)
 //          background_color = BACKGROUNDCOLOR_STANDARD;
 //          font_color = (val_select == ref_val_select) ? FONTCOLOR_WHITE : FONTCOLOR_YELLOW;
 //        }
-        if ((is_vicfg1_screen(current_menu) && v_run == 4) || (is_vicfg2_screen(current_menu) && v_run == 3)) val_is_ref = 1;
+        if (is_vicfg2_screen(current_menu) && (v_run == 2 || v_run == 4)) val_is_ref = 1;
         else val_is_ref = (val_select == ref_val_select);
         font_color = val_is_ref ? FONTCOLOR_WHITE : FONTCOLOR_YELLOW;
 

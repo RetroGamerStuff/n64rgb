@@ -69,19 +69,16 @@
 #define VICFG1_NTSC_PAL_SELECT_V_OFFSET     ( 1 + VICFG_VALS_V_OFFSET)
 #define VICFG1_240P_SET_V_OFFSET            ( 2 + VICFG_VALS_V_OFFSET)
 #define VICFG1_480I_SET_V_OFFSET            ( 3 + VICFG_VALS_V_OFFSET)
-#define VICFG1_DEBLURMODE_V_OFFSET          ( 4 + VICFG_VALS_V_OFFSET)
-#define VICFG1_DEBLURMODE_DEF_V_OFFSET      ( 5 + VICFG_VALS_V_OFFSET)
+#define VICFG1_GAMMA_V_OFFSET               ( 5 + VICFG_VALS_V_OFFSET)
 #define VICFG1_PAGE2_V_OFFSET               ( 7 + VICFG_VALS_V_OFFSET)
 
-#define VICFG2_COLOR_SPACE_V_OFFSET ( 0 + VICFG_VALS_V_OFFSET)
-#define VICFG2_EXCH_RB_OUT_V_OFFSET ( 1 + VICFG_VALS_V_OFFSET)
-#define VICFG2_GAMMA_V_OFFSET       ( 2 + VICFG_VALS_V_OFFSET)
-#define VICFG2_15BIT_V_OFFSET       ( 3 + VICFG_VALS_V_OFFSET)
-#define VICFG2_15BIT_DEF_V_OFFSET   ( 4 + VICFG_VALS_V_OFFSET)
-#define VICFG2_PAGE1_V_OFFSET       ( 7 + VICFG_VALS_V_OFFSET)
-
-#define VICFG_15BIT_V_OFFSET              ( 6 + VICFG_VALS_V_OFFSET)
-#define VICFG_GAMMA_V_OFFSET              ( 7 + VICFG_VALS_V_OFFSET)
+#define VICFG2_COLOR_SPACE_V_OFFSET     ( 0 + VICFG_VALS_V_OFFSET)
+#define VICFG2_EXCH_RB_OUT_V_OFFSET     ( 1 + VICFG_VALS_V_OFFSET)
+#define VICFG2_DEBLURMODE_V_OFFSET      ( 2 + VICFG_VALS_V_OFFSET)
+#define VICFG2_DEBLURMODE_DEF_V_OFFSET  ( 3 + VICFG_VALS_V_OFFSET)
+#define VICFG2_15BIT_V_OFFSET           ( 4 + VICFG_VALS_V_OFFSET)
+#define VICFG2_15BIT_DEF_V_OFFSET       ( 5 + VICFG_VALS_V_OFFSET)
+#define VICFG2_PAGE1_V_OFFSET           ( 7 + VICFG_VALS_V_OFFSET)
 
 #define VICFG_VSUB_OVERLAY_H_OFFSET   OVERLAY_H_OFFSET
 #define VICFG_VSUB_OVERLAY_V_OFFSET   OVERLAY_V_OFFSET_WH
@@ -179,9 +176,8 @@ static const char *vicfg1_overlay =
     "* NTSC/PAL awareness:\n"
     "* Linemultiplier:\n"
     "  - 240p settings:\n"
-    "  - 480i settings:\n"
-    "* LowRes.-DeBlur:\n"
-    "  - powercycle default:\n\n"
+    "  - 480i settings:\n\n"
+    "* Gamma Value:\n\n"
     "* VI config page 2:\n";
 
 static const char *vicfg2_header =
@@ -189,9 +185,10 @@ static const char *vicfg2_header =
 static const char *vicfg2_overlay =
     "* Color Space:\n"
     "* Exchange R&B out:\n"
-    "* Gamma Value:\n"
+    "* LowRes.-DeBlur:\n"
+    "  - powercycle default:\n"
     "* 15bit mode:\n"
-    "  - powercycle default:\n\n\n"
+    "  - powercycle default:\n\n"
     "* VI config page 1:\n";
 
 static const char *vicfg_240p_opt_header =
@@ -301,7 +298,7 @@ static const char *home_overlay =
 
 const char *EnterSubMenu      = "[Enter submenu]";
 const char *RunTestPattern    = "[run (alpha)]";
-const char *StartTest         = "[Start VPLL Test]";
+const char *StartVPLLTest     = "[Start VPLL Test]";
 const char *LineX3VPLLHint    = "*LineX3: needs VPLL enabled";
 const char *LineX3Hint        = "*LineX3: only available in NTSC video mode";
 const char *Global            = "Global";
