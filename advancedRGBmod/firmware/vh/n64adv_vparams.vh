@@ -60,48 +60,68 @@ parameter vdata_width_o = 4 + 3*color_width_o;
 
   `define GAMMA_TABLE_OFF   4'b0101
 
+
+//  `define PIXELLINES_MAX            315
+//  `define PIXEL_PER_LINE_MAX        800
+  `define PIXEL_PER_LINE_NTSC_2x    1545
+  `define PIXEL_PER_LINE_PAL_2x     1587
+  `define PIXEL_PER_LINE_MAX_2x     1600
+  `define PIXEL_PER_LINE_NTSC_4x    3093 // or is it 3094?
+  `define PIXEL_PER_LINE_PAL_4x     3177 // or is it 3178?
+  `define PIXEL_PER_LINE_MAX_4x     3200
+
   `define ACTIVE_PIXEL_PER_LINE     640
   `define ACTIVE_PIXEL_PER_LINE_2x  1280
 
-  `define HSTART_NTSC     10'd0111
-  `define HSTOP_NTSC      (`HSTART_NTSC + `ACTIVE_PIXEL_PER_LINE - 10'd1)
-  `define HSTART_PAL      10'd0136
-  `define HSTOP_PAL       (`HSTART_PAL + `ACTIVE_PIXEL_PER_LINE - 10'd1)
-  `define HSTART_NTSC_2x  11'd0223
-  `define HSTOP_NTSC_2x   (`HSTART_NTSC_2x + `ACTIVE_PIXEL_PER_LINE_2x - 11'd1)
-  `define HSTART_PAL_2x   11'd0273
-  `define HSTOP_PAL_2x    (`HSTART_PAL_2x + `ACTIVE_PIXEL_PER_LINE_2x - 11'd1)
+  `define ACTIVE_LINES_NTSC     240
+  `define ACTIVE_LINES_NTSC_LX2 480
+  `define ACTIVE_LINES_NTSC_LX3 720
+
+  `define ACTIVE_LINES_PAL      288
+  `define ACTIVE_LINES_PAL_LX2  576
+
+
+  `define HSTART_NTSC     108
+  `define HSTOP_NTSC      (`HSTART_NTSC + `ACTIVE_PIXEL_PER_LINE)
+  `define HSTART_NTSC_2x  (2*`HSTART_NTSC)
+  `define HSTOP_NTSC_2x   (`HSTART_NTSC_2x + `ACTIVE_PIXEL_PER_LINE_2x)
+
+  `define VSTART_NTSC     18
+  `define VSTOP_NTSC      (`VSTART_NTSC + `ACTIVE_LINES_NTSC)
+  `define VSTART_NTSC_LX2 (2*`VSTART_NTSC)
+  `define VSTOP_NTSC_LX2  (`VSTART_NTSC_LX2 + `ACTIVE_LINES_NTSC_LX2)
+  `define VSTART_NTSC_LX3 (3*`VSTART_NTSC)
+  `define VSTOP_NTSC_LX3  (`VSTART_NTSC_LX3 + `ACTIVE_LINES_NTSC_LX3)
+
+  `define HS_WIDTH_NTSC_LX2     113
+  `define H_SHIFT_NTSC_240P_LX2 0
+  `define H_SHIFT_NTSC_480I_LX2 28
+  `define HS_WIDTH_NTSC_LX3     38
+  `define H_SHIFT_NTSC_240P_LX3 25
+
+  `define VS_WIDTH_NTSC_LX2  2
+  `define VS_WIDTH_NTSC_LX3  5
+
+
+
+  `define HSTART_PAL      128
+  `define HSTOP_PAL       (`HSTART_PAL + `ACTIVE_PIXEL_PER_LINE)
+  `define HSTART_PAL_2x   (2*`HSTART_PAL)
+  `define HSTOP_PAL_2x    (`HSTART_PAL_2x + `ACTIVE_PIXEL_PER_LINE_2x)
+
+  `define VSTART_PAL      24
+  `define VSTOP_PAL       (`VSTART_PAL + `ACTIVE_LINES_PAL)
+  `define VSTART_PAL_LX2  (2*`VSTART_PAL)
+  `define VSTOP_PAL_LX2   (`VSTART_PAL_LX2 + `ACTIVE_LINES_PAL_LX2)
+
+  `define HS_WIDTH_PAL_LX2      123
+  `define H_SHIFT_PAL_288P_LX2  0
+  `define H_SHIFT_PAL_576I_LX2  28
+
+  `define VS_WIDTH_PAL_LX2   5
+
 
   `define BUF_NUM_OF_PAGES    4
-//  `define BUF_DEPTH_PER_PAGE  (`HSTOP_NTSC - `HSTART_NTSC + 1)/2
   `define BUF_DEPTH_PER_PAGE  `ACTIVE_PIXEL_PER_LINE
-  
-  `define PIXEL_PER_LINE_NTSC_2x  1545
-  `define PIXEL_PER_LINE_PAL_2x   1587
-  `define PIXEL_PER_LINE_MAX_2x   1600
-
-  `define HS_WIDTH_NTSC_LX2     7'd113
-  `define H_SHIFT_NTSC_240P_LX2 5'b00010
-  `define H_SHIFT_NTSC_480I_LX2 5'b11110
-  `define HS_WIDTH_NTSC_LX3     7'd38
-  `define H_SHIFT_NTSC_240P_LX3 5'b11011
-
-  `define HS_WIDTH_PAL_LX2      7'd123
-  `define H_SHIFT_PAL_288P_LX2  5'b00001
-  `define H_SHIFT_PAL_576I_LX2  5'b11110
-
-  `define VS_WIDTH_NTSC_LX2  4'd2
-  `define VS_WIDTH_NTSC_LX3  4'd5
-  `define VS_WIDTH_PAL_LX2  4'd5
-
-  // Testpattern
-  // ===========
-
-  `define TESTPAT_HSTART      10'd060
-  `define TESTPAT_HSTOP       10'd701
-  `define TESTPAT_VSTART_NTSC  9'd005
-  `define TESTPAT_VSTOP_NTSC   9'd247
-  `define TESTPAT_VSTART_PAL   9'd006
-  `define TESTPAT_VSTOP_PAL    9'd296
 
 `endif

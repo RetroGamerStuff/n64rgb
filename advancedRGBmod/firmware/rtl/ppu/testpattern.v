@@ -53,17 +53,16 @@ output reg [`VDATA_O_FU_SLICE] vdata_out = {vdata_width_o{1'b0}};
 
 
 
-wire posedge_nVSYNC = !vdata_out[3*color_width_o+3] &  Sync_in[3];
-wire posedge_nHSYNC = !vdata_out[3*color_width_o+1] &  Sync_in[1];
-// wire posedge_nCSYNC = !vdata_out[3*color_width_o  ] &  Sync_in[0];
+wire negedge_nVSYNC = vdata_out[3*color_width_o+3] & !Sync_in[3];
+wire negedge_nHSYNC = vdata_out[3*color_width_o+1] & !Sync_in[1];
 
 reg [8:0] vcnt = 9'b0;
 reg [9:0] hcnt = 10'b0;
 
-wire [8:0] pattern_vstart = vmode ? 9'd22 : 9'd18;
-wire [8:0] pattern_vstop = vmode ? 9'd296 : 9'd248;
-wire [9:0] pattern_hstart = vmode ? (`HSTART_PAL-10'd61) : (`HSTART_NTSC-11'd56);
-wire [9:0] pattern_hstop = vmode ? (`HSTOP_PAL-10'd61) : (`HSTOP_NTSC-11'd56);
+wire [8:0] pattern_vstart = vmode ? `VSTART_PAL : `VSTART_NTSC;
+wire [8:0] pattern_vstop = vmode ? `VSTOP_PAL : `VSTOP_NTSC;
+wire [9:0] pattern_hstart = vmode ? `HSTART_PAL : `HSTART_NTSC;
+wire [9:0] pattern_hstop = vmode ? `HSTOP_PAL : `HSTOP_NTSC;
 
 always @(posedge VCLK or negedge nRST)
   if (!nRST) begin
@@ -73,16 +72,16 @@ always @(posedge VCLK or negedge nRST)
     hcnt <= 10'b0;
   end else begin
     if (!nVDSYNC) begin
-      if (posedge_nHSYNC) begin
+      if (negedge_nHSYNC) begin
         hcnt <= 10'b0;
         vcnt <= &vcnt ? vcnt : vcnt + 1'b1;
       end else begin
         hcnt <= &hcnt ? hcnt : hcnt + 1'b1;
       end
-      if (posedge_nVSYNC)
+      if (negedge_nVSYNC)
         vcnt <= 9'b0;
 
-      if ((vcnt > pattern_vstart) && (vcnt < pattern_vstop)) begin
+      if ((vcnt >= pattern_vstart) && (vcnt < pattern_vstop)) begin
         if ((hcnt > pattern_hstart) && (hcnt < pattern_hstop))
           vdata_out[`VDATA_O_CO_SLICE] <= {3*color_width_o{~vdata_out[0]}};
         else

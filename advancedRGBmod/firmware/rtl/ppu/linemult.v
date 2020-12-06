@@ -236,6 +236,9 @@ reg [hcnt_width-1:0] rdhcnt  = {hcnt_width{1'b1}};
 reg [          10:0] rdvcnt  = 11'd0;
 reg [hcnt_width-1:0] rdaddr  = {hcnt_width{1'b0}};
 
+wire [          10:0] vpos_tx = rdvcnt - nVS_delay;
+wire [hcnt_width-1:0] hpos_tx = rdhcnt;
+
 reg start_rdproc_tx_resynced_pre = 1'b0;
 
 reg nHSYNC_mult = 1'b0;
@@ -270,12 +273,17 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
       end else begin
         hstart_tx <= `HSTART_NTSC_2x;
         hstop_tx  <= `HSTOP_NTSC_2x;
-        nHS_width <= linemult_sel == 2'b10 ? `HS_WIDTH_NTSC_LX3 : `HS_WIDTH_NTSC_LX2;
-        pic_shift <= linemult_sel == 2'b10 ? `H_SHIFT_NTSC_240P_LX3 :
-                                  n64_480i ? `H_SHIFT_NTSC_480I_LX2 : `H_SHIFT_NTSC_240P_LX2;
-        nVS_width <= linemult_sel == 2'b10 ? `VS_WIDTH_NTSC_LX3 : `VS_WIDTH_NTSC_LX2;
+        if (linemult_sel[1]) begin
+          nHS_width <= `HS_WIDTH_NTSC_LX3;
+          pic_shift <= `H_SHIFT_NTSC_240P_LX3;
+          nVS_width <= `VS_WIDTH_NTSC_LX3;
+        end else begin
+          nHS_width <= `HS_WIDTH_NTSC_LX2;
+          pic_shift <= n64_480i ? `H_SHIFT_NTSC_480I_LX2 : `H_SHIFT_NTSC_240P_LX2;
+          nVS_width <= `VS_WIDTH_NTSC_LX2;
+        end
       end
-      nVS_delay <= linemult_sel == 2'b10 ? 11'd0 : (`BUF_NUM_OF_PAGES>>1);
+      nVS_delay <= linemult_sel[1] ? 0 : (`BUF_NUM_OF_PAGES>>1);
 
       newFrame[1] <= newFrame[0];
     end
@@ -319,10 +327,10 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
         rdhcnt <= rdhcnt + 1'b1;
       end
 
-      if ((rdhcnt+{{(hcnt_width-5){pic_shift[4]}},pic_shift}) == hstart_tx) begin
+      if (hpos_tx == (hstart_tx - pic_shift- 2)) begin // consider two cycle delay for reading BRAM
         rden[0] <= 1'b1;
         rdaddr  <= {hcnt_width{1'b0}};
-      end else if ((rdhcnt+{{(hcnt_width-5){pic_shift[4]}},pic_shift}) > hstart_tx && (rdhcnt+{{(hcnt_width-5){pic_shift[4]}},pic_shift}) < hstop_tx) begin
+      end else if (rden[0] && hpos_tx < (hstop_tx - pic_shift - 1)) begin // go one beyond taking care of advanced scanlines
         rdaddr <= rdaddr + 1'b1;
       end else begin
         rden[0] <= 1'b0;
@@ -346,9 +354,9 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
       rdrun <= 2'b0;
     end
 
-    nHSYNC_mult <= rdhcnt >= nHS_width;
-    nVSYNC_mult <= (rdvcnt < nVS_delay) || (rdvcnt >= (nVS_width + nVS_delay));
-    nCSYNC_mult <= nVSYNC_mult == 1'b1 ? rdhcnt >= nHS_width : rdhcnt > (line_width[rdpage_pp1] - nHS_width);
+    nHSYNC_mult <= hpos_tx >= nHS_width;
+    nVSYNC_mult <= vpos_tx >= nVS_width;
+    nCSYNC_mult <= nVSYNC_mult == 1'b1 ? hpos_tx >= nHS_width : hpos_tx > (line_width[rdpage_pp1] - nHS_width);
   end
 
 
@@ -372,7 +380,7 @@ ram2port #(
   .wraddr(wraddr[hcnt_width-1:1]),
   .wrdata({R_i,G_i,B_i}),
   .rdCLK(VCLK_Tx),
-  .rden(&{rden[0],!rdaddr[0]}),
+  .rden(rden[0]), // leave reading open even if rdaddr[0] == 1 for advanced scanline method
   .rdpage(rdpage_pp3),
   .rdaddr(rdaddr[hcnt_width-1:1]),
   .rddata({R_buf,G_buf,B_buf})
