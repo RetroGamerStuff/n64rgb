@@ -74,6 +74,7 @@ int main()
       .cfg_word_def[VIDEO] = &cfg_data_video,
       .cfg_word_def[LINEX] = &cfg_data_linex,
   };
+  alt_u8 linex_word_selection;
 
   cfg_clear_words(&sysconfig);
 
@@ -146,7 +147,7 @@ int main()
 
     if(cfg_get_value(&show_osd,0)) {
 
-      alt_u8 linex_word_selection = cfg_get_value(&ntsc_pal_selection,0);
+      linex_word_selection = cfg_get_value(&ntsc_pal_selection,0);
       if (cfg_get_value(&pal_awareness,0)) // show the correct options
         cfg_load_linex_word(&sysconfig,linex_word_selection);
 
