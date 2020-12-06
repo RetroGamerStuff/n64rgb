@@ -30,6 +30,7 @@
 #include "altera_avalon_pio_regs.h"
 #include "system.h"
 #include "config.h"
+#include "n64.h"
 #include "vd_driver.h"
 
 
@@ -113,6 +114,12 @@ typedef struct menu {
 } menu_t;
 
 extern menu_t home_menu;
+
+void val2txt_func(alt_u8 v);
+void flag2set_func(alt_u8 v);
+void scanline_str2txt_func(alt_u8 v);
+void scanline_hybrstr2txt_func(alt_u8 v);
+void gamma2txt_func(alt_u8 v);
 
 updateaction_t modify_menu(cmd_t command, menu_t** current_menu, configuration_t* sysconfig);
 void print_overlay(menu_t* current_menu);

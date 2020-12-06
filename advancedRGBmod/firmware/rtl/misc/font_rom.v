@@ -464,7 +464,7 @@ always @(posedge CLK or negedge nRST)
         0394: rddata <= 093;
         0395: rddata <= 092;
         0396: rddata <= 102;
-        0397: rddata <= 000;
+        0397: rddata <= 099;
         0398: rddata <= 254;
         0399: rddata <= 219;
         0400: rddata <= 112;
@@ -592,7 +592,7 @@ always @(posedge CLK or negedge nRST)
         0522: rddata <= 069;
         0523: rddata <= 078;
         0524: rddata <= 102;
-        0525: rddata <= 000;
+        0525: rddata <= 054;
         0526: rddata <= 198;
         0527: rddata <= 126;
         0528: rddata <= 124;
@@ -720,7 +720,7 @@ always @(posedge CLK or negedge nRST)
         0650: rddata <= 069;
         0651: rddata <= 031;
         0652: rddata <= 060;
-        0653: rddata <= 000;
+        0653: rddata <= 028;
         0654: rddata <= 198;
         0655: rddata <= 231;
         0656: rddata <= 127;
@@ -848,7 +848,7 @@ always @(posedge CLK or negedge nRST)
         0778: rddata <= 069;
         0779: rddata <= 051;
         0780: rddata <= 024;
-        0781: rddata <= 000;
+        0781: rddata <= 028;
         0782: rddata <= 198;
         0783: rddata <= 231;
         0784: rddata <= 124;
@@ -976,7 +976,7 @@ always @(posedge CLK or negedge nRST)
         0906: rddata <= 093;
         0907: rddata <= 051;
         0908: rddata <= 126;
-        0909: rddata <= 000;
+        0909: rddata <= 054;
         0910: rddata <= 230;
         0911: rddata <= 126;
         0912: rddata <= 112;
@@ -1104,7 +1104,7 @@ always @(posedge CLK or negedge nRST)
         1034: rddata <= 034;
         1035: rddata <= 051;
         1036: rddata <= 024;
-        1037: rddata <= 000;
+        1037: rddata <= 099;
         1038: rddata <= 231;
         1039: rddata <= 219;
         1040: rddata <= 096;
@@ -1603,7 +1603,7 @@ always @(posedge CLK or negedge nRST)
         1533: rddata <= 000;
         1534: rddata <= 000;
         1535: rddata <= 000;
-      endcase
+    endcase
   end
 
 endmodule

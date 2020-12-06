@@ -59,6 +59,7 @@
 #define VERSION_H_OFFSET (OVERLAY_H_OFFSET + 17)
 #define VERSION_V_OFFSET (OVERLAY_V_OFFSET +  4)
 
+#define CHECKBOX_TICK 0x0D
 
 #define VICFG_OVERLAY_H_OFFSET    OVERLAY_H_OFFSET
 #define VICFG_OVERLAY_V_OFFSET    OVERLAY_V_OFFSET_WH
@@ -100,14 +101,15 @@
 #define VICFG_VPLLSUB_TEST_V_OFFSET     ( 4 + VICFG_VPLLSUB_OVERLAY_V_OFFSET)
 #define VICFG_VPLLSUB_EN_V_OFFSET       ( 5 + VICFG_VPLLSUB_OVERLAY_V_OFFSET)
 
-#define MISC_OVERLAY_H_OFFSET     OVERLAY_H_OFFSET
-#define MISC_OVERLAY_V_OFFSET     OVERLAY_V_OFFSET_WH
-#define MISC_VALS_H_OFFSET        (23 + MISC_OVERLAY_H_OFFSET)
-#define MISC_VALS_V_OFFSET        VICFG_OVERLAY_V_OFFSET
-#define MISC_IGR_RESET_V_OFFSET   ( 1 + MISC_VALS_V_OFFSET)
-#define MISC_IGR_QUICK_V_OFFSET   ( 2 + MISC_VALS_V_OFFSET)
-#define MISC_FILTERADDON_V_OFFSET ( 4 + MISC_VALS_V_OFFSET)
-#define MISC_SHOWTESTPAT_V_OFFSET ( 6 + MISC_VALS_V_OFFSET)
+#define MISC_OVERLAY_H_OFFSET       OVERLAY_H_OFFSET
+#define MISC_OVERLAY_V_OFFSET       OVERLAY_V_OFFSET_WH
+#define MISC_VALS_H_OFFSET          (23 + MISC_OVERLAY_H_OFFSET)
+#define MISC_VALS_V_OFFSET          VICFG_OVERLAY_V_OFFSET
+#define MISC_IGR_RESET_V_OFFSET     ( 1 + MISC_VALS_V_OFFSET)
+#define MISC_IGR_DEBLUR_V_OFFSET    ( 2 + MISC_VALS_V_OFFSET)
+#define MISC_IGR_15BITMODE_V_OFFSET ( 3 + MISC_VALS_V_OFFSET)
+#define MISC_FILTERADDON_V_OFFSET   ( 5 + MISC_VALS_V_OFFSET)
+#define MISC_SHOWTESTPAT_V_OFFSET   ( 6 + MISC_VALS_V_OFFSET)
 
 #define RWDATA_OVERLAY_H_OFFSET  OVERLAY_H_OFFSET
 #define RWDATA_OVERLAY_V_OFFSET  OVERLAY_V_OFFSET_WH
@@ -231,9 +233,10 @@ static const char *misc_header =
 static const char *misc_overlay =
     "* In-Game Routines:\n"
     "  - Reset:\n"
-    "  - Quick-Access:\n"
+    "  - VI-DeBlur:\n"
+    "  - 15bit Mode:\n"
     "* Filter AddOn:\n"
-    "  - Filter Cut-Off:\n\n"
+    "  - Filter Cut-Off:\n"
     "* Show Test-Pattern";
 
 static const char *rwdata_header =

@@ -31,7 +31,7 @@
 #include "system.h"
 
 #include "config.h"
-#include "vd_driver.h"
+#include "menu.h"
 
 
 #ifndef CFG_HEADER_CFG_IO_P_H_
@@ -41,12 +41,6 @@ extern char szText[VD_WIDTH];
 
 extern const char *OffOn[], *LineX_240p[], *AdvSL[], *LinkSL[], *EvenOdd[],
                   *VideoFormat[], *QuickChange[], *FilterAddOn[];
-
-static void val2txt_func(alt_u8 v) { sprintf(szText,"%u", v); };
-static void scanline_str2txt_func(alt_u8 v) { v++; sprintf(szText,"%3u.%02u%%", (v*625)/100, 25*(v&3)); };
-static void scanline_hybrstr2txt_func(alt_u8 v) { sprintf(szText,"%3u.%02u%%", (v*625)/100, 25*(v&3)); };
-static void gamma2txt_func(alt_u8 v) { sprintf(szText,"%u.%02u", v > 4, 5* v + 75 - (100 * (v > 4))); };
-
 
 // misc
 cfg_b32word_t cfg_data_misc =
@@ -58,12 +52,12 @@ cfg_b32word_t cfg_data_misc =
 config_t use_vpll = {
     .cfg_word        = &cfg_data_misc,
     .cfg_word_offset = CFG_USE_VPLL_OFFSET,
-    .cfg_type        = FLAG,
+    .cfg_type        = FLAGTXT,
     .flag_masks      = {
         .setflag_mask = CFG_USE_VPLL_SETMASK,
         .clrflag_mask = CFG_USE_VPLL_CLRMASK
     },
-    .value_string = &OffOn
+    .val2char_func = &flag2set_func
 };
 
 config_t test_vpll = {
@@ -118,35 +112,46 @@ config_t mute_osd_tmp = {
 
 config_t igr_reset = {
     .cfg_word = &cfg_data_misc,
-    .cfg_word_offset = CFG_USEIGR_OFFSET,
-    .cfg_type        = FLAG,
+    .cfg_word_offset = CFG_IGRRST_OFFSET,
+    .cfg_type        = FLAGTXT,
     .flag_masks      = {
-        .setflag_mask = CFG_USEIGR_SETMASK,
-        .clrflag_mask = CFG_USEIGR_CLRMASK
+        .setflag_mask = CFG_IGRRST_SETMASK,
+        .clrflag_mask = CFG_IGRRST_CLRMASK
     },
-    .value_string = &OffOn
+    .val2char_func = &flag2set_func
 };
 
-config_t igr_quickchange = {
+config_t igr_deblur = {
     .cfg_word        = &cfg_data_misc,
-    .cfg_word_offset = CFG_QUICKCHANGE_OFFSET,
-    .cfg_type        = TXTVALUE,
-    .value_details   = {
-        .max_value     = CFG_QUICKCHANGE_MAX_VALUE,
-        .getvalue_mask = CFG_QUICKCHANGE_GETMASK,
+    .cfg_word_offset = CFG_IGRDEBLUR_OFFSET,
+    .cfg_type        = FLAGTXT,
+    .flag_masks      = {
+        .setflag_mask = CFG_IGRDEBLUR_SETMASK,
+        .clrflag_mask = CFG_IGRDEBLUR_CLRMASK
     },
-    .value_string = &QuickChange
+    .val2char_func = &flag2set_func
+};
+
+config_t igr_15bitmode = {
+    .cfg_word        = &cfg_data_misc,
+    .cfg_word_offset = CFG_IGR15BITMODE_OFFSET,
+    .cfg_type        = FLAGTXT,
+    .flag_masks      = {
+        .setflag_mask = CFG_IGR15BITMODE_SETMASK,
+        .clrflag_mask = CFG_IGR15BITMODE_CLRMASK
+    },
+    .val2char_func = &flag2set_func
 };
 
 config_t pal_awareness = {
     .cfg_word        = &cfg_data_misc,
     .cfg_word_offset = CFG_PALAWARENESS_OFFSET,
-    .cfg_type        = FLAG,
+    .cfg_type        = FLAGTXT,
     .flag_masks      = {
         .setflag_mask = CFG_PALAWARENESS_SETMASK,
         .clrflag_mask = CFG_PALAWARENESS_CLRMASK
     },
-    .value_string = &OffOn
+    .val2char_func = &flag2set_func
 };
 
 // video
@@ -159,12 +164,12 @@ cfg_b32word_t cfg_data_video =
 config_t exchange_rb_out = {
     .cfg_word        = &cfg_data_video,
     .cfg_word_offset = CFG_EXC_RB_OUT_OFFSET,
-    .cfg_type        = FLAG,
+    .cfg_type        = FLAGTXT,
     .flag_masks      = {
         .setflag_mask = CFG_EXC_RB_OUT_SETMASK,
         .clrflag_mask = CFG_EXC_RB_OUT_CLRMASK
     },
-    .value_string = &OffOn
+    .val2char_func = &flag2set_func
 };
 
 config_t filteraddon_cutoff = {

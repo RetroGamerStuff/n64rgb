@@ -57,44 +57,34 @@ alt_u8 use_filteraddon;
 
 
 void cfg_toggle_flag(config_t* cfg_data) {
-  if (is_local_cfg(cfg_data)) {
-    cfg_data->cfg_value = ~cfg_data->cfg_value;
-    return;
+  if (cfg_data->cfg_type == FLAG || cfg_data->cfg_type == FLAGTXT) {
+    if (is_local_cfg(cfg_data)) cfg_data->cfg_value = ~cfg_data->cfg_value;
+    else                        cfg_data->cfg_word->cfg_word_val ^= cfg_data->flag_masks.setflag_mask;
   }
-
-  if (cfg_data->cfg_type == FLAG)
-    cfg_data->cfg_word->cfg_word_val ^= cfg_data->flag_masks.setflag_mask;
 }
 
 void cfg_set_flag(config_t* cfg_data) {
-  if (is_local_cfg(cfg_data)) {
-    cfg_data->cfg_value = 1;
-    return;
+  if (cfg_data->cfg_type == FLAG || cfg_data->cfg_type == FLAGTXT) {
+    if (is_local_cfg(cfg_data)) cfg_data->cfg_value = 1;
+    else                        cfg_data->cfg_word->cfg_word_val |= cfg_data->flag_masks.setflag_mask;
   }
-
-  if (cfg_data->cfg_type == FLAG)
-    cfg_data->cfg_word->cfg_word_val |= cfg_data->flag_masks.setflag_mask;
 }
 
 void cfg_clear_flag(config_t* cfg_data) {
-  if (is_local_cfg(cfg_data)) {
-    cfg_data->cfg_value = 0;
-    return;
+  if (cfg_data->cfg_type == FLAG || cfg_data->cfg_type == FLAGTXT) {
+    if (is_local_cfg(cfg_data)) cfg_data->cfg_value = 0;
+    else                        cfg_data->cfg_word->cfg_word_val &= cfg_data->flag_masks.clrflag_mask;
   }
-
-  if (cfg_data->cfg_type == FLAG)
-    cfg_data->cfg_word->cfg_word_val &= cfg_data->flag_masks.clrflag_mask;
 }
 
 void cfg_inc_value(config_t* cfg_data)
 {
-  if (is_local_cfg(cfg_data)) {
-    cfg_data->cfg_value = cfg_data->cfg_value == cfg_data->value_details.max_value ? 0 : cfg_data->cfg_value + 1;
+  if (cfg_data->cfg_type == FLAG || cfg_data->cfg_type == FLAGTXT) {
+    cfg_toggle_flag(cfg_data);
     return;
   }
-
-  if (cfg_data->cfg_type == FLAG) {
-    cfg_toggle_flag(cfg_data);
+  if (is_local_cfg(cfg_data)) {
+    cfg_data->cfg_value = cfg_data->cfg_value == cfg_data->value_details.max_value ? 0 : cfg_data->cfg_value + 1;
     return;
   }
 
@@ -107,13 +97,12 @@ void cfg_inc_value(config_t* cfg_data)
 
 void cfg_dec_value(config_t* cfg_data)
 {
-  if (is_local_cfg(cfg_data)) {
-    cfg_data->cfg_value = cfg_data->cfg_value == 0 ? cfg_data->value_details.max_value : cfg_data->cfg_value - 1;
+  if (cfg_data->cfg_type == FLAG || cfg_data->cfg_type == FLAGTXT) {
+    cfg_toggle_flag(cfg_data);
     return;
   }
-
-  if (cfg_data->cfg_type == FLAG) {
-    cfg_toggle_flag(cfg_data);
+  if (is_local_cfg(cfg_data)) {
+    cfg_data->cfg_value = cfg_data->cfg_value == 0 ? cfg_data->value_details.max_value : cfg_data->cfg_value - 1;
     return;
   }
 
@@ -133,26 +122,27 @@ alt_u8 cfg_get_value(config_t* cfg_data, alt_u8 get_reference)
   if (!get_reference) cfg_word = &(cfg_data->cfg_word->cfg_word_val);
   else                cfg_word = &(cfg_data->cfg_word->cfg_ref_word_val);
 
-  if (cfg_data->cfg_type == FLAG) return ((*cfg_word & cfg_data->flag_masks.setflag_mask)     >> cfg_data->cfg_word_offset);
-  else                            return ((*cfg_word & cfg_data->value_details.getvalue_mask) >> cfg_data->cfg_word_offset);
+  if (cfg_data->cfg_type == FLAG ||
+      cfg_data->cfg_type == FLAGTXT) return ((*cfg_word & cfg_data->flag_masks.setflag_mask)     >> cfg_data->cfg_word_offset);
+  else                               return ((*cfg_word & cfg_data->value_details.getvalue_mask) >> cfg_data->cfg_word_offset);
 }
 
 void cfg_set_value(config_t* cfg_data, alt_u8 value)
 {
+  if (cfg_data->cfg_type == FLAG || cfg_data->cfg_type == FLAGTXT) {
+    if (value) cfg_set_flag(cfg_data);
+    else       cfg_clear_flag(cfg_data);
+    return;
+  }
   if (is_local_cfg(cfg_data)) {
     cfg_data->cfg_value = value;
     return;
   }
 
-  if (cfg_data->cfg_type == FLAG) {
-    if (value) cfg_set_flag(cfg_data);
-    else       cfg_clear_flag(cfg_data);
-  } else {
-    alt_u32 *cfg_word = &(cfg_data->cfg_word->cfg_word_val);
-    alt_u32 cur_val = value > cfg_data->value_details.max_value ? 0 : value;
+  alt_u32 *cfg_word = &(cfg_data->cfg_word->cfg_word_val);
+  alt_u32 cur_val = value > cfg_data->value_details.max_value ? 0 : value;
 
-    *cfg_word = (*cfg_word & ~cfg_data->value_details.getvalue_mask) | (cur_val << cfg_data->cfg_word_offset);
-  }
+  *cfg_word = (*cfg_word & ~cfg_data->value_details.getvalue_mask) | (cur_val << cfg_data->cfg_word_offset);
 }
 
 

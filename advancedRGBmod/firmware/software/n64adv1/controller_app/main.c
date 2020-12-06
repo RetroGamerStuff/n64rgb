@@ -212,7 +212,7 @@ int main()
         ctrl_ignore = CTRL_IGNORE_FRAMES;
       }
 
-      if ((cfg_get_value(&igr_quickchange,0) & (CFG_QUDEBLUR_GETMASK >> CFG_QUICKCHANGE_OFFSET)))
+      if (cfg_get_value(&igr_deblur,0))
         switch (command) {
           case CMD_DEBLUR_QUICK_ON:
             if (!(ppu_state & PPU_STATE_480I_GETMASK)) {
@@ -228,7 +228,7 @@ int main()
             break;
         }
 
-      if ((cfg_get_value(&igr_quickchange,0) & (CFG_QU15BITMODE_GETMASK >> CFG_QUICKCHANGE_OFFSET)))
+      if (cfg_get_value(&igr_15bitmode,0))
           switch (command) {
             case CMD_15BIT_QUICK_ON:
               cfg_set_flag(&mode15bit_current);

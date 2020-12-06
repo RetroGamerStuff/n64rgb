@@ -108,7 +108,7 @@ extern config_t vformat, deblur_mode, gamma_lut, mode15bit, pal_awareness;
 extern config_t linex_240p, sl_en, sl_method, sl_id, sl_str, slhyb_str;
 extern config_t bob_deinter_480i, field_shift_fix_480i, sl_en_480i, sl_link_480i, sl_id_480i, sl_str_480i, slhyb_str_480i;
 extern config_t use_vpll;
-extern config_t igr_reset, igr_quickchange, filteraddon_cutoff, exchange_rb_out;
+extern config_t igr_reset, igr_deblur, igr_15bitmode, filteraddon_cutoff, exchange_rb_out;
 
 
 menu_t home_menu = {
@@ -226,10 +226,11 @@ menu_t misc_screen = {
     .overlay = &misc_overlay,
     .parent = &home_menu,
     .current_selection = 0,
-    .number_selections = 4,
+    .number_selections = 5,
     .leaves = {
-        {.id = MISC_IGR_RESET_V_OFFSET  , .arrow_desc = &misc_opt_arrow, .leavetype = ICONFIG, .config_value = &igr_reset},
-        {.id = MISC_IGR_QUICK_V_OFFSET  , .arrow_desc = &misc_opt_arrow, .leavetype = ICONFIG, .config_value = &igr_quickchange},
+        {.id = MISC_IGR_RESET_V_OFFSET    , .arrow_desc = &misc_opt_arrow, .leavetype = ICONFIG, .config_value = &igr_reset},
+        {.id = MISC_IGR_DEBLUR_V_OFFSET   , .arrow_desc = &misc_opt_arrow, .leavetype = ICONFIG, .config_value = &igr_deblur},
+        {.id = MISC_IGR_15BITMODE_V_OFFSET, .arrow_desc = &misc_opt_arrow, .leavetype = ICONFIG, .config_value = &igr_15bitmode},
         {.id = MISC_FILTERADDON_V_OFFSET, .arrow_desc = &misc_opt_arrow, .leavetype = ICONFIG, .config_value = &filteraddon_cutoff},
         {.id = MISC_SHOWTESTPAT_V_OFFSET, .arrow_desc = &misc_sel_arrow, .leavetype = IFUNC,   .test_fun     = &cfg_show_testpattern}
     }
@@ -286,6 +287,11 @@ static inline alt_u8 is_vicfg_480i_sl_are_linked (menu_t *menu)
 static inline alt_u8 is_misc_screen (menu_t *menu)
   {  return (menu == &misc_screen); }
 
+void val2txt_func(alt_u8 v) { sprintf(szText,"%u", v); };
+void flag2set_func(alt_u8 v) { sprintf(szText,"[ ]"); if (v) szText[1] = (char) CHECKBOX_TICK; };
+void scanline_str2txt_func(alt_u8 v) { v++; sprintf(szText,"%3u.%02u%%", (v*625)/100, 25*(v&3)); };
+void scanline_hybrstr2txt_func(alt_u8 v) { sprintf(szText,"%3u.%02u%%", (v*625)/100, 25*(v&3)); };
+void gamma2txt_func(alt_u8 v) { sprintf(szText,"%u.%02u", v > 4, 5* v + 75 - (100 * (v > 4))); };
 
 updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t* sysconfig)
 {
@@ -461,7 +467,8 @@ updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t
           (*current_menu)->current_selection = 1;
           print_selection_arrow((*current_menu));
           alt_u8 font_color = (cfg_get_value((*current_menu)->leaves[1].config_value,0) == cfg_get_value((*current_menu)->leaves[1].config_value,use_flash)) ? FONTCOLOR_WHITE : FONTCOLOR_YELLOW;
-          vd_print_string((*current_menu)->leaves[1].arrow_desc->hpos + 3,(*current_menu)->leaves[1].id,BACKGROUNDCOLOR_STANDARD,font_color,(*current_menu)->leaves[1].config_value->value_string[cfg_get_value((*current_menu)->leaves[1].config_value,0)]);
+          (*current_menu)->leaves[1].config_value->val2char_func(cfg_get_value((*current_menu)->leaves[1].config_value,0));
+          vd_print_string((*current_menu)->leaves[1].arrow_desc->hpos + 3,(*current_menu)->leaves[1].id,BACKGROUNDCOLOR_STANDARD,font_color,&szText[0]);
           return RW_DONE;
         }
         return RW_FAILED;
@@ -711,10 +718,16 @@ int update_cfg_screen(menu_t* current_menu)
           vd_clear_area(h_l_offset,h_l_offset + OPT_WINDOW_WIDTH,v_offset,v_offset);
 
         if (is_misc_screen(current_menu) && v_run == 2) {
-          if (!use_filteraddon) vd_print_string(h_l_offset-7,v_offset-1,background_color,FONTCOLOR_GREY,FilterAddOn[6]);
-          else {
-            vd_print_string(h_l_offset,v_offset-1,background_color,FONTCOLOR_GREY,FilterAddOn[5]);
-            vd_print_string(h_l_offset,v_offset,background_color,font_color,FilterAddOn[val_select]);
+          if (current_menu->leaves[v_run].config_value->cfg_type == FLAGTXT ||
+              current_menu->leaves[v_run].config_value->cfg_type == NUMVALUE ) {
+            current_menu->leaves[v_run].config_value->val2char_func(val_select);
+            vd_print_string(h_l_offset,v_offset,background_color,font_color,&szText[0]);
+          } else {
+            if (!use_filteraddon) vd_print_string(h_l_offset-7,v_offset-1,background_color,FONTCOLOR_GREY,FilterAddOn[6]);
+            else {
+              vd_print_string(h_l_offset,v_offset-1,background_color,FONTCOLOR_GREY,FilterAddOn[5]);
+              vd_print_string(h_l_offset,v_offset,background_color,font_color,FilterAddOn[val_select]);
+            }
           }
         } else if (use_240p_linked_values) {
           if (vicfg_240p_opt_subscreen.leaves[v_run].config_value->cfg_type == NUMVALUE) {
@@ -724,7 +737,8 @@ int update_cfg_screen(menu_t* current_menu)
             vd_print_string(h_l_offset,v_offset,background_color,font_color,vicfg_240p_opt_subscreen.leaves[v_run].config_value->value_string[val_select]);
           }
         } else {
-          if (current_menu->leaves[v_run].config_value->cfg_type == NUMVALUE) {
+          if (current_menu->leaves[v_run].config_value->cfg_type == FLAGTXT ||
+              current_menu->leaves[v_run].config_value->cfg_type == NUMVALUE ) {
             current_menu->leaves[v_run].config_value->val2char_func(val_select);
             vd_print_string(h_l_offset,v_offset,background_color,font_color,&szText[0]);
           } else {
