@@ -51,7 +51,7 @@ input nRST;
 input  [3:0] Sync_pre;
 input  [3:0] Sync_cur;
 
-output [3:0] vinfo_o;   // order: data_cnt,vmode,n64_480i
+output [1:0] vinfo_o;   // order: palmode,n64_480i
 
 
 // some pre-assignments
@@ -61,21 +61,6 @@ wire negedge_nVSYNC =  Sync_pre[3] & !Sync_cur[3];
 wire posedge_nHSYNC = !Sync_pre[1] &  Sync_cur[1];
 wire negedge_nHSYNC =  Sync_pre[1] & !Sync_cur[1];
 
-
-// data counter for heuristic and de-mux
-// =====================================
-
-reg [1:0] data_cnt = 2'b00;
-
-always @(posedge VCLK or negedge nRST)  // data register management
-  if (!nRST)
-    data_cnt <= 2'b00;
-  else begin
-    if (!nVDSYNC)
-      data_cnt <= 2'b01;  // reset data counter
-    else
-      data_cnt <= data_cnt + 1'b1;  // increment data counter
-  end
 
 
 // estimation of 240p/288p
@@ -105,16 +90,16 @@ always @(posedge VCLK or negedge nRST)
 // =========================================
 
 reg [1:0] line_cnt = 2'b00; // PAL: line_cnt[1:0] == 0x ; NTSC: line_cnt[1:0] = 1x
-reg       vmode = 1'b0;     // PAL: vmode == 1          ; NTSC: vmode == 0
+reg        palmode = 1'b0;  // PAL: palmode == 1        ; NTSC: palmode == 0
 
 always @(posedge VCLK or negedge nRST)
   if (!nRST) begin
     line_cnt <= 2'b00;
-    vmode    <= 1'b0;
+    palmode  <= 1'b0;
   end else if (!nVDSYNC) begin
-    if(posedge_nVSYNC) begin // posedge at nVSYNC detected - reset line_cnt and set vmode
+    if(posedge_nVSYNC) begin // posedge at nVSYNC detected - reset line_cnt and set palmode
       line_cnt <= 2'b00;
-      vmode    <= ~line_cnt[1];
+      palmode  <= ~line_cnt[1];
     end else if(posedge_nHSYNC) // posedge nHSYNC -> increase line_cnt
       line_cnt <= line_cnt + 1'b1;
   end
@@ -123,6 +108,6 @@ always @(posedge VCLK or negedge nRST)
 // pack vinfo_o vector
 // ===================
 
-assign vinfo_o = {data_cnt,vmode,n64_480i};
+assign vinfo_o = {palmode,n64_480i};
 
 endmodule 

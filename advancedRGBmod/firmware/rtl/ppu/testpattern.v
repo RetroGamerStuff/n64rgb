@@ -36,9 +36,9 @@ module testpattern(
   nVDSYNC,
   nRST,
 
-  vmode,
   Sync_in,
   vdata_out
+  palmode,
 );
 
 `include "vh/n64adv_vparams.vh"
@@ -47,9 +47,9 @@ input VCLK;
 input nVDSYNC;
 input nRST;
 
-input vmode;
 input [3:0] Sync_in;
 output reg [`VDATA_O_FU_SLICE] vdata_out = {vdata_width_o{1'b0}};
+input palmode;
 
 
 

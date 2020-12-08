@@ -98,8 +98,8 @@ output reg nHSYNC_or_F1 = 1'b0;
 
 // start of rtl
 
-wire [3:0] vinfo_pass;  // [3:0] {data_cnt,vmode,n64_480i}
-wire pal_mode, n64_480i;
+wire [1:0] vinfo_pass;  // [3:0] {vmode,n64_480i}
+wire palmode, n64_480i;
 
 wire [`VDATA_I_SY_SLICE] vdata_r_sy_0;
 wire [`VDATA_I_FU_SLICE] vdata_r[1:3];
@@ -144,7 +144,7 @@ reg        cfg_SL_en         = 1'b0;
 // apply some assignments
 // ----------------------
 
-assign pal_mode = vinfo_pass[1];
+assign palmode  = vinfo_pass[1];
 assign n64_480i = vinfo_pass[0];
 
 assign VCLK_Tx_select = cfg_linemult;
@@ -172,7 +172,7 @@ always @(posedge VCLK) begin
   if (!n64_480i) begin
     cfg_nvideblur     <= ~ConfigSet[`videblur_bit];
     cfg_ifix          <= 1'b0;
-    if (pal_mode | !USE_VPLL)
+    if (palmode | !USE_VPLL)
       cfg_linemult      <= {1'b0,^ConfigSet[`v240p_linemult_slice]}; // do not allow LineX3 in PAL mode or if PLL of VCLK (for LineX3) is not locked (or not used)
     else
       cfg_linemult      <= ConfigSet[`v240p_linemult_slice];
@@ -224,7 +224,7 @@ n64a_vdemux video_demux_u(
   .nVDSYNC(nVDSYNC),
   .nRST(nVRST),
   .VD_i(VD_i),
-  .demuxparams_i({vinfo_pass[3:1],cfg_nvideblur,cfg_n15bit_mode}),
+  .demuxparams_i({palmode,cfg_nvideblur,cfg_n15bit_mode}),
   .vdata_r_sy_0(vdata_r_sy_0),
   .vdata_r_1(vdata_r[1])
 );
@@ -282,9 +282,9 @@ testpattern testpattern_u(
   .VCLK(VCLK_Tx),
   .nVDSYNC(nVDSYNC),
   .nRST(nVRST_Tx),
-  .vmode(pal_mode),
   .Sync_in(VD_i[3:0]),
   .vdata_out(vdata_testpattern)
+  .palmode(palmode),
 );
 
 

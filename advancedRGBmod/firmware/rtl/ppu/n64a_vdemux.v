@@ -52,16 +52,15 @@ input nVDSYNC;
 input nRST;
 
 input  [color_width_i-1:0] VD_i;
-input  [              4:0] demuxparams_i;
+input  [              2:0] demuxparams_i;
 
 output [`VDATA_I_SY_SLICE] vdata_r_sy_0;
 output reg [`VDATA_I_FU_SLICE] vdata_r_1 = {vdata_width_i{1'b0}}; // (unpacked array types in ports requires system verilog)
 
 
-// unpack deblur info
+// unpack demux info
 
-wire [1:0] data_cnt    = demuxparams_i[4:3];
-wire       vmode       = demuxparams_i[  2];
+wire       palmode     = demuxparams_i[  2];
 wire       ndo_deblur  = demuxparams_i[  1];
 wire       n15bit_mode = demuxparams_i[  0];
 
@@ -70,8 +69,20 @@ wire posedge_nCSYNC = !vdata_r_0[3*color_width_i] &  VD_i[0];
 
 // start of rtl
 
+reg [1:0] data_cnt = 2'b00;
 reg nblank_rgb = 1'b1;
 reg [`VDATA_I_FU_SLICE] vdata_r_0 = {vdata_width_i{1'b0}}; // buffer for sync, red, green and blue
+
+
+always @(posedge VCLK or negedge nRST)  // data register management
+  if (!nRST)
+    data_cnt <= 2'b00;
+  else begin
+    if (!nVDSYNC)
+      data_cnt <= 2'b01;  // reset data counter
+    else
+      data_cnt <= data_cnt + 1'b1;  // increment data counter
+  end
 
 
 always @(posedge VCLK or negedge nRST)
@@ -82,7 +93,7 @@ always @(posedge VCLK or negedge nRST)
       nblank_rgb <= 1'b1;
     end else begin
       if(posedge_nCSYNC) // posedge nCSYNC -> reset blanking
-        nblank_rgb <= vmode;
+        nblank_rgb <= palmode;
       else
         nblank_rgb <= ~nblank_rgb;
     end
