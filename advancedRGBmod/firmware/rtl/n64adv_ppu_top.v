@@ -101,17 +101,20 @@ output reg nHSYNC_or_F1 = 1'b0;
 wire [1:0] vinfo_pass;  // [3:0] {vmode,n64_480i}
 wire palmode, n64_480i;
 
+wire vdata_valid[0:3];
 wire [`VDATA_I_SY_SLICE] vdata_r_sy_0;
 wire [`VDATA_I_FU_SLICE] vdata_r[1:3];
 
-wire [16:0] vinfo_mult;
-wire nVDSYNC_srgb_out;
-wire [`VDATA_O_FU_SLICE] vdata_srgb_out;
+wire [20:0] vinfo_mult;
+wire vdata_srgb_valid_o;
+wire [`VDATA_O_FU_SLICE] vdata_srgb_o;
 
-wire [`VDATA_O_FU_SLICE] vdata_testpattern;
+wire vdata_tp_valid_o;
+wire [`VDATA_O_FU_SLICE] vdata_tp_o;
 
-wire [`VDATA_O_FU_SLICE] vdata_vc_in;
-wire [`VDATA_O_FU_SLICE] vdata_vc_out;
+wire vdata_vc_valid_i;
+wire [`VDATA_O_FU_SLICE] vdata_vc_i;
+wire [`VDATA_O_FU_SLICE] vdata_vc_o;
 
 wire [3:0] Sync_o;
 
@@ -135,7 +138,7 @@ reg        cfg_n15bit_mode   = 1'b0;
 reg        cfg_ifix          = 1'b0;
 reg [ 1:0] cfg_linemult      = 2'b00;
 reg [ 4:0] cfg_SLHyb_str     = 5'b00000;
-reg [ 3:0] cfg_SL_str        = 4'b0000;
+reg [ 7:0] cfg_SL_str        = 8'h00;
 reg        cfg_SL_method     = 1'b0;
 reg        cfg_SL_id         = 1'b0;
 reg        cfg_SL_en         = 1'b0;
@@ -149,13 +152,14 @@ assign n64_480i = vinfo_pass[0];
 
 assign VCLK_Tx_select = cfg_linemult;
 
-assign vinfo_mult = {cfg_linemult,cfg_ifix,cfg_SLHyb_str,cfg_SL_str,cfg_SL_method,cfg_SL_id,cfg_SL_en,vinfo_pass[1:0]};
+assign vinfo_mult = {cfg_linemult,cfg_ifix,cfg_SLHyb_str,cfg_SL_str,cfg_SL_method,cfg_SL_id,cfg_SL_en,palmode,n64_480i};
 
-assign vdata_vc_in = cfg_testpat ? vdata_testpattern : vdata_srgb_out;
+assign vdata_vc_valid_i = cfg_testpat ? vdata_tp_valid_o : vdata_srgb_valid_o;
+assign vdata_vc_i = cfg_testpat ? vdata_tp_o : vdata_srgb_o;
 
-assign Sync_o = vdata_vc_out[`VDATA_O_SY_SLICE];
+assign Sync_o = vdata_vc_o[`VDATA_O_SY_SLICE];
 assign AutoFilter_w = cfg_filter == 3'b000;
-assign PPUState = {pal_mode,n64_480i,1'b0,cfg_linemult,~cfg_nEN_YPbPr,~cfg_nEN_RGsB,~cfg_nvideblur,~cfg_n15bit_mode,Filter,AutoFilter_w};
+assign PPUState = {palmode,n64_480i,1'b0,cfg_linemult,~cfg_nEN_YPbPr,~cfg_nEN_RGsB,~cfg_nvideblur,~cfg_n15bit_mode,Filter,AutoFilter_w};
 
 
 // write configuration register
@@ -177,7 +181,7 @@ always @(posedge VCLK) begin
     else
       cfg_linemult      <= ConfigSet[`v240p_linemult_slice];
     cfg_SLHyb_str     <= ConfigSet[`v240p_SL_hybrid_slice];
-    cfg_SL_str        <= ConfigSet[`v240p_SL_str_slice];
+    cfg_SL_str        <= ((ConfigSet[`v240p_SL_str_slice]+8'h01)<<4)-1'b1;
     cfg_SL_method     <= ConfigSet[`v240p_SL_method_bit];
     cfg_SL_id         <= ConfigSet[`v240p_SL_ID_bit];
     cfg_SL_en         <= ConfigSet[`v240p_SL_En_bit];
@@ -187,11 +191,12 @@ always @(posedge VCLK) begin
     cfg_linemult      <= {1'b0,ConfigSet[`v480i_linex2_bit]};
     if (ConfigSet[`v480i_SL_linked_bit]) begin // check if SL mode is linked to 240p
       cfg_SLHyb_str     <= ConfigSet[`v240p_SL_hybrid_slice];
+      cfg_SL_str        <= ((ConfigSet[`v240p_SL_str_slice]+8'h01)<<4)-1'b1;
       cfg_SL_str        <= ConfigSet[`v240p_SL_str_slice];
       cfg_SL_id         <= ConfigSet[`v240p_SL_ID_bit];
     end else begin
       cfg_SLHyb_str     <= ConfigSet[`v480i_SL_hybrid_slice];
-      cfg_SL_str        <= ConfigSet[`v480i_SL_str_slice];
+      cfg_SL_str        <= ((ConfigSet[`v480i_SL_str_slice]+8'h01)<<4)-1'b1;
       cfg_SL_id         <= ConfigSet[`v480i_SL_ID_bit];
     end
     cfg_SL_method     <= 1'b0;
@@ -225,7 +230,9 @@ n64a_vdemux video_demux_u(
   .nRST(nVRST),
   .VD_i(VD_i),
   .demuxparams_i({palmode,cfg_nvideblur,cfg_n15bit_mode}),
+  .vdata_valid_0(vdata_valid[0]),
   .vdata_r_sy_0(vdata_r_sy_0),
+  .vdata_valid_1(vdata_valid[1]),
   .vdata_r_1(vdata_r[1])
 );
 
@@ -238,10 +245,11 @@ osd_injection osd_injection_u(
   .OSDWrVector(OSDWrVector),
   .OSDInfo(OSDInfo),
   .VCLK(VCLK),
-  .nVDSYNC(nVDSYNC),
   .nVRST(nVRST),
-  .video_data_i(vdata_r[1]),
-  .video_data_o(vdata_r[2])
+  .vdata_valid_i(vdata_valid[1]),
+  .vdata_i(vdata_r[1]),
+  .vdata_valid_o(vdata_valid[2]),
+  .vdata_o(vdata_r[2])
 );
 
 
@@ -253,11 +261,12 @@ osd_injection osd_injection_u(
 
 gamma_module gamma_module_u(
   .VCLK(VCLK),
-  .nVDSYNC(nVDSYNC),
   .nRST(nVRST),
   .gammaparams_i(cfg_gamma),
-  .video_data_i(vdata_r[2]),
-  .video_data_o(vdata_r[3])
+  .vdata_valid_i(vdata_valid[2]),
+  .vdata_i(vdata_r[2]),
+  .vdata_valid_o(vdata_valid[3]),
+  .vdata_o(vdata_r[3])
 );
 
 
@@ -265,13 +274,15 @@ gamma_module gamma_module_u(
 // ---------------
 
 linemult linemult_u(
-  .VCLK_Rx(VCLK),
-  .nVRST_Rx(nVRST),
-  .VCLK_Tx(VCLK_Tx),
-  .nVRST_Tx(nVRST_Tx),
-  .vinfo_mult(vinfo_mult),
+  .VCLK_i(VCLK),
+  .nVRST_i(nVRST),
+  .vdata_valid_i(vdata_valid[3]),
   .vdata_i(vdata_r[3]),
-  .vdata_o(vdata_srgb_out)
+  .vinfo_mult(vinfo_mult),
+  .VCLK_o(VCLK_Tx),
+  .nVRST_o(nVRST_Tx),
+  .vdata_valid_o(vdata_srgb_valid_o),
+  .vdata_o(vdata_srgb_o)
 );
 
 
@@ -280,11 +291,12 @@ linemult linemult_u(
 
 testpattern testpattern_u(
   .VCLK(VCLK_Tx),
-  .nVDSYNC(nVDSYNC),
   .nRST(nVRST_Tx),
-  .Sync_in(VD_i[3:0]),
-  .vdata_out(vdata_testpattern)
   .palmode(palmode),
+  .vdata_sync_valid_i(vdata_valid[0]),
+  .vdata_sync_i(vdata_r_sy_0),
+  .vdata_valid_o(vdata_tp_valid_o),
+  .vdata_o(vdata_tp_o)
 );
 
 
@@ -294,9 +306,9 @@ testpattern testpattern_u(
 vconv vconv_u(
   .VCLK(VCLK_Tx),
   .nRST(nVRST_Tx),
-  .nEN_YPbPr(cfg_nEN_YPbPr),    // enables color transformation on '0'
-  .vdata_i(vdata_vc_in),
-  .vdata_o(vdata_vc_out)
+  .nEN_YPbPr(cfg_nEN_YPbPr),  // enables color transformation on '0'
+  .vdata_i(vdata_vc_i),
+  .vdata_o(vdata_vc_o)
 );
 
 
@@ -316,12 +328,12 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
       nCSYNC[0] <= Sync_o[0];
 
     vdata_shifted[1] <= vdata_shifted[0];
-    vdata_shifted[0] <= cfg_exchange_rb_o ? {vdata_vc_out[`VDATA_O_BL_SLICE],vdata_vc_out[`VDATA_O_GR_SLICE],vdata_vc_out[`VDATA_O_RE_SLICE]} : vdata_vc_out[`VDATA_O_CO_SLICE];
+    vdata_shifted[0] <= cfg_exchange_rb_o ? {vdata_vc_o[`VDATA_O_BL_SLICE],vdata_vc_o[`VDATA_O_GR_SLICE],vdata_vc_o[`VDATA_O_RE_SLICE]} : vdata_vc_o[`VDATA_O_CO_SLICE];
 
     if (!cfg_nvideblur && !cfg_testpat)
       VD_o <= vdata_shifted[^cfg_linemult][`VDATA_O_CO_SLICE];
     else
-      VD_o <= cfg_exchange_rb_o ? {vdata_vc_out[`VDATA_O_BL_SLICE],vdata_vc_out[`VDATA_O_GR_SLICE],vdata_vc_out[`VDATA_O_RE_SLICE]} : vdata_vc_out[`VDATA_O_CO_SLICE];
+      VD_o <= cfg_exchange_rb_o ? {vdata_vc_o[`VDATA_O_BL_SLICE],vdata_vc_o[`VDATA_O_GR_SLICE],vdata_vc_o[`VDATA_O_RE_SLICE]} : vdata_vc_o[`VDATA_O_CO_SLICE];
 
   end
 

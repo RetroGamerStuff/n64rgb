@@ -37,11 +37,12 @@ module osd_injection (
   OSDInfo,
 
   VCLK,
-  nVDSYNC,
   nVRST,
 
-  video_data_i,
-  video_data_o
+  vdata_valid_i,
+  vdata_i,
+  vdata_valid_o,
+  vdata_o
 );
 
 
@@ -54,11 +55,12 @@ input [24:0] OSDWrVector;
 input [ 1:0] OSDInfo;
 
 input VCLK;
-input nVDSYNC;
 input nVRST;
 
-input      [`VDATA_I_FU_SLICE] video_data_i;
-output reg [`VDATA_I_FU_SLICE] video_data_o = {vdata_width_i{1'b0}};
+input vdata_valid_i;
+input [`VDATA_I_FU_SLICE] vdata_i;
+output reg vdata_valid_o = 1'b0;
+output reg [`VDATA_I_FU_SLICE] vdata_o = {vdata_width_i{1'b0}};
 
 
 // start of rtl
@@ -71,8 +73,8 @@ wire show_osd_logo = OSDInfo[1];
 wire show_osd      = OSDInfo[0];
 
 
-wire nHSYNC_cur = video_data_i[3*color_width_i+1];
-wire nVSYNC_cur = video_data_i[3*color_width_i+3];
+wire nHSYNC_cur = vdata_i[3*color_width_i+1];
+wire nVSYNC_cur = vdata_i[3*color_width_i+3];
 
 wire negedge_nHSYNC =  nHSYNC_pre & !nHSYNC_cur;
 wire negedge_nVSYNC =  nVSYNC_pre & !nVSYNC_cur;
@@ -96,7 +98,11 @@ reg [7:0] v_cnt =  8'h0;
 reg [7:0] logo_h_cnt = 8'h0;
 reg [3:0] logo_v_cnt = 4'h0;
 
-reg [8:0] txt_h_cnt = {{6{1'b1}},`OSD_FONT_WIDTH};  // 2:0 - font width reservation (allows for max 8p wide font); used for pixel selection
+reg [8:0] txt_h_cnt;  // 2:0 - font width reservation (allows for max 8p wide font); used for pixel selection
+initial begin
+  txt_h_cnt[8:3] = {6{1'b1}};
+  txt_h_cnt[2:0] = `OSD_FONT_WIDTH;
+end
                                                     // 8:3 - indexing the char in each row
 reg [7:0] txt_v_cnt = 8'h0; // 3:0 - font hight reservation (allows for max 16p hight font); used for addr. font pixel row
                             // 7:4 - selects the row of chars
@@ -105,6 +111,7 @@ reg [5:0] draw_osd_window = 6'h0;   // font and char memory
 reg [5:0]       draw_logo = 6'h0;   // show logo
 reg [5:0]        en_txtrd = 6'h0;   // introduce five delay taps
 reg [3:1]       en_fontrd = 3'b000; // read font
+
 
 always @(posedge VCLK or negedge nVRST)
   if (!nVRST) begin
@@ -116,7 +123,8 @@ always @(posedge VCLK or negedge nVRST)
 
     logo_h_cnt <= 8'h0;
     logo_v_cnt <= 4'h0;
-    txt_h_cnt  <= {{6{1'b1}},`OSD_FONT_WIDTH};
+    txt_h_cnt[8:3] <= {6{1'b1}};
+    txt_h_cnt[2:0] <= `OSD_FONT_WIDTH;
     txt_v_cnt  <= 8'h0;
 
     draw_osd_window <= 6'h0;
@@ -124,21 +132,21 @@ always @(posedge VCLK or negedge nVRST)
     en_txtrd        <= 6'h0;
     en_fontrd       <= 3'b000;
   end else begin
-    if (!nVDSYNC) begin
+    if (vdata_valid_i) begin
       h_cnt <= ~&h_cnt ? h_cnt + 1'b1 : h_cnt;
 
       if (negedge_nHSYNC) begin
         h_cnt <= 10'h0;
         v_cnt <= ~&v_cnt ? v_cnt + 1'b1 : v_cnt;
 
-        if (v_cnt <= `OSD_LOGO_V_START | v_cnt >= `OSD_LOGO_V_STOP)
+        if (v_cnt < `OSD_LOGO_V_START | v_cnt >= `OSD_LOGO_V_STOP)
           logo_v_cnt <= 3'h0;
         else if (~&logo_v_cnt)
           logo_v_cnt <= logo_v_cnt + 1'b1;
 
         logo_h_cnt <= 8'h0;
 
-        if (v_cnt <= `OSD_TXT_V_START | v_cnt >= `OSD_TXT_V_STOP) begin
+        if (v_cnt < `OSD_TXT_V_START | v_cnt >= `OSD_TXT_V_STOP) begin
           txt_v_cnt <= 7'h0;
         end else if (~&txt_v_cnt[7:4]) begin
           if (txt_v_cnt[3:0] == `OSD_FONT_HEIGHT) begin
@@ -163,27 +171,27 @@ always @(posedge VCLK or negedge nVRST)
         end else
           txt_h_cnt <= txt_h_cnt + 1'b1;
       end else begin
-        txt_h_cnt <= {{6{1'b1}},`OSD_FONT_WIDTH};
+        txt_h_cnt[8:3] <= {6{1'b1}};
+        txt_h_cnt[2:0] <= `OSD_FONT_WIDTH;
       end
 
       nHSYNC_pre <= nHSYNC_cur;
       nVSYNC_pre <= nVSYNC_cur;
     end
 
+    // for simplicity - let them run
     draw_logo[5:1] <= draw_logo[4:0];
-    draw_logo[  0] <= show_osd_logo &&
-                      (h_cnt > `OSD_LOGO_H_START) && (~&logo_h_cnt) &&
-                      (v_cnt > `OSD_LOGO_V_START) && (v_cnt < `OSD_LOGO_V_STOP);
-
+    draw_logo[0] <= show_osd_logo &&
+                    (h_cnt >= `OSD_LOGO_H_START) && (~&logo_h_cnt) &&
+                    (v_cnt >= `OSD_LOGO_V_START) && (v_cnt < `OSD_LOGO_V_STOP);
     draw_osd_window[5:1] <= draw_osd_window[4:0];
-    draw_osd_window[  0] <= (h_cnt > `OSD_WINDOW_H_START) && (h_cnt < `OSD_WINDOW_H_STOP) &&
-                            (v_cnt > `OSD_WINDOW_V_START) && (v_cnt < `OSD_WINDOW_V_STOP);
-
-    en_txtrd[5:1]  <= en_txtrd[4:0];
-    en_txtrd[  0]  <= (h_cnt > `OSD_TXT_H_START) && (h_cnt < `OSD_TXT_H_STOP) &&
-                     (v_cnt > `OSD_TXT_V_START) && (v_cnt < `OSD_TXT_V_STOP);
+    draw_osd_window[0] <= (h_cnt >= `OSD_WINDOW_H_START) && (h_cnt < `OSD_WINDOW_H_STOP) &&
+                          (v_cnt >= `OSD_WINDOW_V_START) && (v_cnt < `OSD_WINDOW_V_STOP);
     en_fontrd[3:2] <= en_fontrd[2:1];
-    en_fontrd[  1] <= en_txtrd[0] && (txt_h_cnt[2:0] == `OSD_FONT_WIDTH);
+    en_fontrd[1] <= en_txtrd[0] && (txt_h_cnt[2:0] == `OSD_FONT_WIDTH);
+    en_txtrd[5:1] <= en_txtrd[4:0];
+    en_txtrd[0]  <= (h_cnt >= `OSD_TXT_H_START) && (h_cnt < `OSD_TXT_H_STOP) &&
+                    (v_cnt >= `OSD_TXT_V_START) && (v_cnt < `OSD_TXT_V_STOP);
   end
 
 localparam [1023:0] logo = 1024'h1FF7FCFF9C1B033FE7FD8180300FF3833FF7FEFFDE1B037FEFFD8180301FFBC330300600DF1B03606C0D8180FFD81BE33037FE00DB9BFF606C0DFF80FFDFFB733037FE00D9DBFF606C0DFF8030CFFB3B30300600D8FB03606C0D818030C01B1F3FF7FEFFD87BFF606FFDFF8030CFFB0F1FF7FCFF9839FE6067FCFF0030CFF307;
@@ -310,31 +318,33 @@ wire [`VDATA_I_CO_SLICE] txt_color = (font_color == `FONTCOLOR_WHITE)       ? `O
                                                                               `OSD_TXT_COLOR_DARKGOLD    ;
 
 always @(posedge VCLK or negedge nVRST)
-  if (!nVRST)
-    video_data_o <= {vdata_width_i{1'b0}};
-  else begin
-    // pass through sync
-    video_data_o[`VDATA_I_SY_SLICE] <= video_data_i[`VDATA_I_SY_SLICE];
+  if (!nVRST) begin
+    vdata_valid_o <= 1'b0;
+    vdata_o <= {vdata_width_i{1'b0}};
+  end else begin
+    // pass through vdata valid and sync (don't care about modification delay (wich is simply a shift to the right for the menu)
+    vdata_valid_o <= vdata_valid_i;
+    vdata_o[`VDATA_I_SY_SLICE] <= vdata_i[`VDATA_I_SY_SLICE];
 
     // draw menu window if needed
     if (show_osd & draw_osd_window[5]) begin
       if (draw_logo[5] & act_logo_px[4])
-        video_data_o[`VDATA_I_CO_SLICE] <= `OSD_LOGO_COLOR;
+        vdata_o[`VDATA_I_CO_SLICE] <= `OSD_LOGO_COLOR;
       else if (&{en_txtrd[5],!draw_logo[5],|font_color,act_char_px})
-          video_data_o[`VDATA_I_CO_SLICE] <= txt_color;
+          vdata_o[`VDATA_I_CO_SLICE] <= txt_color;
       else begin
       // modify red
-        video_data_o[3*color_width_i-1:3*color_width_i-3] <= window_bg_color_cur[8:6];
-        video_data_o[3*color_width_i-4:2*color_width_i  ] <= video_data_i[3*color_width_i-1:2*color_width_i+3];
+        vdata_o[3*color_width_i-1:3*color_width_i-3] <= window_bg_color_cur[8:6];
+        vdata_o[3*color_width_i-4:2*color_width_i  ] <= vdata_i[3*color_width_i-1:2*color_width_i+3];
       // modify green
-        video_data_o[2*color_width_i-1:2*color_width_i-3] <= window_bg_color_cur[5:3];
-        video_data_o[2*color_width_i-4:  color_width_i  ] <= video_data_i[2*color_width_i-1:color_width_i+3];
+        vdata_o[2*color_width_i-1:2*color_width_i-3] <= window_bg_color_cur[5:3];
+        vdata_o[2*color_width_i-4:  color_width_i  ] <= vdata_i[2*color_width_i-1:color_width_i+3];
       // modify blue
-        video_data_o[color_width_i-1:color_width_i-3] <= window_bg_color_cur[2:0];
-        video_data_o[color_width_i-4:              0] <= video_data_i[color_width_i-1:3];
+        vdata_o[color_width_i-1:color_width_i-3] <= window_bg_color_cur[2:0];
+        vdata_o[color_width_i-4:              0] <= vdata_i[color_width_i-1:3];
       end
     end else begin
-      video_data_o[`VDATA_I_CO_SLICE] <= video_data_i[`VDATA_I_CO_SLICE];
+      vdata_o[`VDATA_I_CO_SLICE] <= vdata_i[`VDATA_I_CO_SLICE];
     end
   end
 

@@ -33,45 +33,51 @@
 
 module testpattern(
   VCLK,
-  nVDSYNC,
   nRST,
 
-  Sync_in,
-  vdata_out
   palmode,
+
+  vdata_sync_valid_i,
+  vdata_sync_i,
+  vdata_valid_o,
+  vdata_o
 );
 
 `include "vh/n64adv_vparams.vh"
 
 input VCLK;
-input nVDSYNC;
 input nRST;
 
-input [3:0] Sync_in;
-output reg [`VDATA_O_FU_SLICE] vdata_out = {vdata_width_o{1'b0}};
 input palmode;
 
+input vdata_sync_valid_i;
+input [3:0] vdata_sync_i;
+output reg vdata_valid_o = 1'b0;
+output reg [`VDATA_O_FU_SLICE] vdata_o = {vdata_width_o{1'b0}};
 
 
-wire negedge_nVSYNC = vdata_out[3*color_width_o+3] & !Sync_in[3];
-wire negedge_nHSYNC = vdata_out[3*color_width_o+1] & !Sync_in[1];
+
+wire negedge_nVSYNC = vdata_o[3*color_width_o+3] & !vdata_sync_i[3];
+wire negedge_nHSYNC = vdata_o[3*color_width_o+1] & !vdata_sync_i[1];
 
 reg [8:0] vcnt = 9'b0;
 reg [9:0] hcnt = 10'b0;
 
-wire [8:0] pattern_vstart = vmode ? `VSTART_PAL : `VSTART_NTSC;
-wire [8:0] pattern_vstop = vmode ? `VSTOP_PAL : `VSTOP_NTSC;
-wire [9:0] pattern_hstart = vmode ? `HSTART_PAL : `HSTART_NTSC;
-wire [9:0] pattern_hstop = vmode ? `HSTOP_PAL : `HSTOP_NTSC;
+wire [8:0] pattern_vstart = palmode ? `VSTART_PAL : `VSTART_NTSC;
+wire [8:0] pattern_vstop = palmode ? `VSTOP_PAL : `VSTOP_NTSC;
+wire [9:0] pattern_hstart = palmode ? `HSTART_PAL : `HSTART_NTSC;
+wire [9:0] pattern_hstop = palmode ? `HSTOP_PAL : `HSTOP_NTSC;
+
 
 always @(posedge VCLK or negedge nRST)
   if (!nRST) begin
-    vdata_out <= {vdata_width_o{1'b0}};
-
+    vdata_valid_o <= 1'b0;
+    vdata_o <= {vdata_width_o{1'b0}};
     vcnt <= 9'b0;
     hcnt <= 10'b0;
   end else begin
-    if (!nVDSYNC) begin
+    vdata_valid_o <= vdata_sync_valid_i;
+    if (vdata_sync_valid_i) begin
       if (negedge_nHSYNC) begin
         hcnt <= 10'b0;
         vcnt <= &vcnt ? vcnt : vcnt + 1'b1;
@@ -83,17 +89,17 @@ always @(posedge VCLK or negedge nRST)
 
       if ((vcnt >= pattern_vstart) && (vcnt < pattern_vstop)) begin
         if ((hcnt > pattern_hstart) && (hcnt < pattern_hstop))
-          vdata_out[`VDATA_O_CO_SLICE] <= {3*color_width_o{~vdata_out[0]}};
+          vdata_o[`VDATA_O_CO_SLICE] <= {3*color_width_o{~vdata_o[0]}};
         else
-          vdata_out[`VDATA_O_CO_SLICE] <= {3*color_width_o{1'b0}};
+          vdata_o[`VDATA_O_CO_SLICE] <= {3*color_width_o{1'b0}};
 
         if (hcnt == pattern_hstart)
-          vdata_out[`VDATA_O_CO_SLICE] <= {3*color_width_o{vcnt[0]}};
+          vdata_o[`VDATA_O_CO_SLICE] <= {3*color_width_o{vcnt[0]}};
       end else begin
-        vdata_out[`VDATA_O_CO_SLICE] <= {3*color_width_o{1'b0}};
+        vdata_o[`VDATA_O_CO_SLICE] <= {3*color_width_o{1'b0}};
       end
 
-      vdata_out[`VDATA_O_SY_SLICE] <= Sync_in;
+      vdata_o[`VDATA_O_SY_SLICE] <= vdata_sync_i;
     end
   end
 

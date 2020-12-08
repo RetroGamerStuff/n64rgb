@@ -32,23 +32,25 @@
 
 module gamma_module(
   VCLK,
-  nVDSYNC,
   nRST,
   gammaparams_i,
-  video_data_i,
-  video_data_o
+  vdata_valid_i,
+  vdata_i,
+  vdata_valid_o,
+  vdata_o
 );
 
 `include "vh/n64adv_vparams.vh"
 
 input VCLK;
-input nVDSYNC;
 input nRST;
 
 input [ 3:0] gammaparams_i;
 
-input      [`VDATA_I_FU_SLICE] video_data_i;
-output reg [`VDATA_I_FU_SLICE] video_data_o = {vdata_width_i{1'b0}};
+input vdata_valid_i;
+input [`VDATA_I_FU_SLICE] vdata_i;
+output reg vdata_valid_o;
+output reg [`VDATA_I_FU_SLICE] vdata_o = {vdata_width_i{1'b0}};
 
 
 // translate gamma table
@@ -70,14 +72,14 @@ always @(posedge VCLK or negedge nRST)
     vdata_i_cnt <= 2'b00;
     gamma_vdata_i <= {color_width_i{1'b0}};
   end else begin
-    if (!nVDSYNC) begin
+    if (vdata_valid_i) begin
       vdata_i_cnt <= 2'b01;
-      gamma_vdata_i <= video_data_i[`VDATA_I_RE_SLICE];
+      gamma_vdata_i <= vdata_i[`VDATA_I_RE_SLICE];
     end else begin
       if (vdata_i_cnt == 2'b01)
-        gamma_vdata_i <= video_data_i[`VDATA_I_GR_SLICE];
+        gamma_vdata_i <= vdata_i[`VDATA_I_GR_SLICE];
       if (vdata_i_cnt == 2'b10)
-        gamma_vdata_i <= video_data_i[`VDATA_I_BL_SLICE];
+        gamma_vdata_i <= vdata_i[`VDATA_I_BL_SLICE];
       vdata_i_cnt <= vdata_i_cnt + 2'b01;
     end
   end
@@ -93,12 +95,12 @@ gamma_table gamma_table_re_u(
 
 // delay of remaining components
 
-reg nVDSYNC_L[0:2];
+reg vdata_valid_L[0:2];
 reg [3:0] vdata_sync_L[0:2];
 integer int_idx;
 initial begin
   for (int_idx = 0; int_idx < 3; int_idx = int_idx+1) begin
-    nVDSYNC_L[int_idx] = 1'b0;
+    vdata_valid_L[int_idx] = 1'b0;
     vdata_sync_L[int_idx] = 4'h0;
   end
 end
@@ -106,16 +108,16 @@ end
 always @(posedge VCLK or negedge nRST)
   if (!nRST) begin
     for (int_idx = 0; int_idx < 3; int_idx = int_idx+1) begin
-      nVDSYNC_L[int_idx] <= 1'b0;
+      vdata_valid_L[int_idx] <= 1'b0;
       vdata_sync_L[int_idx] <= 4'h0;
     end
   end else begin
-    nVDSYNC_L[2] <= nVDSYNC_L[1];
-    nVDSYNC_L[1] <= nVDSYNC_L[0];
-    nVDSYNC_L[0] <= nVDSYNC;
+    vdata_valid_L[2] <= vdata_valid_L[1];
+    vdata_valid_L[1] <= vdata_valid_L[0];
+    vdata_valid_L[0] <= vdata_valid_i;
     vdata_sync_L[2] <= vdata_sync_L[1];
     vdata_sync_L[1] <= vdata_sync_L[0];
-    vdata_sync_L[0] <= video_data_i[`VDATA_I_SY_SLICE];
+    vdata_sync_L[0] <= vdata_i[`VDATA_I_SY_SLICE];
   end
 
 // collect outputs
@@ -127,7 +129,7 @@ always @(posedge VCLK or negedge nRST)
     vdata_o_cnt <= 2'b00;
     vdata_o_pre <= {vdata_width_i{1'b0}};
   end else begin
-    if (!nVDSYNC_L[2]) begin
+    if (vdata_valid_L[2]) begin
       vdata_o_cnt <= 2'b01;
       vdata_o_pre[`VDATA_I_SY_SLICE] <= vdata_sync_L[2];
       vdata_o_pre[`VDATA_I_RE_SLICE] <= gamma_vdata_o;
@@ -143,10 +145,11 @@ always @(posedge VCLK or negedge nRST)
 // registered output
 always @(posedge VCLK or negedge nRST)
   if (!nRST) begin
-    video_data_o <= {vdata_width_i{1'b0}};
+    vdata_o <= {vdata_width_i{1'b0}};
   end else begin
-    if (!nVDSYNC_L[2])
-      video_data_o <= vdata_o_pre;
+    vdata_valid_o <= vdata_valid_L[2];
+    if (vdata_valid_L[2])
+      vdata_o <= vdata_o_pre;
   end
 
 endmodule

@@ -145,7 +145,7 @@ n64adv_controller #({hdl_fw_main,hdl_fw_sub}) n64adv_controller_u(
   .OSDInfo(OSDInfo),
   .VCLK(VCLK),
   .nVDSYNC(nVDSYNC),
-  .VD_VSi(VD_i[3]),
+  .VD_VSi(VD_i[3:0]),
   .nVRST(nVRST)
 );
 
