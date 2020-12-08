@@ -75,30 +75,30 @@
   // ======================
 
   // define font size (every value - 1)
-  `define OSD_FONT_WIDTH  3'd7
-  `define OSD_FONT_HEIGHT 4'd11
+  `define OSD_FONT_WIDTH  7
+  `define OSD_FONT_HEIGHT 11
 
   // define text window size (every value - 1)
-  `define MAX_CHARS_PER_ROW 6'd51
-  `define MAX_TEXT_ROWS     4'd11
+  `define MAX_CHARS_PER_ROW 51
+  `define MAX_TEXT_ROWS     11
 
   // positioning of OSD window (not linedoubled)
-  `define OSD_WINDOW_H_START  10'd160
-  `define OSD_WINDOW_H_STOP   (`OSD_WINDOW_H_START + 4'd15 + (`MAX_CHARS_PER_ROW + 1'd1)*(`OSD_FONT_WIDTH + 1'd1))
-  `define OSD_WINDOW_V_START  8'd50
-  `define OSD_WINDOW_V_STOP   (`OSD_WINDOW_V_START + 4'd13 + (`MAX_TEXT_ROWS + 1'd1)*(`OSD_FONT_HEIGHT + 1'd1))
+  `define OSD_WINDOW_H_START  161
+  `define OSD_WINDOW_H_STOP   (`OSD_WINDOW_H_START + 14 + (`MAX_CHARS_PER_ROW + 1)*(`OSD_FONT_WIDTH + 1))
+  `define OSD_WINDOW_V_START  51
+  `define OSD_WINDOW_V_STOP   (`OSD_WINDOW_V_START + 12 + (`MAX_TEXT_ROWS + 1)*(`OSD_FONT_HEIGHT + 1))
 
 
   // define some areas in the OSD windows
-  `define OSD_TXT_H_START (`OSD_WINDOW_H_START + 3'd7)
-  `define OSD_TXT_H_STOP  (`OSD_TXT_H_START + (`MAX_CHARS_PER_ROW + 1'd1)*(`OSD_FONT_WIDTH + 1'd1) + 1'd1)
-  `define OSD_TXT_V_START (`OSD_WINDOW_V_START + 4'd8)
-  `define OSD_TXT_V_STOP  (`OSD_TXT_V_START + (`MAX_TEXT_ROWS + 1'd1)*(`OSD_FONT_HEIGHT + 1'd1) + 1'd1)
+  `define OSD_TXT_H_START (`OSD_WINDOW_H_START + 7)
+  `define OSD_TXT_H_STOP  (`OSD_TXT_H_START + (`MAX_CHARS_PER_ROW + 1)*(`OSD_FONT_WIDTH + 1))
+  `define OSD_TXT_V_START (`OSD_WINDOW_V_START + 8)
+  `define OSD_TXT_V_STOP  (`OSD_TXT_V_START + (`MAX_TEXT_ROWS + 1)*(`OSD_FONT_HEIGHT + 1))
 
   `define OSD_LOGO_H_START   `OSD_TXT_H_START
-  `define OSD_LOGO_H_STOP    (`OSD_TXT_H_START + 10'd127)
-  `define OSD_LOGO_V_START   (`OSD_TXT_V_START - 8'd4)
-  `define OSD_LOGO_V_STOP    (`OSD_TXT_V_START + 8'd13)
+  `define OSD_LOGO_H_STOP    (`OSD_TXT_H_START + 127)
+  `define OSD_LOGO_V_START   (`OSD_TXT_V_START - 4)
+  `define OSD_LOGO_V_STOP    (`OSD_TXT_V_START + 12)
 
   // define OSD background window color (three bits each color)
   `define OSD_BACKGROUND_WHITE        2'b11

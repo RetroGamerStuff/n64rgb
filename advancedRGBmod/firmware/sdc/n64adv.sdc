@@ -190,13 +190,12 @@ set_false_path -from [get_registers {n64adv_ppu_u|cfg_* n64adv_ppu_u|Filter*}]
 #*************************************
 set_false_path -from [get_registers {n64adv_ppu_u|get_vinfo_u|FrameID \
                                      n64adv_ppu_u|get_vinfo_u|n64_480i \
-                                     n64adv_ppu_u|get_vinfo_u|vmode} \
+                                     n64adv_ppu_u|get_vinfo_u|palmode} \
                      ]
 
 
 # linemultiplier
 #*************************************
-set_false_path -from [get_registers {n64adv_ppu_u|linemult_u|SL_rval*}]
 
 # tell the timer to not analyse these paths of the linemult unit in direct mode
 set list_direct_false_from [list [get_registers {n64adv_ppu_u|linemult_u|nVDSYNC_dbl}] \
@@ -226,7 +225,7 @@ set list_direct_false_to [list [get_registers {n64adv_ppu_u|linemult_u|sync4tx_u
                                [get_registers {n64adv_ppu_u|linemult_u|rdhcnt*}] \
                                [get_registers {n64adv_ppu_u|linemult_u|rdvcnt*}] \
                                [get_registers {n64adv_ppu_u|linemult_u|rdaddr*}] \
-                               [get_registers {n64adv_ppu_u|linemult_u|start_rdproc_tx_resynced_pre}] \
+                               [get_registers {n64adv_ppu_u|linemult_u|start_rdproc_o_resynced_pre}] \
                                [get_registers {n64adv_ppu_u|linemult_u|newFrame*}] \
                                [get_registers {n64adv_ppu_u|linemult_u|videobuffer_u|*}] \
                                [get_registers {n64adv_ppu_u|linemult_u|*_mult*}] \
