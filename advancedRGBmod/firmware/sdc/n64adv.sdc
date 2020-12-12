@@ -204,7 +204,6 @@ set list_direct_false_from [list [get_registers {n64adv_ppu_u|linemult_u|nVDSYNC
                                  [get_registers {n64adv_ppu_u|linemult_u|wren}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|wrpage*}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|wrhcnt*}] \
-                                 [get_registers {n64adv_ppu_u|linemult_u|line_overflow_r}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|valid_line_r}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|line_width*}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|newFrame*}] \
