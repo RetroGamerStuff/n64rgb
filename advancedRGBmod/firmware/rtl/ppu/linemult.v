@@ -325,10 +325,10 @@ always @(posedge VCLK_o or negedge nVRST_o)
         rdhcnt <= rdhcnt + 1'b1;
       end
 
-      if (hpos_o == (hstart_o - pic_shift- 2)) begin // consider two cycle delay for reading BRAM
+      if (hpos_o == (hstart_o - pic_shift- 4)) begin // consider two cycle delay for reading BRAM and two cycle by registering afterwards
         rden[0] <= 1'b1;
         rdaddr  <= {hcnt_width{1'b0}};
-      end else if (rden[0] && hpos_o < (hstop_o - pic_shift - 1)) begin // go one beyond taking care of advanced scanlines
+      end else if (rden[0] && hpos_o < (hstop_o - pic_shift - 3)) begin // go one beyond taking care of advanced scanlines
         rdaddr <= rdaddr + 1'b1;
       end else begin
         rden[0] <= 1'b0;
