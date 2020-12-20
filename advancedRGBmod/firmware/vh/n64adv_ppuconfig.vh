@@ -39,12 +39,12 @@
   //    [31:24] {(8bits reserve)}
   //    [23:16] {(8bits reserve)}
   //    [15: 8] {(2bits reserve),use_vpll,test_vpll,show_testpattern,show_osd_logo,show_osd,mute_osd}
-  //    [ 7: 0] {(4bits reserve),use_igr,igr for 15bit mode and deblur (not used in logic),pal_awareness (not used in logic)}
+  //    [ 7: 0] {(1bit reserve),igr for reset,igr for 15bit mode and deblur (not used in logic),pal_awareness (not used in logic),FilterSet (3bits)}
   //  wire [31:0] SysConfigSet1;
   //    [31:24] {(8bits reserve)}
   //    [23:16] {(8bits reserve)}
-  //    [15: 8] {(2bits reserve),Exchange_RB_out,FilterSet (3bits),YPbPr,RGsB}
-  //    [ 7: 0] {(2bits reserve), gamma (4bits),VI-DeBlur,15bit mode}
+  //    [15: 8] {(7bits reserve),Exchange_RB_out}
+  //    [ 7: 0] {YPbPr, RGsB, gamma (4bits),VI-DeBlur,15bit mode}
   //  wire [31:0] SysConfigSet0;
   //    general structure [31:16] 240p settings, [15:0] 480i settings
   //    [31:16] 240p: {(1bit reserve),linemult (2bits),Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_Method,Sl_ID,Sl_En}
@@ -53,13 +53,13 @@
   //  [46:0] PPUConfigSet <= {SysConfigSet2[11],SysConfigSet1[13:0],SysConfigSet0};
 
   `define SysConfigSet2_Offset  64
-  `define show_testpattern_bit  11 + `SysConfigSet2_Offset - 29
+  `define show_testpattern_bit  11 + `SysConfigSet2_Offset -  8
+  `define FilterSet_slice        2 + `SysConfigSet2_Offset :  0 + `SysConfigSet2_Offset
 
   `define SysConfigSet1_Offset  32
-  `define Exchange_RB_out_bit   13 + `SysConfigSet1_Offset
-  `define FilterSet_slice       12 + `SysConfigSet1_Offset : 10 + `SysConfigSet1_Offset
-  `define YPbPr_bit              9 + `SysConfigSet1_Offset
-  `define RGsB_bit               8 + `SysConfigSet1_Offset
+  `define Exchange_RB_out_bit    8 + `SysConfigSet1_Offset
+  `define YPbPr_bit              7 + `SysConfigSet1_Offset
+  `define RGsB_bit               6 + `SysConfigSet1_Offset
   `define gamma_slice            5 + `SysConfigSet1_Offset :  2 + `SysConfigSet1_Offset
   `define videblur_bit           1 + `SysConfigSet1_Offset
   `define n15bit_mode_bit        0 + `SysConfigSet1_Offset

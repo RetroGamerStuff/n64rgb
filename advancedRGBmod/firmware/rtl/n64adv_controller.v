@@ -65,7 +65,7 @@ input CTRL;
 input      [11:0] PPUState;
 input      [ 7:0] JumperCfgSet;
 output reg [ 1:0] MANAGE_VPLL;
-output reg [46:0] PPUConfigSet;
+output reg [68:0] PPUConfigSet;
 output     [24:0] OSDWrVector;
 output reg [ 1:0] OSDInfo;
 
@@ -163,7 +163,7 @@ always @(posedge VCLK)
     OSDInfo[1]       <= &{SysConfigSet2[10:9],!SysConfigSet2[8]};  // show logo only in OSD
     OSDInfo[0]       <= SysConfigSet2[9] & !SysConfigSet2[8];
     use_igr          <= SysConfigSet2[3];
-    PPUConfigSet     <= {SysConfigSet2[11],SysConfigSet1[13:0],SysConfigSet0};
+    PPUConfigSet     <= {SysConfigSet2[11],SysConfigSet2[2:0],SysConfigSet1,SysConfigSet0};
   end
 
 

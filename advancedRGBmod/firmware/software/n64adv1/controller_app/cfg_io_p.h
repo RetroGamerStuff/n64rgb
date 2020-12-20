@@ -154,6 +154,17 @@ config_t pal_awareness = {
     .val2char_func = &flag2set_func
 };
 
+config_t filteraddon_cutoff = {
+    .cfg_word        = &cfg_data_misc,
+    .cfg_word_offset = CFG_FILTERADDON_OFFSET,
+    .cfg_type        = TXTVALUE,
+    .value_details   = {
+        .max_value     = CFG_FILTER_MAX_VALUE,
+        .getvalue_mask = CFG_FILTERADDON_GETMASK,
+    },
+    .value_string = &FilterAddOn
+};
+
 // video
 cfg_b32word_t cfg_data_video =
   { .cfg_word_mask    = CFG_VIDEO_GETALL_MASK,
@@ -170,17 +181,6 @@ config_t exchange_rb_out = {
         .clrflag_mask = CFG_EXC_RB_OUT_CLRMASK
     },
     .val2char_func = &flag2set_func
-};
-
-config_t filteraddon_cutoff = {
-    .cfg_word        = &cfg_data_video,
-    .cfg_word_offset = CFG_FILTERADDON_OFFSET,
-    .cfg_type        = TXTVALUE,
-    .value_details   = {
-        .max_value     = CFG_FILTER_MAX_VALUE,
-        .getvalue_mask = CFG_FILTERADDON_GETMASK,
-    },
-    .value_string = &FilterAddOn
 };
 
 config_t vformat = {

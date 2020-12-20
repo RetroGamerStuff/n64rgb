@@ -75,7 +75,7 @@ input nVDSYNC;
 input [color_width_i-1:0] VD_i;
 
 output [11:0] PPUState;
-input  [46:0] ConfigSet;
+input  [68:0] ConfigSet;
 
 input        OSDCLK;
 input [24:0] OSDWrVector;
