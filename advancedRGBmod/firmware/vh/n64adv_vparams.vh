@@ -58,7 +58,6 @@ parameter vdata_width_o = 4 + 3*color_width_o;
   `define VDATA_O_GR_SLICE  2*color_width_o-1:  color_width_o
   `define VDATA_O_BL_SLICE    color_width_o-1:0
 
-  `define GAMMA_TABLE_OFF   4'b0101
 
   `define PIXEL_PER_LINE_NTSC_normal0   772
   `define PIXEL_PER_LINE_NTSC_normal1   773

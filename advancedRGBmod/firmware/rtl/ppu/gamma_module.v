@@ -41,6 +41,7 @@ module gamma_module(
 );
 
 `include "vh/n64adv_vparams.vh"
+`include "vh/n64adv_ppuconfig.vh"
 
 input VCLK;
 input nRST;

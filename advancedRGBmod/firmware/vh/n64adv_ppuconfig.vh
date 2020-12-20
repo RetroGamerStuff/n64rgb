@@ -81,4 +81,7 @@
   `define v480i_SL_ID_bit        1
   `define v480i_SL_En_bit        0
 
+
+  `define GAMMA_TABLE_OFF   4'b0101
+
 `endif
