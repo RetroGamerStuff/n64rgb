@@ -83,7 +83,7 @@
   `define MAX_TEXT_ROWS     11
 
   // positioning of OSD window (not linedoubled)
-  `define OSD_WINDOW_H_START  161
+  `define OSD_WINDOW_H_START  191
   `define OSD_WINDOW_H_STOP   (`OSD_WINDOW_H_START + 14 + (`MAX_CHARS_PER_ROW + 1)*(`OSD_FONT_WIDTH + 1))
   `define OSD_WINDOW_V_START  51
   `define OSD_WINDOW_V_STOP   (`OSD_WINDOW_V_START + 12 + (`MAX_TEXT_ROWS + 1)*(`OSD_FONT_HEIGHT + 1))
