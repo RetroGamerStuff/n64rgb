@@ -45,6 +45,7 @@
 const alt_u8 RW_Message_FontColor[] = {FONTCOLOR_GREEN,FONTCOLOR_RED,FONTCOLOR_MAGENTA};
 const char   *RW_Message[] = {"< Success >","< Failed > ","< Aborted >"};
 
+alt_u8 boot_welcome = 0;
 
 /* ToDo's:
  * - Display warning messages
@@ -93,13 +94,13 @@ int main()
   int load_from_jumperset = check_flash();
   if (use_flash) {
     load_from_jumperset = cfg_load_from_flash(&sysconfig,0);
-    if (load_from_jumperset == 1 || load_from_jumperset == -CFG_VERSION_INVALID) {
+    if (boot_welcome == 1 || load_from_jumperset != 0) {
       powercycle_show_menu = 1;
       menu = &welcome_screen;
     }
   }
 
-  if (load_from_jumperset != 0 && load_from_jumperset != 1) {
+  if (load_from_jumperset != 0) {
     cfg_clear_words(&sysconfig);  // just in case anything went wrong while loading from flash
     cfg_load_jumperset(&sysconfig,0);
     powercycle_show_menu = 1;
@@ -218,8 +219,10 @@ int main()
       }
       update_vinfo_screen(menu,&ppu_state);
       update_cfg_screen(menu,linemult_mode,timing_n64adv);
-      cfg_store_linex_word(&sysconfig,linex_word_menu);
-      cfg_store_timing_word(&sysconfig,timing_menu);
+      if (menu->type == CONFIG) {
+        cfg_store_linex_word(&sysconfig,linex_word_menu);
+        cfg_store_timing_word(&sysconfig,timing_menu);
+      }
 
       if (!cfg_get_value(&pal_awareness,0))
         cfg_set_value(&ntsc_pal_selection,NTSC);

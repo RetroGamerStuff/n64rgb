@@ -56,6 +56,7 @@ extern config_t deblur_mode, deblur_mode_current, mode15bit, mode15bit_current;
 extern config_t timing_selection;
 extern config_tray_t linex_words[], timing_words[];
 
+extern alt_u8 boot_welcome;
 alt_u8 use_filteraddon;
 
 
@@ -216,18 +217,19 @@ int cfg_save_to_flash(configuration_t* sysconfig, alt_u8 need_confirm)
   ((cfg4flash_t*) databuf)->vers_cfg_main = CFG_FW_MAIN;
   ((cfg4flash_t*) databuf)->vers_cfg_sub = CFG_FW_SUB;
   ((cfg4flash_t*) databuf)->show_welcome_screen = SW_FW_SUB;
-  for (idx = 0; idx < NUM_CFG_B32WORDS - 1; idx++) {
+
+  for (idx = 0; idx < NUM_CFG_B32WORDS; idx++)
     for (jdx = 0; jdx < CFG2FLASH_WORD_FACTOR; jdx++)
-      ((cfg4flash_t*) databuf)->cfg_words[CFG2FLASH_WORD_FACTOR*idx+jdx] = ((0xFF << (8*jdx) & sysconfig->cfg_word_def[idx]->cfg_word_val) >> (8*jdx));
-    sysconfig->cfg_word_def[idx]->cfg_ref_word_val = sysconfig->cfg_word_def[idx]->cfg_word_val;
+      ((cfg4flash_t*) databuf)->cfg_words[CFG2FLASH_WORD_FACTOR*idx+jdx] = (alt_u8) ((sysconfig->cfg_word_def[idx]->cfg_word_val >> (8*jdx)) & 0xFF);
+
+  for (jdx = 0; jdx < CFG2FLASH_WORD_FACTOR; jdx++) {
+    ((cfg4flash_t*) databuf)->cfg_linex_trays[                      jdx] = (alt_u8) ((linex_words[NTSC].config_val >> (8*jdx)) & 0xFF); // global/ntsc
+    ((cfg4flash_t*) databuf)->cfg_linex_trays[CFG2FLASH_WORD_FACTOR+jdx] = (alt_u8) ((linex_words[PAL].config_val  >> (8*jdx)) & 0xFF); // pal
   }
 
-  for (idx = 0; idx < CFG2FLASH_WORD_FACTOR; idx++) {
-    ((cfg4flash_t*) databuf)->cfg_linex_trays[idx] = ((0xFF << (8*idx) & linex_words[NTSC].config_val) >> (8*idx)); // global/ntsc
-    ((cfg4flash_t*) databuf)->cfg_linex_trays[CFG2FLASH_WORD_FACTOR+idx] = ((0xFF << (8*idx) & linex_words[PAL].config_val) >> (8*idx));  // pal
-    for (jdx = 0; jdx < NUM_TIMING_MODES; jdx++)
-      ((cfg4flash_t*) databuf)->cfg_timing_trays[CFG2FLASH_WORD_FACTOR*jdx+idx] = ((0xFF << (8*idx) & timing_words[jdx].config_val) >> (8*idx));
-  }
+  for (idx = 0; idx < NUM_TIMING_MODES; idx++)
+    for (jdx = 0; jdx < CFG2FLASH_WORD_FACTOR; jdx++)
+      ((cfg4flash_t*) databuf)->cfg_timing_trays[CFG2FLASH_WORD_FACTOR*idx+jdx] = (alt_u8) ((timing_words[idx].config_val >> (8*jdx)) & 0xFF);
 
   int retval = write_flash_page((alt_u8*) databuf, sizeof(cfg4flash_t), USERDATA_OFFSET/PAGESIZE);
 
@@ -256,9 +258,9 @@ int cfg_load_from_flash(configuration_t* sysconfig, alt_u8 need_confirm)
   if ((((cfg4flash_t*) databuf)->vers_cfg_main != CFG_FW_MAIN) ||
       (((cfg4flash_t*) databuf)->vers_cfg_sub  != CFG_FW_SUB)   ) return -CFG_VERSION_INVALID;
 
-  retval = ((cfg4flash_t*) databuf)->show_welcome_screen != SW_FW_SUB;
+  boot_welcome = ((cfg4flash_t*) databuf)->show_welcome_screen != SW_FW_SUB;
 
-  for (idx = 0; idx < NUM_CFG_B32WORDS - 1; idx++) {
+  for (idx = 0; idx < NUM_CFG_B32WORDS; idx++) {
 	  sysconfig->cfg_word_def[idx]->cfg_word_val = 0;
     for (jdx = 0; jdx < CFG2FLASH_WORD_FACTOR; jdx++)
       sysconfig->cfg_word_def[idx]->cfg_word_val |= (((cfg4flash_t*) databuf)->cfg_words[CFG2FLASH_WORD_FACTOR*idx + jdx] << (8*jdx));
@@ -266,12 +268,15 @@ int cfg_load_from_flash(configuration_t* sysconfig, alt_u8 need_confirm)
 
   linex_words[NTSC].config_val = 0;
   linex_words[PAL].config_val = 0;
-  for (idx = 0; idx < NUM_TIMING_MODES; idx++) timing_words[jdx].config_val = 0;
-  for (idx = 0; idx < CFG2FLASH_WORD_FACTOR; idx++) {
-    linex_words[NTSC].config_val |= (((cfg4flash_t*) databuf)->cfg_linex_trays[idx]  << (8*idx));                 // global/ntsc
-    linex_words[PAL].config_val |= (((cfg4flash_t*) databuf)->cfg_words[CFG2FLASH_WORD_FACTOR+idx]  << (8*idx));  // pal
-    for (jdx = 0; jdx < NUM_TIMING_MODES; jdx++)
-      timing_words[jdx].config_val |= (((cfg4flash_t*) databuf)->cfg_timing_trays[CFG2FLASH_WORD_FACTOR*jdx+idx]  << (8*idx));
+  for (jdx = 0; jdx < CFG2FLASH_WORD_FACTOR; jdx++) {
+    linex_words[NTSC].config_val |= (((cfg4flash_t*) databuf)->cfg_linex_trays[                      jdx]  << (8*jdx)); // global/ntsc
+    linex_words[PAL].config_val  |= (((cfg4flash_t*) databuf)->cfg_linex_trays[CFG2FLASH_WORD_FACTOR+jdx]  << (8*jdx)); // pal
+  }
+
+  for (idx = 0; idx < NUM_TIMING_MODES; idx++) {
+    timing_words[idx].config_val = 0;
+    for (jdx = 0; jdx < CFG2FLASH_WORD_FACTOR; jdx++)
+      timing_words[idx].config_val |= (((cfg4flash_t*) databuf)->cfg_timing_trays[CFG2FLASH_WORD_FACTOR*idx+jdx]  << (8*jdx));
   }
 
   cfg_update_reference(sysconfig);
@@ -285,7 +290,7 @@ int cfg_reset_timing(configuration_t* sysconfig)
   if (abort) return -CFG_DEF_LOAD_ABORT;
 
   alt_u8 timing_word_select = timing_selection.cfg_value;
-  if (timing_word_select == 0 || timing_word_select > 5) return -1;
+  if (timing_word_select == PPU_CURRENT || timing_word_select > NUM_TIMING_MODES) return -1;
   timing_words[timing_word_select-1].config_val = CFG_TIMING_DEFAULTS;
   cfg_load_timing_word(sysconfig, timing_word_select);
   return 0;
@@ -306,8 +311,8 @@ int cfg_load_defaults(configuration_t* sysconfig, alt_u8 need_confirm)
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= CFG_VIDEO_DEFAULT;
   sysconfig->cfg_word_def[LINEX]->cfg_word_val |= CFG_LINEX_DEFAULT;
 
-  cfg_store_linex_word(sysconfig,0);
-  cfg_store_linex_word(sysconfig,1);
+  cfg_store_linex_word(sysconfig,NTSC);
+  cfg_store_linex_word(sysconfig,PAL);
 
   return 0;
 }
@@ -380,10 +385,12 @@ void cfg_store_timing_word(configuration_t* sysconfig, alt_u8 timing_word_select
 }
 
 void cfg_load_timing_word(configuration_t* sysconfig, alt_u8 timing_word_select) {
-  if (timing_word_select == 0 || timing_word_select > 5) return;
+  if (timing_word_select == PPU_CURRENT || timing_word_select > NUM_TIMING_MODES) return;
   timing_word_select--;
-  sysconfig->cfg_word_def[VIDEO]->cfg_word_val = (timing_words[timing_word_select].config_val & CFG_VIDEO_GETTIMINGS_MASK)| (sysconfig->cfg_word_def[VIDEO]->cfg_word_val & CFG_VIDEO_GETNONTIMINGS_MASK);
-  sysconfig->cfg_word_def[VIDEO]->cfg_ref_word_val = (timing_words[timing_word_select].config_ref_val & CFG_VIDEO_GETTIMINGS_MASK)| (sysconfig->cfg_word_def[VIDEO]->cfg_ref_word_val & CFG_VIDEO_GETNONTIMINGS_MASK);
+  sysconfig->cfg_word_def[VIDEO]->cfg_word_val &= CFG_VIDEO_GETNONTIMINGS_MASK;
+  sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= (timing_words[timing_word_select].config_val & CFG_VIDEO_GETTIMINGS_MASK);
+  sysconfig->cfg_word_def[VIDEO]->cfg_ref_word_val &= CFG_VIDEO_GETNONTIMINGS_MASK;
+  sysconfig->cfg_word_def[VIDEO]->cfg_ref_word_val |= (timing_words[timing_word_select].config_ref_val & CFG_VIDEO_GETTIMINGS_MASK);
 }
 
 void cfg_apply_to_logic(configuration_t* sysconfig)
@@ -429,7 +436,7 @@ void cfg_update_reference(configuration_t* sysconfig)
 
   linex_words[NTSC].config_ref_val = linex_words[NTSC].config_val;
   linex_words[PAL].config_ref_val  = linex_words[PAL].config_val;
-  for (idx = 0; idx < NUM_TIMING_MODES; idx++) timing_words[idx].config_ref_val  = timing_words[idx].config_val;
+  for (idx = 0; idx < NUM_TIMING_MODES; idx++) timing_words[idx].config_ref_val = timing_words[idx].config_val;
 }
 
 void check_filteraddon()
