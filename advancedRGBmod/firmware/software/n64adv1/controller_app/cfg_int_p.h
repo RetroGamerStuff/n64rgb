@@ -37,7 +37,7 @@
 #ifndef CFG_INT_P_H_
 #define CFG_INT_P_H_
 
-extern const char  *NTSCPAL_SEL[];
+extern const char  *NTSCPAL_SEL[], *VTimingSel[];
 
 config_t deblur_mode_current = {
     // .cfg_b32word_t* must be NULL to show that this is a local value
@@ -67,6 +67,16 @@ config_t ntsc_pal_selection = {
       .max_value = PAL,
     },
     .value_string = &NTSCPAL_SEL
+};
+
+config_t timing_selection = {
+    // .cfg_b32word_t* must be NULL to show that this is a local value
+    .cfg_type     = TXTVALUE, // treat as txtvalue for modifying function
+    .cfg_value    = 0,
+    .value_details = {
+      .max_value = PAL_LX2_INT,
+    },
+    .value_string = &VTimingSel
 };
 
 #endif /* CFG_INT_P_H_ */

@@ -134,7 +134,7 @@
 #define VPLL_TEST_FRAMES      25
 #define VPLL_LOCK_LOST_FRAMES 1
 
-#define NVSYNC_IN_MASK        0x01
+#define OSD_VSYNC_IN_MASK     0x01
 #define NEW_CTRL_DATA_IN_MASK 0x02
 
 #define HDL_FW_MAIN_OFFSET  8
@@ -172,7 +172,7 @@ alt_u8 update_vpll_lock_state(void);
 void enable_vpll_test(void);
 void disable_vpll_test(void);
 int run_vpll_test(configuration_t* sysconfig);
-alt_u8 get_nvsync(void);
+alt_u8 get_osdvsync(void);
 alt_u8 new_ctrl_available(void);
 alt_u8 get_fallback_mode(void);
 alt_u8 is_fallback_mode_valid(void);

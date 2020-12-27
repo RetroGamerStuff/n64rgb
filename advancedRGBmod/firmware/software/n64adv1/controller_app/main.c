@@ -41,8 +41,6 @@
 #include "flash.h"
 
 #define CTRL_IGNORE_FRAMES 10;
-#define DEBLUR_FORCE_OFF 1
-#define DEBLUR_FORCE_ON  2
 
 const alt_u8 RW_Message_FontColor[] = {FONTCOLOR_GREEN,FONTCOLOR_RED,FONTCOLOR_MAGENTA};
 const char   *RW_Message[] = {"< Success >","< Failed > ","< Aborted >"};
@@ -55,7 +53,6 @@ const char   *RW_Message[] = {"< Success >","< Failed > ","< Aborted >"};
 
 void open_osd_main(menu_t **menu)
 {
-  *menu = &home_menu;
   print_overlay(*menu);
   cfg_set_flag(&show_logo);
   print_selection_arrow(*menu);
@@ -74,14 +71,17 @@ int main()
       .cfg_word_def[VIDEO] = &cfg_data_video,
       .cfg_word_def[LINEX] = &cfg_data_linex,
   };
-  alt_u8 linex_word_selection;
+
+  alt_u8 linex_word_menu, linex_word_n64adv;
+  alt_u8 timing_menu, timing_n64adv;
 
   cfg_clear_words(&sysconfig);
 
   alt_u8 ctrl_update = 1;
   alt_u32 ctrl_data;
   alt_u8 ctrl_ignore = 0;
-  alt_u16 ppu_state, ppu_state_pre;
+  alt_u16 ppu_state;
+  alt_u8 palmode, interlaced_mode, linemult_mode;
   alt_u8 vpll_lock_first_boot;
   alt_u8 vpll_state_frame_delay;
 
@@ -89,15 +89,17 @@ int main()
 
   check_filteraddon();
 
-  int load_from_jumperset = 1;
-  check_flash();
+  alt_u8 powercycle_show_menu = 0;
+  int load_from_jumperset = check_flash();
   if (use_flash) {
     load_from_jumperset = cfg_load_from_flash(&sysconfig,0);
+    if (load_from_jumperset == 1 || load_from_jumperset == -CFG_VERSION_INVALID) {
+      powercycle_show_menu = 1;
+      menu = &welcome_screen;
+    }
   }
 
-  alt_u8 powercycle_show_menu = 0;
-
-  if (load_from_jumperset != 0) {
+  if (load_from_jumperset != 0 && load_from_jumperset != 1) {
     cfg_clear_words(&sysconfig);  // just in case anything went wrong while loading from flash
     cfg_load_jumperset(&sysconfig,0);
     powercycle_show_menu = 1;
@@ -123,15 +125,13 @@ int main()
   cfg_clear_flag(&test_vpll);
 
   cfg_load_linex_word(&sysconfig,NTSC);
+  cfg_load_timing_word(&sysconfig,NTSC_LX2_PR);
   cfg_set_value(&deblur_mode_current,cfg_get_value(&deblur_mode,0));
   cfg_set_value(&mode15bit_current,cfg_get_value(&mode15bit,0));
   cfg_apply_to_logic(&sysconfig);
 
   vpll_lock_first_boot = 1;
   vpll_state_frame_delay = 0;
-
-  ppu_state = get_ppu_state();
-  ppu_state_pre = ~ppu_state;
 
 
   /* Event loop never exits. */
@@ -144,12 +144,31 @@ int main()
       command = CMD_NON;
     }
 
+    if (cfg_get_value(&pal_awareness,0)) {
+      linex_word_n64adv = (ppu_state & PPU_STATE_PALMODE_GETMASK) >> PPU_STATE_PALMODE_OFFSET;
+      linex_word_menu = cfg_get_value(&ntsc_pal_selection,0);
+    } else {
+        linex_word_n64adv = NTSC;
+        linex_word_menu = NTSC;
+    }
+    ppu_state = get_ppu_state();
+    palmode = (ppu_state & PPU_STATE_PALMODE_GETMASK) >> PPU_STATE_PALMODE_OFFSET;
+    interlaced_mode = (ppu_state & PPU_STATE_480I_GETMASK) >> PPU_STATE_480I_OFFSET;
+    linemult_mode = (ppu_state & PPU_STATE_LINEMULT_GETMASK) >> PPU_STATE_LINEMULT_OFFSET;
+    if (palmode)
+      timing_n64adv = interlaced_mode ? PAL_LX2_INT : PAL_LX2_PR;
+    else
+      timing_n64adv = interlaced_mode ? NTSC_LX2_INT :
+        (linemult_mode == 2) ? NTSC_LX3_PR : NTSC_LX2_PR;
+
+    timing_menu = cfg_get_value(&timing_selection,0);
+    if (timing_menu == PPU_CURRENT) timing_menu = (linemult_mode == 0) ? PPU_CURRENT: timing_n64adv;
+
 
     if(cfg_get_value(&show_osd,0)) {
 
-      linex_word_selection = cfg_get_value(&ntsc_pal_selection,0);
-      if (cfg_get_value(&pal_awareness,0)) // show the correct options
-        cfg_load_linex_word(&sysconfig,linex_word_selection);
+      cfg_load_linex_word(&sysconfig,linex_word_menu);
+      cfg_load_timing_word(&sysconfig,timing_menu);
 
       if (message_cnt > 0) {
         if (command != CMD_NON) {
@@ -160,7 +179,7 @@ int main()
         message_cnt--;
       }
 
-      todo = modify_menu(command,&menu,&sysconfig);
+      todo = modify_menu(command,&menu,&sysconfig,&ppu_state);
 
       switch (todo) {
         case MENU_MUTE:
@@ -192,17 +211,16 @@ int main()
           break;
       }
 
-      if ((menu->type == VINFO) &&
-          ((ppu_state_pre != ppu_state)              ||
-           (todo == NEW_OVERLAY)                     ))
-        update_vinfo_screen(menu,&ppu_state);
+      if (menu->type != TEXT) {
+        vd_clear_area(0,VD_WIDTH/2,VD_HEIGHT-1,VD_HEIGHT-1);
+        if (menu == &home_menu) print_ctrl_data(&ctrl_data);
+        else print_current_mode(palmode,linemult_mode,timing_n64adv);
+      }
+      update_vinfo_screen(menu,&ppu_state);
+      update_cfg_screen(menu,linemult_mode,timing_n64adv);
+      cfg_store_linex_word(&sysconfig,linex_word_menu);
+      cfg_store_timing_word(&sysconfig,timing_menu);
 
-      if ((menu->type == CONFIG) && ((todo == NEW_OVERLAY)    ||
-                                     (todo == NEW_CONF_VALUE) ||
-                                     (todo == NEW_SELECTION)  ))
-        update_cfg_screen(menu);
-
-      cfg_store_linex_word(&sysconfig,linex_word_selection);
       if (!cfg_get_value(&pal_awareness,0))
         cfg_set_value(&ntsc_pal_selection,NTSC);
 
@@ -216,12 +234,12 @@ int main()
       if (cfg_get_value(&igr_deblur,0))
         switch (command) {
           case CMD_DEBLUR_QUICK_ON:
-            if (!(ppu_state & PPU_STATE_480I_GETMASK)) {
+            if (!interlaced_mode) {
               cfg_set_flag(&deblur_mode_current);
             };
             break;
           case CMD_DEBLUR_QUICK_OFF:
-            if (!(ppu_state & PPU_STATE_480I_GETMASK)) {
+            if (!interlaced_mode) {
               cfg_clear_flag(&deblur_mode_current);
             };
             break;
@@ -243,11 +261,6 @@ int main()
 
     } /* END OF if(!cfg_get_value(&show_osd)) */
 
-
-    if (menu->type != TEXT) print_ctrl_data(&ctrl_data);
-
-    ppu_state_pre = ppu_state;
-
     vpll_lock = update_vpll_lock_state();
     if (vpll_lock) {
       vpll_lock_first_boot = 0;
@@ -266,16 +279,12 @@ int main()
       }
     }
 
-    if (cfg_get_value(&pal_awareness,NTSC))
-      cfg_load_linex_word(&sysconfig,(ppu_state & PPU_STATE_PALMODE_GETMASK) >> PPU_STATE_PALMODE_OFFSET);
-    else
-      cfg_load_linex_word(&sysconfig,NTSC);
-
+    cfg_load_linex_word(&sysconfig,linex_word_n64adv);
+    cfg_load_timing_word(&sysconfig,timing_n64adv);
     cfg_apply_to_logic(&sysconfig);
 
-    /* ToDo: use external interrupt to go on on nVSYNC */
-    while(!get_nvsync()){};  /* wait for nVSYNC goes high */
-    while( get_nvsync()){};  /* wait for nVSYNC goes low  */
+    while(!get_osdvsync()){};  /* wait for OSD_VSYNC goes high (OSD vert. active area) */
+    while( get_osdvsync()){};  /* wait for OSD_VSYNC goes low  */
     ctrl_update = new_ctrl_available();
     ppu_state = get_ppu_state();
   }

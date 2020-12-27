@@ -30,7 +30,6 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-`define FREESYNC
 
 module linemult(
   VCLK_i,
@@ -39,6 +38,7 @@ module linemult(
   vdata_i,
 
   vinfo_mult,
+  linex_timing,
 
   VCLK_o,
   nVRST_o,
@@ -53,7 +53,8 @@ input nVRST_i;
 input vdata_valid_i; // for new implementation
 input  [`VDATA_I_FU_SLICE] vdata_i;
 
-input [20:0] vinfo_mult; // [nLineMult (2bits),lx_ifix (1bit),SLhyb_str (5bits),SL_str (8bits),SL_method,SL_id,SL_en,palmode,n64_480i]
+input [20:0] vinfo_mult;    // [nLineMult (2bits),lx_ifix (1bit),SLhyb_str (5bits),SL_str (8bits),SL_method,SL_id,SL_en,palmode,n64_480i]
+input [13:0] linex_timing;
 
 input  VCLK_o;
 input  nVRST_o;
@@ -62,12 +63,24 @@ output reg [`VDATA_O_FU_SLICE] vdata_o = {vdata_width_o{1'b0}};
 
 
 // mist stuff
-localparam hcnt_width  = $clog2(`PIXEL_PER_LINE_MAX_2x);
+localparam vcnt_width_lx1 = $clog2(`TOTAL_LINES_PAL_LX1);
+localparam vcnt_width_lx2 = $clog2(`TOTAL_LINES_PAL_LX2_1);
+localparam vcnt_width_lx3 = $clog2(`TOTAL_LINES_PAL_LX3_1);
+localparam hcnt_width_1x  = $clog2(`PIXEL_PER_LINE_MAX);
+localparam hcnt_width_2x  = $clog2(`PIXEL_PER_LINE_MAX_2x);
+localparam hcnt_width_4x  = $clog2(`PIXEL_PER_LINE_MAX_4x);
 localparam pcnt_width = $clog2(`BUF_NUM_OF_PAGES);
 localparam pal_pattern_length = 4'd4;
-localparam v_shift_buf = (`BUF_NUM_OF_PAGES >> 2);
+
+localparam vshift_buf = (`BUF_NUM_OF_PAGES >> 2);
+localparam hshift_buf = 4;  // consider two cycle delay for reading BRAM and two cycle by registering afterwards
+
 localparam Y_width     = color_width_o+1;
 localparam SLHyb_width = 8; // do not change this localparam!
+
+localparam ST_WAIT4N64 = 2'b00; // wait for N64 triggering the reading process
+localparam ST_RDREADY  = 2'b01; // Prepare to start reading
+localparam ST_READING  = 2'b10; // reading lines
 
 integer int_idx, pp_idx;
 
@@ -84,25 +97,29 @@ wire              SL_en =   vinfo_mult[ 2];
 wire            palmode =   vinfo_mult[ 1];
 wire           n64_480i =   vinfo_mult[ 0];
 
+wire      dejitter_enable   = linex_timing[13];
+wire linex_hshift_direction = linex_timing[12];
+wire [ 5:0] linex_hshift_2x = linex_timing[12] ? linex_timing[11: 6] : ~linex_timing[11: 6] + 1'b1;
+wire linex_vshift_direction = linex_timing[ 5];
+wire [ 4:0] linex_vshift    = linex_timing[ 5] ? linex_timing[ 4: 0] : ~linex_timing[ 4: 0] + 1'b1;
+
 // wires
-wire negedge_nHSYNC_half;
+wire negedge_nHSYNC_div2;
 
 wire negedge_nHSYNC, negedge_nVSYNC;
 
 wire line_overflow, valid_line;
 
-wire [pcnt_width-1:0] wrpage_o_resynced;
+wire [pcnt_width-1:0] wrpage_o_resynced, wrpage_shifted;
 wire wrhcnt_b6_o_resynced, valid_line_r_o_resynced, start_rdproc_o_resynced;
 
-wire palpattern_select_resynced;
-wire [hcnt_width-1:0] linewidth_pal0, linewidth_pal1, next_linewidth_pal;
+wire palpattern_select_resynced, palmode_resynced, n64_480i_resynced;
+wire [hcnt_width_2x-1:0] linewidth_2x_pal0, linewidth_2x_pal1, next_linewidth_2x_pal;
 
-wire [          10:0] vpos_o;
-wire [hcnt_width-1:0] hpos_o;
+wire [vcnt_width_lx3-1:0] linecount_pal_w, linecount_ntsc_w;
+wire [vcnt_width_lx3-1:0] vpos_o;
+wire [hcnt_width_2x-1:0] hpos_2x_o;
 
-wire [10:0] vsync_activte_low_stop;
-wire [10:0] vsync_activte_high_start;
-wire [10:0] vsync_activte_high_stop;
 wire nVSYNC_mult_active;
 
 wire [pcnt_width-1:0] rdpage_240p, rdpage_480i, rdpage_cur;
@@ -123,58 +140,56 @@ reg [`VDATA_I_FU_SLICE] vdata_i_L = {vdata_width_i{1'b0}};
 reg FrameID = 1'b0;
 
 
-reg [hcnt_width-2:0] hstart_i = `HSTART_NTSC;
-reg [hcnt_width-2:0] hstop_i  = `HSTOP_NTSC;
+reg [hcnt_width_1x-1:0] hstart_i = `HSTART_NTSC;
+reg [hcnt_width_1x-1:0] hstop_i  = `HSTOP_NTSC;
 
-reg                  wren   = 1'b0;
-reg [pcnt_width-1:0] wrpage = {pcnt_width{1'b0}};
-reg [hcnt_width-2:0] wrhcnt = {(hcnt_width-1){1'b0}};
-reg [hcnt_width-2:0] wraddr = {(hcnt_width-1){1'b0}};
+reg                     wren   = 1'b0;
+reg    [pcnt_width-1:0] wrpage = {pcnt_width{1'b0}};
+reg [hcnt_width_1x-1:0] wrhcnt = {hcnt_width_1x{1'b0}};
+reg [hcnt_width_1x-1:0] wraddr = {hcnt_width_1x{1'b0}};
 
-reg [hcnt_width:0] hcnt_full = {(hcnt_width+1){1'b0}};
+reg [hcnt_width_4x:0] hcnt_full = {hcnt_width_4x{1'b0}};
 reg palpattern_select_r = 1'b0;
 
 reg valid_line_r    = 1'b0;
 
 reg clk_div2 = 1'b0;
-reg nHSYNC_buf_half = 1'b0;
-reg [pcnt_width-1:0] wrpage_half = {pcnt_width{1'b0}};
-reg [hcnt_width-1:0] hcnt_half = {hcnt_width{1'b0}};
-reg [hcnt_width-1:0] linewidth_orig[0:`BUF_NUM_OF_PAGES-1];
+reg nHSYNC_buf_div2 = 1'b0;
+reg [pcnt_width-1:0] wrpage_div2 = {hcnt_width_2x{1'b0}};
+reg [hcnt_width_2x-1:0] hcnt_div2 = {hcnt_width_2x{1'b0}};
+reg [hcnt_width_2x-1:0] linewidth_2x_orig[0:`BUF_NUM_OF_PAGES-1];
 initial begin
   for (int_idx = 0; int_idx < `BUF_NUM_OF_PAGES; int_idx = int_idx+1)
-    linewidth_orig[int_idx] = {hcnt_width{1'b0}};
+    linewidth_2x_orig[int_idx] = {hcnt_width_2x{1'b0}};
 end
 
 
 reg [1:0] newFrame = 2'b0; // newFrame[1] used by reading process, newFrame[0] by writing process
 reg start_rdproc = 1'b0;
 
-reg [hcnt_width:0] linewidth_r = `PIXEL_PER_LINE_NTSC_2x;
-reg [10:0] linecount_r = `TOTAL_LINES_NTSC_LX2_1;
-
-reg [hcnt_width-1:0] hstart_o = `HSTART_NTSC_2x;
-reg [hcnt_width-1:0] hstop_o  = `HSTOP_NTSC_2x;
-
-reg [ 6:0] nHS_width = `HS_WIDTH_NTSC_LX2_2x;
-reg [ 3:0] nVS_width = `VS_WIDTH_NTSC_LX2;
-
-reg            [2:0] rden        = 3'b0;
-reg            [1:0] rdrun       = 2'b00;
-reg [pcnt_width-1:0] rdpage      = {pcnt_width{1'b0}};
-reg [hcnt_width-1:0] rdhcnt      = {hcnt_width{1'b0}};
-reg [          10:0] rdvcnt      = 11'd0;
-reg [hcnt_width-1:0] rdaddr      = {hcnt_width{1'b0}};
-reg            [1:0] rdlinexcnt  = 2'b00;
+reg                [1:0] rd_state   = ST_WAIT4N64;
+reg                [2:0] rden       = 3'b0;
+reg     [pcnt_width-1:0] rdpage     = {pcnt_width{1'b0}};
+reg  [hcnt_width_2x-1:0] rdhcnt_2x  = {hcnt_width_2x{1'b0}};
+reg [vcnt_width_lx3-1:0] rdvcnt     = {vcnt_width_lx3{1'b0}};
+reg  [hcnt_width_2x-1:0] rdaddr_2x  = {hcnt_width_2x{1'b0}};
+reg                [1:0] rdlinexcnt = 2'b00;
 
 reg [3:0] lwpattern_cnt = 4'd0;
-reg palmode_pre = 1'b0;
-reg n64_480i_pre = 1'b0;
+reg  [hcnt_width_2x-1:0] linewidth_2x_r = `PIXEL_PER_LINE_NTSC_2x;
+//reg [vcnt_width_lx3-1:0] linecount_r = `TOTAL_LINES_NTSC_LX2_1;
+reg [vcnt_width_lx3-1:0] rdvcnt_shifted_reset_val = `TOTAL_LINES_NTSC_LX2_1 - 1;
+reg [vcnt_width_lx3-1:0] rdvcnt_shifted = {vcnt_width_lx3{1'b0}};
 
+
+reg [hcnt_width_2x-1:0] hstart_2x_o = `HSTART_NTSC_2x;
+reg [hcnt_width_2x-1:0] hstop_2x_o  = `HSTOP_NTSC_2x;
+
+reg [vcnt_width_lx3-1:0] nVS_width    = `VS_WIDTH_NTSC_LX2;
+reg  [hcnt_width_2x-1:0] nHS_width_2x = `HS_WIDTH_NTSC_LX2_2x;
+
+reg dejitter_enable_pre = 1'b0;
 reg start_rdproc_o_resynced_pre = 1'b0;
-
-reg [ 4:0] h_shift   = `H_SHIFT_NTSC_240P_LX2_2x;
-reg [ 4:0] v_shift   = `V_SHIFT_NTSC_LX2;
 
 reg nHSYNC_mult = 1'b0;
 reg nVSYNC_mult = 1'b0;
@@ -241,7 +256,7 @@ end
 
 
 // start of rtl
-assign negedge_nHSYNC_half = nHSYNC_buf_half & !vdata_i[3*color_width_i+1];
+assign negedge_nHSYNC_div2 = nHSYNC_buf_div2 & !vdata_i[3*color_width_i+1];
 
 assign negedge_nVSYNC =  vdata_i_L[3*color_width_i+3] & !vdata_i[3*color_width_i+3];
 assign negedge_nHSYNC =  vdata_i_L[3*color_width_i+1] & !vdata_i[3*color_width_i+1];
@@ -252,24 +267,24 @@ assign valid_line    = wrhcnt > hstop_i & !line_overflow; // for evaluation
 always @(posedge VCLK_i or negedge nVRST_i)
   if (!nVRST_i) begin
     clk_div2 <= 1'b0;
-    nHSYNC_buf_half <= 1'b0;
-    wrpage_half <= {pcnt_width{1'b0}};
-    hcnt_half <= {hcnt_width{1'b0}};
+    nHSYNC_buf_div2 <= 1'b0;
+    wrpage_div2 <= {pcnt_width{1'b0}};
+    hcnt_div2 <= {hcnt_width_2x{1'b0}};
     for (int_idx = 0; int_idx < `BUF_NUM_OF_PAGES; int_idx = int_idx+1)
-      linewidth_orig[int_idx] = {hcnt_width{1'b0}};
+      linewidth_2x_orig[int_idx] = {hcnt_width_2x{1'b0}};
   
     vdata_i_LL <= {vdata_width_i{1'b0}};
     vdata_i_L <= {vdata_width_i{1'b0}};
     FrameID <= 1'b0;
 
     
-    hcnt_full <= {(hcnt_width+1){1'b0}};
+    hcnt_full <= {hcnt_width_4x{1'b0}};
     palpattern_select_r <= 1'b0;
     
     wren   <= 1'b0;
     wrpage <= {pcnt_width{1'b0}};
-    wrhcnt <= {(hcnt_width-1){1'b0}};
-    wraddr <= {(hcnt_width-1){1'b0}};
+    wrhcnt <= {hcnt_width_1x{1'b0}};
+    wraddr <= {hcnt_width_1x{1'b0}};
 
     valid_line_r    <= 1'b0;
 
@@ -281,20 +296,20 @@ always @(posedge VCLK_i or negedge nVRST_i)
   end else begin
     clk_div2 <= ~clk_div2;
     if (clk_div2) begin
-      nHSYNC_buf_half <= vdata_i[3*color_width_i+1];
-      if (negedge_nHSYNC_half) begin
-        linewidth_orig[wrpage_half] <= hcnt_half;
-        hcnt_half <= {hcnt_width{1'b0}};
-        if (wrpage_half == `BUF_NUM_OF_PAGES-1)
-          wrpage_half <= {pcnt_width{1'b0}};
+      nHSYNC_buf_div2 <= vdata_i[3*color_width_i+1];
+      if (negedge_nHSYNC_div2) begin
+        linewidth_2x_orig[wrpage_div2] <= hcnt_div2;
+        hcnt_div2 <= {hcnt_width_2x{1'b0}};
+        if (wrpage_div2 == `BUF_NUM_OF_PAGES-1)
+          wrpage_div2 <= {pcnt_width{1'b0}};
         else
-          wrpage_half <= wrpage_half + 1'b1;
+          wrpage_div2 <= wrpage_div2 + 1'b1;
       end else begin
-        hcnt_half <= hcnt_half + 1;
+        hcnt_div2 <= hcnt_div2 + 1'b1;
       end
     end
     if (negedge_nHSYNC) begin
-      hcnt_full <= {(hcnt_width+1){1'b0}};
+      hcnt_full <= {hcnt_width_4x{1'b0}};
         if (palmode) begin
           if (hcnt_full == `PIXEL_PER_LINE_PAL_4x_long0)
             palpattern_select_r <= 1'b0;
@@ -302,7 +317,7 @@ always @(posedge VCLK_i or negedge nVRST_i)
             palpattern_select_r <= 1'b1;
         end
     end else begin
-      hcnt_full <= hcnt_full + 1;
+      hcnt_full <= hcnt_full + 1'b1;
     end
     if (vdata_valid_i) begin
       vdata_i_LL <= vdata_i_L;
@@ -328,13 +343,11 @@ always @(posedge VCLK_i or negedge nVRST_i)
       end
 
       if (negedge_nHSYNC) begin // negedge nHSYNC -> reset wrhcnt and inc. wrpage
-        wrhcnt <= {(hcnt_width-1){1'b0}};
+        wrhcnt <= {hcnt_width_1x{1'b0}};
         if (wrpage == `BUF_NUM_OF_PAGES-1)
           wrpage <= {pcnt_width{1'b0}};
         else
           wrpage <= wrpage + 1'b1;
-        if (!rdrun[0])
-          wrpage <= {pcnt_width{1'b0}};
           
         valid_line_r <= valid_line;
       end else if (~line_overflow) begin
@@ -343,194 +356,188 @@ always @(posedge VCLK_i or negedge nVRST_i)
 
       if (wrhcnt == hstart_i) begin
         wren   <= 1'b1;
-        wraddr <= {(hcnt_width-1){1'b0}};
+        wraddr <= {hcnt_width_1x{1'b0}};
       end else if (wrhcnt > hstart_i && wrhcnt < hstop_i) begin
         wren   <= 1'b1;
         wraddr <= wraddr + 1'b1;
       end else begin
-        wraddr <= {(hcnt_width-1){1'b0}};
+        wraddr <= {hcnt_width_1x{1'b0}};
+      end
+      
+      if (!valid_line_r) begin
+        wrpage_div2 <= {pcnt_width{1'b0}};
+        wrpage <= {pcnt_width{1'b0}};
       end
     end
   end
 
 
 register_sync #(
-  .reg_width(1+pcnt_width+3),
-  .reg_preset({1'b0,{pcnt_width{1'b0}},3'b000})
+  .reg_width(1+pcnt_width+5),
+  .reg_preset({1'b0,{pcnt_width{1'b0}},5'b00000})
 ) sync4tx_u(
   .clk(VCLK_o),
   .clk_en(1'b1),
   .nrst(nVRST_o),
-  .reg_i({palpattern_select_r,wrpage,wrhcnt[6],valid_line_r,start_rdproc}),
-  .reg_o({palpattern_select_resynced,wrpage_o_resynced,wrhcnt_b6_o_resynced,valid_line_r_o_resynced,start_rdproc_o_resynced})
+  .reg_i({palpattern_select_r,wrpage,wrhcnt[6],valid_line_r,start_rdproc,palmode,n64_480i}),
+  .reg_o({palpattern_select_resynced,wrpage_o_resynced,wrhcnt_b6_o_resynced,valid_line_r_o_resynced,start_rdproc_o_resynced,palmode_resynced,n64_480i_resynced})
 );
 
-// ToDo: allign pattern start with vsync
+assign wrpage_shifted = wrpage_o_resynced >= 2'b10 ? wrpage_o_resynced - 2'b10 :
+                        wrpage_o_resynced == 2'b01 ? `BUF_NUM_OF_PAGES - 1 : `BUF_NUM_OF_PAGES - 2;
 
-// PAL pattern 0 (linewidth for the first 5 lines (lineX2 mode), afterwards linewidth always `PIXEL_PER_LINE_PAL_2x_normal)
-// I:  `PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_normal,`PIXEL_PER_LINE_PAL_2x_normal
-// II: `PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long
-// Frame-Pattern: I -> I -> I -> II -> I -> ...
+assign linecount_pal_w = n64_480i_resynced ? `TOTAL_LINES_PAL_LX2_0 : `TOTAL_LINES_PAL_LX2_1;
+assign linecount_ntsc_w = linemult_sel[1] ? `TOTAL_LINES_NTSC_LX3_1 :
+                        n64_480i_resynced ? `TOTAL_LINES_NTSC_LX2_0 : `TOTAL_LINES_NTSC_LX2_1;
 
-assign linewidth_pal0 = ((vpos_o < 4) || ((vpos_o == 5) && (lwpattern_cnt == 3))) ? `PIXEL_PER_LINE_PAL_2x_long : `PIXEL_PER_LINE_PAL_2x_normal;
+// PAL pattern (linewidth for the first 6 lines (lineX2 mode, pixelclock x2), afterwards linewidth always `PIXEL_PER_LINE_PAL_2x_normal)
+// I:   `PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_normal,`PIXEL_PER_LINE_PAL_2x_normal
+// II:  `PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_normal
+// III: `PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long
+//
+// Frame-Pattern 0: I   -> I  -> I  -> III -> I  -> ...
+// Frame-Pattern 1: III -> II -> II -> III -> II -> ...
 
-// PAL pattern 1 (linewidth for the first 5 lines (lineX2 mode), afterwards linewidth always `PIXEL_PER_LINE_PAL_2x_normal)
-// I:  `PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long
-// II: `PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_long,`PIXEL_PER_LINE_PAL_2x_normal
-// Frame-Pattern: I -> II -> II -> I -> II -> ...
+assign linewidth_2x_pal0 = ((vpos_o < 4) || ((vpos_o < 6) && (lwpattern_cnt == 3))) ? `PIXEL_PER_LINE_PAL_2x_long : `PIXEL_PER_LINE_PAL_2x_normal;
+assign linewidth_2x_pal1 = ((vpos_o < 5) || ((vpos_o == 5) && ((lwpattern_cnt == 0) || (lwpattern_cnt == 3)))) ? `PIXEL_PER_LINE_PAL_2x_long : `PIXEL_PER_LINE_PAL_2x_normal;
+assign next_linewidth_2x_pal = palpattern_select_resynced ? linewidth_2x_pal1 : linewidth_2x_pal0;
 
-assign linewidth_pal1 = ((vpos_o < 5) || ((vpos_o == 5) && ((lwpattern_cnt == 0) || (lwpattern_cnt == 3)))) ? `PIXEL_PER_LINE_PAL_2x_long : `PIXEL_PER_LINE_PAL_2x_normal;
+//assign vpos_o = rdvcnt_shifted < vshift_buf ? linecount_r + rdvcnt_shifted - vshift_buf : rdvcnt_shifted - vshift_buf;
+assign vpos_o = rdvcnt_shifted - vshift_buf;
+assign hpos_2x_o = rdhcnt_2x;
 
-assign next_linewidth_pal = palpattern_select_resynced ? linewidth_pal1 : linewidth_pal0;
+assign nVSYNC_mult_active = ~((vpos_o >= 0 && vpos_o < nVS_width));
 
-assign vpos_o = rdvcnt < v_shift_buf ? linecount_r + rdvcnt - v_shift_buf : rdvcnt - v_shift_buf;
-assign hpos_o = rdhcnt;
-
-assign vsync_activte_low_stop = nVS_width > v_shift ? nVS_width - v_shift : 0;
-assign vsync_activte_high_start = linecount_r - v_shift;
-assign vsync_activte_high_stop = linecount_r + nVS_width - v_shift;
-assign nVSYNC_mult_active = vpos_o >= vsync_activte_low_stop && ~(vpos_o >= vsync_activte_high_start && vpos_o < vsync_activte_high_stop);
 
 always @(posedge VCLK_o or negedge nVRST_o)
   if (!nVRST_o) begin
-    rden          <= 3'b0;
-    rdrun         <= 2'b00;
-    rdpage        <= {pcnt_width{1'b0}};
-    rdhcnt        <= {hcnt_width{1'b0}};
-    rdvcnt        <= 11'd0;
-    rdaddr        <= {hcnt_width{1'b0}};
-    rdlinexcnt    <= 2'b0;
-    
-    lwpattern_cnt <= 4'd0;
-
-    palmode_pre <= 1'b0;
-    n64_480i_pre <= 1'b0;
     newFrame[1] <= 1'b0;
     
-    linewidth_r <= `PIXEL_PER_LINE_NTSC_2x;
-    linecount_r <= `TOTAL_LINES_NTSC_LX2_1;
-    hstart_o <= `HSTART_NTSC_2x;
-    hstop_o  <= `HSTOP_NTSC_2x;
-    nHS_width <= `HS_WIDTH_NTSC_LX2_2x;
+    rd_state   <= ST_WAIT4N64;
+    rden       <= 3'b0;
+    rdpage     <= {pcnt_width{1'b0}};
+    rdhcnt_2x  <= {hcnt_width_2x{1'b0}};
+    rdvcnt     <= {vcnt_width_lx3{1'b0}};
+    rdaddr_2x  <= {hcnt_width_2x{1'b0}};
+    rdlinexcnt <= 2'b0;
+    
+    lwpattern_cnt <= 4'd0;
+    linewidth_2x_r <= `PIXEL_PER_LINE_NTSC_2x;
+    rdvcnt_shifted_reset_val <= `TOTAL_LINES_NTSC_LX2_1 - 1;
+    rdvcnt_shifted <= {vcnt_width_lx3{1'b0}};
+    
+    hstart_2x_o <= `HSTART_NTSC_2x;
+    hstop_2x_o  <= `HSTOP_NTSC_2x;
+    
     nVS_width <= `VS_WIDTH_NTSC_LX2;
+    nHS_width_2x <= `HS_WIDTH_NTSC_LX2_2x;
+    
+    dejitter_enable_pre = 1'b0;
     start_rdproc_o_resynced_pre <= 1'b0;
-
-    h_shift   <= `H_SHIFT_NTSC_240P_LX2_2x;
-    v_shift   <= `V_SHIFT_NTSC_LX2;
     
     nHSYNC_mult <= 1'b0;
     nVSYNC_mult <= 1'b0;
     nCSYNC_mult <= 1'b0;
   end else begin
-    if (rdrun[1]) begin
-`ifdef FEESYNC
-      if (rdhcnt == linewidth_r) begin
-`else
-      if (rdhcnt == linewidth_orig[rdpage]) begin
-`endif
-        rdhcnt <= {hcnt_width{1'b0}};
-        if (rdlinexcnt == linemult_sel) begin
-          rdlinexcnt <= 2'b00;
-          if (rdpage == `BUF_NUM_OF_PAGES - 1)
-            rdpage = {pcnt_width{1'b0}};
-          else
-            rdpage <= rdpage + 1'b1;
-        end else begin
-          rdlinexcnt <= rdlinexcnt + 1'b1;
+    case (rd_state)
+      ST_WAIT4N64:
+        if (start_rdproc_o_resynced ^ start_rdproc_o_resynced_pre)  // trigger detected
+          rd_state <= ST_RDREADY; // move to ready state
+      ST_RDREADY:
+        if (wrhcnt_b6_o_resynced) begin // delay first line a bit in order to sync mode properly
+          rd_state       <= ST_READING; // move to reading state
+          rdpage         <= wrpage_shifted;
+          rdhcnt_2x      <= linewidth_2x_orig[wrpage_shifted];
+          linewidth_2x_r <= linewidth_2x_orig[wrpage_shifted];
+          rdlinexcnt     <= linemult_sel;
+          lwpattern_cnt  <= 4'd0;
         end
-        
-        if (palmode)
-          linewidth_r <= next_linewidth_pal;
-        else
-          linewidth_r <= `PIXEL_PER_LINE_NTSC_2x;
-        
-        if (^newFrame) begin
-          if ((palmode_pre ^ palmode) || (n64_480i_pre ^ n64_480i)) begin // set new info (delayed)
-            if (palmode) begin
-              linecount_r <= n64_480i ? `TOTAL_LINES_PAL_LX2_0 : `TOTAL_LINES_PAL_LX2_1;
-              hstart_o <= `HSTART_PAL_2x;
-              hstop_o  <= `HSTOP_PAL_2x;
-              nHS_width <= `HS_WIDTH_PAL_LX2_2x;
-              nVS_width <= `VS_WIDTH_PAL_LX2;
+      ST_READING: begin
+          if (( dejitter_enable & (rdhcnt_2x == linewidth_2x_r)) ||
+              (!dejitter_enable & (rdhcnt_2x == linewidth_2x_orig[rdpage]))) begin  // new line
+            rdhcnt_2x <= {hcnt_width_2x{1'b0}};
+            if (rdlinexcnt == linemult_sel) begin
+              rdlinexcnt <= 2'b00;
+              if (rdpage == `BUF_NUM_OF_PAGES - 1)
+                rdpage <= {pcnt_width{1'b0}};
+              else
+                rdpage <= rdpage + 1'b1;
             end else begin
-              linecount_r <= linemult_sel[1] ? `TOTAL_LINES_NTSC_LX3_0 :
-                             n64_480i ? `TOTAL_LINES_NTSC_LX2_0 : `TOTAL_LINES_NTSC_LX2_1;
-              hstart_o <= `HSTART_NTSC_2x;
-              hstop_o  <= `HSTOP_NTSC_2x;
-              nHS_width <= linemult_sel[1] ? `HS_WIDTH_NTSC_LX3_2x : `HS_WIDTH_NTSC_LX2_2x;
-              nVS_width <= linemult_sel[1] ? `VS_WIDTH_NTSC_LX3 : `VS_WIDTH_NTSC_LX2;
+              rdlinexcnt <= rdlinexcnt + 1'b1;
             end
-          end
-          
-          if (lwpattern_cnt == pal_pattern_length)  // just let the counter run and don't care about pattern offset
-            lwpattern_cnt <= 4'd0;
-          else
-            lwpattern_cnt <= lwpattern_cnt + 4'd1;
-          
-          if (palmode) begin
-            h_shift <= n64_480i ? `H_SHIFT_PAL_576I_LX2_2x : `H_SHIFT_PAL_288P_LX2_2x;
-            v_shift <= `V_SHIFT_PAL_LX2;
+            
+            if (palmode_resynced)
+              linewidth_2x_r <= next_linewidth_2x_pal;
+            else
+              linewidth_2x_r <= `PIXEL_PER_LINE_NTSC_2x;
+            
+            if (^newFrame) begin
+              if (palmode_resynced) begin
+                rdvcnt_shifted_reset_val <= !linex_vshift_direction ? linecount_pal_w - linex_vshift - 1 :
+                                                  linex_vshift == 0 ? linecount_pal_w - 1 : linex_vshift - 1;
+                hstart_2x_o <= linex_hshift_direction ? `HSTART_PAL_2x + linex_hshift_2x - hshift_buf : `HSTART_PAL_2x - hshift_buf - {{(hcnt_width_2x-6){1'b0}},linex_hshift_2x};
+                hstop_2x_o  <= linex_hshift_direction ? `HSTOP_PAL_2x + linex_hshift_2x - hshift_buf : `HSTOP_PAL_2x - hshift_buf - {{(hcnt_width_2x-6){1'b0}},linex_hshift_2x};
+                nHS_width_2x <= `HS_WIDTH_PAL_LX2_2x;
+                nVS_width <= `VS_WIDTH_PAL_LX2;
+              end else begin
+                rdvcnt_shifted_reset_val <= !linex_vshift_direction ? linecount_ntsc_w - linex_vshift - 1 :
+                                                  linex_vshift == 0 ? linecount_ntsc_w - 1 : linex_vshift - 1;
+                hstart_2x_o <= linex_hshift_direction ? `HSTART_NTSC_2x - hshift_buf + linex_hshift_2x : `HSTART_NTSC_2x - hshift_buf - linex_hshift_2x;
+                hstop_2x_o  <= linex_hshift_direction ? `HSTOP_NTSC_2x - hshift_buf + linex_hshift_2x : `HSTOP_NTSC_2x - hshift_buf - linex_hshift_2x;
+                nHS_width_2x <= linemult_sel[1] ? `HS_WIDTH_NTSC_LX3_2x : `HS_WIDTH_NTSC_LX2_2x;
+                nVS_width <= linemult_sel[1] ? `VS_WIDTH_NTSC_LX3 : `VS_WIDTH_NTSC_LX2;
+              end
+              newFrame[1] <= newFrame[0];
+              rdvcnt <= {vcnt_width_lx3{1'b0}};
+            end else begin
+              rdvcnt <= rdvcnt + 1'b1;
+            end
+            if (rdvcnt == rdvcnt_shifted_reset_val) begin
+              rdvcnt_shifted <= {vcnt_width_lx3{1'b0}};
+              if (lwpattern_cnt == pal_pattern_length)  // just let the counter run and don't care about pattern offset
+                lwpattern_cnt <= 4'd0;
+              else
+                lwpattern_cnt <= lwpattern_cnt + 4'd1;
+            end else begin
+              rdvcnt_shifted <= rdvcnt_shifted + 1'b1;
+            end
           end else begin
-            h_shift <= linemult_sel[1] ? `H_SHIFT_NTSC_240P_LX3_2x :
-                       n64_480i        ? `H_SHIFT_NTSC_480I_LX2_2x : `H_SHIFT_NTSC_240P_LX2_2x;
-            v_shift <= linemult_sel[1] ?  `V_SHIFT_NTSC_LX3 : `V_SHIFT_NTSC_LX2;
+            rdhcnt_2x <= rdhcnt_2x + 1'b1;  // increase linecounter until new line is reached
           end
-          
-          palmode_pre <= palmode;
-          n64_480i_pre <= n64_480i;
-          newFrame[1] <= newFrame[0];
-          rdvcnt <= 11'd0;
-        end else begin
-          rdvcnt <= rdvcnt + 1'b1;
-        end
-      end else begin
-        rdhcnt <= rdhcnt + 1'b1;
-      end
 
-      if (hpos_o == (hstart_o - h_shift- 4)) begin // consider two cycle delay for reading BRAM and two cycle by registering afterwards
-        rden[0] <= 1'b1;
-        rdaddr  <= {hcnt_width{1'b0}};
-      end else if (rden[0] && hpos_o < (hstop_o - h_shift - 4)) begin
-        rdaddr <= rdaddr + 1'b1;
-      end else begin
-        rden[0] <= 1'b0;
-      end
-    end else if (rdrun[0] && wrhcnt_b6_o_resynced) begin
-      rdrun[1]      <= 1'b1;
-      rdpage        <= wrpage_o_resynced - 2'b10;
-`ifdef FEESYNC
-      rdhcnt        <= linewidth_r;
-`else
-      rdhcnt        <= linewidth_orig[wrpage_o_resynced - 2'b10];
-`endif
-      rdlinexcnt    <= linemult_sel;
-      palmode_pre <= ~palmode;
-      lwpattern_cnt <= 4'd0;
-    end else if (start_rdproc_o_resynced ^ start_rdproc_o_resynced_pre) begin
-      rdrun[0] <= 1'b1; // move to steady state
-    end
+          if (hpos_2x_o == hstart_2x_o) begin
+            rden[0] <= 1'b1;
+            rdaddr_2x  <= {hcnt_width_2x{1'b0}};
+          end else if (rden[0] && hpos_2x_o < hstop_2x_o) begin
+            rdaddr_2x <= rdaddr_2x + 1'b1;
+          end else begin
+            rden[0] <= 1'b0;
+          end
+        end
+    endcase
 
     rden[2:1] <= rden[1:0];
     start_rdproc_o_resynced_pre <= start_rdproc_o_resynced;
+    dejitter_enable_pre <= dejitter_enable;
 
-    if (!valid_line_r_o_resynced || nENABLE_linemult) begin // additional reset conditions
+    if (!valid_line_r_o_resynced || nENABLE_linemult || (dejitter_enable_pre != dejitter_enable)) begin // additional reset conditions
+      rd_state <= ST_WAIT4N64;
       rden  <= 3'b0;
-      rdrun <= 2'b0;
     end
 
-    nHSYNC_mult <= hpos_o >= nHS_width;
+    nHSYNC_mult <= hpos_2x_o >= nHS_width_2x;
     nVSYNC_mult <= nVSYNC_mult_active;
-    nCSYNC_mult <= nVSYNC_mult_active ? hpos_o >= nHS_width : hpos_o > (linewidth_r - nHS_width);
+    nCSYNC_mult <= nVSYNC_mult_active ? hpos_2x_o >= nHS_width_2x : dejitter_enable ? hpos_2x_o > (linewidth_2x_r - nHS_width_2x) : hpos_2x_o > (linewidth_2x_orig[rdpage] - nHS_width_2x);
   end
 
-assign rdpage_240p = (!SL_method || !rdaddr[0]) ? rdpage : 
-                                         !SL_id ? (rdpage == 0 ? `BUF_NUM_OF_PAGES-1 : rdpage - 1'b1) :
-                                                  (rdpage == `BUF_NUM_OF_PAGES-1 ? 0 : rdpage + 1'b1);
+assign rdpage_240p = (!SL_method || !rdaddr_2x[0]) ? rdpage : 
+                                            !SL_id ? (rdpage == 0 ? `BUF_NUM_OF_PAGES-1 : rdpage - 1'b1) :
+                                                     (rdpage == `BUF_NUM_OF_PAGES-1 ? 0 : rdpage + 1'b1);
 
-assign rdpage_480i = (FrameID | !n64_480i | !bob_480i_fix) ? rdpage : 
-                                             rdlinexcnt[0] ? rdpage :
-                                               rdpage == 0 ? `BUF_NUM_OF_PAGES-1 : rdpage - 1'b1;
-assign rdpage_cur = n64_480i ? rdpage_480i : rdpage_240p;
+assign rdpage_480i = (FrameID | !n64_480i_resynced | !bob_480i_fix) ? rdpage : 
+                                                      rdlinexcnt[0] ? rdpage :
+                                                        rdpage == 0 ? `BUF_NUM_OF_PAGES-1 : rdpage - 1'b1;
+assign rdpage_cur = n64_480i_resynced ? rdpage_480i : rdpage_240p;
 
 ram2port #(
   .num_of_pages(`BUF_NUM_OF_PAGES),
@@ -545,7 +552,7 @@ ram2port #(
   .rdCLK(VCLK_o),
   .rden(rden[0]), // leave reading open even if rdaddr[0] == 1 for advanced scanline method
   .rdpage(rdpage_cur),
-  .rdaddr(rdaddr[hcnt_width-1:1]),
+  .rdaddr(rdaddr_2x[hcnt_width_2x-1:1]),
   .rddata({R_buf,G_buf,B_buf})
 );
 
@@ -580,7 +587,7 @@ always @(posedge VCLK_o or negedge nVRST_o)
                                            SL_id ? (rdlinexcnt == 2'b10) : (rdlinexcnt == 2'b00));
 
     if (rden[2]) begin
-      if (!rdaddr[0]) begin  // reading buffer has exactly two delay steps - so we can safetely use !rdaddr[0]
+      if (!rdaddr_2x[0]) begin  // reading buffer has exactly two delay steps - so we can safetely use !rdaddr[0]
         R_mult_pre <= R_buf;
         G_mult_pre <= G_buf;
         B_mult_pre <= B_buf;

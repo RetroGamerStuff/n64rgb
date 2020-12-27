@@ -33,6 +33,7 @@
 
 module osd_injection (
   OSDCLK,
+  OSD_VSync,
   OSDWrVector,
   OSDInfo,
 
@@ -51,6 +52,7 @@ module osd_injection (
 
 
 input OSDCLK;
+output reg OSD_VSync;
 input [24:0] OSDWrVector;
 input [ 1:0] OSDInfo;
 
@@ -127,6 +129,7 @@ always @(posedge VCLK or negedge nVRST)
     txt_h_cnt[2:0] <= `OSD_FONT_WIDTH;
     txt_v_cnt  <= 8'h0;
 
+    OSD_VSync       <= 1'b0;
     draw_osd_window <= 6'h0;
     draw_logo       <= 6'h0;
     en_txtrd        <= 6'h0;
@@ -180,6 +183,7 @@ always @(posedge VCLK or negedge nVRST)
     end
 
     // for simplicity - let them run
+    OSD_VSync <= (v_cnt >= `OSD_WINDOW_V_START) && (v_cnt < `OSD_WINDOW_V_STOP);
     draw_logo[5:1] <= draw_logo[4:0];
     draw_logo[0] <= show_osd_logo &&
                     (h_cnt >= `OSD_LOGO_H_START) && (~&logo_h_cnt) &&

@@ -63,8 +63,8 @@ wire negedge_nHSYNC = vdata_o[3*color_width_o+1] & !vdata_sync_i[1];
 reg [8:0] vcnt = 9'b0;
 reg [9:0] hcnt = 10'b0;
 
-wire [8:0] pattern_vstart = palmode ? `VSTART_PAL : `VSTART_NTSC;
-wire [8:0] pattern_vstop = palmode ? `VSTOP_PAL : `VSTOP_NTSC;
+wire [8:0] pattern_vstart = palmode ? `VSTART_PAL_LX1 : `VSTART_NTSC_LX1;
+wire [8:0] pattern_vstop = palmode ? `VSTOP_PAL_LX1 : `VSTOP_NTSC_LX1;
 wire [9:0] pattern_hstart = palmode ? `HSTART_PAL : `HSTART_NTSC;
 wire [9:0] pattern_hstop = palmode ? `HSTOP_PAL : `HSTOP_NTSC;
 

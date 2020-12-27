@@ -90,6 +90,21 @@ static const arrow_t vicfg_vpll_sel_arrow = {
     .hpos = (VICFG_VPLLSUB_VALS_H_OFFSET - 2)
 };
 
+static const arrow_t vicfg_timing_opt_arrow_0 = {
+    .shape = &optval_arrow,
+    .hpos = (VICFG_VTIMSUB_VALS_H_0_OFFSET - 2)
+};
+
+static const arrow_t vicfg_timing_opt_arrow_1 = {
+    .shape = &optval_arrow,
+    .hpos = (VICFG_VTIMSUB_VALS_H_1_OFFSET - 2)
+};
+
+static const arrow_t vicfg_timing_sel_arrow = {
+    .shape = &selection_arrow,
+    .hpos = (VICFG_VTIMSUB_VALS_H_1_OFFSET - 2)
+};
+
 static const arrow_t misc_opt_arrow = {
     .shape = &optval_arrow,
     .hpos = (MISC_VALS_H_OFFSET - 2)
@@ -101,13 +116,14 @@ static const arrow_t misc_sel_arrow = {
 };
 
 menu_t home_menu, vinfo_screen, vicfg1_screen, vicfg2_screen, vicfg_240p_opt_subscreen, vicfg_480i_opt_subscreen,
-       vicfg_vpll_subscreen, misc_screen, rwdata_screen, about_screen, thanks_screen, license_screen;
+       vicfg_vpll_subscreen, vicfg_timing_subscreen, misc_screen, rwdata_screen, about_screen, thanks_screen, license_screen;
 
 extern config_t deblur_mode_current, mode15bit_current, ntsc_pal_selection;
 extern config_t vformat, deblur_mode, gamma_lut, mode15bit, pal_awareness;
 extern config_t linex_240p, sl_en, sl_method, sl_id, sl_str, slhyb_str;
 extern config_t bob_deinter_480i, field_shift_fix_480i, sl_en_480i, sl_link_480i, sl_id_480i, sl_str_480i, slhyb_str_480i;
 extern config_t use_vpll;
+extern config_t timing_selection, vert_shift, hor_shift, pal_dejitter;
 extern config_t igr_reset, igr_deblur, igr_15bitmode, filteraddon_cutoff, exchange_rb_out;
 
 
@@ -141,12 +157,13 @@ menu_t vicfg1_screen = {
     .overlay = &vicfg1_overlay,
     .parent = &home_menu,
     .current_selection = 0,
-    .number_selections = 6,
+    .number_selections = 7,
     .leaves = {
         {.id = VICFG1_NTSC_PAL_AWARENESS_V_OFFSET, .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &pal_awareness},
         {.id = VICFG1_NTSC_PAL_SELECT_V_OFFSET   , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &ntsc_pal_selection},
         {.id = VICFG1_240P_SET_V_OFFSET          , .arrow_desc = &vicfg_sel_arrow, .leavetype = ISUBMENU, .submenu      = &vicfg_240p_opt_subscreen},
         {.id = VICFG1_480I_SET_V_OFFSET          , .arrow_desc = &vicfg_sel_arrow, .leavetype = ISUBMENU, .submenu      = &vicfg_480i_opt_subscreen},
+        {.id = VICFG1_TIMING_V_OFFSET            , .arrow_desc = &vicfg_sel_arrow, .leavetype = ISUBMENU, .submenu      = &vicfg_timing_subscreen},
         {.id = VICFG1_GAMMA_V_OFFSET             , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &gamma_lut},
         {.id = VICFG1_PAGE2_V_OFFSET             , .arrow_desc = &vicfg_sel_arrow, .leavetype = ISUBMENU, .submenu      = &vicfg2_screen}
     }
@@ -220,6 +237,22 @@ menu_t vicfg_vpll_subscreen = {
     }
 };
 
+menu_t vicfg_timing_subscreen = {
+    .type = CONFIG,
+    .header = &vicfg_timing_opt_header,
+    .overlay = &vicfg_timing_opt_overlay,
+    .parent = &vicfg1_screen,
+    .current_selection = 0,
+    .number_selections = 5,
+    .leaves = {
+        {.id = VICFG_VTIMSUB_MODE_V_OFFSET   , .arrow_desc = &vicfg_timing_opt_arrow_0, .leavetype = ICONFIG, .config_value = &timing_selection},
+        {.id = VICFG_VTIMSUB_VSHIFT_V_OFFSET , .arrow_desc = &vicfg_timing_opt_arrow_1, .leavetype = ICONFIG, .config_value = &vert_shift},
+        {.id = VICFG_VTIMSUB_HSHIFT_V_OFFSET , .arrow_desc = &vicfg_timing_opt_arrow_1, .leavetype = ICONFIG, .config_value = &hor_shift},
+        {.id = VICFG_VTIMSUB_PALDEJ_V_OFFSET , .arrow_desc = &vicfg_timing_opt_arrow_1, .leavetype = ICONFIG, .config_value = &pal_dejitter},
+        {.id = VICFG_VTIMSUB_RESET_V_OFFSET  , .arrow_desc = &vicfg_timing_sel_arrow  , .leavetype = IFUNC  , .test_fun     = &cfg_reset_timing}
+    }
+};
+
 menu_t misc_screen = {
     .type = CONFIG,
     .header = &misc_header,
@@ -269,6 +302,13 @@ menu_t license_screen = {
    .parent = &home_menu
 };
 
+menu_t welcome_screen = {
+   .type = TEXT,
+   .header = &welcome_header,
+   .overlay = &welcome_overlay,
+   .parent = &home_menu
+};
+
 
 static inline alt_u8 is_home_menu (menu_t *menu)
   {  return (menu == &home_menu); }
@@ -280,6 +320,8 @@ static inline alt_u8 is_vicfg_240p_screen (menu_t *menu)
   {  return (menu == &vicfg_240p_opt_subscreen); }
 static inline alt_u8 is_vicfg_vpll_screen (menu_t *menu)
   {  return (menu == &vicfg_vpll_subscreen); }
+static inline alt_u8 is_vicfg_timing_screen (menu_t *menu)
+  {  return (menu == &vicfg_timing_subscreen); }
 static inline alt_u8 is_vicfg_480i_screen (menu_t *menu)
   {  return (menu  == &vicfg_480i_opt_subscreen); }
 static inline alt_u8 is_vicfg_480i_sl_are_linked (menu_t *menu)
@@ -287,13 +329,33 @@ static inline alt_u8 is_vicfg_480i_sl_are_linked (menu_t *menu)
 static inline alt_u8 is_misc_screen (menu_t *menu)
   {  return (menu == &misc_screen); }
 
+void print_timing_overlay(alt_u8 lx_mode) {
+  alt_u8 font_color = lx_mode ? FONTCOLOR_WHITE : FONTCOLOR_GREY;
+  vd_print_string(VICFG_VTIMSUB_OVERLAY_H_OFFSET+3,VICFG_VTIMSUB_VSHIFT_V_OFFSET,BACKGROUNDCOLOR_STANDARD,font_color,vicfg_timing_opt_overlay0);
+}
+void print_dejitter_overlay(alt_u8 palmode) {
+  alt_u8 font_color = palmode ? FONTCOLOR_WHITE : FONTCOLOR_GREY;
+  vd_print_string(VICFG_VTIMSUB_OVERLAY_H_OFFSET+3,VICFG_VTIMSUB_PALDEJ_V_OFFSET,BACKGROUNDCOLOR_STANDARD,font_color,vicfg_timing_opt_overlay1);
+}
+
 void val2txt_func(alt_u8 v) { sprintf(szText,"%u", v); };
+void val2txt_6b_binaryoffset_func(alt_u8 v) { if (v & 0x20) sprintf(szText," %2u", (v&0x1F)); else sprintf(szText,"-%2u", (v^0x1F)+1); };
+void val2txt_7b_binaryoffset_half_func(alt_u8 v) {
+  alt_u8 val;
+  if (v & 0x40) {
+    val = v&0x3F;
+    sprintf(szText," %2u.%u", (val)/2, 5*(val & 0x1));
+  } else {
+    val = (v^0x3F)+1;
+    sprintf(szText,"-%2u.%u", (val)/2, 5*(val & 0x1));
+  }
+};
 void flag2set_func(alt_u8 v) { sprintf(szText,"[ ]"); if (v) szText[1] = (char) CHECKBOX_TICK; };
 void scanline_str2txt_func(alt_u8 v) { v++; sprintf(szText,"%3u.%02u%%", (v*625)/100, 25*(v&3)); };
 void scanline_hybrstr2txt_func(alt_u8 v) { sprintf(szText,"%3u.%02u%%", (v*625)/100, 25*(v&3)); };
 void gamma2txt_func(alt_u8 v) { sprintf(szText,"%u.%02u", v > 4, 5* v + 75 - (100 * (v > 4))); };
 
-updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t* sysconfig)
+updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t* sysconfig, alt_u16* ppu_state)
 {
   static alt_u8 vicfg_page = 1;
 
@@ -360,6 +422,19 @@ updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t
     default:
       break;
   }
+  if (is_vicfg_timing_screen(*current_menu)) {
+    alt_u8 pagesel = cfg_get_value((*current_menu)->leaves[0].config_value,0);
+    if (pagesel == PPU_CURRENT) {
+      if (((*ppu_state & PPU_STATE_LINEMULT_GETMASK) >> PPU_STATE_LINEMULT_OFFSET) == 0) {
+        (*current_menu)->current_selection = 0;
+        todo = NON;
+      }
+      if (((((*ppu_state & PPU_STATE_PALMODE_GETMASK) >> PPU_STATE_PALMODE_OFFSET) == NTSC) && ((*current_menu)->current_selection == 3)) || ((*current_menu)->current_selection == 4))
+          (*current_menu)->current_selection = (command == CMD_MENU_DOWN) ? 0 : 2;
+    } else if ((pagesel < PAL_LX2_PR) && ((*current_menu)->current_selection == 3)) {
+        (*current_menu)->current_selection = (command == CMD_MENU_DOWN) ? 4 : 2;
+    }
+  }
 
   if (is_vicfg_vpll_screen(*current_menu)) {
     if (!vpll_lock) (*current_menu)->current_selection = 0;
@@ -395,8 +470,8 @@ updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t
 
   if ((*current_menu)->leaves[sel].leavetype == ISUBMENU) {
     switch (command) {
-      case CMD_MENU_RIGHT:
       case CMD_MENU_ENTER:
+      case CMD_MENU_RIGHT:
         if ((*current_menu)->leaves[sel].submenu) {
           if (is_home_menu(*current_menu) && sel == 1) {
             if (vicfg_page == 1) *current_menu = &vicfg1_screen;
@@ -427,6 +502,8 @@ updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t
             modify_overlay_and_new_cfg = 1;
             break;
         }
+        if (is_vicfg_timing_screen((*current_menu)) && (sel == 1 || sel == 2) && cfg_get_value((*current_menu)->leaves[sel].config_value,0) == 0)
+          cfg_inc_value((*current_menu)->leaves[sel].config_value); // all-zero not allowed for vert./hor. shift
         return NEW_CONF_VALUE;
       case CMD_MENU_LEFT:
         if (is_vicfg_240p_screen((*current_menu)) && palmode && sel == 0 && cfg_get_value((*current_menu)->leaves[sel].config_value,0) == 0)
@@ -439,6 +516,8 @@ updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t
             modify_overlay_and_new_cfg = 1;
             break;
         }
+        if (is_vicfg_timing_screen((*current_menu)) && (sel == 1 || sel == 2) && cfg_get_value((*current_menu)->leaves[sel].config_value,0) == 0)
+          cfg_dec_value((*current_menu)->leaves[sel].config_value); // all-zero not allowed for vert./hor. shift
         return NEW_CONF_VALUE;
       default:
         break;
@@ -536,6 +615,9 @@ void print_overlay(menu_t* current_menu)
         print_fw_version();
       if (&(*current_menu->overlay) == &license_overlay)
         vd_print_char(CR_SIGN_LICENSE_H_OFFSET,CR_SIGN_LICENSE_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,(char) COPYRIGHT_SIGN);
+      if (&(*current_menu->overlay) == &welcome_overlay)
+        for (h_run = 0; h_run < VD_WIDTH; h_run++)
+          vd_print_char(h_run,1,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_NAVAJOWHITE,(char) HEADER_UNDERLINE);
       break;
     default:
       break;
@@ -545,6 +627,9 @@ void print_overlay(menu_t* current_menu)
     vd_print_string(VD_240P_OVERLAY_H_OFFSET,VD_240P_OVERLAY_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,text_240p_288p[palmode]);
     vd_print_string(VD_240P_OVERLAY_H_OFFSET,VD_480I_OVERLAY_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,text_480i_576i[palmode]);
   }
+
+  if (is_vicfg_timing_screen(current_menu))
+    vd_print_string(VD_WIDTH-strlen(DeJitterHint),VD_HEIGHT-3,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_GREY,DeJitterHint);
 }
 
 void print_selection_arrow(menu_t* current_menu)
@@ -639,7 +724,7 @@ int update_vinfo_screen(menu_t* current_menu, alt_u16* ppu_state)
   return 0;
 }
 
-int update_cfg_screen(menu_t* current_menu)
+int update_cfg_screen(menu_t* current_menu, alt_u8 linemode, alt_u8 timing_current)
 {
   if (current_menu->type != CONFIG) return -1;
 
@@ -650,6 +735,9 @@ int update_cfg_screen(menu_t* current_menu)
   alt_u8 use_240p_linked_values;
 
   background_color = BACKGROUNDCOLOR_STANDARD;
+
+  alt_u8 timing_pagesel = cfg_get_value(current_menu->leaves[0].config_value,0);
+
 
   for (v_run = 0; v_run < current_menu->number_selections; v_run++) {
     h_l_offset = current_menu->leaves[v_run].arrow_desc->hpos + 3;
@@ -669,6 +757,11 @@ int update_cfg_screen(menu_t* current_menu)
         if (is_misc_screen(current_menu)) {
           font_color = FONTCOLOR_WHITE;
           vd_print_string(h_l_offset,v_offset,background_color,font_color,RunTestPattern);
+        }
+        if (is_vicfg_timing_screen(current_menu)) {
+          font_color = timing_pagesel ? FONTCOLOR_WHITE : FONTCOLOR_GREY;
+          vd_print_string(VICFG_VTIMSUB_OVERLAY_H_OFFSET+3,v_offset,background_color,font_color,vicfg_timing_opt_overlay2);
+          vd_print_string(h_l_offset,v_offset,background_color,font_color,LoadTimingDefaults);
         }
         break;
       case ICONFIG:
@@ -714,7 +807,45 @@ int update_cfg_screen(menu_t* current_menu)
               (!cfg_get_value(current_menu->leaves[2].config_value,0) && v_run > 2))
             font_color = val_is_ref ? FONTCOLOR_GREY : FONTCOLOR_DARKGOLD;
 
-        if (v_run == current_menu->current_selection)
+        if (is_vicfg_timing_screen(current_menu)) {
+          if (v_run == 0) {
+            if (timing_pagesel > PPU_CURRENT) print_timing_overlay(1);
+            else print_timing_overlay(linemode);
+          } else if (v_run == 3) {
+            print_dejitter_overlay(1);
+            switch (timing_pagesel) {
+              case PPU_CURRENT:
+                if (timing_current > NTSC_LX3_PR) {
+                  current_menu->leaves[3].config_value->val2char_func(val_select);
+                  break;
+                }
+              case NTSC_LX2_PR:
+              case NTSC_LX2_INT:
+              case NTSC_LX3_PR:
+                print_dejitter_overlay(0);
+                font_color = FONTCOLOR_GREY;
+                sprintf(szText,not_available);
+                break;
+              case PAL_LX2_PR:
+              case PAL_LX2_INT:
+                current_menu->leaves[3].config_value->val2char_func(val_select);
+                break;
+              default:
+                break;
+              }
+          } else {
+            if ((timing_pagesel == PPU_CURRENT) && (linemode == 0)) {
+              font_color = FONTCOLOR_GREY;
+              sprintf(szText,not_available);
+            } else {
+              current_menu->leaves[v_run].config_value->val2char_func(val_select);
+            }
+          }
+          vd_clear_area(h_l_offset,h_l_offset + OPT_WINDOW_WIDTH,v_offset,v_offset);
+          vd_print_string(h_l_offset,v_offset,background_color,font_color,Global);
+        }
+
+//        if (v_run == current_menu->current_selection)
           vd_clear_area(h_l_offset,h_l_offset + OPT_WINDOW_WIDTH,v_offset,v_offset);
 
         if (is_misc_screen(current_menu) && v_run == 2) {
@@ -739,7 +870,7 @@ int update_cfg_screen(menu_t* current_menu)
         } else {
           if (current_menu->leaves[v_run].config_value->cfg_type == FLAGTXT ||
               current_menu->leaves[v_run].config_value->cfg_type == NUMVALUE ) {
-            current_menu->leaves[v_run].config_value->val2char_func(val_select);
+            if (!(is_vicfg_timing_screen(current_menu))) current_menu->leaves[v_run].config_value->val2char_func(val_select);
             vd_print_string(h_l_offset,v_offset,background_color,font_color,&szText[0]);
           } else {
             vd_print_string(h_l_offset,v_offset,background_color,font_color,current_menu->leaves[v_run].config_value->value_string[val_select]);
@@ -767,4 +898,11 @@ int update_cfg_screen(menu_t* current_menu)
   }
 
   return 0;
+}
+
+void print_current_mode(alt_u8 palmode, alt_u8 linemode, alt_u8 timing_current)
+{
+  if (linemode == 0) sprintf(szText,"Current: %s",VTimingPT[palmode]);
+  else               sprintf(szText,"Current: %s",VTimingSel[timing_current]);
+  vd_print_string(0, VD_HEIGHT-1, BACKGROUNDCOLOR_STANDARD, FONTCOLOR_NAVAJOWHITE, &szText[0]);
 }

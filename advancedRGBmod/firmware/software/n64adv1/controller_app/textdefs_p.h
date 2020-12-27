@@ -70,6 +70,7 @@
 #define VICFG1_NTSC_PAL_SELECT_V_OFFSET     ( 1 + VICFG_VALS_V_OFFSET)
 #define VICFG1_240P_SET_V_OFFSET            ( 2 + VICFG_VALS_V_OFFSET)
 #define VICFG1_480I_SET_V_OFFSET            ( 3 + VICFG_VALS_V_OFFSET)
+#define VICFG1_TIMING_V_OFFSET              ( 4 + VICFG_VALS_V_OFFSET)
 #define VICFG1_GAMMA_V_OFFSET               ( 5 + VICFG_VALS_V_OFFSET)
 #define VICFG1_PAGE2_V_OFFSET               ( 7 + VICFG_VALS_V_OFFSET)
 
@@ -100,6 +101,16 @@
 #define VICFG_VPLLSUB_VALS_V_OFFSET     VICFG_VPLLSUB_OVERLAY_V_OFFSET
 #define VICFG_VPLLSUB_TEST_V_OFFSET     ( 4 + VICFG_VPLLSUB_OVERLAY_V_OFFSET)
 #define VICFG_VPLLSUB_EN_V_OFFSET       ( 5 + VICFG_VPLLSUB_OVERLAY_V_OFFSET)
+
+#define VICFG_VTIMSUB_OVERLAY_H_OFFSET  TEXTOVERLAY_H_OFFSET
+#define VICFG_VTIMSUB_OVERLAY_V_OFFSET  OVERLAY_V_OFFSET_WH
+#define VICFG_VTIMSUB_VALS_H_0_OFFSET     (19 + VICFG_VTIMSUB_OVERLAY_H_OFFSET)
+#define VICFG_VTIMSUB_VALS_H_1_OFFSET     (31 + VICFG_VTIMSUB_OVERLAY_H_OFFSET)
+#define VICFG_VTIMSUB_MODE_V_OFFSET     (0 + VICFG_VTIMSUB_OVERLAY_V_OFFSET)
+#define VICFG_VTIMSUB_VSHIFT_V_OFFSET   (2 + VICFG_VTIMSUB_OVERLAY_V_OFFSET)
+#define VICFG_VTIMSUB_HSHIFT_V_OFFSET   (3 + VICFG_VTIMSUB_OVERLAY_V_OFFSET)
+#define VICFG_VTIMSUB_PALDEJ_V_OFFSET   (4 + VICFG_VTIMSUB_OVERLAY_V_OFFSET)
+#define VICFG_VTIMSUB_RESET_V_OFFSET    (6 + VICFG_VTIMSUB_OVERLAY_V_OFFSET)
 
 #define MISC_OVERLAY_H_OFFSET       OVERLAY_H_OFFSET
 #define MISC_OVERLAY_V_OFFSET       OVERLAY_V_OFFSET_WH
@@ -178,7 +189,8 @@ static const char *vicfg1_overlay =
     "* NTSC/PAL awareness:\n"
     "* Linemultiplier:\n"
     "  - 240p settings:\n"
-    "  - 480i settings:\n\n"
+    "  - 480i settings:\n"
+    "* V/H position/timing:\n"
     "* Gamma Value:\n\n"
     "* VI config page 2:\n";
 
@@ -224,6 +236,19 @@ static const char *vicfg_vpll_opt_overlay =
     "during runtime, you may try to re-enable VPLL here.\n\n"
     "  * Test Video PLL:\n"
     "  * Enable Video PLL:";
+
+
+static const char *vicfg_timing_opt_header =
+    "Config. (Position)";
+static const char *vicfg_timing_opt_overlay =
+    "* Timing for:";
+static const char *vicfg_timing_opt_overlay0 =
+    "* Vertical shift:\n"
+    "* Horizontal shift:";
+static const char *vicfg_timing_opt_overlay1 =
+    "* DeJitter for PAL LX2*:";
+static const char *vicfg_timing_opt_overlay2 =
+    "* Reset values:";
   /* 1234567890123456789012345678901234567890123456789012 */
 
 
@@ -288,6 +313,20 @@ static const char *license_overlay =
     " party vendors providing the design tools...";
   /* 1234567890123456789012345678901234567890123456789012 */
 
+static const char *welcome_header =
+    "Welcome";
+static const char *welcome_overlay =
+    " Changes coming with latest firmware update:\n"
+    " * This 'welcome' screen\n"
+    " * New options (VI config -> V/H position/timing):\n"
+    "   - Horizontal and vertical shift\n"
+    "   - PAL DeJitter (experimental feature,\n"
+    "             which does not change console timings)\n"
+    " * some other tiny (stability) improvements\n\n"
+    " Save config once to not show this screen again.\n"
+    " Press B to enter main screen! Have fun! Peter :)";
+  /* 1234567890123456789012345678901234567890123456789012 */
+
 static const char *home_header =
     "Main Menu";
 static const char *home_overlay =
@@ -299,17 +338,22 @@ static const char *home_overlay =
     "Acknowledgment...\n"
     "License...";
 
-const char *EnterSubMenu      = "[Enter submenu]";
-const char *RunTestPattern    = "[run (alpha)]";
-const char *StartVPLLTest     = "[Start VPLL Test]";
-const char *LineX3VPLLHint    = "*LineX3: needs VPLL enabled";
-const char *LineX3Hint        = "*LineX3: only available in NTSC video mode";
-const char *Global            = "Global";
-const char *text_480i_576i_br = "(480i/576i)";
+const char *EnterSubMenu       = "[Enter submenu]";
+const char *RunTestPattern     = "[run (alpha)]";
+const char *StartVPLLTest      = "[Start VPLL Test]";
+const char *LoadTimingDefaults = "[Load defaults]";
+const char *LineX3VPLLHint     = "*LineX3: needs VPLL enabled";
+const char *LineX3Hint         = "*LineX3: only available in NTSC video mode";
+const char *DeJitterHint       = "*experimental feature";
+const char *Global             = "Global";
+const char *text_480i_576i_br  = "(480i/576i)";
+const char *not_available      = "-----";
 
 const char *OffOn[]         = {"Off","On"};
 const char *NTSCPAL_SEL[]   = {"NTSC  ","PAL   "};
 const char *LineX_240p[]    = {"LineX Off","LineX2","LineX3*"};
+const char *VTimingSel[]    = {"Current","NTSC LX2 (2x 240p)","NTSC LX2 (2x 480i)","NTSC LX3 (3x 240p)","PAL LX2 (2x 288p)","PAL LX2 (2x 576i)"};
+const char *VTimingPT[]     = {"NTSC LX1","PAL LX1"};
 const char *VideoPLL[]      = {"Off","Locked"};
 const char *EvenOdd[]       = {"Even","Odd "};
 const char *AdvSL[]         = {"Simple","Advanced"};

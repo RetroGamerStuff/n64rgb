@@ -154,6 +154,17 @@ config_t pal_awareness = {
     .val2char_func = &flag2set_func
 };
 
+config_t exchange_rb_out = {
+    .cfg_word        = &cfg_data_misc,
+    .cfg_word_offset = CFG_EXC_RB_OUT_OFFSET,
+    .cfg_type        = FLAGTXT,
+    .flag_masks      = {
+        .setflag_mask = CFG_EXC_RB_OUT_SETMASK,
+        .clrflag_mask = CFG_EXC_RB_OUT_CLRMASK
+    },
+    .val2char_func = &flag2set_func
+};
+
 config_t filteraddon_cutoff = {
     .cfg_word        = &cfg_data_misc,
     .cfg_word_offset = CFG_FILTERADDON_OFFSET,
@@ -166,21 +177,53 @@ config_t filteraddon_cutoff = {
 };
 
 // video
+
+config_tray_t timing_words[5] = {
+  { .config_val = CFG_TIMING_DEFAULTS, .config_ref_val = CFG_TIMING_DEFAULTS},
+  { .config_val = CFG_TIMING_DEFAULTS, .config_ref_val = CFG_TIMING_DEFAULTS},
+  { .config_val = CFG_TIMING_DEFAULTS, .config_ref_val = CFG_TIMING_DEFAULTS},
+  { .config_val = CFG_TIMING_DEFAULTS, .config_ref_val = CFG_TIMING_DEFAULTS},
+  { .config_val = CFG_TIMING_DEFAULTS, .config_ref_val = CFG_TIMING_DEFAULTS}
+};
+
+
 cfg_b32word_t cfg_data_video =
   { .cfg_word_mask    = CFG_VIDEO_GETALL_MASK,
     .cfg_word_val     = 0x00000000,
     .cfg_ref_word_val = 0x00000000
   };
 
-config_t exchange_rb_out = {
+config_t pal_dejitter = {
     .cfg_word        = &cfg_data_video,
-    .cfg_word_offset = CFG_EXC_RB_OUT_OFFSET,
+    .cfg_word_offset = CFG_PALDEJ_OFFSET,
     .cfg_type        = FLAGTXT,
     .flag_masks      = {
-        .setflag_mask = CFG_EXC_RB_OUT_SETMASK,
-        .clrflag_mask = CFG_EXC_RB_OUT_CLRMASK
+        .setflag_mask = CFG_PAL_DEJITTER_SETMASK,
+        .clrflag_mask = CFG_PAL_DEJITTER_CLRMASK
     },
     .val2char_func = &flag2set_func
+};
+
+config_t hor_shift = {
+    .cfg_word        = &cfg_data_video,
+    .cfg_word_offset = CFG_HORSHIFT_OFFSET,
+    .cfg_type        = NUMVALUE,
+    .value_details   = {
+        .max_value     = CFG_HORSHIFT_MAX_VALUE,
+        .getvalue_mask = CFG_HORSHIFT_GETMASK
+    },
+    .val2char_func = &val2txt_7b_binaryoffset_half_func
+};
+
+config_t vert_shift = {
+    .cfg_word        = &cfg_data_video,
+    .cfg_word_offset = CFG_VERTSHIFT_OFFSET,
+    .cfg_type        = NUMVALUE,
+    .value_details   = {
+        .max_value     = CFG_VERTSHIFT_MAX_VALUE,
+        .getvalue_mask = CFG_VERTSHIFT_GETMASK
+    },
+    .val2char_func = &val2txt_6b_binaryoffset_func
 };
 
 config_t vformat = {
@@ -236,11 +279,12 @@ cfg_b32word_t cfg_data_linex =
     .cfg_ref_word_val = 0x00000000
   };
 
-alt_u32 cfg_data_image_ntsc_word_val_tray = 0x00000000;
-alt_u32 cfg_data_image_ntsc_word_ref_tray = 0x00000000;
+config_tray_t linex_words[2] = {
+  { .config_val = 0x00000000, .config_ref_val = 0x00000000},
+  { .config_val = 0x00000000, .config_ref_val = 0x00000000}
+};
 
-alt_u32 cfg_data_image_pal_word_val_tray = 0x00000000;
-alt_u32 cfg_data_image_pal_word_ref_tray = 0x00000000;
+
 
 config_t linex_240p = {
     .cfg_word        = &cfg_data_linex,

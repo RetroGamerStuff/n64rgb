@@ -64,6 +64,7 @@ parameter vdata_width_o = 4 + 3*color_width_o;
   `define PIXEL_PER_LINE_NTSC_2x        1546
   `define PIXEL_PER_LINE_NTSC_4x        3093
 
+  `define PIXEL_PER_LINE_PAL_2x_short   1586
   `define PIXEL_PER_LINE_PAL_2x_normal  1588 // slighty modified and thus different pattern
   `define PIXEL_PER_LINE_PAL_2x_long    1589 // slighty modified and thus different pattern
   `define PIXEL_PER_LINE_PAL_4x_short   3173 // original
@@ -79,17 +80,21 @@ parameter vdata_width_o = 4 + 3*color_width_o;
   `define ACTIVE_PIXEL_PER_LINE     640
   `define ACTIVE_PIXEL_PER_LINE_2x  1280
 
+  `define TOTAL_LINES_NTSC_LX1    263
   `define TOTAL_LINES_NTSC_LX2_0  525
   `define TOTAL_LINES_NTSC_LX2_1  526
-  `define TOTAL_LINES_NTSC_LX3_0  789
-  `define ACTIVE_LINES_NTSC       240
+  `define TOTAL_LINES_NTSC_LX3_1  789
+  `define ACTIVE_LINES_NTSC_LX1   240
   `define ACTIVE_LINES_NTSC_LX2   480
   `define ACTIVE_LINES_NTSC_LX3   720
 
+  `define TOTAL_LINES_PAL_LX1   313
   `define TOTAL_LINES_PAL_LX2_0 625
   `define TOTAL_LINES_PAL_LX2_1 626
-  `define ACTIVE_LINES_PAL      288
+  `define TOTAL_LINES_PAL_LX3_1 939
+  `define ACTIVE_LINES_PAL_LX1  288
   `define ACTIVE_LINES_PAL_LX2  576
+  `define ACTIVE_LINES_PAL_LX3  864
 
 
   `define HSTART_NTSC     108
@@ -97,11 +102,11 @@ parameter vdata_width_o = 4 + 3*color_width_o;
   `define HSTART_NTSC_2x  (2*`HSTART_NTSC+1)
   `define HSTOP_NTSC_2x   (`HSTART_NTSC_2x + `ACTIVE_PIXEL_PER_LINE_2x)
 
-  `define VSTART_NTSC     18
-  `define VSTOP_NTSC      (`VSTART_NTSC + `ACTIVE_LINES_NTSC)
-  `define VSTART_NTSC_LX2 (2*`VSTART_NTSC)
+  `define VSTART_NTSC_LX1 18
+  `define VSTOP_NTSC_LX1  (`VSTART_NTSC_LX1 + `ACTIVE_LINES_NTSC_LX1)
+  `define VSTART_NTSC_LX2 (2*`VSTART_NTSC_LX1)
   `define VSTOP_NTSC_LX2  (`VSTART_NTSC_LX2 + `ACTIVE_LINES_NTSC_LX2)
-  `define VSTART_NTSC_LX3 (3*`VSTART_NTSC)
+  `define VSTART_NTSC_LX3 (3*`VSTART_NTSC_LX1)
   `define VSTOP_NTSC_LX3  (`VSTART_NTSC_LX3 + `ACTIVE_LINES_NTSC_LX3)
 
   `define HS_WIDTH_NTSC_LX2_2x  113
@@ -123,9 +128,9 @@ parameter vdata_width_o = 4 + 3*color_width_o;
   `define HSTART_PAL_2x   (2*`HSTART_PAL+1)
   `define HSTOP_PAL_2x    (`HSTART_PAL_2x + `ACTIVE_PIXEL_PER_LINE_2x)
 
-  `define VSTART_PAL      24
-  `define VSTOP_PAL       (`VSTART_PAL + `ACTIVE_LINES_PAL)
-  `define VSTART_PAL_LX2  (2*`VSTART_PAL)
+  `define VSTART_PAL_LX1  24
+  `define VSTOP_PAL_LX1   (`VSTART_PAL_LX1 + `ACTIVE_LINES_PAL_LX1)
+  `define VSTART_PAL_LX2  (2*`VSTART_PAL_LX1)
   `define VSTOP_PAL_LX2   (`VSTART_PAL_LX2 + `ACTIVE_LINES_PAL_LX2)
 
   `define HS_WIDTH_PAL_LX2_2x 123

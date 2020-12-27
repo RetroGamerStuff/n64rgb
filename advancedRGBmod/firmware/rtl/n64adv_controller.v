@@ -43,6 +43,7 @@ module n64adv_controller (
   JumperCfgSet,
   MANAGE_VPLL,
   PPUConfigSet,
+  OSD_VSync,
   OSDWrVector,
   OSDInfo,
 
@@ -55,6 +56,7 @@ module n64adv_controller (
 parameter [11:0] hdl_fw = 12'h000; // number is a dummy; defined in and passed from top module
 
 `include "vh/n64adv_cparams.vh"
+`include "vh/n64adv_ppuconfig.vh"
 
 input [2:0] CLKs;
 inout nRST;
@@ -66,6 +68,7 @@ input      [11:0] PPUState;
 input      [ 7:0] JumperCfgSet;
 output reg [ 1:0] MANAGE_VPLL;
 output reg [68:0] PPUConfigSet;
+input             OSD_VSync;
 output     [24:0] OSDWrVector;
 output reg [ 1:0] OSDInfo;
 
@@ -77,6 +80,7 @@ input nVRST;
 
 // start of rtl
 
+// misc stuff
 wire CLK_4M = CLKs[2];
 wire CLK_16k = CLKs[1];
 wire CLK_25M = CLKs[0];
@@ -85,8 +89,58 @@ wire nSRST_4M = nSRST[2];
 wire nSRST_25M = nSRST[0];
 
 
+// parameters
+localparam ST_WAIT4N64 = 2'b00; // wait for N64 sending request to controller
+localparam ST_N64_RD   = 2'b01; // N64 request sniffing
+localparam ST_CTRL_RD  = 2'b10; // controller response
+
+// wires
+wire OSD_VSync_resynced;
+
+wire [ 9:0] vd_wraddr;
+wire [ 1:0] vd_wrctrl;
+wire [12:0] vd_wrdata;
+
+wire FallbackMode_resynced, FallbackMode_valid_resynced;
+wire [11:0] PPUState_resynced;
+
+wire [31:0] SysConfigSet2, SysConfigSet1 ,SysConfigSet0;  // general structure of ConfigSet -> see vh/n64adv_ppuconfig.vh
+wire [31:0] SysConfigSet2_resynced, SysConfigSet1_resynced, SysConfigSet0_resynced;
+
+wire ctrl_negedge, ctrl_posedge;
+wire ctrl_bit;
+
+
+// registers
 reg negedge_nVSYNC = 1'b0;
 reg nVSYNC_cur = 1'b0;
+
+reg [9:0] time_out = 10'd1023;
+reg FallbackMode  = 1'b0;
+reg FallbackMode_valid = 1'b0;
+
+reg use_igr = 1'b0;
+
+reg [1:0] rd_state = 2'b0;  // state machine for controller sniffing
+
+reg [5:0] wait_cnt = 6'h0;  // counter for wait state (needs appr. 16us at CLK_4M clock to fill up from 0 to 63)
+reg [2:0] ctrl_hist = 3'h7;
+
+reg [5:0] ctrl_low_cnt = 6'h0;
+reg [31:0] serial_data[0:1];
+initial begin
+  serial_data[1] <= 32'h0;
+  serial_data[0] <= 32'h0;
+end
+reg [ 4:0] ctrl_data_cnt = 5'h0;
+reg [ 1:0] new_ctrl_data = 2'b00;
+
+reg initiate_nrst = 1'b0;
+reg drv_rst = 1'b0;
+reg [9:0] rst_cnt = 10'b0; // ~64ms are needed to count from max downto 0 with CLK_16k.
+
+
+// logic
 
 always @(posedge VCLK or negedge nVRST)
   if (!nVRST) begin
@@ -97,24 +151,8 @@ always @(posedge VCLK or negedge nVRST)
     nVSYNC_cur <= VD_VSi;
   end
 
-wire nVSYNC_25M_resynced;
-register_sync #(
-  .reg_width(1),
-  .reg_preset(1'b0)
-) sync4cpu_u(
-  .clk(CLK_25M),
-  .clk_en(1'b1),
-  .nrst(nSRST_25M),
-  .reg_i({nVSYNC_cur}),
-  .reg_o({nVSYNC_25M_resynced})
-);
-
 // Part 1: Instantiate NIOS II
 // ===========================
-
-reg [9:0] time_out = 10'd1023;
-reg FallbackMode  = 1'b0;
-reg FallbackMode_valid = 1'b0;
 
 always @(posedge VCLK)
   if (!FallbackMode_valid) begin
@@ -125,78 +163,70 @@ always @(posedge VCLK)
     time_out <= time_out - 10'd1;
   end
 
-wire [ 9:0] vd_wraddr;
-wire [ 1:0] vd_wrctrl;
-wire [12:0] vd_wrdata;
 
-// general structure of ConfigSet -> see vh/n64adv_ppiconfig.vh
-wire [31:0] SysConfigSet2;
-wire [31:0] SysConfigSet1;
-wire [31:0] SysConfigSet0;
+register_sync #(
+  .reg_width(15),
+  .reg_preset(1'b0)
+) sync4cpu_u(
+  .clk(CLK_25M),
+  .clk_en(1'b1),
+  .nrst(1'b1),
+  .reg_i({PPUState,FallbackMode,FallbackMode_valid,OSD_VSync}),
+  .reg_o({PPUState_resynced,FallbackMode_resynced,FallbackMode_valid_resynced,OSD_VSync_resynced})
+);
 
 
 
 system_n64adv1 system_u(
   .clk_clk(CLK_25M),
   .rst_reset_n(nSRST_25M),
-  .sync_in_export({new_ctrl_data[1],nVSYNC_25M_resynced}),
+  .sync_in_export({new_ctrl_data[1],OSD_VSync_resynced}),
   .vd_wraddr_export(vd_wraddr),
   .vd_wrctrl_export(vd_wrctrl),
   .vd_wrdata_export(vd_wrdata),
   .ctrl_data_in_export(serial_data[1]),
   .jumper_cfg_set_in_export(JumperCfgSet),
-  .ppu_state_in_export(PPUState),
-  .fallback_in_export({FallbackMode,FallbackMode_valid}),
+  .ppu_state_in_export(PPUState_resynced),
+  .fallback_in_export({FallbackMode_resynced,FallbackMode_valid_resynced}),
   .cfg_set2_out_export(SysConfigSet2),
   .cfg_set1_out_export(SysConfigSet1),
   .cfg_set0_out_export(SysConfigSet0),
   .hdl_fw_in_export(hdl_fw)
 );
 
-assign OSDWrVector = {vd_wrctrl,vd_wraddr,vd_wrdata};
 
-reg use_igr = 1'b0;
+register_sync #(
+  .reg_width(96),
+  .reg_preset(96'd0)
+) sync4logic_u(
+  .clk(VCLK),
+  .clk_en(1'b1),
+  .nrst(1'b1),
+  .reg_i({SysConfigSet2,SysConfigSet1,SysConfigSet0}),
+  .reg_o({SysConfigSet2_resynced,SysConfigSet1_resynced,SysConfigSet0_resynced})
+);
 
 always @(posedge VCLK)
   if ((!nVDSYNC & negedge_nVSYNC) | !nVRST) begin
-    MANAGE_VPLL      <= SysConfigSet2[13:12];
-    OSDInfo[1]       <= &{SysConfigSet2[10:9],!SysConfigSet2[8]};  // show logo only in OSD
-    OSDInfo[0]       <= SysConfigSet2[9] & !SysConfigSet2[8];
-    use_igr          <= SysConfigSet2[3];
-    PPUConfigSet     <= {SysConfigSet2[11],SysConfigSet2[2:0],SysConfigSet1,SysConfigSet0};
+    MANAGE_VPLL      <= {SysConfigSet2_resynced[`use_vpll_bit],SysConfigSet2_resynced[`test_vpll_bit]};
+    OSDInfo[1]       <= &{SysConfigSet2_resynced[`show_osd_logo_bit],SysConfigSet2_resynced[`show_osd_bit],!SysConfigSet2_resynced[`mute_osd_bit]};  // show logo only in OSD
+    OSDInfo[0]       <= SysConfigSet2_resynced[`show_osd_bit] & !SysConfigSet2_resynced[`mute_osd_bit];
+    use_igr          <= SysConfigSet2_resynced[`igr_reset_enable_bit];
+    PPUConfigSet     <= {SysConfigSet2_resynced[`show_testpattern_direct_bit],SysConfigSet2_resynced[`Exchange_RB_out_direct_bit],
+                         SysConfigSet2_resynced[`FilterSet_slice_direct],SysConfigSet1_resynced,SysConfigSet0_resynced};
   end
 
+
+assign OSDWrVector = {vd_wrctrl,vd_wraddr,vd_wrdata};
 
 
 // Part 2: Controller Sniffing
 // ===========================
 
-reg [1:0]      rd_state  = 2'b0; // state machine
+assign ctrl_negedge  =  ctrl_hist[2] & !ctrl_hist[1];
+assign ctrl_posedge  = !ctrl_hist[2] &  ctrl_hist[1];
 
-localparam ST_WAIT4N64 = 2'b00; // wait for N64 sending request to controller
-localparam ST_N64_RD   = 2'b01; // N64 request sniffing
-localparam ST_CTRL_RD  = 2'b10; // controller response
-
-reg [5:0] wait_cnt      = 6'h0; // counter for wait state (needs appr. 16us at CLK_4M clock to fill up from 0 to 63)
-reg [2:0] ctrl_hist     = 3'h7;
-wire      ctrl_negedge  =  ctrl_hist[2] & !ctrl_hist[1];
-wire      ctrl_posedge  = !ctrl_hist[2] &  ctrl_hist[1];
-
-reg [5:0] ctrl_low_cnt = 6'h0;
-wire      ctrl_bit     = ctrl_low_cnt < wait_cnt;
-
-reg [31:0] serial_data[0:1];
-reg [ 4:0] ctrl_data_cnt = 5'h0;
-reg [ 1:0] new_ctrl_data = 2'b00;
-
-initial begin
-  serial_data[1] <= 32'h0;
-  serial_data[0] <= 32'h0;
-end
-
-
-reg initiate_nrst = 1'b0;
-
+assign ctrl_bit = ctrl_low_cnt < wait_cnt;
 
 // controller data bits:
 //  0: 7 - A, B, Z, St, Du, Dd, Dl, Dr
@@ -283,9 +313,6 @@ always @(posedge CLK_4M or negedge nSRST_4M)
 
 // Part 3: Trigger Reset on Demand
 // ===============================
-
-reg       drv_rst =  1'b0;
-reg [9:0] rst_cnt = 10'b0; // ~64ms are needed to count from max downto 0 with CLK_16k.
 
 always @(posedge CLK_16k)
   if (initiate_nrst == 1'b1) begin

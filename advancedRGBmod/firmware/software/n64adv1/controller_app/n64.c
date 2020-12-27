@@ -187,8 +187,8 @@ int run_vpll_test(configuration_t* sysconfig)
   int i;
   for (i = 0; i < VPLL_TEST_FRAMES; i++) { /* wait for VPLL_TEST_FRAMES frames for PLL */
     vpll_lock_pre = vpll_lock_loc;
-    while(!get_nvsync()){};  /* wait for nVSYNC goes high */
-    while( get_nvsync()){};  /* wait for nVSYNC goes low  */
+    while(!get_osdvsync()){};  /* wait for OSD_VSYNC goes high (OSD vert. active area) */
+    while( get_osdvsync()){};  /* wait for OSD_VSYNC goes low  */
     vpll_lock_loc = update_vpll_lock_state();
     if (vpll_lock_pre && !vpll_lock_loc) retval = -VPLL_TEST_FAILED;
   }
@@ -198,9 +198,9 @@ int run_vpll_test(configuration_t* sysconfig)
   return retval;
 }
 
-alt_u8 get_nvsync()
+alt_u8 get_osdvsync()
 {
-  return (IORD_ALTERA_AVALON_PIO_DATA(SYNC_IN_BASE) & NVSYNC_IN_MASK);
+  return (IORD_ALTERA_AVALON_PIO_DATA(SYNC_IN_BASE) & OSD_VSYNC_IN_MASK);
 }
 
 alt_u8 new_ctrl_available()

@@ -42,7 +42,10 @@
 typedef struct {
   alt_u8  vers_cfg_main;
   alt_u8  vers_cfg_sub;
-  alt_u8  cfg_words[CFG2FLASH_WORD_FACTOR*(NUM_CFG_B32WORDS + 1)];
+  alt_u8  show_welcome_screen;
+  alt_u8  cfg_words[CFG2FLASH_WORD_FACTOR*NUM_CFG_B32WORDS];
+  alt_u8  cfg_linex_trays[CFG2FLASH_WORD_FACTOR*LINEX_TYPES];
+  alt_u8  cfg_timing_trays[CFG2FLASH_WORD_FACTOR*NUM_TIMING_MODES];
 } cfg4flash_t;
 
 static const char *confirm_message = "< Really? >";
@@ -50,8 +53,8 @@ extern const char *btn_overlay_1, *btn_overlay_2;
 
 extern config_t deblur_mode, deblur_mode_current, mode15bit, mode15bit_current;
 
-extern alt_u32 cfg_data_image_ntsc_word_val_tray, cfg_data_image_ntsc_word_ref_tray,
-               cfg_data_image_pal_word_val_tray, cfg_data_image_pal_word_ref_tray;
+extern config_t timing_selection;
+extern config_tray_t linex_words[], timing_words[];
 
 alt_u8 use_filteraddon;
 
@@ -157,9 +160,9 @@ int cfg_show_testpattern(configuration_t* sysconfig)
   alt_u32 ctrl_data = get_ctrl_data();
 
   while(1) {
-    while(!get_nvsync()){};                          // wait for nVSYNC goes high
-    while( get_nvsync() && new_ctrl_available()){};  // wait for nVSYNC goes low and
-                                                     // wait for new controller available
+    while(!get_osdvsync()){};                         // wait for OSD_VSYNC goes high
+    while( get_osdvsync() && new_ctrl_available()){}; // wait for OSD_VSYNC goes low and
+                                                      // wait for new controller available
     ctrl_data = get_ctrl_data();
     command = ctrl_data_to_cmd(&ctrl_data,1);
     if (command == CMD_MENU_BACK) break;
@@ -171,30 +174,30 @@ int cfg_show_testpattern(configuration_t* sysconfig)
   return 0;
 }
 
-alt_u8 confirmation_routine()
+alt_u8 confirmation_routine(alt_u8 with_btn_overlay)
 {
   cmd_t command;
   alt_u8 abort = 0;
   alt_u32 ctrl_data = get_ctrl_data();
 
   vd_print_string(RWM_H_OFFSET,RWM_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_NAVAJOWHITE,confirm_message);
-  vd_print_string(BTN_OVERLAY_H_OFFSET,BTN_OVERLAY_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_GREEN,btn_overlay_2);
+  if (with_btn_overlay > 0) vd_print_string(BTN_OVERLAY_H_OFFSET,BTN_OVERLAY_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_GREEN,btn_overlay_2);
 
   while(1) {
-    print_ctrl_data(&ctrl_data);
-
-    while(!get_nvsync()){};                          /* wait for nVSYNC goes high */
-    while( get_nvsync() && new_ctrl_available()){};  /* wait for nVSYNC goes low and
-                                                        wait for new controller available  */
+    while(!get_osdvsync()){};                         // wait for OSD_VSYNC goes high
+    while( get_osdvsync() && new_ctrl_available()){}; // wait for OSD_VSYNC goes low and
+                                                      // wait for new controller available
     ctrl_data = get_ctrl_data();
     command = ctrl_data_to_cmd(&ctrl_data,1);
 
     if ((command == CMD_MENU_ENTER) || (command == CMD_MENU_RIGHT)) break;
     if ((command == CMD_MENU_BACK)  || (command == CMD_MENU_LEFT))  {abort = 1; break;};
   }
-  vd_clear_lineend (BTN_OVERLAY_H_OFFSET,BTN_OVERLAY_V_OFFSET);
-  vd_clear_lineend (BTN_OVERLAY_H_OFFSET,BTN_OVERLAY_V_OFFSET+1);
-  vd_print_string(BTN_OVERLAY_H_OFFSET,BTN_OVERLAY_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_GREEN,btn_overlay_1);
+  if (with_btn_overlay > 0) {
+    vd_clear_lineend (BTN_OVERLAY_H_OFFSET,BTN_OVERLAY_V_OFFSET);
+    vd_clear_lineend (BTN_OVERLAY_H_OFFSET,BTN_OVERLAY_V_OFFSET+1);
+    vd_print_string(BTN_OVERLAY_H_OFFSET,BTN_OVERLAY_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_GREEN,btn_overlay_1);
+  }
   return abort;
 }
 
@@ -203,7 +206,7 @@ int cfg_save_to_flash(configuration_t* sysconfig, alt_u8 need_confirm)
   if (!use_flash) return -CFG_FLASH_NOT_USED;
 
   if (need_confirm) {
-    alt_u8 abort = confirmation_routine();
+    alt_u8 abort = confirmation_routine(1);
     if (abort) return -CFG_FLASH_SAVE_ABORT;
   }
 
@@ -212,15 +215,18 @@ int cfg_save_to_flash(configuration_t* sysconfig, alt_u8 need_confirm)
 
   ((cfg4flash_t*) databuf)->vers_cfg_main = CFG_FW_MAIN;
   ((cfg4flash_t*) databuf)->vers_cfg_sub = CFG_FW_SUB;
+  ((cfg4flash_t*) databuf)->show_welcome_screen = SW_FW_SUB;
   for (idx = 0; idx < NUM_CFG_B32WORDS - 1; idx++) {
     for (jdx = 0; jdx < CFG2FLASH_WORD_FACTOR; jdx++)
       ((cfg4flash_t*) databuf)->cfg_words[CFG2FLASH_WORD_FACTOR*idx+jdx] = ((0xFF << (8*jdx) & sysconfig->cfg_word_def[idx]->cfg_word_val) >> (8*jdx));
     sysconfig->cfg_word_def[idx]->cfg_ref_word_val = sysconfig->cfg_word_def[idx]->cfg_word_val;
   }
 
-  for (jdx = 0; jdx < CFG2FLASH_WORD_FACTOR; jdx++) {
-    ((cfg4flash_t*) databuf)->cfg_words[CFG2FLASH_WORD_FACTOR*2+jdx] = ((0xFF << (8*jdx) & cfg_data_image_ntsc_word_val_tray) >> (8*jdx)); // global/ntsc
-    ((cfg4flash_t*) databuf)->cfg_words[CFG2FLASH_WORD_FACTOR*3+jdx] = ((0xFF << (8*jdx) & cfg_data_image_pal_word_val_tray) >> (8*jdx)); // pal
+  for (idx = 0; idx < CFG2FLASH_WORD_FACTOR; idx++) {
+    ((cfg4flash_t*) databuf)->cfg_linex_trays[idx] = ((0xFF << (8*idx) & linex_words[NTSC].config_val) >> (8*idx)); // global/ntsc
+    ((cfg4flash_t*) databuf)->cfg_linex_trays[CFG2FLASH_WORD_FACTOR+idx] = ((0xFF << (8*idx) & linex_words[PAL].config_val) >> (8*idx));  // pal
+    for (jdx = 0; jdx < NUM_TIMING_MODES; jdx++)
+      ((cfg4flash_t*) databuf)->cfg_timing_trays[CFG2FLASH_WORD_FACTOR*jdx+idx] = ((0xFF << (8*idx) & timing_words[jdx].config_val) >> (8*idx));
   }
 
   int retval = write_flash_page((alt_u8*) databuf, sizeof(cfg4flash_t), USERDATA_OFFSET/PAGESIZE);
@@ -236,7 +242,7 @@ int cfg_load_from_flash(configuration_t* sysconfig, alt_u8 need_confirm)
   if (!use_flash) return -CFG_FLASH_NOT_USED;
 
   if (need_confirm) {
-    alt_u8 abort = confirmation_routine();
+    alt_u8 abort = confirmation_routine(1);
     if (abort) return -CFG_FLASH_LOAD_ABORT;
   }
 
@@ -250,28 +256,45 @@ int cfg_load_from_flash(configuration_t* sysconfig, alt_u8 need_confirm)
   if ((((cfg4flash_t*) databuf)->vers_cfg_main != CFG_FW_MAIN) ||
       (((cfg4flash_t*) databuf)->vers_cfg_sub  != CFG_FW_SUB)   ) return -CFG_VERSION_INVALID;
 
+  retval = ((cfg4flash_t*) databuf)->show_welcome_screen != SW_FW_SUB;
+
   for (idx = 0; idx < NUM_CFG_B32WORDS - 1; idx++) {
 	  sysconfig->cfg_word_def[idx]->cfg_word_val = 0;
     for (jdx = 0; jdx < CFG2FLASH_WORD_FACTOR; jdx++)
       sysconfig->cfg_word_def[idx]->cfg_word_val |= (((cfg4flash_t*) databuf)->cfg_words[CFG2FLASH_WORD_FACTOR*idx + jdx] << (8*jdx));
   }
 
-  cfg_data_image_ntsc_word_val_tray = 0;
-  cfg_data_image_pal_word_val_tray = 0;
-  for (jdx = 0; jdx < CFG2FLASH_WORD_FACTOR; jdx++) {
-      cfg_data_image_ntsc_word_val_tray |= (((cfg4flash_t*) databuf)->cfg_words[CFG2FLASH_WORD_FACTOR*2+jdx]  << (8*jdx)); // global/ntsc
-      cfg_data_image_pal_word_val_tray |= (((cfg4flash_t*) databuf)->cfg_words[CFG2FLASH_WORD_FACTOR*3+jdx]  << (8*jdx));  // pal
+  linex_words[NTSC].config_val = 0;
+  linex_words[PAL].config_val = 0;
+  for (idx = 0; idx < NUM_TIMING_MODES; idx++) timing_words[jdx].config_val = 0;
+  for (idx = 0; idx < CFG2FLASH_WORD_FACTOR; idx++) {
+    linex_words[NTSC].config_val |= (((cfg4flash_t*) databuf)->cfg_linex_trays[idx]  << (8*idx));                 // global/ntsc
+    linex_words[PAL].config_val |= (((cfg4flash_t*) databuf)->cfg_words[CFG2FLASH_WORD_FACTOR+idx]  << (8*idx));  // pal
+    for (jdx = 0; jdx < NUM_TIMING_MODES; jdx++)
+      timing_words[jdx].config_val |= (((cfg4flash_t*) databuf)->cfg_timing_trays[CFG2FLASH_WORD_FACTOR*jdx+idx]  << (8*idx));
   }
 
   cfg_update_reference(sysconfig);
 
+  return retval;
+}
+
+int cfg_reset_timing(configuration_t* sysconfig)
+{
+  alt_u8 abort = confirmation_routine(0);
+  if (abort) return -CFG_DEF_LOAD_ABORT;
+
+  alt_u8 timing_word_select = timing_selection.cfg_value;
+  if (timing_word_select == 0 || timing_word_select > 5) return -1;
+  timing_words[timing_word_select-1].config_val = CFG_TIMING_DEFAULTS;
+  cfg_load_timing_word(sysconfig, timing_word_select);
   return 0;
 }
 
 int cfg_load_defaults(configuration_t* sysconfig, alt_u8 need_confirm)
 {
   if (need_confirm) {
-    alt_u8 abort = confirmation_routine();
+    alt_u8 abort = confirmation_routine(1);
     if (abort) return -CFG_DEF_LOAD_ABORT;
   }
 
@@ -292,7 +315,7 @@ int cfg_load_defaults(configuration_t* sysconfig, alt_u8 need_confirm)
 int cfg_load_jumperset(configuration_t* sysconfig, alt_u8 need_confirm)
 {
   if (need_confirm) {
-    alt_u8 abort = confirmation_routine();
+    alt_u8 abort = confirmation_routine(1);
     if (abort) return -CFG_JUMPER_LOAD_ABORT;
   }
 
@@ -339,24 +362,28 @@ int cfg_load_jumperset(configuration_t* sysconfig, alt_u8 need_confirm)
   return 0;
 }
 
-void cfg_store_linex_word(configuration_t* sysconfig, alt_u8 pal) {
-  if (!pal) {
-    cfg_data_image_ntsc_word_val_tray = sysconfig->cfg_word_def[LINEX]->cfg_word_val;
-    cfg_data_image_ntsc_word_ref_tray = sysconfig->cfg_word_def[LINEX]->cfg_ref_word_val;
-  } else {
-    cfg_data_image_pal_word_val_tray = sysconfig->cfg_word_def[LINEX]->cfg_word_val;
-    cfg_data_image_pal_word_ref_tray = sysconfig->cfg_word_def[LINEX]->cfg_ref_word_val;
-  }
+void cfg_store_linex_word(configuration_t* sysconfig, alt_u8 palmode) {
+  linex_words[palmode].config_val = sysconfig->cfg_word_def[LINEX]->cfg_word_val;
+  linex_words[palmode].config_ref_val = sysconfig->cfg_word_def[LINEX]->cfg_ref_word_val;
 }
 
-void cfg_load_linex_word(configuration_t* sysconfig, alt_u8 pal) {
-  if (!pal) {
-    sysconfig->cfg_word_def[LINEX]->cfg_word_val = cfg_data_image_ntsc_word_val_tray;
-    sysconfig->cfg_word_def[LINEX]->cfg_ref_word_val = cfg_data_image_ntsc_word_ref_tray;
-  } else {
-    sysconfig->cfg_word_def[LINEX]->cfg_word_val = cfg_data_image_pal_word_val_tray;
-    sysconfig->cfg_word_def[LINEX]->cfg_ref_word_val = cfg_data_image_pal_word_ref_tray;
-  }
+void cfg_load_linex_word(configuration_t* sysconfig, alt_u8 palmode) {
+  sysconfig->cfg_word_def[LINEX]->cfg_word_val = linex_words[palmode].config_val;
+  sysconfig->cfg_word_def[LINEX]->cfg_ref_word_val = linex_words[palmode].config_ref_val;
+}
+
+void cfg_store_timing_word(configuration_t* sysconfig, alt_u8 timing_word_select) {
+  if (timing_word_select == 0 || timing_word_select > 5) return;
+  timing_word_select--;
+  timing_words[timing_word_select].config_val = sysconfig->cfg_word_def[VIDEO]->cfg_word_val & CFG_VIDEO_GETTIMINGS_MASK;
+  timing_words[timing_word_select].config_ref_val = sysconfig->cfg_word_def[VIDEO]->cfg_ref_word_val & CFG_VIDEO_GETTIMINGS_MASK;
+}
+
+void cfg_load_timing_word(configuration_t* sysconfig, alt_u8 timing_word_select) {
+  if (timing_word_select == 0 || timing_word_select > 5) return;
+  timing_word_select--;
+  sysconfig->cfg_word_def[VIDEO]->cfg_word_val = (timing_words[timing_word_select].config_val & CFG_VIDEO_GETTIMINGS_MASK)| (sysconfig->cfg_word_def[VIDEO]->cfg_word_val & CFG_VIDEO_GETNONTIMINGS_MASK);
+  sysconfig->cfg_word_def[VIDEO]->cfg_ref_word_val = (timing_words[timing_word_select].config_ref_val & CFG_VIDEO_GETTIMINGS_MASK)| (sysconfig->cfg_word_def[VIDEO]->cfg_ref_word_val & CFG_VIDEO_GETNONTIMINGS_MASK);
 }
 
 void cfg_apply_to_logic(configuration_t* sysconfig)
@@ -400,8 +427,9 @@ void cfg_update_reference(configuration_t* sysconfig)
   for (idx = 0; idx < NUM_CFG_B32WORDS; idx++)
     sysconfig->cfg_word_def[idx]->cfg_ref_word_val = sysconfig->cfg_word_def[idx]->cfg_word_val;
 
-  cfg_data_image_ntsc_word_ref_tray = cfg_data_image_ntsc_word_val_tray;
-  cfg_data_image_pal_word_ref_tray  = cfg_data_image_pal_word_val_tray;
+  linex_words[NTSC].config_ref_val = linex_words[NTSC].config_val;
+  linex_words[PAL].config_ref_val  = linex_words[PAL].config_val;
+  for (idx = 0; idx < NUM_TIMING_MODES; idx++) timing_words[idx].config_ref_val  = timing_words[idx].config_val;
 }
 
 void check_filteraddon()

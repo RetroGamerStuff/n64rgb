@@ -46,7 +46,19 @@ typedef enum {
 typedef enum {
   NTSC = 0,
   PAL
-} cfg_image_sel_type_t;
+} cfg_linex_sel_type_t;
+#define LINEX_TYPES 2
+
+
+typedef enum {
+  PPU_CURRENT = 0,
+  NTSC_LX2_PR,
+  NTSC_LX2_INT,
+  NTSC_LX3_PR,
+  PAL_LX2_PR,
+  PAL_LX2_INT
+} cfg_timing_model_sel_type_t;
+#define NUM_TIMING_MODES  5
 
 typedef enum {
   OFF = 0,
@@ -99,6 +111,11 @@ typedef struct {
   };
 } config_t;
 
+typedef struct {
+  alt_u32 config_val;
+  alt_u32 config_ref_val;
+} config_tray_t;
+
 #define VPLL_TEST_FAILED       10
 #define CFG_VERSION_INVALID   100
 #define CFG_FLASH_NOT_USED    101
@@ -109,8 +126,8 @@ typedef struct {
 #define CFG_JUMPER_LOAD_ABORT CFG_FLASH_SAVE_ABORT
 
 // the overall masks
-#define CFG_MISC_GETALL_MASK      0x00003F7F
-#define CFG_VIDEO_GETALL_MASK     0x000001FF
+#define CFG_MISC_GETALL_MASK      0x00003FFF
+#define CFG_VIDEO_GETALL_MASK     0x017F3FFF
 #define CFG_LINEX_GETALL_MASK     0x7FF77FF7
 
 
@@ -123,10 +140,11 @@ typedef struct {
 #define CFG_SHOWLOGO_OFFSET     10
 #define CFG_SHOWOSD_OFFSET       9
 #define CFG_MUTEOSDTMP_OFFSET    8
-#define CFG_IGRRST_OFFSET        6
-#define CFG_IGRDEBLUR_OFFSET     5
-#define CFG_IGR15BITMODE_OFFSET  4
-#define CFG_PALAWARENESS_OFFSET  3
+#define CFG_IGRRST_OFFSET        7
+#define CFG_IGRDEBLUR_OFFSET     6
+#define CFG_IGR15BITMODE_OFFSET  5
+#define CFG_PALAWARENESS_OFFSET  4
+#define CFG_EXC_RB_OUT_OFFSET    3
 #define CFG_FILTERADDON_OFFSET   0
 
 #define CFG_USE_VPLL_GETMASK      (1<<CFG_USE_VPLL_OFFSET)
@@ -159,6 +177,9 @@ typedef struct {
 #define CFG_PALAWARENESS_GETMASK  (1<<CFG_PALAWARENESS_OFFSET)
   #define CFG_PALAWARENESS_SETMASK  (1<<CFG_PALAWARENESS_OFFSET)
   #define CFG_PALAWARENESS_CLRMASK  (CFG_MISC_GETALL_MASK & ~CFG_PALAWARENESS_SETMASK)
+#define CFG_EXC_V_RB_OUT_GETMASK         (1<<CFG_EXC_RB_OUT_OFFSET)
+  #define CFG_EXC_RB_OUT_SETMASK         (1<<CFG_EXC_RB_OUT_OFFSET)
+  #define CFG_EXC_RB_OUT_CLRMASK         (CFG_VIDEO_GETALL_MASK & ~CFG_EXC_RB_OUT_SETMASK)
 #define CFG_FILTERADDON_GETMASK       (7<<CFG_FILTERADDON_OFFSET)
   #define CFG_FILTER_RSTMASK            (CFG_MISC_GETALL_MASK & ~CFG_FILTERADDON_GETMASK)
   #define CFG_FILTER_OFF_SETMASK        (CFG_MISC_GETALL_MASK & (4<<CFG_FILTERADDON_OFFSET))
@@ -169,7 +190,12 @@ typedef struct {
 // video (set 1)
 #define CFG_VIDEO_OUT_BASE  CFG_SET1_OUT_BASE
 
-#define CFG_EXC_RB_OUT_OFFSET    8
+#define CFG_VIDEO_GETTIMINGS_MASK     0x017F3F00
+#define CFG_VIDEO_GETNONTIMINGS_MASK  0x000000FF
+
+#define CFG_PALDEJ_OFFSET       24
+#define CFG_HORSHIFT_OFFSET     16
+#define CFG_VERTSHIFT_OFFSET     8
 #define CFG_VFORMAT_OFFSET       6
   #define CFG_YPBPR_OFFSET         7
   #define CFG_RGSB_OFFSET          6
@@ -177,9 +203,16 @@ typedef struct {
 #define CFG_DEBLUR_MODE_OFFSET   1
 #define CFG_15BITMODE_OFFSET     0
 
-#define CFG_EXC_V_RB_OUT_GETMASK         (1<<CFG_EXC_RB_OUT_OFFSET)
-  #define CFG_EXC_RB_OUT_SETMASK         (1<<CFG_EXC_RB_OUT_OFFSET)
-  #define CFG_EXC_RB_OUT_CLRMASK         (CFG_VIDEO_GETALL_MASK & ~CFG_EXC_RB_OUT_SETMASK)
+
+#define CFG_PAL_DEJITTER_GETMASK      (1<<CFG_PALDEJ_OFFSET)
+  #define CFG_PAL_DEJITTER_SETMASK      (1<<CFG_PALDEJ_OFFSET)
+  #define CFG_PAL_DEJITTER_CLRMASK      (CFG_VIDEO_GETALL_MASK & ~CFG_PAL_DEJITTER_GETMASK)
+#define CFG_HORSHIFT_GETMASK          (0x7F<<CFG_HORSHIFT_OFFSET)
+  #define CFG_HORSHIFT_RSTMASK          (CFG_VIDEO_GETALL_MASK & ~CFG_HORSHIFT_GETMASK)
+  #define CFG_HORSHIFT_CLRMASK          (CFG_VIDEO_GETALL_MASK & ~CFG_HORSHIFT_GETMASK)
+#define CFG_VERTSHIFT_GETMASK           (0x3F<<CFG_VERTSHIFT_OFFSET)
+  #define CFG_VERTSHIFT_RSTMASK           (CFG_VIDEO_GETALL_MASK & ~CFG_VERTSHIFT_GETMASK)
+  #define CFG_VERTSHIFT_CLRMASK           (CFG_VIDEO_GETALL_MASK & ~CFG_VERTSHIFT_GETMASK)
 #define CFG_VFORMAT_GETMASK           (3<<CFG_VFORMAT_OFFSET)
   #define CFG_VFORMAT_RSTMASK           (CFG_VIDEO_GETALL_MASK & ~CFG_VFORMAT_GETMASK)
   #define CFG_VFORMAT_CLRMASK           (CFG_VIDEO_GETALL_MASK & ~CFG_VFORMAT_GETMASK)
@@ -245,6 +278,9 @@ typedef struct {
 #define CFG_480I_FIELDFIX_GETMASK     (1<<CFG_480I_FIELDFIX_OFFSET)
   #define CFG_480I_FIELDFIX_SETMASK     (1<<CFG_480I_FIELDFIX_OFFSET)
   #define CFG_480I_FIELDFIX_CLRMASK     (CFG_LINEX_GETALL_MASK & ~CFG_480I_FIELDFIX_GETMASK)
+#define CFG_480I_PAL_DEJITTER_GETMASK (1<<CFG_480I_PAL_DEJ_OFFSET)
+  #define CFG_480I_PAL_DEJITTER_SETMASK (1<<CFG_480I_PAL_DEJ_OFFSET)
+  #define CFG_480I_PAL_DEJITTER_CLRMASK (CFG_LINEX_GETALL_MASK & ~CFG_480I_PAL_DEJITTER_GETMASK)
 #define CFG_480I_BOB_DEINTER_GETMASK  (1<<CFG_480I_BOB_DEINTER_OFFSET)
   #define CFG_480I_BOB_DEINTER_SETMASK  (1<<CFG_480I_BOB_DEINTER_OFFSET)
   #define CFG_480I_BOB_DEINTER_CLRMASK  (CFG_LINEX_GETALL_MASK & ~CFG_480I_BOB_DEINTER_GETMASK)
@@ -266,20 +302,22 @@ typedef struct {
 
 
 // max values
-#define CFG_FILTER_MAX_VALUE             4
-#define CFG_GAMMA_MAX_VALUE              8
-#define CFG_240P_LINEX_MAX_VALUE         2
-#define CFG_SLSTR_MAX_VALUE             15
-#define CFG_SLHYBDEP_MAX_VALUE          24
-#define CFG_SL_ID_MAX_VALUE              3
-#define CFG_VFORMAT_MAX_VALUE            2
+#define CFG_HORSHIFT_MAX_VALUE    111
+#define CFG_VERTSHIFT_MAX_VALUE    63
+#define CFG_FILTER_MAX_VALUE        4
+#define CFG_GAMMA_MAX_VALUE         8
+#define CFG_240P_LINEX_MAX_VALUE    2
+#define CFG_SLSTR_MAX_VALUE        15
+#define CFG_SLHYBDEP_MAX_VALUE     24
+#define CFG_SL_ID_MAX_VALUE         3
+#define CFG_VFORMAT_MAX_VALUE       2
 
-#define CFG_FILTER_NOT_INSTALLED         5
+#define CFG_FILTER_NOT_INSTALLED    5
 
 // some default values other than 0 (go into default value of config)
 // these are N64 defaults
 #define CFG_VFORMAT_DEFAULTVAL                (CFG_RGSB_SETMASK >> CFG_VFORMAT_OFFSET)
-  #define CFG_VFORMAT_DEFAULT_SETMASK           CFG_RGSB_SETMASK
+  #define CFG_VFORMAT_DEFAULT_SETMASK           (CFG_VFORMAT_DEFAULTVAL << CFG_VFORMAT_OFFSET)
 #define CFG_GAMMA_DEFAULTVAL                  5
   #define CFG_GAMMA_DEFAULT_SETMASK             (CFG_GAMMA_DEFAULTVAL << CFG_GAMMA_OFFSET)
 #define CFG_240P_SL_METHOD_DEFAULTVAL         1
@@ -287,12 +325,14 @@ typedef struct {
 #define CFG_480I_SL_LINK240P_DEFAULTVAL       1
   #define CFG_480I_SL_LINK240P_DEFAULT_SETMASK  (CFG_480I_SL_LINK240P_DEFAULTVAL << CFG_480I_SL_LINK240P_OFFSET)
 
-#define CFG_MISC_DEFAULT          0x0000
-  #define CFG_MISC_GET_NODEFAULTS   (CFG_SHOWLOGO_GETMASK | CFG_SHOWOSD_GETMASK)
+#define CFG_MISC_DEFAULT          CFG_IGRRST_SETMASK
+  #define CFG_MISC_GET_NODEFAULTS   (CFG_SHOWLOGO_GETMASK | CFG_SHOWOSD_GETMASK | CFG_EXC_RB_OUT_SETMASK)
 #define CFG_VIDEO_DEFAULT         (CFG_VFORMAT_DEFAULT_SETMASK | CFG_GAMMA_DEFAULT_SETMASK)
-  #define CFG_VIDEO_GET_NODEFAULTS  (CFG_EXC_RB_OUT_SETMASK | CFG_VFORMAT_GETMASK)
+  #define CFG_VIDEO_GET_NODEFAULTS  (CFG_VIDEO_GETTIMINGS_MASK | CFG_VFORMAT_GETMASK)
 #define CFG_LINEX_DEFAULT         (CFG_240P_SL_METHOD_DEFAULT_SETMASK | CFG_480I_FIELDFIX_SETMASK | CFG_480I_SL_LINK240P_DEFAULT_SETMASK)
   #define CFG_LINEX_GET_NODEFAULTS  0x0000
+
+#define CFG_TIMING_DEFAULTS 0x00402000
 
 
 // the jumper
@@ -338,10 +378,13 @@ void cfg_set_value(config_t* cfg_data, alt_u8 value);
 int cfg_show_testpattern(configuration_t* sysconfig);
 int cfg_save_to_flash(configuration_t* sysconfig, alt_u8 need_confirm);
 int cfg_load_from_flash(configuration_t* sysconfig, alt_u8 need_confirm);
+int cfg_reset_timing(configuration_t* sysconfig);
 int cfg_load_defaults(configuration_t* sysconfig, alt_u8 need_confirm);
 int cfg_load_jumperset(configuration_t* sysconfig, alt_u8 need_confirm);
-void cfg_store_linex_word(configuration_t* sysconfig, alt_u8 pal);
-void cfg_load_linex_word(configuration_t* sysconfig, alt_u8 pal);
+void cfg_store_timing_word(configuration_t* sysconfig, alt_u8 timing_selection);
+void cfg_load_timing_word(configuration_t* sysconfig, alt_u8 timing_selection);
+void cfg_store_linex_word(configuration_t* sysconfig, alt_u8 palmode);
+void cfg_load_linex_word(configuration_t* sysconfig, alt_u8 palmode);
 void cfg_apply_to_logic(configuration_t* sysconfig);
 void cfg_read_from_logic(configuration_t* sysconfig);
 alt_u8 cfg_get_jumper();

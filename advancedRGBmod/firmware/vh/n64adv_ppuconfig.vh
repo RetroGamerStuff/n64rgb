@@ -39,25 +39,36 @@
   //    [31:24] {(8bits reserve)}
   //    [23:16] {(8bits reserve)}
   //    [15: 8] {(2bits reserve),use_vpll,test_vpll,show_testpattern,show_osd_logo,show_osd,mute_osd}
-  //    [ 7: 0] {(1bit reserve),igr for reset,igr for 15bit mode and deblur (not used in logic),pal_awareness (not used in logic),FilterSet (3bits)}
+  //    [ 7: 0] {igr for reset,igr for 15bit mode and deblur (not used in logic),pal_awareness (not used in logic),Exchange_RB_out,FilterSet (3bits)}
   //  wire [31:0] SysConfigSet1;
-  //    [31:24] {(8bits reserve)}
-  //    [23:16] {(8bits reserve)}
-  //    [15: 8] {(7bits reserve),Exchange_RB_out}
+  //    [31:24] {(7bits reserved), dejitter}
+  //    [23:16] {(1bit reserved), LineX H-Shift (7bits)}
+  //    [15: 8] {(2bits reserved),LineX V-Shift (6bits),LineX}
   //    [ 7: 0] {YPbPr, RGsB, gamma (4bits),VI-DeBlur,15bit mode}
   //  wire [31:0] SysConfigSet0;
   //    general structure [31:16] 240p settings, [15:0] 480i settings
   //    [31:16] 240p: {(1bit reserve),linemult (2bits),Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_Method,Sl_ID,Sl_En}
   //    [15: 0] 480i: {(1bit reserve),field_fix,bob_deint.,Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_link,Sl_ID,Sl_En}
-  // later
-  //  [46:0] PPUConfigSet <= {SysConfigSet2[11],SysConfigSet1[13:0],SysConfigSet0};
+
+  `define use_vpll_bit                13
+  `define test_vpll_bit               12
+  `define show_testpattern_direct_bit 11
+  `define show_osd_logo_bit           10
+  `define show_osd_bit                 9
+  `define mute_osd_bit                 8
+  `define igr_reset_enable_bit         7
+  `define Exchange_RB_out_direct_bit   3
+  `define FilterSet_slice_direct       2 : 0
 
   `define SysConfigSet2_Offset  64
-  `define show_testpattern_bit  11 + `SysConfigSet2_Offset -  8
+  `define show_testpattern_bit  11 + `SysConfigSet2_Offset - 7
+  `define Exchange_RB_out_bit    3 + `SysConfigSet2_Offset
   `define FilterSet_slice        2 + `SysConfigSet2_Offset :  0 + `SysConfigSet2_Offset
 
   `define SysConfigSet1_Offset  32
-  `define Exchange_RB_out_bit    8 + `SysConfigSet1_Offset
+  `define pal_dejitter_bit      24 + `SysConfigSet1_Offset
+  `define linex_hshift_slice    22 + `SysConfigSet1_Offset : 16 + `SysConfigSet1_Offset
+  `define linex_vshift_slice    13 + `SysConfigSet1_Offset :  8 + `SysConfigSet1_Offset
   `define YPbPr_bit              7 + `SysConfigSet1_Offset
   `define RGsB_bit               6 + `SysConfigSet1_Offset
   `define gamma_slice            5 + `SysConfigSet1_Offset :  2 + `SysConfigSet1_Offset
@@ -76,12 +87,11 @@
   `define v480i_field_fix_bit   14
   `define v480i_linex2_bit      13
   `define v480i_SL_hybrid_slice 12: 8
-  `define v480i_SL_str_slice     7:4
+  `define v480i_SL_str_slice     7: 4
   `define v480i_SL_linked_bit    2
   `define v480i_SL_ID_bit        1
   `define v480i_SL_En_bit        0
-
-
+  
   `define GAMMA_TABLE_OFF   4'b0101
 
 `endif

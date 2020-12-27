@@ -37,7 +37,7 @@
 #ifndef MENU_H_
 #define MENU_H_
 
-#define OPT_WINDOW_WIDTH  15
+#define OPT_WINDOW_WIDTH  21
 #define OPT_WINDOWCOLOR_BG    BACKGROUNDCOLOR_WHITE
 #define OPT_WINDOWCOLOR_FONT  FONTCOLOR_BLACK
 
@@ -113,19 +113,22 @@ typedef struct menu {
   leaves_t            leaves[];
 } menu_t;
 
-extern menu_t home_menu;
+extern menu_t home_menu, welcome_screen;
 
 void val2txt_func(alt_u8 v);
+void val2txt_6b_binaryoffset_func(alt_u8 v);
+void val2txt_7b_binaryoffset_half_func(alt_u8 v);
 void flag2set_func(alt_u8 v);
 void scanline_str2txt_func(alt_u8 v);
 void scanline_hybrstr2txt_func(alt_u8 v);
 void gamma2txt_func(alt_u8 v);
 
-updateaction_t modify_menu(cmd_t command, menu_t** current_menu, configuration_t* sysconfig);
+updateaction_t modify_menu(cmd_t command, menu_t** current_menu, configuration_t* sysconfig, alt_u16* ppu_state);
 void print_overlay(menu_t* current_menu);
 void print_selection_arrow(menu_t* current_menu);
 int update_vinfo_screen(menu_t* current_menu, alt_u16* ppu_state);
-int update_cfg_screen(menu_t* current_menu);
+int update_cfg_screen(menu_t* current_menu, alt_u8 linemode, alt_u8 timing_current);
+void print_current_mode(alt_u8 palmode,alt_u8 linemode,alt_u8 timing_current);
 
 
 #endif /* MENU_H_ */
