@@ -25,6 +25,7 @@ This is a complete DIY modding project. So everybody is on his own here.
   * linetrippling of 240p to (pseudo) 720p (NTSC content only, generated resolution is not a standard resolution so compatibility highly depends on your TV)
   * Bob de-interlace of 480i/576i to 480p/576p (with optional field shift fix (reduces vertical flicker))
   * configurable hybrid scanlines
+  * Dejitter for PAL in LineX2 mode [2]
   * possible VGA output [3]
   * on-screen menu for configuration
 
@@ -35,7 +36,12 @@ The following shortly describes the main features of the firmware and how to use
 ##### [1]
 For now, support for 6k LEs FPGAs (EP4CE6E22 and 10CL006YE144) has been discontinued. They are to small for an OSD menu implementation due to the small amount of block RAM. I will try to get it fit in future.
 
+##### [2]
+
+Experimental feature which might not be compatible with all PAL games. Please report incompatibilities on GitHub!
+
 ##### [3]
+
 Not available if the filter adddon is used as HSYNC and VSYNC are shared outputs with F1 and F2 (filter selection)
 
 ### In-Game Routines (IGR)
