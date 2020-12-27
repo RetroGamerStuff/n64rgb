@@ -166,7 +166,7 @@ always @(posedge VCLK)
 
 register_sync #(
   .reg_width(15),
-  .reg_preset(1'b0)
+  .reg_preset(15'd0)
 ) sync4cpu_u(
   .clk(CLK_25M),
   .clk_en(1'b1),
