@@ -104,7 +104,7 @@
 
 #define VICFG_VTIMSUB_OVERLAY_H_OFFSET  TEXTOVERLAY_H_OFFSET
 #define VICFG_VTIMSUB_OVERLAY_V_OFFSET  OVERLAY_V_OFFSET_WH
-#define VICFG_VTIMSUB_VALS_H_0_OFFSET     (19 + VICFG_VTIMSUB_OVERLAY_H_OFFSET)
+#define VICFG_VTIMSUB_VALS_H_0_OFFSET     (21 + VICFG_VTIMSUB_OVERLAY_H_OFFSET)
 #define VICFG_VTIMSUB_VALS_H_1_OFFSET     (31 + VICFG_VTIMSUB_OVERLAY_H_OFFSET)
 #define VICFG_VTIMSUB_MODE_V_OFFSET     (0 + VICFG_VTIMSUB_OVERLAY_V_OFFSET)
 #define VICFG_VTIMSUB_VSHIFT_V_OFFSET   (2 + VICFG_VTIMSUB_OVERLAY_V_OFFSET)
@@ -241,7 +241,7 @@ static const char *vicfg_vpll_opt_overlay =
 static const char *vicfg_timing_opt_header =
     "Config. (Position)";
 static const char *vicfg_timing_opt_overlay =
-    "* Timing for:";
+    "* Settings for:";
 static const char *vicfg_timing_opt_overlay0 =
     "* Vertical shift:\n"
     "* Horizontal shift:";
