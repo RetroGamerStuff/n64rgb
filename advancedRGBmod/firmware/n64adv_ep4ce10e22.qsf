@@ -218,8 +218,7 @@ set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files/n64adv1/ep4ce1
 ## Assignments for Synthesis and Fitter
 ## ====================================
 set_global_assignment -name SMART_RECOMPILE ON
-set_global_assignment -name OPTIMIZATION_MODE "HIGH PERFORMANCE EFFORT"
-set_global_assignment -name CYCLONEII_OPTIMIZATION_TECHNIQUE SPEED
+set_global_assignment -name OPTIMIZATION_MODE "AGGRESSIVE PERFORMANCE"
 
 
 ## Additions by Quartus Prime
