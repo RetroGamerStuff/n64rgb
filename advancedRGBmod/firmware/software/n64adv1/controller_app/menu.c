@@ -118,8 +118,8 @@ static const arrow_t misc_sel_arrow = {
 menu_t home_menu, vinfo_screen, vicfg1_screen, vicfg2_screen, vicfg_240p_opt_subscreen, vicfg_480i_opt_subscreen,
        vicfg_vpll_subscreen, vicfg_timing_subscreen, misc_screen, rwdata_screen, about_screen, thanks_screen, license_screen;
 
-extern config_t deblur_mode_current, mode15bit_current, ntsc_pal_selection;
-extern config_t vformat, deblur_mode, gamma_lut, mode15bit, pal_awareness;
+extern config_t deblur_mode_current, mode16bit_current, ntsc_pal_selection;
+extern config_t vformat, deblur_mode, gamma_lut, mode16bit, pal_awareness;
 extern config_t linex_240p, sl_en, sl_method, sl_id, sl_str, slhyb_str;
 extern config_t bob_deinter_480i, field_shift_fix_480i, sl_en_480i, sl_link_480i, sl_id_480i, sl_str_480i, slhyb_str_480i;
 extern config_t use_vpll;
@@ -181,8 +181,8 @@ menu_t vicfg2_screen = {
         {.id = VICFG2_EXCH_RB_OUT_V_OFFSET   , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &exchange_rb_out},
         {.id = VICFG2_DEBLURMODE_V_OFFSET    , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &deblur_mode_current},
         {.id = VICFG2_DEBLURMODE_DEF_V_OFFSET, .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &deblur_mode},
-        {.id = VICFG2_15BIT_V_OFFSET         , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &mode15bit_current},
-        {.id = VICFG2_15BIT_DEF_V_OFFSET     , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &mode15bit},
+        {.id = VICFG2_15BIT_V_OFFSET         , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &mode16bit_current},
+        {.id = VICFG2_15BIT_DEF_V_OFFSET     , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &mode16bit},
         {.id = VICFG2_PAGE1_V_OFFSET         , .arrow_desc = &vicfg_sel_arrow, .leavetype = ISUBMENU, .submenu      = &vicfg1_screen}
     }
 };
@@ -689,7 +689,7 @@ int update_vinfo_screen(menu_t* current_menu, alt_u16* ppu_state)
   vd_print_string(INFO_VALS_H_OFFSET,INFO_VOUT_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,VideoMode[str_select]);
 
   // Color Depth
-  str_select = ((*ppu_state & PPU_STATE_15BIT_MODE_GETMASK) >> PPU_STATE_15BIT_MODE_OFFSET);
+  str_select = ((*ppu_state & PPU_STATE_16BIT_MODE_GETMASK) >> PPU_STATE_16BIT_MODE_OFFSET);
   vd_clear_lineend(INFO_VALS_H_OFFSET,INFO_COL_V_OFFSET);
   vd_print_string(INFO_VALS_H_OFFSET,INFO_COL_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,VideoColor[str_select]);
 

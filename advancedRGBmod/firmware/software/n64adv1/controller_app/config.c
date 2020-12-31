@@ -51,7 +51,7 @@ typedef struct {
 static const char *confirm_message = "< Really? >";
 extern const char *btn_overlay_1, *btn_overlay_2;
 
-extern config_t deblur_mode, deblur_mode_current, mode15bit, mode15bit_current;
+extern config_t deblur_mode, deblur_mode_current, mode16bit, mode16bit_current;
 
 extern config_t timing_selection;
 extern config_tray_t linex_words[], timing_words[];
@@ -396,17 +396,17 @@ void cfg_load_timing_word(configuration_t* sysconfig, alt_u8 timing_word_select)
 void cfg_apply_to_logic(configuration_t* sysconfig)
 {
   alt_u8 deblur_bak = cfg_get_value(&deblur_mode,0);
-  alt_u8 mode15bit_bak = cfg_get_value(&mode15bit,0);
+  alt_u8 mode16bit_bak = cfg_get_value(&mode16bit,0);
 
   cfg_set_value(&deblur_mode,cfg_get_value(&deblur_mode_current,0));
-  cfg_set_value(&mode15bit,cfg_get_value(&mode15bit_current,0));
+  cfg_set_value(&mode16bit,cfg_get_value(&mode16bit_current,0));
 
   IOWR_ALTERA_AVALON_PIO_DATA(CFG_MISC_OUT_BASE,sysconfig->cfg_word_def[MISC]->cfg_word_val);
   IOWR_ALTERA_AVALON_PIO_DATA(CFG_VIDEO_OUT_BASE,sysconfig->cfg_word_def[VIDEO]->cfg_word_val);
   IOWR_ALTERA_AVALON_PIO_DATA(CFG_LINEX_OUT_BASE,sysconfig->cfg_word_def[LINEX]->cfg_word_val);
 
   cfg_set_value(&deblur_mode,deblur_bak);
-  cfg_set_value(&mode15bit,mode15bit_bak);
+  cfg_set_value(&mode16bit,mode16bit_bak);
 }
 
 void cfg_read_from_logic(configuration_t* sysconfig)

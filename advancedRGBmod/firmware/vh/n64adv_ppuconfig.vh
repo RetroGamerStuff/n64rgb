@@ -39,12 +39,12 @@
   //    [31:24] {(8bits reserve)}
   //    [23:16] {(8bits reserve)}
   //    [15: 8] {(2bits reserve),use_vpll,test_vpll,show_testpattern,show_osd_logo,show_osd,mute_osd}
-  //    [ 7: 0] {igr for reset,igr for 15bit mode and deblur (not used in logic),pal_awareness (not used in logic),Exchange_RB_out,FilterSet (3bits)}
+  //    [ 7: 0] {igr for reset,igr for 16bit mode and deblur (not used in logic),pal_awareness (not used in logic),Exchange_RB_out,FilterSet (3bits)}
   //  wire [31:0] SysConfigSet1;
   //    [31:24] {(7bits reserved), dejitter}
   //    [23:16] {(1bit reserved), LineX H-Shift (7bits)}
   //    [15: 8] {(2bits reserved),LineX V-Shift (6bits),LineX}
-  //    [ 7: 0] {YPbPr, RGsB, gamma (4bits),VI-DeBlur,15bit mode}
+  //    [ 7: 0] {YPbPr, RGsB, gamma (4bits),VI-DeBlur,16bit mode}
   //  wire [31:0] SysConfigSet0;
   //    general structure [31:16] 240p settings, [15:0] 480i settings
   //    [31:16] 240p: {(1bit reserve),linemult (2bits),Sl_hybrid_depth (5bits),Sl_str (4bits),(1bit reserve),Sl_Method,Sl_ID,Sl_En}
@@ -73,7 +73,7 @@
   `define RGsB_bit               6 + `SysConfigSet1_Offset
   `define gamma_slice            5 + `SysConfigSet1_Offset :  2 + `SysConfigSet1_Offset
   `define videblur_bit           1 + `SysConfigSet1_Offset
-  `define n15bit_mode_bit        0 + `SysConfigSet1_Offset
+  `define n16bit_mode_bit        0 + `SysConfigSet1_Offset
 
   `define v240p_linemult_slice  30:29
     `define v240p_linex3_bit      30

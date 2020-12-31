@@ -80,11 +80,11 @@ cmd_t ctrl_data_to_cmd(alt_u32* ctrl_data, alt_u8 no_fast_skip)
     case BTN_DEBLUR_QUICK_OFF:
       cmd_new = CMD_DEBLUR_QUICK_OFF;
       break;
-    case BTN_15BIT_QUICK_ON:
-      cmd_new = CMD_15BIT_QUICK_ON;
+    case BTN_16BIT_QUICK_ON:
+      cmd_new = CMD_16BIT_QUICK_ON;
       break;
-    case BTN_15BIT_QUICK_OFF:
-      cmd_new = CMD_15BIT_QUICK_OFF;
+    case BTN_16BIT_QUICK_OFF:
+      cmd_new = CMD_16BIT_QUICK_OFF;
       break;
     case BTN_MENU_ENTER:
       cmd_new = CMD_MENU_ENTER;

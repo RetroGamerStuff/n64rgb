@@ -49,7 +49,7 @@ config_t deblur_mode_current = {
     .val2char_func = &flag2set_func
 };
 
-config_t mode15bit_current = {
+config_t mode16bit_current = {
     // .cfg_b32word_t* must be NULL to show that this is a local value
     .cfg_type     = FLAGTXT,
     .cfg_value    = OFF,

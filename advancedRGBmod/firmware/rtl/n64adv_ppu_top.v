@@ -132,7 +132,7 @@ end
 reg [1:2] Filter;
 wire AutoFilter_w;
 
-reg cfg_nvideblur_0, cfg_n15bit_mode;
+reg cfg_nvideblur_0, cfg_n16bit_mode;
 reg [ 3:0] cfg_gamma;
 reg cfg_testpat, cfg_exchange_rb_o, cfg_nEN_YPbPr, cfg_nEN_RGsB, cfg_nvideblur_1;
 reg cfg_ifix, cfg_SL_method, cfg_SL_id, cfg_SL_en;
@@ -162,7 +162,7 @@ assign vdata_vc_i = cfg_testpat ? vdata_tp_o : vdata_srgb_o;
 
 assign Sync_o = vdata_vc_o[`VDATA_O_SY_SLICE];
 assign AutoFilter_w = cfg_filter == 3'b000;
-assign PPUState = {palmode,n64_480i,1'b0,cfg_linemult,~cfg_nEN_YPbPr,~cfg_nEN_RGsB,~cfg_nvideblur_1,~cfg_n15bit_mode,Filter,AutoFilter_w};
+assign PPUState = {palmode,n64_480i,1'b0,cfg_linemult,~cfg_nEN_YPbPr,~cfg_nEN_RGsB,~cfg_nvideblur_1,~cfg_n16bit_mode,Filter,AutoFilter_w};
 
 
 // write configuration register
@@ -170,7 +170,7 @@ assign PPUState = {palmode,n64_480i,1'b0,cfg_linemult,~cfg_nEN_YPbPr,~cfg_nEN_RG
 
 always @(posedge VCLK) begin
   cfg_gamma         <=  ConfigSet[`gamma_slice];
-  cfg_n15bit_mode   <= ~ConfigSet[`n15bit_mode_bit];
+  cfg_n16bit_mode   <= ~ConfigSet[`n16bit_mode_bit];
   if (!n64_480i)
     cfg_nvideblur_0   <= ~ConfigSet[`videblur_bit];
   else

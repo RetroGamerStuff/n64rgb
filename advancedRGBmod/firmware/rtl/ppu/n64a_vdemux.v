@@ -66,7 +66,7 @@ output reg [`VDATA_I_FU_SLICE] vdata_r_1 = {vdata_width_i{1'b0}}; // (unpacked a
 
 wire       palmode     = demuxparams_i[  2];
 wire       ndo_deblur  = demuxparams_i[  1];
-wire       n15bit_mode = demuxparams_i[  0];
+wire       n16bit_mode = demuxparams_i[  0];
 
 wire posedge_nCSYNC = !vdata_r_0[3*color_width_i] &  VD_i[0];
 
@@ -126,9 +126,9 @@ always @(posedge VCLK or negedge nRST) // data register management
     end else begin
       // demux of RGB
       case(data_cnt)
-        2'b01: vdata_r_0[`VDATA_I_RE_SLICE] <= n15bit_mode ? VD_i : {VD_i[6:2], 2'b00};
-        2'b10: vdata_r_0[`VDATA_I_GR_SLICE] <= n15bit_mode ? VD_i : {VD_i[6:2], 2'b00};
-        2'b11: vdata_r_0[`VDATA_I_BL_SLICE] <= n15bit_mode ? VD_i : {VD_i[6:2], 2'b00};
+        2'b01: vdata_r_0[`VDATA_I_RE_SLICE] <= n16bit_mode ? VD_i : {VD_i[6:2], 2'b00};
+        2'b10: vdata_r_0[`VDATA_I_GR_SLICE] <= n16bit_mode ? VD_i : {VD_i[6:1], 1'b0};
+        2'b11: vdata_r_0[`VDATA_I_BL_SLICE] <= n16bit_mode ? VD_i : {VD_i[6:2], 2'b00};
       endcase
     end
   end

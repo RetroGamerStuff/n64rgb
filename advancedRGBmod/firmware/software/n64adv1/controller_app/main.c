@@ -128,7 +128,7 @@ int main()
   cfg_load_linex_word(&sysconfig,NTSC);
   cfg_load_timing_word(&sysconfig,NTSC_LX2_PR);
   cfg_set_value(&deblur_mode_current,cfg_get_value(&deblur_mode,0));
-  cfg_set_value(&mode15bit_current,cfg_get_value(&mode15bit,0));
+  cfg_set_value(&mode16bit_current,cfg_get_value(&mode16bit,0));
   cfg_apply_to_logic(&sysconfig);
 
   vpll_lock_first_boot = 1;
@@ -252,11 +252,11 @@ int main()
 
       if (cfg_get_value(&igr_15bitmode,0))
           switch (command) {
-            case CMD_15BIT_QUICK_ON:
-              cfg_set_flag(&mode15bit_current);
+            case CMD_16BIT_QUICK_ON:
+              cfg_set_flag(&mode16bit_current);
               break;
-            case CMD_15BIT_QUICK_OFF:
-              cfg_clear_flag(&mode15bit_current);
+            case CMD_16BIT_QUICK_OFF:
+              cfg_clear_flag(&mode16bit_current);
               break;
             default:
               break;

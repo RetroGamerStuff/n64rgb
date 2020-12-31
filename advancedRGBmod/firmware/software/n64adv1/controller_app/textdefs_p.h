@@ -201,7 +201,7 @@ static const char *vicfg2_overlay =
     "* Exchange R&B out:\n"
     "* LowRes.-DeBlur:\n"
     "  - powercycle default:\n"
-    "* 15bit mode:\n"
+    "* 16bit mode:\n"
     "  - powercycle default:\n\n"
     "* VI config page 1:\n";
 
@@ -359,7 +359,7 @@ const char *EvenOdd[]       = {"Even","Odd "};
 const char *AdvSL[]         = {"Simple","Advanced"};
 const char *LinkSL[]        = {"480i ind.","Link 240p"};
 const char *VideoMode[]     = {"240p60","480i60","288p50","576i50","480p60","576p50","720p60 (pseudo)"};
-const char *VideoColor[]    = {"21bit","15bit"};
+const char *VideoColor[]    = {"21bit","16bit"};
 const char *VideoFormat[]   = {"RGBS","RGBS/RGsB","YPbPr"};
 const char *FilterAddOn[]   = {"(Auto)"," 9.5MHz","18.0MHz","36.0MHz","(bypassed)","(found)","(not installed)"};
 const char *QuickChange[]   = {"Off","VI-DeBlur","15bit mode","VI-DB & 15b mode"};

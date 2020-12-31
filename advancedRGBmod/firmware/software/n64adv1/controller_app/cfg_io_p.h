@@ -134,11 +134,11 @@ config_t igr_deblur = {
 
 config_t igr_15bitmode = {
     .cfg_word        = &cfg_data_misc,
-    .cfg_word_offset = CFG_IGR15BITMODE_OFFSET,
+    .cfg_word_offset = CFG_IGR16BITMODE_OFFSET,
     .cfg_type        = FLAGTXT,
     .flag_masks      = {
-        .setflag_mask = CFG_IGR15BITMODE_SETMASK,
-        .clrflag_mask = CFG_IGR15BITMODE_CLRMASK
+        .setflag_mask = CFG_IGR16BITMODE_SETMASK,
+        .clrflag_mask = CFG_IGR16BITMODE_CLRMASK
     },
     .val2char_func = &flag2set_func
 };
@@ -259,13 +259,13 @@ config_t deblur_mode = {
     .value_string = &OffOn
 };
 
-config_t mode15bit = {
+config_t mode16bit = {
     .cfg_word        = &cfg_data_video,
-    .cfg_word_offset = CFG_15BITMODE_OFFSET,
+    .cfg_word_offset = CFG_16BITMODE_OFFSET,
     .cfg_type        = FLAG,
     .flag_masks      = {
-        .setflag_mask = CFG_15BITMODE_SETMASK,
-        .clrflag_mask = CFG_15BITMODE_CLRMASK
+        .setflag_mask = CFG_16BITMODE_SETMASK,
+        .clrflag_mask = CFG_16BITMODE_CLRMASK
     },
     .value_string = &OffOn
 };
