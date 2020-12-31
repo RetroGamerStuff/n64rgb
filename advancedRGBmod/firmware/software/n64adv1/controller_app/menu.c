@@ -329,6 +329,7 @@ static inline alt_u8 is_vicfg_480i_sl_are_linked (menu_t *menu)
 static inline alt_u8 is_misc_screen (menu_t *menu)
   {  return (menu == &misc_screen); }
 
+
 void print_timing_overlay(alt_u8 lx_mode) {
   alt_u8 font_color = lx_mode ? FONTCOLOR_WHITE : FONTCOLOR_GREY;
   vd_print_string(VICFG_VTIMSUB_OVERLAY_H_OFFSET+3,VICFG_VTIMSUB_VSHIFT_V_OFFSET,BACKGROUNDCOLOR_STANDARD,font_color,vicfg_timing_opt_overlay0);
@@ -337,6 +338,7 @@ void print_dejitter_overlay(alt_u8 palmode) {
   alt_u8 font_color = palmode ? FONTCOLOR_WHITE : FONTCOLOR_GREY;
   vd_print_string(VICFG_VTIMSUB_OVERLAY_H_OFFSET+3,VICFG_VTIMSUB_PALDEJ_V_OFFSET,BACKGROUNDCOLOR_STANDARD,font_color,vicfg_timing_opt_overlay1);
 }
+
 
 void val2txt_func(alt_u8 v) { sprintf(szText,"%u", v); };
 void val2txt_6b_binaryoffset_func(alt_u8 v) { if (v & 0x20) sprintf(szText," %2u", (v&0x1F)); else sprintf(szText,"-%2u", (v^0x1F)+1); };
@@ -354,6 +356,7 @@ void flag2set_func(alt_u8 v) { sprintf(szText,"[ ]"); if (v) szText[1] = (char) 
 void scanline_str2txt_func(alt_u8 v) { v++; sprintf(szText,"%3u.%02u%%", (v*625)/100, 25*(v&3)); };
 void scanline_hybrstr2txt_func(alt_u8 v) { sprintf(szText,"%3u.%02u%%", (v*625)/100, 25*(v&3)); };
 void gamma2txt_func(alt_u8 v) { sprintf(szText,"%u.%02u", v > 4, 5* v + 75 - (100 * (v > 4))); };
+
 
 updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t* sysconfig, alt_u16* ppu_state)
 {
@@ -383,6 +386,30 @@ updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t
     } else {
       (*current_menu)->current_selection = 1;
       return MENU_CLOSE;
+    }
+  }
+
+  if (command == CMD_MENU_PAGE_RIGHT) {
+    if (is_vicfg1_screen(*current_menu)) {
+      *current_menu = &vicfg2_screen;
+      vicfg_page = 2;
+      return NEW_OVERLAY;
+    }
+    if (is_vicfg2_screen(*current_menu)) {
+      *current_menu = &vicfg1_screen;
+      vicfg_page = 1;
+      return NEW_OVERLAY;
+    }
+    if (is_vicfg_timing_screen(*current_menu)) {
+      cfg_inc_value((*current_menu)->leaves[0].config_value);
+      return NEW_CONF_VALUE;
+    }
+  }
+
+  if (command == CMD_MENU_PAGE_LEFT) {
+    if (is_vicfg_timing_screen(*current_menu)) {
+      cfg_dec_value((*current_menu)->leaves[0].config_value);
+      return NEW_CONF_VALUE;
     }
   }
 

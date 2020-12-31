@@ -92,6 +92,13 @@ cmd_t ctrl_data_to_cmd(alt_u32* ctrl_data, alt_u8 no_fast_skip)
     case BTN_MENU_BACK:
       cmd_new = CMD_MENU_BACK;
       break;
+    case CTRL_R_SETMASK:
+      cmd_new = CMD_MENU_PAGE_RIGHT;
+      break;
+    case CTRL_L_SETMASK:
+    case CTRL_Z_SETMASK:
+      cmd_new = CMD_MENU_PAGE_LEFT;
+      break;
     case CTRL_DU_SETMASK:
     case CTRL_CU_SETMASK:
       cmd_new = CMD_MENU_UP;
