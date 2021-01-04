@@ -58,7 +58,7 @@ input [13:0] linex_timing;
 
 input  VCLK_o;
 input  nVRST_o;
-output reg vdata_valid_o = 1'b1; // for new implementation
+output reg vdata_valid_o = 1'b0; // for new implementation
 output reg [`VDATA_O_FU_SLICE] vdata_o = {vdata_width_o{1'b0}};
 
 
@@ -646,6 +646,7 @@ always @(posedge VCLK_o or negedge nVRST_o)
     G_sl <= {color_width_o{1'b0}};
     B_sl <= {color_width_o{1'b0}};
 
+    vdata_valid_o <= 1'b0;
     vdata_o <= {vdata_width_o{1'b0}};
   end else begin
          dSL_pp[0] <= drawSL[2];
@@ -695,12 +696,16 @@ always @(posedge VCLK_o or negedge nVRST_o)
                                      G_pp[4],G_pp[4][color_width_i-1],
                                      B_pp[4],B_pp[4][color_width_i-1]};
 
+    vdata_valid_o <= 1'b1; // for simplicity just set
+
     // use standard input if no line-doubling
-    if (nENABLE_linemult)
+    if (nENABLE_linemult) begin
+      vdata_valid_o <= vdata_valid_i;
       vdata_o <= {vdata_i[`VDATA_I_SY_SLICE],
                   vdata_i[`VDATA_I_RE_SLICE],vdata_i[3*color_width_i-1],
                   vdata_i[`VDATA_I_GR_SLICE],vdata_i[2*color_width_i-1],
                   vdata_i[`VDATA_I_BL_SLICE],vdata_i[color_width_i-1]};
+    end
   end
 
 

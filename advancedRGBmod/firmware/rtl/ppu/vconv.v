@@ -41,7 +41,9 @@ module vconv(
 
   nEN_YPbPr,    // enables color transformation on '0'
 
+  vdata_valid_i,
   vdata_i,
+  vdata_valid_o,
   vdata_o
 );
 
@@ -54,7 +56,9 @@ input nRST;
 
 input nEN_YPbPr;
 
+input vdata_valid_i;
 input  [`VDATA_O_FU_SLICE] vdata_i;
+output reg vdata_valid_o = 1'b0;
 output [`VDATA_O_FU_SLICE] vdata_o;
 
 
@@ -75,39 +79,44 @@ reg unsigned [color_width_o-1:0] V3_o = {color_width_o{1'b0}};
 
 // delay Sync along with the pipeline stages of the video conversion
 
+reg vdata_valid[0:2];
 reg [3:0] S[0:2];
 reg [color_width_o-1:0] R[0:2], G[0:2], B[0:2];
 
-integer i;
+integer idx;
 initial begin
-  for (i = 0; i < 3; i = i+1) begin
-    S[i] = 4'h0;
-    R[i] = {color_width_o{1'b0}};
-    G[i] = {color_width_o{1'b0}};
-    B[i] = {color_width_o{1'b0}};
+  for (idx = 0; idx < 3; idx = idx+1) begin
+    vdata_valid[idx] = 1'b0;
+              S[idx] = 4'h0;
+              R[idx] = {color_width_o{1'b0}};
+              G[idx] = {color_width_o{1'b0}};
+              B[idx] = {color_width_o{1'b0}};
   end
 end
 
 always @(posedge VCLK or negedge nRST)
   if (!nRST) begin
-    for (i = 0; i < 3; i = i+1) begin
-      S[i] <= 4'h0;
-      R[i] <= {color_width_o{1'b0}};
-      G[i] <= {color_width_o{1'b0}};
-      B[i] <= {color_width_o{1'b0}};
+    for (idx = 0; idx < 3; idx = idx+1) begin
+      vdata_valid[idx] = 1'b0;
+                S[idx] <= 4'h0;
+                R[idx] <= {color_width_o{1'b0}};
+                G[idx] <= {color_width_o{1'b0}};
+                B[idx] <= {color_width_o{1'b0}};
     end
   end else begin
-    for (i = 1; i < 3; i = i+1) begin
-      S[i] <= S[i-1];
-      R[i] <= R[i-1];
-      G[i] <= G[i-1];
-      B[i] <= B[i-1];
+    for (idx = 1; idx < 3; idx = idx+1) begin
+      vdata_valid[idx] <= vdata_valid[idx-1];
+                S[idx] <= S[idx-1];
+                R[idx] <= R[idx-1];
+                G[idx] <= G[idx-1];
+                B[idx] <= B[idx-1];
     end
 
-    S[0] <= S_i;
-    R[0] <= R_i;
-    G[0] <= G_i;
-    B[0] <= B_i;
+    vdata_valid[0] <= vdata_valid_i;
+              S[0] <= S_i;
+              R[0] <= R_i;
+              G[0] <= G_i;
+              B[0] <= B_i;
   end
 
 
@@ -198,11 +207,13 @@ wire [color_width_o  :0] Pr_tmp = Pr_addmult[color_width_o+1:1] + Pr_addmult[0];
 
 always @(posedge VCLK or negedge nRST)
   if (!nRST) begin
-     S_o <= 4'h0;
-    V1_o <= {color_width_o{1'b0}};
-    V2_o <= {color_width_o{1'b0}};
-    V3_o <= {color_width_o{1'b0}};
+    vdata_valid_o <= 1'b0;
+              S_o <= 4'h0;
+              V1_o <= {color_width_o{1'b0}};
+              V2_o <= {color_width_o{1'b0}};
+              V3_o <= {color_width_o{1'b0}};
   end else begin
+    vdata_valid_o <= vdata_valid[2];
     if (!nEN_YPbPr) begin
        S_o <= S[2];
       V1_o <= {~Pr_tmp[color_width_o],Pr_tmp[color_width_o-1:1]};

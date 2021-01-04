@@ -119,6 +119,7 @@ wire [`VDATA_O_FU_SLICE] vdata_tp_o;
 
 wire vdata_vc_valid_i;
 wire [`VDATA_O_FU_SLICE] vdata_vc_i;
+wire vdata_vc_valid_o;
 wire [`VDATA_O_FU_SLICE] vdata_vc_o;
 
 wire [3:0] Sync_o;
@@ -333,7 +334,9 @@ vconv vconv_u(
   .VCLK(VCLK_Tx),
   .nRST(nVRST_Tx),
   .nEN_YPbPr(cfg_nEN_YPbPr),  // enables color transformation on '0'
+  .vdata_valid_i(vdata_vc_valid_i),
   .vdata_i(vdata_vc_i),
+  .vdata_valid_o(vdata_vc_valid_o),
   .vdata_o(vdata_vc_o)
 );
 
@@ -346,20 +349,22 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
     nCSYNC <= 2'b00;
       VD_o <= {3*color_width_o{1'b0}};
   end else begin
-  //  nBLANK <= Sync_o[2];
-    nCSYNC[1] <= Sync_o[0];
-    if (cfg_nEN_RGsB & cfg_nEN_YPbPr)
-      nCSYNC[0] <= 1'b0;
-    else
-      nCSYNC[0] <= Sync_o[0];
+    if (vdata_vc_valid_o) begin
+    //  nBLANK <= Sync_o[2];
+      nCSYNC[1] <= Sync_o[0];
+      if (cfg_nEN_RGsB & cfg_nEN_YPbPr)
+        nCSYNC[0] <= 1'b0;
+      else
+        nCSYNC[0] <= Sync_o[0];
 
-    vdata_shifted[1] <= vdata_shifted[0];
-    vdata_shifted[0] <= cfg_exchange_rb_o ? {vdata_vc_o[`VDATA_O_BL_SLICE],vdata_vc_o[`VDATA_O_GR_SLICE],vdata_vc_o[`VDATA_O_RE_SLICE]} : vdata_vc_o[`VDATA_O_CO_SLICE];
+      vdata_shifted[1] <= vdata_shifted[0];
+      vdata_shifted[0] <= cfg_exchange_rb_o ? {vdata_vc_o[`VDATA_O_BL_SLICE],vdata_vc_o[`VDATA_O_GR_SLICE],vdata_vc_o[`VDATA_O_RE_SLICE]} : vdata_vc_o[`VDATA_O_CO_SLICE];
 
-    if (!cfg_nvideblur_1 && !cfg_testpat)
-      VD_o <= vdata_shifted[^cfg_linemult][`VDATA_O_CO_SLICE];
-    else
-      VD_o <= cfg_exchange_rb_o ? {vdata_vc_o[`VDATA_O_BL_SLICE],vdata_vc_o[`VDATA_O_GR_SLICE],vdata_vc_o[`VDATA_O_RE_SLICE]} : vdata_vc_o[`VDATA_O_CO_SLICE];
+      if (!cfg_nvideblur_1 && !cfg_testpat)
+        VD_o <= vdata_shifted[^cfg_linemult][`VDATA_O_CO_SLICE];
+      else
+        VD_o <= cfg_exchange_rb_o ? {vdata_vc_o[`VDATA_O_BL_SLICE],vdata_vc_o[`VDATA_O_GR_SLICE],vdata_vc_o[`VDATA_O_RE_SLICE]} : vdata_vc_o[`VDATA_O_CO_SLICE];
+    end;
 
   end
 
@@ -389,8 +394,10 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
   end else begin
     Filter <= AutoFilter_w ? cfg_linemult : cfg_filter[1:0] - 1'b1;
     if (UseVGA_HVSync) begin
-      nVSYNC_or_F2 <= Sync_o[3];
-      nHSYNC_or_F1 <= Sync_o[1];
+      if (vdata_vc_valid_o) begin
+        nVSYNC_or_F2 <= Sync_o[3];
+        nHSYNC_or_F1 <= Sync_o[1];
+      end
     end else begin
       nVSYNC_or_F2 <= Filter[2];
       nHSYNC_or_F1 <= Filter[1];
