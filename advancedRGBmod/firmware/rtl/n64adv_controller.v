@@ -146,9 +146,11 @@ always @(posedge VCLK or negedge nVRST)
   if (!nVRST) begin
     negedge_nVSYNC <= 1'b0;
     nVSYNC_cur <= 1'b0;
-  end else if (!nVDSYNC) begin
-    negedge_nVSYNC <=  nVSYNC_cur & !VD_VSi;
-    nVSYNC_cur <= VD_VSi;
+  end else begin
+    if (!nVDSYNC) begin
+      negedge_nVSYNC <= nVSYNC_cur & !VD_VSi;
+      nVSYNC_cur <= VD_VSi;
+    end
   end
 
 // Part 1: Instantiate NIOS II
