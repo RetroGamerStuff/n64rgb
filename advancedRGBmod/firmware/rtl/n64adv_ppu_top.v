@@ -2,7 +2,7 @@
 //
 // This file is part of the N64 RGB/YPbPr DAC project.
 //
-// Copyright (C) 2015-2020 by Peter Bartmann <borti4938@gmail.com>
+// Copyright (C) 2015-2021 by Peter Bartmann <borti4938@gmail.com>
 //
 // N64 RGB/YPbPr DAC is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -100,7 +100,7 @@ output reg nHSYNC_or_F1 = 1'b0;
 
 // start of rtl
 
-wire [1:0] vinfo_pass;  // [3:0] {vmode,n64_480i}
+wire [1:0] vinfo_pass;  // [1:0] {vmode,n64_480i}
 wire palmode, n64_480i;
 
 wire [68:0] ConfigSet_resynced;
@@ -373,10 +373,11 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
 // =============================
 //
 // Filter setting from NIOS II core:
-// - 00: Auto
-// - 01: 9.5MHz
-// - 10: 18.0MHz
-// - 11: Bypassed (i.e. 72MHz)
+// - 000: Auto
+// - 001: 9.5MHz
+// - 010: 18.0MHz
+// - 011: 36.0MHz
+// - 100: Bypassed (i.e. 72MHz on non-flex)
 //
 // FILTER 1 | FILTER 2 | DESCRIPTION
 // ---------+----------+--------------------

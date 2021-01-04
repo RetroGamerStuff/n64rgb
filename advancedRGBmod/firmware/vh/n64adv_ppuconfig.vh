@@ -2,7 +2,7 @@
 //
 // This file is part of the N64 RGB/YPbPr DAC project.
 //
-// Copyright (C) 2015-2020 by Peter Bartmann <borti4938@gmail.com>
+// Copyright (C) 2015-2021 by Peter Bartmann <borti4938@gmail.com>
 //
 // N64 RGB/YPbPr DAC is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@
   //  wire [31:0] SysConfigSet1;
   //    [31:24] {(7bits reserved), dejitter}
   //    [23:16] {(1bit reserved), LineX H-Shift (7bits)}
-  //    [15: 8] {(2bits reserved),LineX V-Shift (6bits),LineX}
+  //    [15: 8] {(2bits reserved),LineX V-Shift (6bits)}
   //    [ 7: 0] {YPbPr, RGsB, gamma (4bits),VI-DeBlur,16bit mode}
   //  wire [31:0] SysConfigSet0;
   //    general structure [31:16] 240p settings, [15:0] 480i settings

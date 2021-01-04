@@ -2,7 +2,7 @@
  *
  * This file is part of the N64 RGB/YPbPr DAC project.
  *
- * Copyright (C) 2015-2020 by Peter Bartmann <borti4938@gmail.com>
+ * Copyright (C) 2015-2021 by Peter Bartmann <borti4938@gmail.com>
  *
  * N64 RGB/YPbPr DAC is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -157,7 +157,7 @@
 
 
 static const char *copyright_note =
-    "2020 borti4938"; /* 14 chars */
+    "2021 borti4938"; /* 14 chars */
 
 const char *btn_overlay_0 =
     "A ... Enter\n"
@@ -303,7 +303,7 @@ static const char *about_overlay =
 static const char *license_overlay =
     " The N64Advanced is part of the\n"
     " N64 RGB/YPbPr DAC project\n"
-    "        Copyright   2015 - 2020 Peter Bartmann\n"
+    "        Copyright   2015 - 2021 Peter Bartmann\n"
     " This project is published under GNU GPL v3.0 or\n"
     " later. You should have received a copy of the GNU\n"
     " General Public License along with this project.\n"
