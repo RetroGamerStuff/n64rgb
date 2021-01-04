@@ -132,7 +132,7 @@ config_t igr_deblur = {
     .val2char_func = &flag2set_func
 };
 
-config_t igr_15bitmode = {
+config_t igr_16bitmode = {
     .cfg_word        = &cfg_data_misc,
     .cfg_word_offset = CFG_IGR16BITMODE_OFFSET,
     .cfg_type        = FLAGTXT,

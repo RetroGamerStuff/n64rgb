@@ -78,8 +78,8 @@
 #define VICFG2_EXCH_RB_OUT_V_OFFSET     ( 1 + VICFG_VALS_V_OFFSET)
 #define VICFG2_DEBLURMODE_V_OFFSET      ( 2 + VICFG_VALS_V_OFFSET)
 #define VICFG2_DEBLURMODE_DEF_V_OFFSET  ( 3 + VICFG_VALS_V_OFFSET)
-#define VICFG2_15BIT_V_OFFSET           ( 4 + VICFG_VALS_V_OFFSET)
-#define VICFG2_15BIT_DEF_V_OFFSET       ( 5 + VICFG_VALS_V_OFFSET)
+#define VICFG2_16BIT_V_OFFSET           ( 4 + VICFG_VALS_V_OFFSET)
+#define VICFG2_16BIT_DEF_V_OFFSET       ( 5 + VICFG_VALS_V_OFFSET)
 #define VICFG2_PAGE1_V_OFFSET           ( 7 + VICFG_VALS_V_OFFSET)
 
 #define VICFG_VSUB_OVERLAY_H_OFFSET   OVERLAY_H_OFFSET
@@ -118,7 +118,7 @@
 #define MISC_VALS_V_OFFSET          VICFG_OVERLAY_V_OFFSET
 #define MISC_IGR_RESET_V_OFFSET     ( 1 + MISC_VALS_V_OFFSET)
 #define MISC_IGR_DEBLUR_V_OFFSET    ( 2 + MISC_VALS_V_OFFSET)
-#define MISC_IGR_15BITMODE_V_OFFSET ( 3 + MISC_VALS_V_OFFSET)
+#define MISC_IGR_16BITMODE_V_OFFSET ( 3 + MISC_VALS_V_OFFSET)
 #define MISC_FILTERADDON_V_OFFSET   ( 5 + MISC_VALS_V_OFFSET)
 #define MISC_SHOWTESTPAT_V_OFFSET   ( 6 + MISC_VALS_V_OFFSET)
 
@@ -259,7 +259,7 @@ static const char *misc_overlay =
     "* In-Game Routines:\n"
     "  - Reset:\n"
     "  - VI-DeBlur:\n"
-    "  - 15bit Mode:\n"
+    "  - 16bit Mode:\n"
     "* Filter AddOn:\n"
     "  - Filter Cut-Off:\n"
     "* Show Test-Pattern";
@@ -362,7 +362,6 @@ const char *VideoMode[]     = {"240p60","480i60","288p50","576i50","480p60","576
 const char *VideoColor[]    = {"21bit","16bit"};
 const char *VideoFormat[]   = {"RGBS","RGBS/RGsB","YPbPr"};
 const char *FilterAddOn[]   = {"(Auto)"," 9.5MHz","18.0MHz","36.0MHz","(bypassed)","(found)","(not installed)"};
-const char *QuickChange[]   = {"Off","VI-DeBlur","15bit mode","VI-DB & 15b mode"};
 
 const char *text_240p_288p[]  = {"240p","288p"};
 const char *text_480i_576i[]  = {"480i","576i"};

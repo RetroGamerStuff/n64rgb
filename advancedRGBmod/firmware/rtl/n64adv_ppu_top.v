@@ -253,7 +253,7 @@ n64a_vdemux video_demux_u(
   .nVDSYNC(nVDSYNC),
   .nRST(nVRST),
   .VD_i(VD_i),
-  .demuxparams_i({palmode,cfg_nvideblur_0,cfg_n15bit_mode}),
+  .demuxparams_i({palmode,cfg_nvideblur_0,cfg_n16bit_mode}),
   .vdata_valid_0(vdata_valid[0]),
   .vdata_r_sy_0(vdata_r_sy_0),
   .vdata_valid_1(vdata_valid[1]),

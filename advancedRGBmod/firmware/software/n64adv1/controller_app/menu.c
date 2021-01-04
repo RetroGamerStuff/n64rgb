@@ -124,7 +124,7 @@ extern config_t linex_240p, sl_en, sl_method, sl_id, sl_str, slhyb_str;
 extern config_t bob_deinter_480i, field_shift_fix_480i, sl_en_480i, sl_link_480i, sl_id_480i, sl_str_480i, slhyb_str_480i;
 extern config_t use_vpll;
 extern config_t timing_selection, vert_shift, hor_shift, pal_dejitter;
-extern config_t igr_reset, igr_deblur, igr_15bitmode, filteraddon_cutoff, exchange_rb_out;
+extern config_t igr_reset, igr_deblur, igr_16bitmode, filteraddon_cutoff, exchange_rb_out;
 
 
 menu_t home_menu = {
@@ -181,8 +181,8 @@ menu_t vicfg2_screen = {
         {.id = VICFG2_EXCH_RB_OUT_V_OFFSET   , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &exchange_rb_out},
         {.id = VICFG2_DEBLURMODE_V_OFFSET    , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &deblur_mode_current},
         {.id = VICFG2_DEBLURMODE_DEF_V_OFFSET, .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &deblur_mode},
-        {.id = VICFG2_15BIT_V_OFFSET         , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &mode16bit_current},
-        {.id = VICFG2_15BIT_DEF_V_OFFSET     , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &mode16bit},
+        {.id = VICFG2_16BIT_V_OFFSET         , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &mode16bit_current},
+        {.id = VICFG2_16BIT_DEF_V_OFFSET     , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &mode16bit},
         {.id = VICFG2_PAGE1_V_OFFSET         , .arrow_desc = &vicfg_sel_arrow, .leavetype = ISUBMENU, .submenu      = &vicfg1_screen}
     }
 };

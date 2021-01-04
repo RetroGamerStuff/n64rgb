@@ -250,7 +250,7 @@ int main()
             break;
         }
 
-      if (cfg_get_value(&igr_15bitmode,0))
+      if (cfg_get_value(&igr_16bitmode,0))
           switch (command) {
             case CMD_16BIT_QUICK_ON:
               cfg_set_flag(&mode16bit_current);
