@@ -514,6 +514,8 @@ always @(posedge VCLK_o or negedge nVRST_o)
             rden[0] <= 1'b0;
           end
         end
+      default:
+        rd_state <= ST_WAIT4N64;
     endcase
 
     rden[2:1] <= rden[1:0];
