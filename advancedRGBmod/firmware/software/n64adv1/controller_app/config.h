@@ -39,15 +39,26 @@ typedef enum {
   MISC = 0,
   VIDEO,
   LINEX,
-} cfg_word_type_t;
+} cfg_word_t;
 
 #define NUM_CFG_B32WORDS    3
 
 typedef enum {
   NTSC = 0,
   PAL
-} cfg_linex_sel_type_t;
+} vmode_t;
 #define LINEX_TYPES 2
+
+typedef enum {
+  PROGRESSIVE = 0,
+  INTERLACED
+} scanmode_t;
+
+typedef enum {
+  PASSTHROUGH = 0,
+  LINEX2,
+  LINEX3
+} linemult_t;
 
 
 typedef enum {
@@ -63,12 +74,12 @@ typedef enum {
 typedef enum {
   OFF = 0,
   ON
-} cfg_offon_sel_type_t;
+} cfg_offon_t;
 
 typedef struct {
-  const alt_u32         cfg_word_mask;
-  alt_u32               cfg_word_val;
-  alt_u32               cfg_ref_word_val;
+  const alt_u32 cfg_word_mask;
+  alt_u32       cfg_word_val;
+  alt_u32       cfg_ref_word_val;
 } cfg_b32word_t;
 
 typedef struct {
@@ -311,7 +322,9 @@ typedef struct {
 #define CFG_SL_ID_MAX_VALUE         3
 #define CFG_VFORMAT_MAX_VALUE       2
 
-#define CFG_FILTER_NOT_INSTALLED    5
+#define CFG_FILTER_AUTO             0
+#define CFG_FILTER_INSTALLED        5
+#define CFG_FILTER_NOT_INSTALLED    6
 
 // some default values other than 0 (go into default value of config)
 // these are N64 defaults
@@ -378,12 +391,12 @@ int cfg_show_testpattern(configuration_t* sysconfig);
 int cfg_save_to_flash(configuration_t* sysconfig, alt_u8 need_confirm);
 int cfg_load_from_flash(configuration_t* sysconfig, alt_u8 need_confirm);
 int cfg_reset_timing(configuration_t* sysconfig);
-int cfg_load_defaults(configuration_t* sysconfig, alt_u8 need_confirm);
-int cfg_load_jumperset(configuration_t* sysconfig, alt_u8 need_confirm);
-void cfg_store_timing_word(configuration_t* sysconfig, alt_u8 timing_selection);
-void cfg_load_timing_word(configuration_t* sysconfig, alt_u8 timing_selection);
-void cfg_store_linex_word(configuration_t* sysconfig, alt_u8 palmode);
-void cfg_load_linex_word(configuration_t* sysconfig, alt_u8 palmode);
+int cfg_load_defaults(configuration_t* sysconfig,alt_u8 need_confirm);
+int cfg_load_jumperset(configuration_t* sysconfig,alt_u8 need_confirm);
+void cfg_store_linex_word(configuration_t* sysconfig,vmode_t palmode);
+void cfg_load_linex_word(configuration_t* sysconfig,vmode_t palmode);
+void cfg_store_timing_word(configuration_t* sysconfig,alt_u8 timing_selection);
+void cfg_load_timing_word(configuration_t* sysconfig,alt_u8 timing_selection);
 void cfg_apply_to_logic(configuration_t* sysconfig);
 void cfg_read_from_logic(configuration_t* sysconfig);
 alt_u8 cfg_get_jumper();

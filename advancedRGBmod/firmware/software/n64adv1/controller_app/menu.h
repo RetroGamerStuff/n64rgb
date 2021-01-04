@@ -84,9 +84,8 @@ typedef struct {
   alt_u8       hpos;
 } arrow_t;
 
-typedef int (*save_call)(configuration_t*,alt_u8);
-typedef int (*load_call)(configuration_t*,alt_u8);
-typedef int (*test_call)(configuration_t*);
+typedef int (*sys_call_0)(configuration_t*);
+typedef int (*sys_call_1)(configuration_t*,alt_u8);
 
 typedef struct {
   alt_u8        id;
@@ -96,9 +95,8 @@ typedef struct {
     struct menu *submenu;
     config_t    *config_value;
     union {
-      save_call save_fun;
-      load_call load_fun;
-      test_call test_fun;
+      sys_call_0 sys_fun_0;
+      sys_call_1 sys_fun_1;
     };
   };
 } leaves_t;

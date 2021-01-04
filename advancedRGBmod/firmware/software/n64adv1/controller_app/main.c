@@ -42,6 +42,10 @@
 
 #define CTRL_IGNORE_FRAMES 10;
 
+#define update_vmode ((ppu_state & PPU_STATE_PALMODE_GETMASK) >> PPU_STATE_PALMODE_OFFSET)
+#define update_scanmode ((ppu_state & PPU_STATE_480I_GETMASK) >> PPU_STATE_480I_OFFSET)
+#define update_linemult ((ppu_state & PPU_STATE_LINEMULT_GETMASK) >> PPU_STATE_LINEMULT_OFFSET)
+
 const alt_u8 RW_Message_FontColor[] = {FONTCOLOR_GREEN,FONTCOLOR_RED,FONTCOLOR_MAGENTA};
 const char   *RW_Message[] = {"< Success >","< Failed > ","< Aborted >"};
 
@@ -73,16 +77,18 @@ int main()
       .cfg_word_def[LINEX] = &cfg_data_linex,
   };
 
-  alt_u8 linex_word_menu, linex_word_n64adv;
-  alt_u8 timing_menu, timing_n64adv;
-
   cfg_clear_words(&sysconfig);
+
+  vmode_t linex_word_menu, linex_word_n64adv;
+  alt_u8 timing_menu, timing_n64adv;
 
   alt_u8 ctrl_update = 1;
   alt_u32 ctrl_data;
   alt_u8 ctrl_ignore = 0;
   alt_u16 ppu_state;
-  alt_u8 palmode, interlaced_mode, linemult_mode;
+  vmode_t palmode;
+  scanmode_t scanmode;
+  linemult_t linemult_mode;
   alt_u8 vpll_lock_first_boot;
   alt_u8 vpll_state_frame_delay;
 
@@ -117,7 +123,7 @@ int main()
   }
 
   if (powercycle_show_menu) {
-      open_osd_main(&menu);
+    open_osd_main(&menu);
   } else {
     cfg_clear_flag(&show_osd);
     cfg_clear_flag(&show_logo);
@@ -146,21 +152,21 @@ int main()
     }
 
     if (cfg_get_value(&pal_awareness,0)) {
-      linex_word_n64adv = (ppu_state & PPU_STATE_PALMODE_GETMASK) >> PPU_STATE_PALMODE_OFFSET;
-      linex_word_menu = cfg_get_value(&ntsc_pal_selection,0);
+      linex_word_n64adv = update_vmode;
+      linex_word_menu = (vmode_t) cfg_get_value(&ntsc_pal_selection,0);
     } else {
         linex_word_n64adv = NTSC;
         linex_word_menu = NTSC;
     }
     ppu_state = get_ppu_state();
-    palmode = (ppu_state & PPU_STATE_PALMODE_GETMASK) >> PPU_STATE_PALMODE_OFFSET;
-    interlaced_mode = (ppu_state & PPU_STATE_480I_GETMASK) >> PPU_STATE_480I_OFFSET;
-    linemult_mode = (ppu_state & PPU_STATE_LINEMULT_GETMASK) >> PPU_STATE_LINEMULT_OFFSET;
+    palmode = update_vmode;
+    scanmode = update_scanmode;
+    linemult_mode = update_linemult;
     if (palmode)
-      timing_n64adv = interlaced_mode ? PAL_LX2_INT : PAL_LX2_PR;
+      timing_n64adv = scanmode ? PAL_LX2_INT : PAL_LX2_PR;
     else
-      timing_n64adv = interlaced_mode ? NTSC_LX2_INT :
-        (linemult_mode == 2) ? NTSC_LX3_PR : NTSC_LX2_PR;
+      timing_n64adv = scanmode ? NTSC_LX2_INT :
+          (linemult_mode == 2) ? NTSC_LX3_PR : NTSC_LX2_PR;
 
     timing_menu = cfg_get_value(&timing_selection,0);
     if (timing_menu == PPU_CURRENT) timing_menu = (linemult_mode == 0) ? PPU_CURRENT: timing_n64adv;
@@ -214,7 +220,7 @@ int main()
 
       if (menu->type != TEXT) {
         vd_clear_area(0,VD_WIDTH/2,VD_HEIGHT-1,VD_HEIGHT-1);
-        if (menu == &home_menu) print_ctrl_data(&ctrl_data);
+        if (menu == &home_menu || menu == home_menu.leaves[0].submenu) print_ctrl_data(&ctrl_data);
         else print_current_mode(palmode,linemult_mode,timing_n64adv);
       }
       update_vinfo_screen(menu,&ppu_state);
@@ -223,9 +229,6 @@ int main()
         cfg_store_linex_word(&sysconfig,linex_word_menu);
         cfg_store_timing_word(&sysconfig,timing_menu);
       }
-
-      if (!cfg_get_value(&pal_awareness,0))
-        cfg_set_value(&ntsc_pal_selection,NTSC);
 
     } else { /* END OF if(cfg_get_value(&show_osd)) */
 
@@ -237,12 +240,12 @@ int main()
       if (cfg_get_value(&igr_deblur,0))
         switch (command) {
           case CMD_DEBLUR_QUICK_ON:
-            if (!interlaced_mode) {
+            if (scanmode == PROGRESSIVE) {
               cfg_set_flag(&deblur_mode_current);
             };
             break;
           case CMD_DEBLUR_QUICK_OFF:
-            if (!interlaced_mode) {
+            if (scanmode == PROGRESSIVE) {
               cfg_clear_flag(&deblur_mode_current);
             };
             break;

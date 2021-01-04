@@ -192,7 +192,7 @@ static const char *vicfg1_overlay =
     "  - 480i settings:\n"
     "* V/H position/timing:\n"
     "* Gamma Value:\n\n"
-    "* VI config page 2:\n";
+    "* VI config page 2:";
 
 static const char *vicfg2_header =
     "VI config. 2";
@@ -203,7 +203,7 @@ static const char *vicfg2_overlay =
     "  - powercycle default:\n"
     "* 16bit mode:\n"
     "  - powercycle default:\n\n"
-    "* VI config page 1:\n";
+    "* VI config page 1:";
 
 static const char *vicfg_240p_opt_header =
     "Config. (240p)";

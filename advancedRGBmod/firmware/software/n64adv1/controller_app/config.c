@@ -367,12 +367,12 @@ int cfg_load_jumperset(configuration_t* sysconfig, alt_u8 need_confirm)
   return 0;
 }
 
-void cfg_store_linex_word(configuration_t* sysconfig, alt_u8 palmode) {
+void cfg_store_linex_word(configuration_t* sysconfig, vmode_t palmode) {
   linex_words[palmode].config_val = sysconfig->cfg_word_def[LINEX]->cfg_word_val;
   linex_words[palmode].config_ref_val = sysconfig->cfg_word_def[LINEX]->cfg_ref_word_val;
 }
 
-void cfg_load_linex_word(configuration_t* sysconfig, alt_u8 palmode) {
+void cfg_load_linex_word(configuration_t* sysconfig, vmode_t palmode) {
   sysconfig->cfg_word_def[LINEX]->cfg_word_val = linex_words[palmode].config_val;
   sysconfig->cfg_word_def[LINEX]->cfg_ref_word_val = linex_words[palmode].config_ref_val;
 }
@@ -395,8 +395,8 @@ void cfg_load_timing_word(configuration_t* sysconfig, alt_u8 timing_word_select)
 
 void cfg_apply_to_logic(configuration_t* sysconfig)
 {
-  alt_u8 deblur_bak = cfg_get_value(&deblur_mode,0);
-  alt_u8 mode16bit_bak = cfg_get_value(&mode16bit,0);
+  cfg_offon_t deblur_bak = (cfg_offon_t) cfg_get_value(&deblur_mode,0);
+  cfg_offon_t mode16bit_bak = (cfg_offon_t) cfg_get_value(&mode16bit,0);
 
   cfg_set_value(&deblur_mode,cfg_get_value(&deblur_mode_current,0));
   cfg_set_value(&mode16bit,cfg_get_value(&mode16bit_current,0));
@@ -405,8 +405,8 @@ void cfg_apply_to_logic(configuration_t* sysconfig)
   IOWR_ALTERA_AVALON_PIO_DATA(CFG_VIDEO_OUT_BASE,sysconfig->cfg_word_def[VIDEO]->cfg_word_val);
   IOWR_ALTERA_AVALON_PIO_DATA(CFG_LINEX_OUT_BASE,sysconfig->cfg_word_def[LINEX]->cfg_word_val);
 
-  cfg_set_value(&deblur_mode,deblur_bak);
-  cfg_set_value(&mode16bit,mode16bit_bak);
+  cfg_set_value(&deblur_mode,(alt_u8) deblur_bak);
+  cfg_set_value(&mode16bit,(alt_u8) mode16bit_bak);
 }
 
 void cfg_read_from_logic(configuration_t* sysconfig)

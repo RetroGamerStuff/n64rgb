@@ -144,12 +144,16 @@ menu_t home_menu = {
     }
 };
 
+#define VICONFIG_SUBMENU_SELECTION  1
+
+
 menu_t vinfo_screen = {
     .type = VINFO,
     .header = &vinfo_header,
     .overlay = &vinfo_overlay,
     .parent = &home_menu
 };
+
 
 menu_t vicfg1_screen = {
     .type = CONFIG,
@@ -169,6 +173,11 @@ menu_t vicfg1_screen = {
     }
 };
 
+#define NSTC_PAL_SUB_SELECTION  1
+#define V240P_SUB_SELECTION     2
+#define V480I_SUB_SELECTION     3
+
+
 menu_t vicfg2_screen = {
     .type = CONFIG,
     .header = &vicfg2_header,
@@ -186,6 +195,10 @@ menu_t vicfg2_screen = {
         {.id = VICFG2_PAGE1_V_OFFSET         , .arrow_desc = &vicfg_sel_arrow, .leavetype = ISUBMENU, .submenu      = &vicfg1_screen}
     }
 };
+
+#define DEBLUR_CURRENT_SELECTION  2
+#define M16BIT_CURRENT_SELECTION  4
+
 
 menu_t vicfg_240p_opt_subscreen = {
     .type = CONFIG,
@@ -224,6 +237,14 @@ menu_t vicfg_480i_opt_subscreen = {
     }
 };
 
+#define LINEX_SELECTION           0
+#define VPLL_SUBMENU_SELECTION    1
+#define FIELD_SHIFT_FIX_SELECTION 1
+#define SL_EN_SELECTION           2
+#define SL_METHOD_SELECTION       3
+#define SL_LINKED_SELECTION       3
+
+
 menu_t vicfg_vpll_subscreen = {
     .type = CONFIG,
     .header = &vicfg_vpll_opt_header,
@@ -232,10 +253,14 @@ menu_t vicfg_vpll_subscreen = {
     .current_selection = 0,
     .number_selections = 2,
     .leaves = {
-        {.id = VICFG_VPLLSUB_TEST_V_OFFSET, .arrow_desc = &vicfg_vpll_sel_arrow, .leavetype = IFUNC  , .test_fun     = &run_vpll_test},
+        {.id = VICFG_VPLLSUB_TEST_V_OFFSET, .arrow_desc = &vicfg_vpll_sel_arrow, .leavetype = IFUNC  , .sys_fun_0    = &run_vpll_test},
         {.id = VICFG_VPLLSUB_EN_V_OFFSET  , .arrow_desc = &vicfg_vpll_opt_arrow, .leavetype = ICONFIG, .config_value = &use_vpll}
     }
 };
+
+#define VPLL_TEST_SELECTION 0
+#define VPLL_USE_SELECTION  1
+
 
 menu_t vicfg_timing_subscreen = {
     .type = CONFIG,
@@ -249,9 +274,16 @@ menu_t vicfg_timing_subscreen = {
         {.id = VICFG_VTIMSUB_VSHIFT_V_OFFSET , .arrow_desc = &vicfg_timing_opt_arrow_1, .leavetype = ICONFIG, .config_value = &vert_shift},
         {.id = VICFG_VTIMSUB_HSHIFT_V_OFFSET , .arrow_desc = &vicfg_timing_opt_arrow_1, .leavetype = ICONFIG, .config_value = &hor_shift},
         {.id = VICFG_VTIMSUB_PALDEJ_V_OFFSET , .arrow_desc = &vicfg_timing_opt_arrow_1, .leavetype = ICONFIG, .config_value = &pal_dejitter},
-        {.id = VICFG_VTIMSUB_RESET_V_OFFSET  , .arrow_desc = &vicfg_timing_sel_arrow  , .leavetype = IFUNC  , .test_fun     = &cfg_reset_timing}
+        {.id = VICFG_VTIMSUB_RESET_V_OFFSET  , .arrow_desc = &vicfg_timing_sel_arrow  , .leavetype = IFUNC  , .sys_fun_0    = &cfg_reset_timing}
     }
 };
+
+#define TIMING_PAGE_SELECTION     0
+#define VERTSHIFT_SELECTION       1
+#define HORSHIFT_SELECTION        2
+#define DEJITTER_SELECTION        3
+#define RESET_TIMINGS_SECLECTION  4
+
 
 menu_t misc_screen = {
     .type = CONFIG,
@@ -263,11 +295,15 @@ menu_t misc_screen = {
     .leaves = {
         {.id = MISC_IGR_RESET_V_OFFSET    , .arrow_desc = &misc_opt_arrow, .leavetype = ICONFIG, .config_value = &igr_reset},
         {.id = MISC_IGR_DEBLUR_V_OFFSET   , .arrow_desc = &misc_opt_arrow, .leavetype = ICONFIG, .config_value = &igr_deblur},
-        {.id = MISC_IGR_15BITMODE_V_OFFSET, .arrow_desc = &misc_opt_arrow, .leavetype = ICONFIG, .config_value = &igr_15bitmode},
-        {.id = MISC_FILTERADDON_V_OFFSET, .arrow_desc = &misc_opt_arrow, .leavetype = ICONFIG, .config_value = &filteraddon_cutoff},
-        {.id = MISC_SHOWTESTPAT_V_OFFSET, .arrow_desc = &misc_sel_arrow, .leavetype = IFUNC,   .test_fun     = &cfg_show_testpattern}
+        {.id = MISC_IGR_16BITMODE_V_OFFSET, .arrow_desc = &misc_opt_arrow, .leavetype = ICONFIG, .config_value = &igr_16bitmode},
+        {.id = MISC_FILTERADDON_V_OFFSET  , .arrow_desc = &misc_opt_arrow, .leavetype = ICONFIG, .config_value = &filteraddon_cutoff},
+        {.id = MISC_SHOWTESTPAT_V_OFFSET  , .arrow_desc = &misc_sel_arrow, .leavetype = IFUNC,   .sys_fun_0    = &cfg_show_testpattern}
     }
 };
+
+#define FILTER_ADDON_SELECTION      3
+#define TESTPATTERN_FUNC_SELECTION  4
+
 
 menu_t rwdata_screen = {
     .type = RWDATA,
@@ -277,12 +313,18 @@ menu_t rwdata_screen = {
     .current_selection = 0,
     .number_selections = 4,
     .leaves = {
-        {.id = RWDATA_SAVE_FL_V_OFFSET , .arrow_desc = &front_sel_arrow, .leavetype = IFUNC, .save_fun = &cfg_save_to_flash},
-        {.id = RWDATA_LOAD_FL_V_OFFSET , .arrow_desc = &front_sel_arrow, .leavetype = IFUNC, .load_fun = &cfg_load_from_flash},
-        {.id = RWDATA_LOAD_JS_V_OFFSET , .arrow_desc = &front_sel_arrow, .leavetype = IFUNC, .load_fun = &cfg_load_jumperset},
-        {.id = RWDATA_LOAD_N64_V_OFFSET, .arrow_desc = &front_sel_arrow, .leavetype = IFUNC, .load_fun = &cfg_load_defaults}
+        {.id = RWDATA_SAVE_FL_V_OFFSET , .arrow_desc = &front_sel_arrow, .leavetype = IFUNC, .sys_fun_1 = &cfg_save_to_flash},
+        {.id = RWDATA_LOAD_FL_V_OFFSET , .arrow_desc = &front_sel_arrow, .leavetype = IFUNC, .sys_fun_1 = &cfg_load_from_flash},
+        {.id = RWDATA_LOAD_JS_V_OFFSET , .arrow_desc = &front_sel_arrow, .leavetype = IFUNC, .sys_fun_1 = &cfg_load_jumperset},
+        {.id = RWDATA_LOAD_N64_V_OFFSET, .arrow_desc = &front_sel_arrow, .leavetype = IFUNC, .sys_fun_1 = &cfg_load_defaults}
     }
 };
+
+#define RW_SAVE_CFG_SELECTION       0
+#define RW_LOAD_CFG_SELECTION       1
+#define RW_LOAD_N64_480P_SELECTION  2
+#define RW_LOAD_N64_DEF_SELECTION   3
+
 
 menu_t about_screen = {
    .type = TEXT,
@@ -318,14 +360,14 @@ static inline alt_u8 is_vicfg2_screen (menu_t *menu)
   {  return (menu == &vicfg2_screen); }
 static inline alt_u8 is_vicfg_240p_screen (menu_t *menu)
   {  return (menu == &vicfg_240p_opt_subscreen); }
+static inline alt_u8 is_vicfg_480i_screen (menu_t *menu)
+  {  return (menu  == &vicfg_480i_opt_subscreen); }
+static inline alt_u8 is_vicfg_480i_sl_are_linked (menu_t *menu)
+{  return ( is_vicfg_480i_screen(menu) && (cfg_get_value(&sl_link_480i,0) == ON)); }
 static inline alt_u8 is_vicfg_vpll_screen (menu_t *menu)
   {  return (menu == &vicfg_vpll_subscreen); }
 static inline alt_u8 is_vicfg_timing_screen (menu_t *menu)
   {  return (menu == &vicfg_timing_subscreen); }
-static inline alt_u8 is_vicfg_480i_screen (menu_t *menu)
-  {  return (menu  == &vicfg_480i_opt_subscreen); }
-static inline alt_u8 is_vicfg_480i_sl_are_linked (menu_t *menu)
-  {  return ( is_vicfg_480i_screen(menu) && cfg_get_value(menu->leaves[3].config_value,0)); }
 static inline alt_u8 is_misc_screen (menu_t *menu)
   {  return (menu == &misc_screen); }
 
@@ -362,65 +404,55 @@ updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t
 {
   static alt_u8 vicfg_page = 1;
 
-  if (command == CMD_MUTE_MENU) {
-    return MENU_MUTE;
-  }
-  if (command == CMD_UNMUTE_MENU) {
-    return MENU_UNMUTE;
-  }
-
-  if (command == CMD_CLOSE_MENU) {
-    while ((*current_menu)->parent) {
-      (*current_menu)->current_selection = 0;
-      *current_menu = (*current_menu)->parent;
-    }
-    (*current_menu)->current_selection = 1;
-    return MENU_CLOSE;
-  }
-
-  if (command == CMD_MENU_BACK) {
-    if ((*current_menu)->parent) {
-      (*current_menu)->current_selection = 0;
-      *current_menu = (*current_menu)->parent;
-      return NEW_OVERLAY;
-    } else {
+  switch (command) {
+    case CMD_MUTE_MENU:
+      return MENU_MUTE;
+    case CMD_UNMUTE_MENU:
+      return MENU_UNMUTE;
+    case CMD_CLOSE_MENU:
+      while ((*current_menu)->parent) {
+        (*current_menu)->current_selection = 0;
+        *current_menu = (*current_menu)->parent;
+      }
       (*current_menu)->current_selection = 1;
       return MENU_CLOSE;
-    }
-  }
-
-  if (command == CMD_MENU_PAGE_RIGHT) {
-    if (is_vicfg1_screen(*current_menu)) {
-      *current_menu = &vicfg2_screen;
-      vicfg_page = 2;
-      return NEW_OVERLAY;
-    }
-    if (is_vicfg2_screen(*current_menu)) {
-      *current_menu = &vicfg1_screen;
-      vicfg_page = 1;
-      return NEW_OVERLAY;
-    }
-    if (is_vicfg_timing_screen(*current_menu)) {
-      cfg_inc_value((*current_menu)->leaves[0].config_value);
-      return NEW_CONF_VALUE;
-    }
-  }
-
-  if (command == CMD_MENU_PAGE_LEFT) {
-    if (is_vicfg_timing_screen(*current_menu)) {
-      cfg_dec_value((*current_menu)->leaves[0].config_value);
-      return NEW_CONF_VALUE;
-    }
+    case CMD_MENU_BACK:
+      if ((*current_menu)->parent) {
+        (*current_menu)->current_selection = 0;
+        *current_menu = (*current_menu)->parent;
+        return NEW_OVERLAY;
+      } else {
+        (*current_menu)->current_selection = 1;
+        return MENU_CLOSE;
+      }
+    case CMD_MENU_PAGE_RIGHT:
+    case CMD_MENU_PAGE_LEFT:
+      if (is_vicfg1_screen(*current_menu)) {
+        *current_menu = &vicfg2_screen;
+        vicfg_page = 2;
+        return NEW_OVERLAY;
+      }
+      if (is_vicfg2_screen(*current_menu)) {
+        *current_menu = &vicfg1_screen;
+        vicfg_page = 1;
+        return NEW_OVERLAY;
+      }
+      if (is_vicfg_timing_screen(*current_menu)) {
+        if (command == CMD_MENU_PAGE_RIGHT) cfg_inc_value((*current_menu)->leaves[TIMING_PAGE_SELECTION].config_value);
+        else cfg_dec_value((*current_menu)->leaves[TIMING_PAGE_SELECTION].config_value);
+        return NEW_CONF_VALUE;
+      }
+      return NON;
+    default:
+      break;
   }
 
   if (((*current_menu)->type == TEXT) ||
       ((*current_menu)->type == VINFO)  )
     return NON;
 
-  alt_u8 pal_awareness_val = cfg_get_value(&pal_awareness,0);
-  alt_u8 palmode = cfg_get_value(&ntsc_pal_selection,0);
-
   updateaction_t todo = NON;
+  cfg_offon_t pal_awareness_val = (cfg_offon_t) cfg_get_value(&pal_awareness,0);
   alt_u8 pre_sel = (*current_menu)->current_selection;
 
   switch (command) {
@@ -428,84 +460,94 @@ updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t
       (*current_menu)->current_selection++;
       if ((*current_menu)->current_selection == (*current_menu)->number_selections)
         (*current_menu)->current_selection = 0;
-      if (((*current_menu)->current_selection == 1) && ((is_vicfg1_screen(*current_menu) && !pal_awareness_val) ||
-                                                        (is_vicfg_240p_screen(*current_menu) && palmode)
-                                                        ))
-        (*current_menu)->current_selection++;
       todo = NEW_SELECTION;
       break;
     case CMD_MENU_UP:
       if ((*current_menu)->current_selection == 0)
-        (*current_menu)->current_selection =  (*current_menu)->number_selections - 1;
-      else {
+        (*current_menu)->current_selection = (*current_menu)->number_selections - 1;
+      else
         (*current_menu)->current_selection--;
-        if (((*current_menu)->current_selection == 1) && ((is_vicfg1_screen(*current_menu) && !pal_awareness_val) ||
-                                                          (is_vicfg_240p_screen(*current_menu) && palmode)
-                                                         ))
-          (*current_menu)->current_selection--;
-      }
       todo = NEW_SELECTION;
       break;
     default:
       break;
   }
+
+  if (is_vicfg_vpll_screen(*current_menu)) {
+    if (!vpll_lock) (*current_menu)->current_selection = VPLL_TEST_SELECTION;
+  }
+
   if (is_vicfg_timing_screen(*current_menu)) {
-    alt_u8 pagesel = cfg_get_value((*current_menu)->leaves[0].config_value,0);
+    cfg_timing_model_sel_type_t pagesel = (cfg_timing_model_sel_type_t) cfg_get_value(&timing_selection,0);
     if (pagesel == PPU_CURRENT) {
-      if (((*ppu_state & PPU_STATE_LINEMULT_GETMASK) >> PPU_STATE_LINEMULT_OFFSET) == 0) {
-        (*current_menu)->current_selection = 0;
-        todo = NON;
+      if (((*ppu_state & PPU_STATE_LINEMULT_GETMASK) >> PPU_STATE_LINEMULT_OFFSET) == PASSTHROUGH) { // do not allow to change anything in passthrough mode
+        (*current_menu)->current_selection = pagesel;
       }
-      if (((((*ppu_state & PPU_STATE_PALMODE_GETMASK) >> PPU_STATE_PALMODE_OFFSET) == NTSC) && ((*current_menu)->current_selection == 3)) || ((*current_menu)->current_selection == 4))
-          (*current_menu)->current_selection = (command == CMD_MENU_DOWN) ? 0 : 2;
-    } else if ((pagesel < PAL_LX2_PR) && ((*current_menu)->current_selection == 3)) {
-        (*current_menu)->current_selection = (command == CMD_MENU_DOWN) ? 4 : 2;
+      if (((((*ppu_state & PPU_STATE_PALMODE_GETMASK) >> PPU_STATE_PALMODE_OFFSET) == NTSC) && ((*current_menu)->current_selection == DEJITTER_SELECTION)) || // if NTSC is enabled do not allow to change DeJitter
+          ((*current_menu)->current_selection == RESET_TIMINGS_SECLECTION))  // do not allow to reset timings in PPU_CURRENT page
+          (*current_menu)->current_selection = (command == CMD_MENU_DOWN) ? TIMING_PAGE_SELECTION : HORSHIFT_SELECTION;
+    } else if ((pagesel < PAL_LX2_PR) && ((*current_menu)->current_selection == DEJITTER_SELECTION)) {  // do not allow to access DeJitter in NTSC timings
+        (*current_menu)->current_selection = (command == CMD_MENU_DOWN) ? RESET_TIMINGS_SECLECTION : HORSHIFT_SELECTION;
     }
   }
 
-  if (is_vicfg_vpll_screen(*current_menu)) {
-    if (!vpll_lock) (*current_menu)->current_selection = 0;
-    todo = (pre_sel == (*current_menu)->current_selection) ? NON : NEW_SELECTION;
-  }
+//  vmode_t palsubmenu_mode = (vmode_t) cfg_get_value(&ntsc_pal_selection,0);
+  alt_u8 current_sel = (*current_menu)->current_selection;
+  // pal modifications e.g. skip vpll entry
+  cfg_offon_t palmodifications_val = (cfg_offon_t) (cfg_get_value(&pal_awareness,0) & cfg_get_value(&ntsc_pal_selection,0));
 
-  alt_u8 sel = (*current_menu)->current_selection;
-
+  // menu specific modifications
   if (todo == NEW_SELECTION) {
+    if (is_vicfg1_screen(*current_menu)) {
+      // (pal_awareness_val == OFF) -> skip ntsc-pal-selection (always global)
+      if (pal_awareness_val == OFF && current_sel == NSTC_PAL_SUB_SELECTION) (*current_menu)->current_selection = (command == CMD_MENU_DOWN) ? NSTC_PAL_SUB_SELECTION + 1 : NSTC_PAL_SUB_SELECTION - 1;
+    }
+
     if (is_vicfg_240p_screen(*current_menu)) {
-      if (!cfg_get_value((*current_menu)->leaves[0].config_value,0))
-        (*current_menu)->current_selection =                  sel < 2 ? sel :
-                                             (command == CMD_MENU_UP) ?   1 : 0;
-      else if (!cfg_get_value((*current_menu)->leaves[2].config_value,0))
-        (*current_menu)->current_selection =                  sel < 3 ? sel :
-                                             (command == CMD_MENU_UP) ?   2 : 0;
+
+      if ((current_sel == VPLL_SUBMENU_SELECTION)  && (palmodifications_val == ON))
+        (*current_menu)->current_selection = (command == CMD_MENU_DOWN) ? VPLL_SUBMENU_SELECTION + 1 : VPLL_SUBMENU_SELECTION - 1;
+      current_sel = (*current_menu)->current_selection;
+
+      // do not access scanline options (incl. sl_en) if PASSTRHROUGH mode
+      if (cfg_get_value(&linex_240p,0) == PASSTHROUGH)
+        (*current_menu)->current_selection = (current_sel < SL_EN_SELECTION) ? current_sel :
+                                                  (command == CMD_MENU_DOWN) ? LINEX_SELECTION :
+                                                (palmodifications_val == ON) ? LINEX_SELECTION : VPLL_SUBMENU_SELECTION;
+      // do not access scanline options if sl_en is off
+      else if (cfg_get_value(&sl_en,0) == OFF)
+        (*current_menu)->current_selection = (current_sel < SL_METHOD_SELECTION) ? current_sel :
+                                                      (command == CMD_MENU_DOWN) ? LINEX_SELECTION : SL_EN_SELECTION;
     }
 
     if (is_vicfg_480i_screen(*current_menu)) {
-      if (!cfg_get_value((*current_menu)->leaves[0].config_value,0))
-        (*current_menu)->current_selection = 0;
-      else if (!cfg_get_value((*current_menu)->leaves[2].config_value,0))
-        (*current_menu)->current_selection =                  sel < 3 ? sel :
-                                             (command == CMD_MENU_UP) ?   2 : 0;
+      // do not access all options except bob-deinter if PASSTRHROUGH mode
+      if (cfg_get_value(&bob_deinter_480i,0) == PASSTHROUGH)
+        (*current_menu)->current_selection = LINEX_SELECTION;
+      // do not access scanline options if sl_en is off
+      else if (cfg_get_value(&sl_en_480i,0) == OFF)
+        (*current_menu)->current_selection = current_sel < SL_LINKED_SELECTION ? current_sel :
+                                                    (command == CMD_MENU_DOWN) ? LINEX_SELECTION : SL_EN_SELECTION;
     }
 
-    if (is_misc_screen(*current_menu) && sel == 4 && !use_filteraddon)
+    if (is_misc_screen(*current_menu) && current_sel == FILTER_ADDON_SELECTION && !use_filteraddon) // skip filter addon options if not present
       // (*current_menu)->current_selection = (command == CMD_MENU_UP) ? 1 : (*current_menu)->number_selections - 1;
-      (*current_menu)->current_selection = (command == CMD_MENU_UP) ? sel - 1 : sel + 1;
+      (*current_menu)->current_selection = (command == CMD_MENU_DOWN) ? FILTER_ADDON_SELECTION + 1 : FILTER_ADDON_SELECTION - 1;
 
-    return todo;
+    return (pre_sel == (*current_menu)->current_selection) ? NON : NEW_SELECTION;
   }
 
-  if ((*current_menu)->leaves[sel].leavetype == ISUBMENU) {
+  if ((*current_menu)->leaves[current_sel].leavetype == ISUBMENU) {
     switch (command) {
-      case CMD_MENU_ENTER:
       case CMD_MENU_RIGHT:
-        if ((*current_menu)->leaves[sel].submenu) {
-          if (is_home_menu(*current_menu) && sel == 1) {
-            if (vicfg_page == 1) *current_menu = &vicfg1_screen;
-            else *current_menu = &vicfg2_screen;
-          } else *current_menu = (*current_menu)->leaves[sel].submenu;
-          if (is_vicfg1_screen(*current_menu)) vicfg_page = 1;
-          if (is_vicfg2_screen(*current_menu)) vicfg_page = 2;
+      case CMD_MENU_ENTER:
+        if ((*current_menu)->leaves[current_sel].submenu) { // check for existing submenu
+          if (is_home_menu(*current_menu) && current_sel == VICONFIG_SUBMENU_SELECTION) {
+            if (vicfg_page == 1) *current_menu = &vicfg1_screen;  // open vi-config page 1
+            else *current_menu = &vicfg2_screen;                  // open vi-config page 2
+          } else *current_menu = (*current_menu)->leaves[current_sel].submenu;
+          if (is_vicfg1_screen(*current_menu)) vicfg_page = 1;    // remember vi-config page 1
+          if (is_vicfg2_screen(*current_menu)) vicfg_page = 2;    // remember vi-config page 1
           return NEW_OVERLAY;
         }
         break;
@@ -514,73 +556,68 @@ updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t
     }
   }
 
-  if ((*current_menu)->leaves[sel].leavetype == ICONFIG) {
-    alt_u8 modify_overlay_and_new_cfg = 0;
-
+  if ((*current_menu)->leaves[current_sel].leavetype == ICONFIG) {
     switch (command) {
       case CMD_MENU_RIGHT:
-        if (is_vicfg_240p_screen((*current_menu)) && palmode && sel == 0 && cfg_get_value((*current_menu)->leaves[sel].config_value,0) == 1)
-          cfg_dec_value((*current_menu)->leaves[sel].config_value);
-        else if (is_vicfg_480i_sl_are_linked((*current_menu)) && (sel > 3))
-          cfg_inc_value(vicfg_240p_opt_subscreen.leaves[sel].config_value);
+        if (is_vicfg_240p_screen((*current_menu)) && (palmodifications_val == ON) && (current_sel == LINEX_SELECTION)) // do not allow linex3 for PAL
+          cfg_set_value(&linex_240p,cfg_get_value(&linex_240p,0) == 0);
+        else if (is_vicfg_480i_sl_are_linked((*current_menu)) && (current_sel > SL_LINKED_SELECTION)) // modify 240p scanline values if linked
+          cfg_inc_value(vicfg_240p_opt_subscreen.leaves[current_sel].config_value);
         else
-          cfg_inc_value((*current_menu)->leaves[sel].config_value);
-        if (is_vicfg1_screen((*current_menu)) && sel < 2) {
-            modify_overlay_and_new_cfg = 1;
-            break;
-        }
-        if (is_vicfg_timing_screen((*current_menu)) && (sel == 1 || sel == 2) && cfg_get_value((*current_menu)->leaves[sel].config_value,0) == 0)
-          cfg_inc_value((*current_menu)->leaves[sel].config_value); // all-zero not allowed for vert./hor. shift
-        return NEW_CONF_VALUE;
+          cfg_inc_value((*current_menu)->leaves[current_sel].config_value);
+        todo = NEW_CONF_VALUE;
+        break;
       case CMD_MENU_LEFT:
-        if (is_vicfg_240p_screen((*current_menu)) && palmode && sel == 0 && cfg_get_value((*current_menu)->leaves[sel].config_value,0) == 0)
-          cfg_inc_value((*current_menu)->leaves[sel].config_value);
-        else if (is_vicfg_480i_sl_are_linked((*current_menu)) && (sel > 3))
-          cfg_dec_value(vicfg_240p_opt_subscreen.leaves[sel].config_value);
+        if (is_vicfg_240p_screen((*current_menu)) && (palmodifications_val == ON) && (current_sel == LINEX_SELECTION)) // do not allow linex3 for PAL
+          cfg_set_value(&linex_240p,cfg_get_value(&linex_240p,0) == 0);
+        else if (is_vicfg_480i_sl_are_linked((*current_menu)) && (current_sel > SL_LINKED_SELECTION)) // modify 240p scanline values if linked
+          cfg_dec_value(vicfg_240p_opt_subscreen.leaves[current_sel].config_value);
         else
-          cfg_dec_value((*current_menu)->leaves[sel].config_value);
-        if (is_vicfg1_screen((*current_menu)) && sel < 2) {
-            modify_overlay_and_new_cfg = 1;
-            break;
-        }
-        if (is_vicfg_timing_screen((*current_menu)) && (sel == 1 || sel == 2) && cfg_get_value((*current_menu)->leaves[sel].config_value,0) == 0)
-          cfg_dec_value((*current_menu)->leaves[sel].config_value); // all-zero not allowed for vert./hor. shift
-        return NEW_CONF_VALUE;
+          cfg_dec_value((*current_menu)->leaves[current_sel].config_value);
+        todo = NEW_CONF_VALUE;
+        break;
       default:
         break;
     }
-
-    if (modify_overlay_and_new_cfg) {
-      palmode = cfg_get_value(&pal_awareness,0) * cfg_get_value(&ntsc_pal_selection,0);
-      vd_print_string(VD_240P_OVERLAY_H_OFFSET,VD_240P_OVERLAY_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,text_240p_288p[palmode]);
-      vd_print_string(VD_240P_OVERLAY_H_OFFSET,VD_480I_OVERLAY_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,text_480i_576i[palmode]);
-      return NEW_CONF_VALUE;
+    if (todo == NEW_CONF_VALUE) {
+      if (is_vicfg_timing_screen((*current_menu)) &&
+          ((current_sel == VERTSHIFT_SELECTION) || (current_sel == HORSHIFT_SELECTION)) &&
+          (cfg_get_value((*current_menu)->leaves[current_sel].config_value,0) == 0)) { // all-zero not allowed for vert./hor. shift
+        if (command == CMD_MENU_RIGHT) cfg_inc_value((*current_menu)->leaves[current_sel].config_value);
+        else                           cfg_dec_value((*current_menu)->leaves[current_sel].config_value);
+      }
     }
+    return todo;
   }
 
-  if ((*current_menu)->leaves[sel].leavetype == IFUNC) {
+  if ((*current_menu)->leaves[current_sel].leavetype == IFUNC) {
     if ((command == CMD_MENU_RIGHT) || (command == CMD_MENU_ENTER)) {
       int retval;
 
       if (is_misc_screen((*current_menu))) {
-        retval = (*current_menu)->leaves[sel].test_fun(sysconfig);
+//        retval = (*current_menu)->leaves[TESTPATTERN_FUNC_SELECTION].sys_fun_0(sysconfig);
+        retval = cfg_show_testpattern(sysconfig);
         return NON;
       }
 
       if (is_vicfg_vpll_screen((*current_menu))) {
-        retval = (*current_menu)->leaves[sel].test_fun(sysconfig);
+//        retval = (*current_menu)->leaves[VPLL_TEST_SELECTION].sys_fun_0(sysconfig);
+        retval = run_vpll_test(sysconfig);
         if (retval == 0) {
-          (*current_menu)->current_selection = 1;
+          (*current_menu)->current_selection = VPLL_USE_SELECTION;
           print_selection_arrow((*current_menu));
-          alt_u8 font_color = (cfg_get_value((*current_menu)->leaves[1].config_value,0) == cfg_get_value((*current_menu)->leaves[1].config_value,use_flash)) ? FONTCOLOR_WHITE : FONTCOLOR_YELLOW;
-          (*current_menu)->leaves[1].config_value->val2char_func(cfg_get_value((*current_menu)->leaves[1].config_value,0));
-          vd_print_string((*current_menu)->leaves[1].arrow_desc->hpos + 3,(*current_menu)->leaves[1].id,BACKGROUNDCOLOR_STANDARD,font_color,&szText[0]);
+          cfg_offon_t use_vpll_val = (cfg_offon_t) cfg_get_value(&use_vpll,0);
+          alt_u8 font_color = (use_vpll_val == cfg_get_value(&use_vpll,use_flash)) ? FONTCOLOR_WHITE : FONTCOLOR_YELLOW;
+          flag2set_func(use_vpll_val);
+          vd_print_string((*current_menu)->leaves[VPLL_USE_SELECTION].arrow_desc->hpos + 3,(*current_menu)->leaves[VPLL_USE_SELECTION].id,BACKGROUNDCOLOR_STANDARD,font_color,&szText[0]);
           return RW_DONE;
         }
         return RW_FAILED;
       }
 
-      retval = (*current_menu)->leaves[sel].load_fun(sysconfig,1);
+//      if (is_vicfg_timing_screen((*current_menu))) retval = (*current_menu)->leaves[current_sel].sys_fun_0(sysconfig);
+      if (is_vicfg_timing_screen((*current_menu))) retval = cfg_reset_timing(sysconfig);
+      else                                         retval = (*current_menu)->leaves[current_sel].sys_fun_1(sysconfig,1); // rw screen
       return (retval == 0                     ? RW_DONE  :
               retval == -CFG_FLASH_SAVE_ABORT ? RW_ABORT :
                                                 RW_FAILED);
@@ -603,10 +640,10 @@ void print_fw_version()
 
 void print_overlay(menu_t* current_menu)
 {
-  alt_u8 palmode = cfg_get_value(&ntsc_pal_selection,0);
+  vmode_t palmode_modify = cfg_get_value(&pal_awareness,0) & cfg_get_value(&ntsc_pal_selection,0);
   alt_u8 h_run;
-  alt_u8 overlay_h_offset =       (current_menu->type == TEXT) ? TEXTOVERLAY_H_OFFSET :
-                            (is_vicfg_vpll_screen(current_menu)) ? TEXTOVERLAY_H_OFFSET : HOMEOVERLAY_H_OFFSET;
+  alt_u8 overlay_h_offset = (current_menu->type == TEXT) ? TEXTOVERLAY_H_OFFSET :
+                    (is_vicfg_vpll_screen(current_menu)) ? TEXTOVERLAY_H_OFFSET : HOMEOVERLAY_H_OFFSET;
   alt_u8 overlay_v_offset = 0;
 
   VD_CLEAR_SCREEN;
@@ -615,9 +652,9 @@ void print_overlay(menu_t* current_menu)
     overlay_v_offset = OVERLAY_V_OFFSET_WH;
     vd_print_string(VD_WIDTH-strlen(*current_menu->header),HEADER_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_DARKORANGE,*current_menu->header);
     if (is_vicfg_240p_screen(current_menu))
-      vd_print_string(VD_WIDTH-strlen(*current_menu->header)+VD_240P_HEADER_H_OFFSET,HEADER_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_DARKORANGE,text_240p_288p[palmode]);
+      vd_print_string(VD_WIDTH-strlen(*current_menu->header)+VD_240P_HEADER_H_OFFSET,HEADER_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_DARKORANGE,text_240p_288p[palmode_modify]);
     if (is_vicfg_480i_screen(current_menu))
-      vd_print_string(VD_WIDTH-strlen(*current_menu->header)+VD_240P_HEADER_H_OFFSET,HEADER_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_DARKORANGE,text_480i_576i[palmode]);
+      vd_print_string(VD_WIDTH-strlen(*current_menu->header)+VD_240P_HEADER_H_OFFSET,HEADER_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_DARKORANGE,text_480i_576i[palmode_modify]);
 
     for (h_run = 0; h_run < VD_WIDTH; h_run++)
       vd_print_char(h_run,1,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_NAVAJOWHITE,(char) HEADER_UNDERLINE);
@@ -648,11 +685,6 @@ void print_overlay(menu_t* current_menu)
       break;
     default:
       break;
-  }
-
-  if (is_vicfg1_screen(current_menu)) {
-    vd_print_string(VD_240P_OVERLAY_H_OFFSET,VD_240P_OVERLAY_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,text_240p_288p[palmode]);
-    vd_print_string(VD_240P_OVERLAY_H_OFFSET,VD_480I_OVERLAY_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,text_480i_576i[palmode]);
   }
 
   if (is_vicfg_timing_screen(current_menu))
@@ -745,7 +777,7 @@ int update_vinfo_screen(menu_t* current_menu, alt_u16* ppu_state)
     str_select = ((*ppu_state & PPU_STATE_FILTER_GETMASK) >> PPU_STATE_FILTER_OFFSET) + 1;
     vd_print_string(INFO_VALS_H_OFFSET,INFO_FAO_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE, FilterAddOn[str_select]);
     if (*ppu_state & PPU_STATE_AUTOFILTER_GETMASK)
-      vd_print_string(INFO_VALS_H_OFFSET + 8,INFO_FAO_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE, FilterAddOn[0]);
+      vd_print_string(INFO_VALS_H_OFFSET + 8,INFO_FAO_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE, FilterAddOn[CFG_FILTER_AUTO]);
   }
 
   return 0;
@@ -759,11 +791,14 @@ int update_cfg_screen(menu_t* current_menu, alt_u8 linemode, alt_u8 timing_curre
   alt_u8 v_run, v_offset;
   alt_u8 background_color, font_color;
   alt_u8 val_select, ref_val_select, val_is_ref;
-  alt_u8 use_240p_linked_values;
+  cfg_offon_t use_240p_linked_values;
 
   background_color = BACKGROUNDCOLOR_STANDARD;
 
-  alt_u8 timing_pagesel = cfg_get_value(current_menu->leaves[0].config_value,0);
+  cfg_offon_t pal_awareness_val = (cfg_offon_t) cfg_get_value(&pal_awareness,0);
+  vmode_t ntsc_pal_selection_val = (vmode_t) cfg_get_value(&ntsc_pal_selection,0);
+  linemult_t linex_240p_val = (linemult_t) cfg_get_value(&linex_240p,0);
+  cfg_timing_model_sel_type_t timing_pagesel = (cfg_timing_model_sel_type_t) cfg_get_value(&timing_selection,0);
 
 
   for (v_run = 0; v_run < current_menu->number_selections; v_run++) {
@@ -786,20 +821,15 @@ int update_cfg_screen(menu_t* current_menu, alt_u8 linemode, alt_u8 timing_curre
           vd_print_string(h_l_offset,v_offset,background_color,font_color,RunTestPattern);
         }
         if (is_vicfg_timing_screen(current_menu)) {
-          font_color = timing_pagesel ? FONTCOLOR_WHITE : FONTCOLOR_GREY;
+          font_color = timing_pagesel > PPU_CURRENT ? FONTCOLOR_WHITE : FONTCOLOR_GREY;
           vd_print_string(VICFG_VTIMSUB_OVERLAY_H_OFFSET+3,v_offset,background_color,font_color,vicfg_timing_opt_overlay2);
           vd_print_string(h_l_offset,v_offset,background_color,font_color,LoadTimingDefaults);
         }
         break;
       case ICONFIG:
-        use_240p_linked_values = is_vicfg_480i_sl_are_linked(current_menu) && (v_run > 3);
-        if (use_240p_linked_values) {
-          val_select     = cfg_get_value(vicfg_240p_opt_subscreen.leaves[v_run].config_value,0);
-          ref_val_select = cfg_get_value(vicfg_240p_opt_subscreen.leaves[v_run].config_value,use_flash);
-        } else {
-          val_select     = cfg_get_value(current_menu->leaves[v_run].config_value,0);
-          ref_val_select = cfg_get_value(current_menu->leaves[v_run].config_value,use_flash);
-        }
+        val_select = cfg_get_value(current_menu->leaves[v_run].config_value,0);
+        ref_val_select = cfg_get_value(current_menu->leaves[v_run].config_value,use_flash);
+        use_240p_linked_values = (cfg_offon_t) (is_vicfg_480i_sl_are_linked(current_menu) && (v_run > SL_LINKED_SELECTION)); // use scanline values for 240p in 480i screen if linked
 
 //        if (current_menu->current_selection == v_run) {
 //          background_color = OPT_WINDOWCOLOR_BG;
@@ -808,100 +838,107 @@ int update_cfg_screen(menu_t* current_menu, alt_u8 linemode, alt_u8 timing_curre
 //          background_color = BACKGROUNDCOLOR_STANDARD;
 //          font_color = (val_select == ref_val_select) ? FONTCOLOR_WHITE : FONTCOLOR_YELLOW;
 //        }
-        if (is_vicfg2_screen(current_menu) && (v_run == 2 || v_run == 4)) val_is_ref = 1;
-        else val_is_ref = (val_select == ref_val_select);
-        font_color = val_is_ref ? FONTCOLOR_WHITE : FONTCOLOR_YELLOW;
 
-        if (is_vicfg1_screen(current_menu) && !cfg_get_value(&pal_awareness,0) && v_run == 1) {
+        // find special cases and modifications
+        if (is_vicfg1_screen(current_menu) && (pal_awareness_val == OFF) && v_run == NSTC_PAL_SUB_SELECTION) {  // show text global if pal awareness is off
           font_color = FONTCOLOR_GREY;
           vd_clear_area(h_l_offset,h_l_offset + OPT_WINDOW_WIDTH,v_offset,v_offset);
           vd_print_string(h_l_offset,v_offset,background_color,font_color,Global);
           break;
         }
 
+        if (is_vicfg2_screen(current_menu) && (v_run == DEBLUR_CURRENT_SELECTION || v_run == M16BIT_CURRENT_SELECTION)) val_is_ref = 1; // current options for deblur and 16bit mode do not have reference values
+        else val_is_ref = (val_select == ref_val_select);
+        font_color = val_is_ref ? FONTCOLOR_WHITE : FONTCOLOR_YELLOW;
+
+        // check 240p and 480i screen
         if (is_vicfg_240p_screen(current_menu))
-          if ((!cfg_get_value(current_menu->leaves[0].config_value,0) && v_run > 0) ||
-              (!cfg_get_value(current_menu->leaves[2].config_value,0) && v_run > 2))
+          if (((linex_240p_val == PASSTHROUGH) && v_run > LINEX_SELECTION) || // gray out every option after linex if linex is off
+              ((cfg_get_value(&sl_en,0) == OFF) && v_run > SL_EN_SELECTION))  // gray out every option after sl en if scanlines are off
             font_color = val_is_ref ? FONTCOLOR_GREY : FONTCOLOR_DARKGOLD;
-
-        if (is_vicfg_vpll_screen(current_menu)) {
-          font_color =  vpll_lock ?     font_color :
-                       val_is_ref ? FONTCOLOR_GREY : FONTCOLOR_DARKGOLD;
-        }
-
         if (is_vicfg_480i_screen(current_menu))
-          if ((!cfg_get_value(current_menu->leaves[0].config_value,0) && v_run > 0) ||
-              (!cfg_get_value(current_menu->leaves[2].config_value,0) && v_run > 2))
+          if (((cfg_get_value(&bob_deinter_480i,0) == OFF) && v_run > LINEX_SELECTION) || // gray out every option after linex if linex is off
+              ((cfg_get_value(&sl_en_480i,0) == OFF) && v_run > SL_EN_SELECTION))         // gray out every option after sl en if scanlines are off
             font_color = val_is_ref ? FONTCOLOR_GREY : FONTCOLOR_DARKGOLD;
 
-        if (is_vicfg_timing_screen(current_menu)) {
-          if (v_run == 0) {
-            if (timing_pagesel > PPU_CURRENT) print_timing_overlay(1);
-            else print_timing_overlay(linemode);
-          } else if (v_run == 3) {
-            print_dejitter_overlay(1);
-            switch (timing_pagesel) {
-              case PPU_CURRENT:
-                if (timing_current > NTSC_LX3_PR) {
-                  current_menu->leaves[3].config_value->val2char_func(val_select);
-                  break;
-                }
-              case NTSC_LX2_PR:
-              case NTSC_LX2_INT:
-              case NTSC_LX3_PR:
-                print_dejitter_overlay(0);
-                font_color = FONTCOLOR_GREY;
-                sprintf(szText,not_available);
-                break;
-              case PAL_LX2_PR:
-              case PAL_LX2_INT:
-                current_menu->leaves[3].config_value->val2char_func(val_select);
-                break;
-              default:
-                break;
-              }
-          } else {
-            if ((timing_pagesel == PPU_CURRENT) && (linemode == 0)) {
-              font_color = FONTCOLOR_GREY;
-              sprintf(szText,not_available);
-            } else {
-              current_menu->leaves[v_run].config_value->val2char_func(val_select);
-            }
-          }
-          vd_clear_area(h_l_offset,h_l_offset + OPT_WINDOW_WIDTH,v_offset,v_offset);
-          vd_print_string(h_l_offset,v_offset,background_color,font_color,Global);
-        }
-
-//        if (v_run == current_menu->current_selection)
-          vd_clear_area(h_l_offset,h_l_offset + OPT_WINDOW_WIDTH,v_offset,v_offset);
-
-        if (is_misc_screen(current_menu) && v_run == 2) {
-          if (current_menu->leaves[v_run].config_value->cfg_type == FLAGTXT ||
-              current_menu->leaves[v_run].config_value->cfg_type == NUMVALUE ) {
-            current_menu->leaves[v_run].config_value->val2char_func(val_select);
-            vd_print_string(h_l_offset,v_offset,background_color,font_color,&szText[0]);
-          } else {
-            if (!use_filteraddon) vd_print_string(h_l_offset-7,v_offset-1,background_color,FONTCOLOR_GREY,FilterAddOn[6]);
-            else {
-              vd_print_string(h_l_offset,v_offset-1,background_color,FONTCOLOR_GREY,FilterAddOn[5]);
-              vd_print_string(h_l_offset,v_offset,background_color,font_color,FilterAddOn[val_select]);
-            }
-          }
-        } else if (use_240p_linked_values) {
+        // check 480i screen
+        if (use_240p_linked_values) {
+          val_select     = cfg_get_value(vicfg_240p_opt_subscreen.leaves[v_run].config_value,0);
+          ref_val_select = cfg_get_value(vicfg_240p_opt_subscreen.leaves[v_run].config_value,use_flash);
           if (vicfg_240p_opt_subscreen.leaves[v_run].config_value->cfg_type == NUMVALUE) {
             vicfg_240p_opt_subscreen.leaves[v_run].config_value->val2char_func(val_select);
             vd_print_string(h_l_offset,v_offset,background_color,font_color,&szText[0]);
           } else {
             vd_print_string(h_l_offset,v_offset,background_color,font_color,vicfg_240p_opt_subscreen.leaves[v_run].config_value->value_string[val_select]);
           }
-        } else {
-          if (current_menu->leaves[v_run].config_value->cfg_type == FLAGTXT ||
-              current_menu->leaves[v_run].config_value->cfg_type == NUMVALUE ) {
-            if (!(is_vicfg_timing_screen(current_menu))) current_menu->leaves[v_run].config_value->val2char_func(val_select);
-            vd_print_string(h_l_offset,v_offset,background_color,font_color,&szText[0]);
-          } else {
-            vd_print_string(h_l_offset,v_offset,background_color,font_color,current_menu->leaves[v_run].config_value->value_string[val_select]);
+          break;
+        }
+
+        // check vpll screen
+        if (is_vicfg_vpll_screen(current_menu)) {
+          font_color =  vpll_lock ?     font_color :
+                       val_is_ref ? FONTCOLOR_GREY : FONTCOLOR_DARKGOLD;
+        }
+
+        // check timing screen
+        if (is_vicfg_timing_screen(current_menu)) {
+          switch (v_run) {
+            case TIMING_PAGE_SELECTION:
+              if (timing_pagesel > PPU_CURRENT) print_timing_overlay(1);
+              else print_timing_overlay(linemode);
+              break;
+            case DEJITTER_SELECTION:
+              print_dejitter_overlay(1);
+              switch (timing_pagesel) {
+                case PPU_CURRENT:
+                  if (timing_current > NTSC_LX3_PR) {
+                    flag2set_func(val_select);
+                    break;
+                  }
+                case NTSC_LX2_PR:
+                case NTSC_LX2_INT:
+                case NTSC_LX3_PR:
+                  print_dejitter_overlay(0);
+                  font_color = FONTCOLOR_GREY;
+                  sprintf(szText,not_available);
+                  break;
+                case PAL_LX2_PR:
+                case PAL_LX2_INT:
+                  flag2set_func(val_select);
+                  break;
+                default:
+                  break;
+              }
+              break;
+            default:
+              if ((timing_pagesel == PPU_CURRENT) && (linemode == 0)) {
+                font_color = FONTCOLOR_GREY;
+                sprintf(szText,not_available);
+              } else {
+                current_menu->leaves[v_run].config_value->val2char_func(val_select);
+              }
           }
+        }
+
+//        if (v_run == current_menu->current_selection)
+          vd_clear_area(h_l_offset,h_l_offset + OPT_WINDOW_WIDTH,v_offset,v_offset);
+
+        // check for filter addon in misc screen
+        if (is_misc_screen(current_menu) && v_run == FILTER_ADDON_SELECTION) { // check for filter addon here
+          if (!use_filteraddon) vd_print_string(h_l_offset-7,v_offset-1,background_color,FONTCOLOR_GREY,FilterAddOn[CFG_FILTER_NOT_INSTALLED]);
+          else {
+            vd_print_string(h_l_offset,v_offset-1,background_color,FONTCOLOR_GREY,FilterAddOn[CFG_FILTER_INSTALLED]);
+            vd_print_string(h_l_offset,v_offset,background_color,font_color,FilterAddOn[val_select]);
+          }
+          break;
+        }
+
+        if (current_menu->leaves[v_run].config_value->cfg_type == FLAGTXT ||
+          current_menu->leaves[v_run].config_value->cfg_type == NUMVALUE ) {
+          if (!(is_vicfg_timing_screen(current_menu))) current_menu->leaves[v_run].config_value->val2char_func(val_select); // val2char_func already executed in timing screen
+          vd_print_string(h_l_offset,v_offset,background_color,font_color,&szText[0]);
+        } else {
+          vd_print_string(h_l_offset,v_offset,background_color,font_color,current_menu->leaves[v_run].config_value->value_string[val_select]);
         }
         break;
       default:
@@ -909,17 +946,25 @@ int update_cfg_screen(menu_t* current_menu, alt_u8 linemode, alt_u8 timing_curre
     }
   }
 
+  // overlay modifications
+  pal_awareness_val &= ntsc_pal_selection_val;  // print PAL strings if both is set
+  if (is_vicfg1_screen(current_menu)) {
+    vd_print_string(VD_240P_OVERLAY_H_OFFSET,VD_240P_OVERLAY_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,text_240p_288p[pal_awareness_val]);
+    vd_print_string(VD_240P_OVERLAY_H_OFFSET,VD_480I_OVERLAY_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,text_480i_576i[pal_awareness_val]);
+  }
+
   if (is_vicfg_240p_screen(current_menu)) {
-    if (cfg_get_value(&ntsc_pal_selection,0)) {
+    if (pal_awareness_val == PAL) {  // do not show VPLL submenu in 288p config
       vd_clear_lineend(0,VICFG_VSUB_VPLL_V_OFFSET);
       return 0;
     }
     h_l_offset = OVERLAY_H_OFFSET + 8;
     v_offset = current_menu->leaves[current_menu->number_selections-1].id + 1;
-    if (cfg_get_value(current_menu->leaves[0].config_value,0) == 2) { // check for LineX3 value
+    if (linex_240p_val == LINEX3) { // check for LineX3 value
       font_color = FONTCOLOR_LIGHTGREY;
-      if (cfg_get_value(&use_vpll,0) == 0) vd_print_string(VD_WIDTH-strlen(LineX3VPLLHint),v_offset,background_color,font_color,LineX3VPLLHint);
-      else                                 vd_print_string(VD_WIDTH-strlen(LineX3Hint),v_offset,background_color,font_color,LineX3Hint);
+      if (cfg_get_value(&use_vpll,0) == OFF)           vd_print_string(VD_WIDTH-strlen(LineX3VPLLHint),v_offset,background_color,font_color,LineX3VPLLHint);
+      else if (cfg_get_value(&pal_awareness,0) == OFF) vd_print_string(VD_WIDTH-strlen(LineX3Hint),v_offset,background_color,font_color,LineX3Hint);
+      else                                             vd_clear_char(VICFG_VSUB_VALS_H_OFFSET+7,VICFG_VSUB_LINEX_V_OFFSET);
     } else
       vd_clear_lineend(h_l_offset,v_offset);
   }

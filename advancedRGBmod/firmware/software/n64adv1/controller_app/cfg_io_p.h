@@ -273,18 +273,17 @@ config_t mode16bit = {
 
 // image 240p and 480i
 
-cfg_b32word_t cfg_data_linex =
-  { .cfg_word_mask    = CFG_LINEX_GETALL_MASK,
-    .cfg_word_val     = 0x00000000,
-    .cfg_ref_word_val = 0x00000000
-  };
-
 config_tray_t linex_words[2] = {
   { .config_val = 0x00000000, .config_ref_val = 0x00000000},
   { .config_val = 0x00000000, .config_ref_val = 0x00000000}
 };
 
 
+cfg_b32word_t cfg_data_linex =
+  { .cfg_word_mask    = CFG_LINEX_GETALL_MASK,
+    .cfg_word_val     = 0x00000000,
+    .cfg_ref_word_val = 0x00000000
+  };
 
 config_t linex_240p = {
     .cfg_word        = &cfg_data_linex,
