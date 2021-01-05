@@ -58,7 +58,7 @@ input [13:0] linex_timing;
 
 input  VCLK_o;
 input  nVRST_o;
-output reg vdata_valid_o = 1'b0; // for new implementation
+output reg vdata_valid_o = 1'b0;
 output reg [`VDATA_O_FU_SLICE] vdata_o = {vdata_width_o{1'b0}};
 
 
@@ -158,10 +158,9 @@ reg nHSYNC_buf_div2 = 1'b0;
 reg [pcnt_width-1:0] wrpage_div2 = {hcnt_width_2x{1'b0}};
 reg [hcnt_width_2x-1:0] hcnt_div2 = {hcnt_width_2x{1'b0}};
 reg [hcnt_width_2x-1:0] linewidth_2x_orig[0:`BUF_NUM_OF_PAGES-1];
-initial begin
+initial
   for (int_idx = 0; int_idx < `BUF_NUM_OF_PAGES; int_idx = int_idx+1)
     linewidth_2x_orig[int_idx] = {hcnt_width_2x{1'b0}};
-end
 
 
 reg [1:0] newFrame = 2'b0; // newFrame[1] used by reading process, newFrame[0] by writing process

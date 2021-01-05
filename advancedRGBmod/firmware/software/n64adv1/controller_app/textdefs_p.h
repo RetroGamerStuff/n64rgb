@@ -176,7 +176,7 @@ static const char *vinfo_header =
 static const char *vinfo_overlay =
     "* Video\n"
     "  - Input:\n"
-    "  - PLL:\n"
+    "  - Video PLL:\n"
     "  - Output:\n"
     "  - Color Depth:\n"
     "  - Format:\n"
@@ -258,8 +258,8 @@ static const char *misc_header =
 static const char *misc_overlay =
     "* In-Game Routines:\n"
     "  - Reset:\n"
-    "  - VI-DeBlur:\n"
-    "  - 16bit Mode:\n"
+    "  - LowRes.-DeBlur:\n"
+    "  - 16bit mode:\n"
     "* Filter AddOn:\n"
     "  - Filter Cut-Off:\n"
     "* Show Test-Pattern";
