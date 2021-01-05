@@ -163,21 +163,25 @@ typedef enum {
   CMD_MENU_RIGHT
 } cmd_t;
 
+extern alt_u32 ctrl_data;
 
-extern alt_u8 vpll_lock;
+extern cfg_offon_t vpll_lock;
+extern alt_u16 ppu_state;
+extern vmode_t palmode;
+extern scanmode_t scanmode;
+extern linemult_t linemult_mode;
 
-void print_ctrl_data(alt_u32 *ctrl_data);
-cmd_t ctrl_data_to_cmd(alt_u32* ctrl_data, alt_u8 no_fast_skip);
-alt_u32 get_ctrl_data(void);
-alt_u16 get_ppu_state(void);
-alt_u8 update_vpll_lock_state(void);
+void update_ppu_state(void);
+void update_ctrl_data(void);
+cfg_offon_t update_vpll_lock_state(void);
 void enable_vpll_test(void);
 void disable_vpll_test(void);
+cmd_t ctrl_data_to_cmd(cfg_offon_t no_fast_skip);
 int run_vpll_test(configuration_t* sysconfig);
-alt_u8 get_osdvsync(void);
-alt_u8 new_ctrl_available(void);
-alt_u8 get_fallback_mode(void);
-alt_u8 is_fallback_mode_valid(void);
+cfg_offon_t get_osdvsync(void);
+cfg_offon_t new_ctrl_available(void);
+cfg_offon_t get_fallback_mode(void);
+cfg_offon_t is_fallback_mode_valid(void);
 alt_u16 get_hdl_version(void);
 
 #endif /* N64_H_ */

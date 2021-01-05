@@ -46,25 +46,55 @@
 
 #define HOLD_CNT_REP	2
 
-extern char szText[];
 static const char *running_message = "< Running >";
 
-alt_u8 vpll_lock;
+alt_u32 ctrl_data;
+cfg_offon_t vpll_lock;
+alt_u16 ppu_state;
+vmode_t palmode;
+scanmode_t scanmode;
+linemult_t linemult_mode;
 
 
-void print_ctrl_data(alt_u32* ctrl_data) {
-  sprintf(szText,"Ctrl.Data: 0x%08x",(uint) *ctrl_data);
-  vd_print_string(0, VD_HEIGHT-1, BACKGROUNDCOLOR_STANDARD, FONTCOLOR_NAVAJOWHITE, &szText[0]);
+
+void update_ppu_state()
+{
+  ppu_state = (IORD_ALTERA_AVALON_PIO_DATA(PPU_STATE_IN_BASE) & PPU_STATE_GETALL_MASK);
+  palmode = ((ppu_state & PPU_STATE_PALMODE_GETMASK) >> PPU_STATE_PALMODE_OFFSET);
+  scanmode = ((ppu_state & PPU_STATE_480I_GETMASK) >> PPU_STATE_480I_OFFSET);
+  linemult_mode = ((ppu_state & PPU_STATE_LINEMULT_GETMASK) >> PPU_STATE_LINEMULT_OFFSET);
 }
 
-cmd_t ctrl_data_to_cmd(alt_u32* ctrl_data, alt_u8 no_fast_skip)
+void update_ctrl_data()
+{
+  ctrl_data = IORD_ALTERA_AVALON_PIO_DATA(CTRL_DATA_IN_BASE);
+}
+
+cfg_offon_t update_vpll_lock_state()
+{
+  return ((IORD_ALTERA_AVALON_PIO_DATA(PPU_STATE_IN_BASE) & PPU_STATE_VPLL_LOCKED_GETMASK) >> PPU_STATE_VPLL_LOCKED_OFFSET);
+}
+
+void enable_vpll_test()
+{
+  alt_u32 cfg_word = IORD_ALTERA_AVALON_PIO_DATA(CFG_MISC_OUT_BASE) | CFG_TEST_VPLL_SETMASK;
+  IOWR_ALTERA_AVALON_PIO_DATA(CFG_MISC_OUT_BASE,cfg_word);
+}
+
+void disable_vpll_test()
+{
+  alt_u32 cfg_word = IORD_ALTERA_AVALON_PIO_DATA(CFG_MISC_OUT_BASE) & CFG_TEST_VPLL_CLRMASK;
+  IOWR_ALTERA_AVALON_PIO_DATA(CFG_MISC_OUT_BASE,cfg_word);
+}
+
+cmd_t ctrl_data_to_cmd(cfg_offon_t no_fast_skip)
 {
   cmd_t cmd_new = CMD_NON;
   static cmd_t cmd_pre_int = CMD_NON, cmd_pre = CMD_NON;
 
   static alt_u8 rep_cnt = 0, hold_cnt = HOLD_CNT_HIGH;
 
-  switch (*ctrl_data & CTRL_GETALL_DIGITAL_MASK) {
+  switch (ctrl_data & CTRL_GETALL_DIGITAL_MASK) {
     case BTN_OPEN_OSDMENU:
       cmd_new = CMD_OPEN_MENU;
       break;
@@ -118,7 +148,7 @@ cmd_t ctrl_data_to_cmd(alt_u32* ctrl_data, alt_u8 no_fast_skip)
   };
 
   if (cmd_new == CMD_NON) {
-		alt_u16 xy_axis = ALT_CI_NIOS_CUSTOM_INSTR_BITSWAP_0(*ctrl_data);
+		alt_u16 xy_axis = ALT_CI_NIOS_CUSTOM_INSTR_BITSWAP_0(ctrl_data);
 		alt_8 x_axis_val = xy_axis >> 8;
 		alt_8 y_axis_val = xy_axis;
 
@@ -155,72 +185,46 @@ cmd_t ctrl_data_to_cmd(alt_u32* ctrl_data, alt_u8 no_fast_skip)
   return CMD_NON;
 }
 
-alt_u32 get_ctrl_data()
-{
-  return IORD_ALTERA_AVALON_PIO_DATA(CTRL_DATA_IN_BASE);
-}
-
-alt_u16 get_ppu_state()
-{
-  return (IORD_ALTERA_AVALON_PIO_DATA(PPU_STATE_IN_BASE) & PPU_STATE_GETALL_MASK);
-}
-
-alt_u8 update_vpll_lock_state()
-{
-  return ((IORD_ALTERA_AVALON_PIO_DATA(PPU_STATE_IN_BASE) & PPU_STATE_VPLL_LOCKED_GETMASK) >> PPU_STATE_VPLL_LOCKED_OFFSET);
-}
-
-void enable_vpll_test()
-{
-  alt_u32 cfg_word = IORD_ALTERA_AVALON_PIO_DATA(CFG_MISC_OUT_BASE) | CFG_TEST_VPLL_SETMASK;
-  IOWR_ALTERA_AVALON_PIO_DATA(CFG_MISC_OUT_BASE,cfg_word);
-}
-
-void disable_vpll_test()
-{
-  alt_u32 cfg_word = IORD_ALTERA_AVALON_PIO_DATA(CFG_MISC_OUT_BASE) & CFG_TEST_VPLL_CLRMASK;
-  IOWR_ALTERA_AVALON_PIO_DATA(CFG_MISC_OUT_BASE,cfg_word);
-}
-
 int run_vpll_test(configuration_t* sysconfig)
 {
   int retval = 0;
-  alt_u8 vpll_lock_loc = update_vpll_lock_state();
-  alt_u8 vpll_lock_pre;
+
+  update_vpll_lock_state();
+  cfg_offon_t vpll_lock_pre;
 
   vd_print_string(RWM_H_OFFSET,RWM_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_YELLOW,running_message);
   enable_vpll_test();
 
   int i;
   for (i = 0; i < VPLL_TEST_FRAMES; i++) { /* wait for VPLL_TEST_FRAMES frames for PLL */
-    vpll_lock_pre = vpll_lock_loc;
+    vpll_lock_pre = vpll_lock;
     while(!get_osdvsync()){};  /* wait for OSD_VSYNC goes high (OSD vert. active area) */
     while( get_osdvsync()){};  /* wait for OSD_VSYNC goes low  */
-    vpll_lock_loc = update_vpll_lock_state();
-    if (vpll_lock_pre && !vpll_lock_loc) retval = -VPLL_TEST_FAILED;
+    update_vpll_lock_state();
+    if (vpll_lock_pre && !vpll_lock) retval = -VPLL_TEST_FAILED;
   }
   disable_vpll_test();
-  if (!vpll_lock_loc) retval = -VPLL_TEST_FAILED;
+  if (!vpll_lock) retval = -VPLL_TEST_FAILED;
 
   return retval;
 }
 
-alt_u8 get_osdvsync()
+cfg_offon_t get_osdvsync()
 {
   return (IORD_ALTERA_AVALON_PIO_DATA(SYNC_IN_BASE) & OSD_VSYNC_IN_MASK);
 }
 
-alt_u8 new_ctrl_available()
+cfg_offon_t new_ctrl_available()
 {
   return (IORD_ALTERA_AVALON_PIO_DATA(SYNC_IN_BASE) & NEW_CTRL_DATA_IN_MASK);
 }
 
-alt_u8 get_fallback_mode()
+cfg_offon_t get_fallback_mode()
 {
   return ((IORD_ALTERA_AVALON_PIO_DATA(FALLBACK_IN_BASE) & FALLBACK_GETALL_MASK) >> FALLBACKMODE_OFFSET);
 }
 
-alt_u8 is_fallback_mode_valid()
+cfg_offon_t is_fallback_mode_valid()
 {
   return (IORD_ALTERA_AVALON_PIO_DATA(FALLBACK_IN_BASE) & FALLBACKMODE_VALID_GETMASK);
 }

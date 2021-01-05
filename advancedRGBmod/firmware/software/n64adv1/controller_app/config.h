@@ -63,13 +63,15 @@ typedef enum {
 
 typedef enum {
   PPU_CURRENT = 0,
+  NTSC_PASSTHROUGH,
+  PAL_PASSTHROUGH,
   NTSC_LX2_PR,
   NTSC_LX2_INT,
   NTSC_LX3_PR,
   PAL_LX2_PR,
   PAL_LX2_INT
 } cfg_timing_model_sel_type_t;
-#define NUM_TIMING_MODES  5
+#define NUM_TIMING_MODES  7
 
 typedef enum {
   OFF = 0,
@@ -241,6 +243,8 @@ typedef struct {
   #define CFG_16BITMODE_CLRMASK         (CFG_VIDEO_GETALL_MASK & ~CFG_16BITMODE_SETMASK)
 
 #define CFG_VIDEO_GETTIMINGS_MASK     (CFG_PAL_DEJITTER_GETMASK | CFG_HORSHIFT_GETMASK | CFG_VERTSHIFT_GETMASK)
+#define CFG_VIDEO_GETTIMINGS_PT_MASK  (CFG_HORSHIFT_GETMASK)
+#define CFG_VIDEO_GETTIMINGS_LX_MASK  (CFG_VIDEO_GETTIMINGS_MASK)
 #define CFG_VIDEO_GETNONTIMINGS_MASK  (CFG_VFORMAT_GETMASK | CFG_GAMMA_GETMASK | CFG_DEBLUR_MODE_GETMASK | CFG_16BITMODE_GETMASK)
 
 // linex for 240p and 480i (set 0)
@@ -344,7 +348,8 @@ typedef struct {
 #define CFG_LINEX_DEFAULT         (CFG_240P_SL_METHOD_DEFAULT_SETMASK | CFG_480I_FIELDFIX_SETMASK | CFG_480I_SL_LINK240P_DEFAULT_SETMASK)
   #define CFG_LINEX_GET_NODEFAULTS  0x0000
 
-#define CFG_TIMING_DEFAULTS 0x00402000
+#define CFG_TIMING_PASSTH_DEFAULTS  0x00400000
+#define CFG_TIMING_LINEX_DEFAULTS   0x00402000
 
 
 // the jumper
@@ -395,8 +400,8 @@ int cfg_load_defaults(configuration_t* sysconfig,alt_u8 need_confirm);
 int cfg_load_jumperset(configuration_t* sysconfig,alt_u8 need_confirm);
 void cfg_store_linex_word(configuration_t* sysconfig,vmode_t palmode);
 void cfg_load_linex_word(configuration_t* sysconfig,vmode_t palmode);
-void cfg_store_timing_word(configuration_t* sysconfig,alt_u8 timing_selection);
-void cfg_load_timing_word(configuration_t* sysconfig,alt_u8 timing_selection);
+void cfg_store_timing_word(configuration_t* sysconfig,cfg_timing_model_sel_type_t timing_selection);
+void cfg_load_timing_word(configuration_t* sysconfig,cfg_timing_model_sel_type_t timing_selection);
 void cfg_apply_to_logic(configuration_t* sysconfig);
 void cfg_read_from_logic(configuration_t* sysconfig);
 alt_u8 cfg_get_jumper();

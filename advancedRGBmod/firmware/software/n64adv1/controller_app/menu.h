@@ -121,12 +121,14 @@ void scanline_str2txt_func(alt_u8 v);
 void scanline_hybrstr2txt_func(alt_u8 v);
 void gamma2txt_func(alt_u8 v);
 
-updateaction_t modify_menu(cmd_t command, menu_t** current_menu, configuration_t* sysconfig, alt_u16* ppu_state);
+void print_current_timing_mode(void);
+void print_ctrl_data(void);
+
+updateaction_t modify_menu(cmd_t command, menu_t** current_menu, configuration_t* sysconfig);
 void print_overlay(menu_t* current_menu);
 void print_selection_arrow(menu_t* current_menu);
-int update_vinfo_screen(menu_t* current_menu, alt_u16* ppu_state);
-int update_cfg_screen(menu_t* current_menu, alt_u8 linemode, alt_u8 timing_current);
-void print_current_mode(alt_u8 palmode,alt_u8 linemode,alt_u8 timing_current);
+int update_vinfo_screen(menu_t* current_menu);
+int update_cfg_screen(menu_t* current_menu);
 
 
 #endif /* MENU_H_ */

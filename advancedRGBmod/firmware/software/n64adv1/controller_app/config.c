@@ -158,14 +158,14 @@ int cfg_show_testpattern(configuration_t* sysconfig)
   cfg_apply_to_logic(sysconfig);
 
   cmd_t command;
-  alt_u32 ctrl_data = get_ctrl_data();
+  update_ctrl_data();
 
   while(1) {
     while(!get_osdvsync()){};                         // wait for OSD_VSYNC goes high
     while( get_osdvsync() && new_ctrl_available()){}; // wait for OSD_VSYNC goes low and
                                                       // wait for new controller available
-    ctrl_data = get_ctrl_data();
-    command = ctrl_data_to_cmd(&ctrl_data,1);
+    update_ctrl_data();
+    command = ctrl_data_to_cmd(1);
     if (command == CMD_MENU_BACK) break;
   }
 
@@ -179,7 +179,8 @@ alt_u8 confirmation_routine(alt_u8 with_btn_overlay)
 {
   cmd_t command;
   alt_u8 abort = 0;
-  alt_u32 ctrl_data = get_ctrl_data();
+
+  update_ctrl_data();
 
   vd_print_string(RWM_H_OFFSET,RWM_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_NAVAJOWHITE,confirm_message);
   if (with_btn_overlay > 0) vd_print_string(BTN_OVERLAY_H_OFFSET,BTN_OVERLAY_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_GREEN,btn_overlay_2);
@@ -188,8 +189,8 @@ alt_u8 confirmation_routine(alt_u8 with_btn_overlay)
     while(!get_osdvsync()){};                         // wait for OSD_VSYNC goes high
     while( get_osdvsync() && new_ctrl_available()){}; // wait for OSD_VSYNC goes low and
                                                       // wait for new controller available
-    ctrl_data = get_ctrl_data();
-    command = ctrl_data_to_cmd(&ctrl_data,1);
+    update_ctrl_data();
+    command = ctrl_data_to_cmd(1);
 
     if ((command == CMD_MENU_ENTER) || (command == CMD_MENU_RIGHT)) break;
     if ((command == CMD_MENU_BACK)  || (command == CMD_MENU_LEFT))  {abort = 1; break;};
@@ -291,7 +292,8 @@ int cfg_reset_timing(configuration_t* sysconfig)
 
   alt_u8 timing_word_select = timing_selection.cfg_value;
   if (timing_word_select == PPU_CURRENT || timing_word_select > NUM_TIMING_MODES) return -1;
-  timing_words[timing_word_select-1].config_val = CFG_TIMING_DEFAULTS;
+  if (timing_word_select < NTSC_LX2_PR) timing_words[timing_word_select-1].config_val = CFG_TIMING_PASSTH_DEFAULTS;
+  else timing_words[timing_word_select-1].config_val = CFG_TIMING_LINEX_DEFAULTS;
   cfg_load_timing_word(sysconfig, timing_word_select);
   return 0;
 }
@@ -377,20 +379,20 @@ void cfg_load_linex_word(configuration_t* sysconfig, vmode_t palmode) {
   sysconfig->cfg_word_def[LINEX]->cfg_ref_word_val = linex_words[palmode].config_ref_val;
 }
 
-void cfg_store_timing_word(configuration_t* sysconfig, alt_u8 timing_word_select) {
-  if (timing_word_select == 0 || timing_word_select > 5) return;
+void cfg_store_timing_word(configuration_t* sysconfig, cfg_timing_model_sel_type_t timing_word_select) {
+  if (timing_word_select == PPU_CURRENT || timing_word_select > NUM_TIMING_MODES) return;
   timing_word_select--;
-  timing_words[timing_word_select].config_val = sysconfig->cfg_word_def[VIDEO]->cfg_word_val & CFG_VIDEO_GETTIMINGS_MASK;
-  timing_words[timing_word_select].config_ref_val = sysconfig->cfg_word_def[VIDEO]->cfg_ref_word_val & CFG_VIDEO_GETTIMINGS_MASK;
+  timing_words[timing_word_select].config_val = sysconfig->cfg_word_def[VIDEO]->cfg_word_val & CFG_VIDEO_GETTIMINGS_LX_MASK;
+  timing_words[timing_word_select].config_ref_val = sysconfig->cfg_word_def[VIDEO]->cfg_ref_word_val & CFG_VIDEO_GETTIMINGS_LX_MASK;
 }
 
-void cfg_load_timing_word(configuration_t* sysconfig, alt_u8 timing_word_select) {
+void cfg_load_timing_word(configuration_t* sysconfig, cfg_timing_model_sel_type_t timing_word_select) {
   if (timing_word_select == PPU_CURRENT || timing_word_select > NUM_TIMING_MODES) return;
   timing_word_select--;
   sysconfig->cfg_word_def[VIDEO]->cfg_word_val &= CFG_VIDEO_GETNONTIMINGS_MASK;
-  sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= (timing_words[timing_word_select].config_val & CFG_VIDEO_GETTIMINGS_MASK);
+  sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= (timing_words[timing_word_select].config_val & CFG_VIDEO_GETTIMINGS_LX_MASK);
   sysconfig->cfg_word_def[VIDEO]->cfg_ref_word_val &= CFG_VIDEO_GETNONTIMINGS_MASK;
-  sysconfig->cfg_word_def[VIDEO]->cfg_ref_word_val |= (timing_words[timing_word_select].config_ref_val & CFG_VIDEO_GETTIMINGS_MASK);
+  sysconfig->cfg_word_def[VIDEO]->cfg_ref_word_val |= (timing_words[timing_word_select].config_ref_val & CFG_VIDEO_GETTIMINGS_LX_MASK);
 }
 
 void cfg_apply_to_logic(configuration_t* sysconfig)

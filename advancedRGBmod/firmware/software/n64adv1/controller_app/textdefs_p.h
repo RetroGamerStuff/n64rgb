@@ -242,8 +242,9 @@ static const char *vicfg_timing_opt_header =
     "Config. (Position)";
 static const char *vicfg_timing_opt_overlay =
     "* Settings for:";
-static const char *vicfg_timing_opt_overlay0 =
-    "* Vertical shift:\n"
+static const char *vicfg_timing_opt_overlay0v =
+    "* Vertical shift:";
+static const char *vicfg_timing_opt_overlay0h =
     "* Horizontal shift:";
 static const char *vicfg_timing_opt_overlay1 =
     "* DeJitter for PAL LX2*:";
@@ -352,8 +353,7 @@ const char *not_available      = "-----";
 const char *OffOn[]         = {"Off","On"};
 const char *NTSCPAL_SEL[]   = {"NTSC  ","PAL   "};
 const char *LineX_240p[]    = {"LineX Off","LineX2","LineX3*"};
-const char *VTimingSel[]    = {"Current","NTSC LX2 (2x 240p)","NTSC LX2 (2x 480i)","NTSC LX3 (3x 240p)","PAL LX2 (2x 288p)","PAL LX2 (2x 576i)"};
-const char *VTimingPT[]     = {"NTSC LX1","PAL LX1"};
+const char *VTimingSel[]    = {"Current","NTSC LX1","PAL LX1","NTSC LX2 (2x 240p)","NTSC LX2 (2x 480i)","NTSC LX3 (3x 240p)","PAL LX2 (2x 288p)","PAL LX2 (2x 576i)"};
 const char *VideoPLL[]      = {"Off","Locked"};
 const char *EvenOdd[]       = {"Even","Odd "};
 const char *AdvSL[]         = {"Simple","Advanced"};

@@ -178,12 +178,14 @@ config_t filteraddon_cutoff = {
 
 // video
 
-config_tray_t timing_words[5] = {
-  { .config_val = CFG_TIMING_DEFAULTS, .config_ref_val = CFG_TIMING_DEFAULTS},
-  { .config_val = CFG_TIMING_DEFAULTS, .config_ref_val = CFG_TIMING_DEFAULTS},
-  { .config_val = CFG_TIMING_DEFAULTS, .config_ref_val = CFG_TIMING_DEFAULTS},
-  { .config_val = CFG_TIMING_DEFAULTS, .config_ref_val = CFG_TIMING_DEFAULTS},
-  { .config_val = CFG_TIMING_DEFAULTS, .config_ref_val = CFG_TIMING_DEFAULTS}
+config_tray_t timing_words[NUM_TIMING_MODES] = {
+  { .config_val = CFG_TIMING_PASSTH_DEFAULTS, .config_ref_val = CFG_TIMING_PASSTH_DEFAULTS},
+  { .config_val = CFG_TIMING_PASSTH_DEFAULTS, .config_ref_val = CFG_TIMING_PASSTH_DEFAULTS},
+  { .config_val = CFG_TIMING_LINEX_DEFAULTS,  .config_ref_val = CFG_TIMING_LINEX_DEFAULTS},
+  { .config_val = CFG_TIMING_LINEX_DEFAULTS,  .config_ref_val = CFG_TIMING_LINEX_DEFAULTS},
+  { .config_val = CFG_TIMING_LINEX_DEFAULTS,  .config_ref_val = CFG_TIMING_LINEX_DEFAULTS},
+  { .config_val = CFG_TIMING_LINEX_DEFAULTS,  .config_ref_val = CFG_TIMING_LINEX_DEFAULTS},
+  { .config_val = CFG_TIMING_LINEX_DEFAULTS,  .config_ref_val = CFG_TIMING_LINEX_DEFAULTS}
 };
 
 
@@ -204,17 +206,6 @@ config_t pal_dejitter = {
     .val2char_func = &flag2set_func
 };
 
-config_t hor_shift = {
-    .cfg_word        = &cfg_data_video,
-    .cfg_word_offset = CFG_HORSHIFT_OFFSET,
-    .cfg_type        = NUMVALUE,
-    .value_details   = {
-        .max_value     = CFG_HORSHIFT_MAX_VALUE,
-        .getvalue_mask = CFG_HORSHIFT_GETMASK
-    },
-    .val2char_func = &val2txt_7b_binaryoffset_half_func
-};
-
 config_t vert_shift = {
     .cfg_word        = &cfg_data_video,
     .cfg_word_offset = CFG_VERTSHIFT_OFFSET,
@@ -224,6 +215,17 @@ config_t vert_shift = {
         .getvalue_mask = CFG_VERTSHIFT_GETMASK
     },
     .val2char_func = &val2txt_6b_binaryoffset_func
+};
+
+config_t hor_shift = {
+    .cfg_word        = &cfg_data_video,
+    .cfg_word_offset = CFG_HORSHIFT_OFFSET,
+    .cfg_type        = NUMVALUE,
+    .value_details   = {
+        .max_value     = CFG_HORSHIFT_MAX_VALUE,
+        .getvalue_mask = CFG_HORSHIFT_GETMASK
+    },
+    .val2char_func = &val2txt_7b_binaryoffset_half_func
 };
 
 config_t vformat = {
