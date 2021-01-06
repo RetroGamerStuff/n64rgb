@@ -82,6 +82,9 @@ localparam ST_WAIT4N64 = 2'b00; // wait for N64 triggering the reading process
 localparam ST_RDREADY  = 2'b01; // Prepare to start reading
 localparam ST_READING  = 2'b10; // reading lines
 
+localparam linex_lshift_2x_max = 63;
+localparam linex_rshift_2x_max = 47;
+
 integer int_idx, pp_idx;
 
 
@@ -99,7 +102,8 @@ wire           n64_480i =   vinfo_mult[ 0];
 
 wire      dejitter_enable   = linex_timing[13];
 wire linex_hshift_direction = linex_timing[12];
-wire [ 5:0] linex_hshift_2x = linex_timing[12] ? linex_timing[11: 6] : ~linex_timing[11: 6] + 1'b1;
+wire [ 5:0] linex_lshift_2x = linex_hshift_direction ? 6'd0 : ~linex_timing[11: 6] + 1'b1;
+wire [ 5:0] linex_rshift_2x = linex_hshift_direction ? linex_timing[11: 6] : 6'd0;
 wire linex_vshift_direction = linex_timing[ 5];
 wire [ 4:0] linex_vshift    = linex_timing[ 5] ? linex_timing[ 4: 0] : ~linex_timing[ 4: 0] + 1'b1;
 
@@ -132,6 +136,8 @@ wire [color_width_i-1:0] R_avg, G_avg, B_avg;
 wire [Y_width+4:0] Y_ref_pre_full;
 wire [Y_width+SLHyb_width-1:0] Y_ref_full;
 wire [color_width_o+SLHyb_width-2:0] R_sl_full, G_sl_full, B_sl_full;
+
+wire vdata_valid_o_w_pre, vdata_valid_o_w;
 
 
 // regs
@@ -245,13 +251,23 @@ reg [Y_width-1:0] Y_ref = {Y_width{1'b0}};
 reg [SLHyb_width-1:0] SLHyb_rval = {SLHyb_width{1'b0}};
 reg [SLHyb_width-1:0] SLHyb_str = {SLHyb_width{1'b0}};
 
-reg [color_width_o-1:0] R_sl, G_sl, B_sl;
-initial begin
-  R_sl <= {color_width_o{1'b0}};
-  G_sl <= {color_width_o{1'b0}};
-  B_sl <= {color_width_o{1'b0}};
-end
+reg [color_width_o-1:0] R_sl = {color_width_o{1'b0}};
+reg [color_width_o-1:0] G_sl = {color_width_o{1'b0}};
+reg [color_width_o-1:0] B_sl = {color_width_o{1'b0}};
 
+reg vdata_valid_2x_LL = 1'b0;
+reg vdata_valid_2x_L = 1'b0;
+reg [`VDATA_I_FU_SLICE] vdata_i_2x_L = {vdata_width_i{1'b0}};
+
+reg [3:0] vdata_hshift_sync_buf[0:linex_lshift_2x_max];
+reg [`VDATA_O_CO_SLICE] vdata_hshift_co_buf[0:linex_rshift_2x_max];
+
+initial begin
+  for (int_idx = 0; int_idx <= linex_lshift_2x_max; int_idx = int_idx+1)
+    vdata_hshift_sync_buf[int_idx] = 4'h0;
+  for (int_idx = 0; int_idx <= linex_rshift_2x_max; int_idx = int_idx+1)
+    vdata_hshift_co_buf[int_idx] = {3*color_width_o{1'b0}};
+end
 
 
 // start of rtl
@@ -474,15 +490,15 @@ always @(posedge VCLK_o or negedge nVRST_o)
               if (palmode_resynced) begin
                 rdvcnt_shifted_reset_val <= !linex_vshift_direction ? linecount_pal_w - linex_vshift - 1 :
                                                   linex_vshift == 0 ? linecount_pal_w - 1 : linex_vshift - 1;
-                hstart_2x_o <= linex_hshift_direction ? `HSTART_PAL_2x + linex_hshift_2x - hshift_buf : `HSTART_PAL_2x - hshift_buf - {{(hcnt_width_2x-6){1'b0}},linex_hshift_2x};
-                hstop_2x_o  <= linex_hshift_direction ? `HSTOP_PAL_2x + linex_hshift_2x - hshift_buf : `HSTOP_PAL_2x - hshift_buf - {{(hcnt_width_2x-6){1'b0}},linex_hshift_2x};
+                hstart_2x_o <= `HSTART_PAL_2x - hshift_buf;
+                hstop_2x_o  <= `HSTOP_PAL_2x - hshift_buf;
                 nHS_width_2x <= `HS_WIDTH_PAL_LX2_2x;
                 nVS_width <= `VS_WIDTH_PAL_LX2;
               end else begin
                 rdvcnt_shifted_reset_val <= !linex_vshift_direction ? linecount_ntsc_w - linex_vshift - 1 :
                                                   linex_vshift == 0 ? linecount_ntsc_w - 1 : linex_vshift - 1;
-                hstart_2x_o <= linex_hshift_direction ? `HSTART_NTSC_2x - hshift_buf + linex_hshift_2x : `HSTART_NTSC_2x - hshift_buf - linex_hshift_2x;
-                hstop_2x_o  <= linex_hshift_direction ? `HSTOP_NTSC_2x - hshift_buf + linex_hshift_2x : `HSTOP_NTSC_2x - hshift_buf - linex_hshift_2x;
+                hstart_2x_o <= `HSTART_NTSC_2x - hshift_buf;
+                hstop_2x_o  <= `HSTOP_NTSC_2x - hshift_buf;
                 nHS_width_2x <= linemult_sel[1] ? `HS_WIDTH_NTSC_LX3_2x : `HS_WIDTH_NTSC_LX2_2x;
                 nVS_width <= linemult_sel[1] ? `VS_WIDTH_NTSC_LX3 : `VS_WIDTH_NTSC_LX2;
               end
@@ -646,9 +662,6 @@ always @(posedge VCLK_o or negedge nVRST_o)
     R_sl <= {color_width_o{1'b0}};
     G_sl <= {color_width_o{1'b0}};
     B_sl <= {color_width_o{1'b0}};
-
-    vdata_valid_o <= 1'b0;
-    vdata_o <= {vdata_width_o{1'b0}};
   end else begin
          dSL_pp[0] <= drawSL[2];
            S_pp[0] <= S_mult[2];
@@ -687,27 +700,69 @@ always @(posedge VCLK_o or negedge nVRST_o)
     R_sl <= R_sl_full[color_width_o+SLHyb_width-2:SLHyb_width-1]; // stage [4]
     G_sl <= G_sl_full[color_width_o+SLHyb_width-2:SLHyb_width-1]; // stage [4]
     B_sl <= B_sl_full[color_width_o+SLHyb_width-2:SLHyb_width-1]; // stage [4]
-
-    // set output
-    vdata_o[`VDATA_O_SY_SLICE] <= S_pp[4];
-    if (dSL_pp[4])  // scanline
-      vdata_o[`VDATA_O_CO_SLICE] <= {R_sl,G_sl,B_sl};
-    else  // not a scanline
-      vdata_o[`VDATA_O_CO_SLICE] <= {R_pp[4],R_pp[4][color_width_i-1],
-                                     G_pp[4],G_pp[4][color_width_i-1],
-                                     B_pp[4],B_pp[4][color_width_i-1]};
-
-    vdata_valid_o <= 1'b1; // for simplicity just set
-
-    // use standard input if no line-doubling
-    if (nENABLE_linemult) begin
-      vdata_valid_o <= vdata_valid_i;
-      vdata_o <= {vdata_i[`VDATA_I_SY_SLICE],
-                  vdata_i[`VDATA_I_RE_SLICE],vdata_i[3*color_width_i-1],
-                  vdata_i[`VDATA_I_GR_SLICE],vdata_i[2*color_width_i-1],
-                  vdata_i[`VDATA_I_BL_SLICE],vdata_i[color_width_i-1]};
-    end
   end
 
 
-endmodule 
+// set output with horizontal shift
+
+always @(posedge VCLK_i or negedge nVRST_i) // upsample vdata_valid_i to shift passthrough data by half pixels
+  if (!nVRST_i) begin
+    vdata_valid_2x_L <= 1'b0;
+    vdata_i_2x_L <= {vdata_width_i{1'b0}};
+  end else begin
+    vdata_valid_2x_L <= vdata_valid_i ? 1'b1 : ~vdata_valid_2x_L;
+    vdata_i_2x_L <= vdata_i;
+  end
+
+
+assign vdata_valid_o_w_pre = !nENABLE_linemult | vdata_valid_2x_L; // for simplicity just set vdata_valid if linemult is enabled
+assign vdata_valid_o_w = !nENABLE_linemult | vdata_valid_2x_LL; // for simplicity just set vdata_valid if linemult is enabled
+
+always @(posedge VCLK_o or negedge nVRST_o)
+  if (!nVRST_o) begin
+    for (int_idx = 0; int_idx <= linex_lshift_2x_max; int_idx = int_idx+1)
+      vdata_hshift_sync_buf[int_idx] <= 4'h0;
+    for (int_idx = 0; int_idx <= linex_rshift_2x_max; int_idx = int_idx+1)
+      vdata_hshift_co_buf[int_idx] <= {3*color_width_o{1'b0}};
+    vdata_valid_2x_LL <= 1'b0;
+    vdata_valid_o <= 1'b0;
+    vdata_o <= {vdata_width_o{1'b0}};
+  end else begin
+    // fill shift buffer
+    if (vdata_valid_o_w_pre) begin
+      for (int_idx = 1; int_idx <= linex_lshift_2x_max; int_idx = int_idx+1)
+        vdata_hshift_sync_buf[int_idx] <= vdata_hshift_sync_buf[int_idx-1];
+      
+      
+      for (int_idx = 1; int_idx <= linex_rshift_2x_max; int_idx = int_idx+1)
+        vdata_hshift_co_buf[int_idx] <= vdata_hshift_co_buf[int_idx-1];
+    
+      if (!nENABLE_linemult) begin
+        vdata_hshift_sync_buf[0] <= S_pp[4];
+        vdata_hshift_co_buf[0] <= dSL_pp[4] ? {R_sl,G_sl,B_sl} : {R_pp[4],R_pp[4][color_width_i-1],G_pp[4],G_pp[4][color_width_i-1],B_pp[4],B_pp[4][color_width_i-1]};
+      end else begin
+        vdata_hshift_sync_buf[0] <= vdata_i_2x_L[`VDATA_I_SY_SLICE];
+        vdata_hshift_co_buf[0] <= {vdata_i_2x_L[`VDATA_I_RE_SLICE],vdata_i_2x_L[3*color_width_i-1],
+                                   vdata_i_2x_L[`VDATA_I_GR_SLICE],vdata_i_2x_L[2*color_width_i-1],
+                                   vdata_i_2x_L[`VDATA_I_BL_SLICE],vdata_i_2x_L[  color_width_i-1]};
+      end    
+    end
+    
+    // set output
+    vdata_valid_o <= vdata_valid_o_w;
+    vdata_valid_2x_LL <= vdata_valid_2x_L;
+    
+    if (linex_lshift_2x < linex_lshift_2x_max)
+      vdata_o[`VDATA_O_SY_SLICE] <= vdata_hshift_sync_buf[linex_lshift_2x];
+    else 
+      vdata_o[`VDATA_O_SY_SLICE] <= vdata_hshift_sync_buf[linex_lshift_2x_max];
+    
+    if (linex_rshift_2x < linex_rshift_2x_max)
+      vdata_o[`VDATA_O_CO_SLICE] <= vdata_hshift_co_buf[linex_rshift_2x];
+    else 
+      vdata_o[`VDATA_O_CO_SLICE] <= vdata_hshift_co_buf[linex_rshift_2x_max];
+    
+  end
+
+
+endmodule

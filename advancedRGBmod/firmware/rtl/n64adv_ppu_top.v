@@ -114,11 +114,13 @@ wire [`VDATA_I_FU_SLICE] vdata_tp_w;
 
 wire vdata_valid_pp_w[0:4];
 wire [`VDATA_I_FU_SLICE] vdata21_pp_w[0:1];
-wire [`VDATA_O_FU_SLICE] vdata24_pp_w[2:4];
+wire [`VDATA_O_FU_SLICE] vdata24_pp_w[2:3];
 wire [3:0] Sync_pp_o;
 
 wire [20:0] vinfo_mult;
 wire [13:0] linex_timing;
+
+wire AutoFilter_w;
 
 reg [`VDATA_O_CO_SLICE] vdata_shifted[0:1];
 initial begin
@@ -127,11 +129,12 @@ initial begin
 end
 
 reg [1:2] Filter;
-wire AutoFilter_w;
+
 
 reg [ 3:0] cfg_gamma;
-reg cfg_nvideblur_0, cfg_n16bit_mode;
-reg cfg_testpat, cfg_exchange_rb_o, cfg_nEN_YPbPr, cfg_nEN_RGsB, cfg_nvideblur_1;
+reg cfg_testpat, cfg_nvideblur_0, cfg_n16bit_mode;
+
+reg cfg_exchange_rb_o, cfg_nEN_YPbPr, cfg_nEN_RGsB, cfg_nvideblur_1;
 reg cfg_ifix, cfg_SL_method, cfg_SL_id, cfg_SL_en;
 reg [ 2:0] cfg_filter;
 reg [ 1:0] cfg_linemult;
@@ -159,7 +162,7 @@ assign linex_timing = {cfg_dejitter,cfg_linex_hshift,cfg_linex_vshift};
 assign vdata_valid_pp_w[0] = cfg_testpat ? vdata_tp_valid_w : vdata_valid_w[2];
 assign vdata21_pp_w[0] = cfg_testpat ? vdata_tp_w : vdata_w[2];
 
-assign Sync_pp_o = vdata24_pp_w[4][`VDATA_O_SY_SLICE];
+assign Sync_pp_o = vdata24_pp_w[3][`VDATA_O_SY_SLICE];
 assign AutoFilter_w = cfg_filter == 3'b000;
 
 assign PPUState = {palmode,n64_480i,1'b0,cfg_linemult,~cfg_nEN_YPbPr,~cfg_nEN_RGsB,~cfg_nvideblur_1,~cfg_n16bit_mode,Filter,AutoFilter_w};
@@ -169,6 +172,7 @@ assign PPUState = {palmode,n64_480i,1'b0,cfg_linemult,~cfg_nEN_YPbPr,~cfg_nEN_RG
 // ----------------------------
 
 always @(posedge VCLK) begin
+  cfg_testpat     <=  ConfigSet[`show_testpattern_bit];
   cfg_gamma       <=  ConfigSet[`gamma_slice];
   cfg_n16bit_mode <= ~ConfigSet[`n16bit_mode_bit];
   if (!n64_480i) begin
@@ -190,7 +194,6 @@ register_sync #(
 );
 
 always @(posedge VCLK_Tx) begin
-  cfg_testpat          <=  ConfigSet_resynced[`show_testpattern_bit];
   cfg_exchange_rb_o    <=  ConfigSet_resynced[`Exchange_RB_out_bit];
   cfg_filter           <=  ConfigSet_resynced[`FilterSet_slice];
   cfg_nEN_YPbPr        <= ~ConfigSet_resynced[`YPbPr_bit];
@@ -198,7 +201,7 @@ always @(posedge VCLK_Tx) begin
   cfg_dejitter         <= palmode & ConfigSet_resynced[`pal_dejitter_bit];
   cfg_linex_hshift     <= ConfigSet_resynced[`linex_hshift_slice];
   cfg_linex_vshift     <= ConfigSet_resynced[`linex_vshift_slice];
-  cfg_linex1_hshift    <= ConfigSet[`linex_hshift_slice];
+  cfg_linex1_hshift    <= ConfigSet_resynced[`linex_hshift_slice];
   if (!n64_480i) begin
     cfg_nvideblur_1      <= ~ConfigSet_resynced[`videblur_bit];
     cfg_ifix             <= 1'b0;
@@ -211,7 +214,7 @@ always @(posedge VCLK_Tx) begin
     cfg_SL_method        <= ConfigSet_resynced[`v240p_SL_method_bit];
     cfg_SL_id            <= ConfigSet_resynced[`v240p_SL_ID_bit];
     cfg_SL_en            <= ConfigSet_resynced[`v240p_SL_En_bit];
-    cfg_linex1_hshift_en <= ~|ConfigSet[`v240p_linemult_slice];
+    cfg_linex1_hshift_en <= ~|ConfigSet_resynced[`v240p_linemult_slice];
   end else begin
     cfg_nvideblur_1      <= 1'b1;
     cfg_ifix             <= ConfigSet_resynced[`v480i_field_fix_bit];
@@ -227,8 +230,8 @@ always @(posedge VCLK_Tx) begin
       cfg_SL_id            <= ConfigSet_resynced[`v480i_SL_ID_bit];
     end
     cfg_SL_method        <= 1'b0;
-    cfg_SL_en            <= ConfigSet[`v480i_SL_En_bit];
-    cfg_linex1_hshift_en <= ~ConfigSet[`v480i_linex2_bit];
+    cfg_SL_en            <= ConfigSet_resynced[`v480i_SL_En_bit];
+    cfg_linex1_hshift_en <= ~ConfigSet_resynced[`v480i_linex2_bit];
   end
 end
 
@@ -327,20 +330,6 @@ linemult linemult_u(
 );
 
 
-// horizontal shift for passthrough
-// ToDo: include in/exclude from line multiplier unit
-
-hshift4lx1 hshift4lx1_u(
-  .VCLK(VCLK_Tx),
-  .nRST(nVRST_Tx),
-  .en_hshift(cfg_linex1_hshift_en),
-  .hshift(cfg_linex1_hshift),
-  .vdata_valid_i(vdata_valid_pp_w[2]),
-  .vdata_i(vdata24_pp_w[2]),
-  .vdata_valid_o(vdata_valid_pp_w[3]),
-  .vdata_o(vdata24_pp_w[3])
-);
-
 
 // Color Transformation
 // --------------------
@@ -349,10 +338,10 @@ vconv vconv_u(
   .VCLK(VCLK_Tx),
   .nRST(nVRST_Tx),
   .nEN_YPbPr(cfg_nEN_YPbPr),  // enables color transformation on '0'
-  .vdata_valid_i(vdata_valid_pp_w[3]),
-  .vdata_i(vdata24_pp_w[3]),
-  .vdata_valid_o(vdata_valid_pp_w[4]),
-  .vdata_o(vdata24_pp_w[4])
+  .vdata_valid_i(vdata_valid_pp_w[2]),
+  .vdata_i(vdata24_pp_w[2]),
+  .vdata_valid_o(vdata_valid_pp_w[3]),
+  .vdata_o(vdata24_pp_w[3])
 );
 
 
@@ -364,7 +353,7 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
     nCSYNC <= 2'b00;
       VD_o <= {3*color_width_o{1'b0}};
   end else begin
-    if (vdata_valid_pp_w[4]) begin
+    if (vdata_valid_pp_w[3]) begin
     //  nBLANK <= Sync_pp_o[2];
       nCSYNC[1] <= Sync_pp_o[0];
       if (cfg_nEN_RGsB & cfg_nEN_YPbPr)
@@ -373,12 +362,12 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
         nCSYNC[0] <= Sync_pp_o[0];
 
       vdata_shifted[1] <= vdata_shifted[0];
-      vdata_shifted[0] <= cfg_exchange_rb_o ? {vdata24_pp_w[4][`VDATA_O_BL_SLICE],vdata24_pp_w[4][`VDATA_O_GR_SLICE],vdata24_pp_w[4][`VDATA_O_RE_SLICE]} : vdata24_pp_w[4][`VDATA_O_CO_SLICE];
+      vdata_shifted[0] <= cfg_exchange_rb_o ? {vdata24_pp_w[3][`VDATA_O_BL_SLICE],vdata24_pp_w[3][`VDATA_O_GR_SLICE],vdata24_pp_w[3][`VDATA_O_RE_SLICE]} : vdata24_pp_w[3][`VDATA_O_CO_SLICE];
 
       if (!cfg_nvideblur_1 && !cfg_testpat)
         VD_o <= vdata_shifted[^cfg_linemult][`VDATA_O_CO_SLICE];
       else
-        VD_o <= cfg_exchange_rb_o ? {vdata24_pp_w[4][`VDATA_O_BL_SLICE],vdata24_pp_w[4][`VDATA_O_GR_SLICE],vdata24_pp_w[4][`VDATA_O_RE_SLICE]} : vdata24_pp_w[4][`VDATA_O_CO_SLICE];
+        VD_o <= cfg_exchange_rb_o ? {vdata24_pp_w[3][`VDATA_O_BL_SLICE],vdata24_pp_w[3][`VDATA_O_GR_SLICE],vdata24_pp_w[3][`VDATA_O_RE_SLICE]} : vdata24_pp_w[3][`VDATA_O_CO_SLICE];
     end;
 
   end
