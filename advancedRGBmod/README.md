@@ -63,20 +63,20 @@ _Final remark on IGR_:
 However, as the communication between N64 and the controller goes over a single wire, sniffing the input is not an easy task (and probably my solution is not the best one). This together with the lack of an exhaustive testing (many many games out there as well my limited time), I'm looking forward to any incomming issue report to furhter improve this feature :)
 
 
-### VI-DeBlur
+### LowRes.-Deblur (VI-DeBlur)
 
 VI-DeBlur of the picture information is only performed in 240p/288p. This is be done by simply blanking every second pixel. Normally, the blanked pixels are used to introduce blur by the N64 in 240p/288p mode. However, some games like Mario Tennis, 007 Goldeneye, and some others use these pixel for additional information rather than for blurring effects. In other words this means that these games uses full horizontal resolution even in 240p/288p output mode. Hence, the picture looks more blurry in this case if vi-deblur feature is activated.
 
 The default state (whether vi-deblur is enabled for 240p/288p content or not) can be set in the menu.
 
 
-### 15bit Color Mode
+### 16bit Color Mode
 
-The 15bit color mode reduces the color depth from 21bit (7bit for each color) downto 15bits (5bit for each color). Some very few games just use the five MSBs of the color information and the two LSBs for some kind of gamma dither. The 15bit color mode simply sets the two LSBs to '0'.
+The 16bit color mode reduces the color depth from 21bit (7bit for each color) downto 16bits (5bit for red and blue, 6bit for green). Some very few games processes the color information in 16bit. The 16bit color mode simply sets LSBs to '0'.
 
-- By default the 15bit mode is *off*! The default is set on each power cycle but not on a reset.
-- to deactivate 15bit mode press Z + Start + R + C-up. (quick access function must be enabled in menu)
-- to (re)activate 15bit mode press Z + Start + R + C-dw. (quick access function must be enabled in menu)
+- By default the 16bit mode is *off*! The default is set on each power cycle but not on a reset. Default can be switched in menu.
+- to deactivate 16bit mode press Z + Start + R + C-up. (quick access function must be enabled in menu)
+- to (re)activate 16bit mode press Z + Start + R + C-dw. (quick access function must be enabled in menu)
 
 
 ### Low Pass Filtering of the Video Output
