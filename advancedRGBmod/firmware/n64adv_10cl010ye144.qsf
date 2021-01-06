@@ -195,9 +195,9 @@ set_global_assignment -name VERILOG_FILE rtl/n64adv_ppu_top.v
 set_global_assignment -name VERILOG_FILE rtl/ppu/n64_vinfo_ext.v
 set_global_assignment -name VERILOG_FILE rtl/ppu/n64a_vdemux.v
 set_global_assignment -name VERILOG_FILE rtl/ppu/osd_injection.v
+set_global_assignment -name VERILOG_FILE rtl/ppu/testpattern.v
 set_global_assignment -name VERILOG_FILE rtl/ppu/gamma_module.v
 set_global_assignment -name VERILOG_FILE rtl/ppu/linemult.v
-set_global_assignment -name VERILOG_FILE rtl/ppu/testpattern.v
 set_global_assignment -name VERILOG_FILE rtl/ppu/vconv.v
 set_global_assignment -name VERILOG_FILE rtl/misc/ram2port.v
 set_global_assignment -name VERILOG_FILE rtl/misc/font_rom.v
