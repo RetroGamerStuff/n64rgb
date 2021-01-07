@@ -62,10 +62,10 @@ module n64rgbv2_top (
 
   // Jumper
   nSYNC_ON_GREEN,
-  n15bit_mode_t,
+  n16bit_mode_t,
   nVIDeBlur_t,
   en_IGR_Rst_Func,
-  en_IGR_DeBl_15b_Func,
+  en_IGR_DeBl_16b_Func,
 
   // Video output
   nHSYNC,
@@ -96,10 +96,10 @@ input CTRL_i;
 
 input  nSYNC_ON_GREEN;
 
-input n15bit_mode_t;
+input n16bit_mode_t;
 input nVIDeBlur_t;
 input en_IGR_Rst_Func;
-input en_IGR_DeBl_15b_Func;
+input en_IGR_DeBl_16b_Func;
 
 output reg nHSYNC;
 output reg nVSYNC;
@@ -119,7 +119,7 @@ input [4:0] dummy_i;
 
 // start of rtl
 
-wire DRV_RST, n15bit_mode_o, nDeBlur_o;
+wire DRV_RST, n16bit_mode_o, nDeBlur_o;
 wire nRST_int = nRST_io;
 wire [3:0] vinfo_pass;
 wire [`VDATA_FU_SLICE] vdata_r[0:1];
@@ -134,11 +134,11 @@ n64rgb_hk hk_u(
   .DRV_RST(DRV_RST),
   .CTRL_i(CTRL_i),
   .n64_480i(vinfo_pass[0]),
-  .n15bit_mode_t(n15bit_mode_t),
+  .n16bit_mode_t(n16bit_mode_t),
   .nVIDeBlur_t(nVIDeBlur_t),
   .en_IGR_Rst_Func(en_IGR_Rst_Func),
-  .en_IGR_DeBl_15b_Func(en_IGR_DeBl_15b_Func),
-  .n15bit_o(n15bit_mode_o),
+  .en_IGR_DeBl_16b_Func(en_IGR_DeBl_16b_Func),
+  .n16bit_o(n16bit_mode_o),
   .nDeBlur_o(nDeBlur_o)
 );
 
@@ -162,7 +162,7 @@ n64_vdemux video_demux(
   .VCLK(VCLK),
   .nDSYNC(nDSYNC),
   .D_i(D_i),
-  .demuxparams_i({vinfo_pass[3:1],nDeBlur_o,n15bit_mode_o}),
+  .demuxparams_i({vinfo_pass[3:1],nDeBlur_o,n16bit_mode_o}),
   .vdata_r_0(vdata_r[0]),
   .vdata_r_1(vdata_r[1])
 );

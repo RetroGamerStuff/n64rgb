@@ -19,11 +19,11 @@ If you are looking for a ready to install kit, just look on your own for a selle
   * V2: Video DAC ADV7125
 - Detection of 240p/288p vs. 480i/576i together with detection of NTSC vs. PAL mode
 - optional VI-De-Blur in 240p/288p (horizontal resolution decreased from 640 to 320 pixels)
-- optional 15bit color mode
+- optional 16bit color mode
 - IGR features:
   * reset the console with the controller (can be disabled via jumper)
-  * full control on de-blur and 15bit mode with the controller (can be disabled via jumper)
-- optional dedicated mechanical switches for toggling VI-Deblur and 15bit color mode
+  * full control on de-blur and 16bit mode with the controller (can be disabled via jumper)
+- optional dedicated mechanical switches for toggling VI-Deblur and 16bit color mode
 
 
 The following shortly describes the main features of the firmware and how to use / control them.
@@ -33,7 +33,7 @@ The following shortly describes the main features of the firmware and how to use
 
 ### In-Game Routines (IGR)
 
-Three functionalities are implemented: toggle de-blur feature and toggle the 15bit mode as well as resetting the console.
+Three functionalities are implemented: toggle de-blur feature and toggle the 16bit mode as well as resetting the console.
 
 The button combination are as follows:
 
@@ -41,7 +41,7 @@ The button combination are as follows:
 - (de)activate de-blur:
   - deactivate: Z + Start + R + C-le
   - activate: Z + Start + R + C-ri
-- (de)activate 15bit mode:
+- (de)activate 16bit mode:
   - deactivate: Z + Start + R + C-up
   - activate: Z + Start + R + C-dw
 
@@ -57,9 +57,9 @@ However, as the communication between N64 and the controller goes over a single 
 VI-Deblur of the picture information is only be done in 240p/288p. This is be done by simply blanking every second pixel. Normally, the blanked pixels are used to introduce blur by the N64 in 240p/288p mode. However, some games like Mario Tennis, 007 Goldeneye, and some others use these pixel for additional information rather than for blurring effects. In other words this means that these games uses full horizontal resolution even in 240p/288p output mode. Hence, the picture looks more blurry in this case if de-blur feature is activated.
 
 
-### 15bit Color Mode
+### 16bit Color Mode
 
-The 15bit color mode reduces the color depth from 21bit (7bit for each color) down to 15bits (5bit for each color). Some very few games just use the five MSBs of the color information and the two LSBs for some kind of gamma dither. The 15bit color mode simply sets the two LSBs to '0'.
+The 16bit color mode reduces the color depth from 21bit (7bit for each color) downto 16bits (5bit for red and blue, 6bit for green). Some very few games processes the color information in 16bit. The 16bit color mode simply sets LSBs to '0'.
 
 ### Jumpers
 
@@ -67,9 +67,9 @@ There are five jumpers on the modding board - two double solder jumper and three
 For double jumper, jumper Jxx.1 is indicated by an arrow, Jxx.2 is on the opposite side.
 
 - J11.1 -> activates VI-deblur if closed. **[1]**
-- J11.2 -> activates 15bit color mode **[1]**
+- J11.2 -> activates 16bit color mode **[1]**
 - J12.x -> disables IGR functions if closed
-  - x.1: VI-DeBlur and 15bit mode toggle by controller
+  - x.1: VI-DeBlur and 16bit mode toggle by controller
   - x.2: reset by controller
 - J21 -> enables Sync on Green if closed
 - J31 -> 75ohm CSync Level
