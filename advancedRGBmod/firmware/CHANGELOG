@@ -1,0 +1,56 @@
+Changelog
+
+Last update: Jan. 7th, 2021
+(Hardwareversion / Softwareversion)
+
+v1.64 / v1.64
+=============
+- horizontal shift for passthrough modes
+- 16bit mode (replaces 15bit mode)
+- menu navigation improved (added fast page switch with L/Z and R for certain configuration screens)
+- Testpattern does not change LineX mode
+- different bug fixes
+
+
+v1.63 / v1.63
+=============
+- welcome screen for new firmwares
+- horizontal and vertical shift for LineX2 and LineX3
+- PAL Dejitter for LineX2
+- reorder menu items a bit
+- stability improvements
+
+v1.60 / v1.60 (no new fw number (?))
+=============
+- fix timing constrains
+- remove deblur stuff from jumper load
+
+
+v1.60 / v1.60
+=============
+- remove vi-deblur heuristic (auto)
+- reduce bram usage for gamma boost
+- timing improvements (e.g. input timings in accordance to RCP datasheet)
+- misc bug fixes
+
+v1.58 / v1.58
+=============
+- show menu if N64Adv loads from jumper set at power cycle
+- fixed an issue that causes video drop out if vi-deblur is disabled
+
+v1.56 / v1.57
+=============
+- improve menu navigation (e.g. timeouts avoiding multiple inputs)
+- improve timings (FPGA to ADV7125)
+- fix line buffer clock issue
+
+
+v1.55 / v1.56
+=============
+- menu bug fixes
+
+v1.55 / v1.55
+=============
+- separated linex and scanline settings for NTSC and PAL
+
+(changelog ends here - too lacy to look further into the past ;))
