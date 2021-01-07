@@ -102,7 +102,7 @@ RESERVED_INPUT_WITH_WEAK_PULLUP : 36        :        :                   :      
 GNDINT                       : 37        : gnd    :                   :         :           :                
 en_IGR_Rst_Func              : 38        : input  : 3.3-V LVTTL       :         : 1         : Y              
 VCCINT                       : 39        : power  :                   : 2.5V/3.3V :           :                
-en_IGR_DeBl_15b_Func         : 40        : input  : 3.3-V LVTTL       :         : 1         : Y              
+en_IGR_DeBl_16b_Func         : 40        : input  : 3.3-V LVTTL       :         : 1         : Y              
 nHSYNC                       : 41        : output : 3.3-V LVTTL       :         : 1         : Y              
 nVSYNC                       : 42        : output : 3.3-V LVTTL       :         : 1         : Y              
 nCSYNC                       : 43        : output : 3.3-V LVTTL       :         : 1         : Y              
@@ -148,7 +148,7 @@ RESERVED_INPUT_WITH_WEAK_PULLUP : 82        :        :                   :      
 RESERVED_INPUT_WITH_WEAK_PULLUP : 83        :        :                   :         : 2         :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : 84        :        :                   :         : 2         :                
 nVIDeBlur_t                  : 85        : input  : 3.3-V LVTTL       :         : 2         : Y              
-n15bit_mode_t                : 86        : input  : 3.3-V LVTTL       :         : 2         : Y              
+n16bit_mode_t                : 86        : input  : 3.3-V LVTTL       :         : 2         : Y              
 RESERVED_INPUT_WITH_WEAK_PULLUP : 87        :        :                   :         : 2         :                
 VCCINT                       : 88        : power  :                   : 2.5V/3.3V :           :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : 89        :        :                   :         : 2         :                
