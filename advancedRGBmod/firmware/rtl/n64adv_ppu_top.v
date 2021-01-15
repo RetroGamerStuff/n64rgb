@@ -143,8 +143,6 @@ reg [ 7:0] cfg_SL_str;
 reg cfg_dejitter;
 reg [ 6:0] cfg_linex_hshift;
 reg [ 5:0] cfg_linex_vshift;
-reg cfg_linex1_hshift_en;
-reg [ 6:0] cfg_linex1_hshift;
 
 
 
@@ -201,7 +199,6 @@ always @(posedge VCLK_Tx) begin
   cfg_dejitter         <= palmode & ConfigSet_resynced[`pal_dejitter_bit];
   cfg_linex_hshift     <= ConfigSet_resynced[`linex_hshift_slice];
   cfg_linex_vshift     <= ConfigSet_resynced[`linex_vshift_slice];
-  cfg_linex1_hshift    <= ConfigSet_resynced[`linex_hshift_slice];
   if (!n64_480i) begin
     cfg_nvideblur_1      <= ~ConfigSet_resynced[`videblur_bit];
     cfg_ifix             <= 1'b0;
@@ -214,7 +211,6 @@ always @(posedge VCLK_Tx) begin
     cfg_SL_method        <= ConfigSet_resynced[`v240p_SL_method_bit];
     cfg_SL_id            <= ConfigSet_resynced[`v240p_SL_ID_bit];
     cfg_SL_en            <= ConfigSet_resynced[`v240p_SL_En_bit];
-    cfg_linex1_hshift_en <= ~|ConfigSet_resynced[`v240p_linemult_slice];
   end else begin
     cfg_nvideblur_1      <= 1'b1;
     cfg_ifix             <= ConfigSet_resynced[`v480i_field_fix_bit];
@@ -231,7 +227,6 @@ always @(posedge VCLK_Tx) begin
     end
     cfg_SL_method        <= 1'b0;
     cfg_SL_en            <= ConfigSet_resynced[`v480i_SL_En_bit];
-    cfg_linex1_hshift_en <= ~ConfigSet_resynced[`v480i_linex2_bit];
   end
 end
 
