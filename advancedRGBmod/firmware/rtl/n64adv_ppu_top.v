@@ -112,7 +112,7 @@ wire [`VDATA_I_FU_SLICE] vdata_w[1:2];
 wire vdata_tp_valid_w;
 wire [`VDATA_I_FU_SLICE] vdata_tp_w;
 
-wire vdata_valid_pp_w[0:4];
+wire vdata_valid_pp_w[0:3];
 wire [`VDATA_I_FU_SLICE] vdata21_pp_w[0:1];
 wire [`VDATA_O_FU_SLICE] vdata24_pp_w[2:3];
 wire [3:0] Sync_pp_o;
@@ -342,12 +342,43 @@ vconv vconv_u(
 
 // Part 7: assign final outputs
 // ============================
+//
+// Filter AddOn Notes:
+// Filter setting from NIOS II core:
+// - 000: Auto
+// - 001: 9.5MHz
+// - 010: 18.0MHz
+// - 011: 36.0MHz
+// - 100: Bypassed (i.e. 72MHz on non-flex)
+//
+// FILTER 1 | FILTER 2 | DESCRIPTION
+// ---------+----------+--------------------
+//      0   |     0    |  SD filter ( 9.5MHz)
+//      0   |     1    |  ED filter (18.0MHz)
+//      1   |     0    |  HD filter (36.0MHz)
+//      1   |     1    | FHD filter (72.0MHz)
+//
+// (Bypass SF is hard wired to 1)
+//
 
 always @(posedge VCLK_Tx or negedge nVRST_Tx)
   if (!nVRST_Tx) begin
+    nVSYNC_or_F2 <= 1'b0;
+    nHSYNC_or_F1 <= 1'b0;
     nCSYNC <= 2'b00;
-      VD_o <= {3*color_width_o{1'b0}};
+    VD_o <= {3*color_width_o{1'b0}};
   end else begin
+    Filter <= AutoFilter_w ? cfg_linemult : cfg_filter[1:0] - 1'b1;
+    if (UseVGA_HVSync) begin
+      if (vdata_valid_pp_w[3]) begin
+        nVSYNC_or_F2 <= Sync_pp_o[3];
+        nHSYNC_or_F1 <= Sync_pp_o[1];
+      end
+    end else begin
+      nVSYNC_or_F2 <= Filter[2];
+      nHSYNC_or_F1 <= Filter[1];
+    end
+    
     if (vdata_valid_pp_w[3]) begin
     //  nBLANK <= Sync_pp_o[2];
       nCSYNC[1] <= Sync_pp_o[0];
@@ -364,44 +395,6 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
       else
         VD_o <= cfg_exchange_rb_o ? {vdata24_pp_w[3][`VDATA_O_BL_SLICE],vdata24_pp_w[3][`VDATA_O_GR_SLICE],vdata24_pp_w[3][`VDATA_O_RE_SLICE]} : vdata24_pp_w[3][`VDATA_O_CO_SLICE];
     end;
-
-  end
-
-
-// Filter Add On:
-// =============================
-//
-// Filter setting from NIOS II core:
-// - 000: Auto
-// - 001: 9.5MHz
-// - 010: 18.0MHz
-// - 011: 36.0MHz
-// - 100: Bypassed (i.e. 72MHz on non-flex)
-//
-// FILTER 1 | FILTER 2 | DESCRIPTION
-// ---------+----------+--------------------
-//      0   |     0    |  SD filter ( 9.5MHz)
-//      0   |     1    |  ED filter (18.0MHz)
-//      1   |     0    |  HD filter (36.0MHz)
-//      1   |     1    | FHD filter (72.0MHz)
-//
-// (Bypass SF is hard wired to 1)
-
-always @(posedge VCLK_Tx or negedge nVRST_Tx)
-  if (!nVRST_Tx) begin
-    nVSYNC_or_F2 <= 1'b0;
-    nHSYNC_or_F1 <= 1'b0;
-  end else begin
-    Filter <= AutoFilter_w ? cfg_linemult : cfg_filter[1:0] - 1'b1;
-    if (UseVGA_HVSync) begin
-      if (vdata_valid_pp_w[4]) begin
-        nVSYNC_or_F2 <= Sync_pp_o[3];
-        nHSYNC_or_F1 <= Sync_pp_o[1];
-      end
-    end else begin
-      nVSYNC_or_F2 <= Filter[2];
-      nHSYNC_or_F1 <= Filter[1];
-    end
   end
 
 endmodule
