@@ -184,7 +184,7 @@ int main()
       switch (todo) {
         case MENU_CLOSE:
           cfg_clear_flag(&show_osd);
-          /* no break */
+          break;
         case MENU_MUTE:
           cfg_set_flag(&mute_osd_tmp);
           break;

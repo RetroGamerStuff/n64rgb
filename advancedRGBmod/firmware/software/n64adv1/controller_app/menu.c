@@ -147,7 +147,7 @@ menu_t home_menu = {
 };
 
 #define VICONFIG_SUBMENU_SELECTION  1
-#define MISC_SUBMENU_SELECTION      1
+#define MISC_SUBMENU_SELECTION      2
 
 
 menu_t vinfo_screen = {
@@ -392,6 +392,17 @@ void scanline_str2txt_func(alt_u8 v) { v++; sprintf(szText,"%3u.%02u%%", (v*625)
 void scanline_hybrstr2txt_func(alt_u8 v) { sprintf(szText,"%3u.%02u%%", (v*625)/100, 25*(v&3)); };
 void gamma2txt_func(alt_u8 v) { sprintf(szText,"%u.%02u", v > 4, 5* v + 75 - (100 * (v > 4))); };
 
+
+void print_fw_version()
+{
+  alt_u16 hdl_fw = get_hdl_version();
+  sprintf(szText,"%1d.%02d",((hdl_fw & HDL_FW_GETMAIN_MASK) >> HDL_FW_MAIN_OFFSET),
+                         ((hdl_fw & HDL_FW_GETSUB_MASK) >> HDL_FW_SUB_OFFSET));
+  vd_print_string(VERSION_H_OFFSET,VERSION_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,&szText[0]);
+
+  sprintf(szText,"%1d.%02d",SW_FW_MAIN,SW_FW_SUB);
+  vd_print_string(VERSION_H_OFFSET,VERSION_V_OFFSET+1,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,&szText[0]);
+};
 
 void print_hv_timing_overlay(linemult_t lx_mode) {
   alt_u8 font_color_vshift = lx_mode == PASSTHROUGH ? FONTCOLOR_GREY : FONTCOLOR_WHITE;
@@ -728,17 +739,6 @@ updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t
 
   return todo;
 }
-
-void print_fw_version()
-{
-  alt_u16 hdl_fw = get_hdl_version();
-  sprintf(szText,"%1d.%02d",((hdl_fw & HDL_FW_GETMAIN_MASK) >> HDL_FW_MAIN_OFFSET),
-                         ((hdl_fw & HDL_FW_GETSUB_MASK) >> HDL_FW_SUB_OFFSET));
-  vd_print_string(VERSION_H_OFFSET,VERSION_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,&szText[0]);
-
-  sprintf(szText,"%1d.%02d",SW_FW_MAIN,SW_FW_SUB);
-  vd_print_string(VERSION_H_OFFSET,VERSION_V_OFFSET+1,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,&szText[0]);
-};
 
 void print_overlay(menu_t* current_menu)
 {
