@@ -4,12 +4,12 @@
  kind="system_n64adv1"
  version="1.0"
  fabric="QSYS">
- <!-- Format version 20.1 711 (Future versions may contain additional information.) -->
- <!-- 2021.01.06.10:17:47 -->
+ <!-- Format version 20.1 720 (Future versions may contain additional information.) -->
+ <!-- 2021.01.15.13:27:48 -->
  <!-- A collection of modules and connections -->
  <parameter name="AUTO_GENERATION_ID">
   <type>java.lang.Integer</type>
-  <value>1609924667</value>
+  <value>1610713668</value>
   <derived>false</derived>
   <enabled>true</enabled>
   <visible>false</visible>
@@ -18799,6 +18799,6 @@ parameters are a RESULT of the module parameters. -->
   <displayName>Reset Connection</displayName>
   <version>20.1</version>
  </plugin>
- <reportVersion>20.1 711</reportVersion>
+ <reportVersion>20.1 720</reportVersion>
  <uniqueIdentifier></uniqueIdentifier>
 </EnsembleReport>
