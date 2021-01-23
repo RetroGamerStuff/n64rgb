@@ -122,14 +122,6 @@ wire [13:0] linex_timing;
 
 wire AutoFilter_w;
 
-reg [`VDATA_O_CO_SLICE] vdata_shifted[0:1];
-initial begin
-  vdata_shifted[0] = {3*color_width_o{1'b0}};
-  vdata_shifted[1] = {3*color_width_o{1'b0}};
-end
-
-reg [1:2] Filter;
-
 
 reg [ 3:0] cfg_gamma;
 reg cfg_testpat, cfg_nvideblur_0, cfg_n16bit_mode;
@@ -143,6 +135,8 @@ reg [ 7:0] cfg_SL_str;
 reg cfg_dejitter;
 reg [ 6:0] cfg_linex_hshift;
 reg [ 5:0] cfg_linex_vshift;
+
+reg [1:2] Filter;
 
 
 
@@ -386,14 +380,7 @@ always @(posedge VCLK_Tx or negedge nVRST_Tx)
         nCSYNC[0] <= 1'b0;
       else
         nCSYNC[0] <= Sync_pp_o[0];
-
-      vdata_shifted[1] <= vdata_shifted[0];
-      vdata_shifted[0] <= cfg_exchange_rb_o ? {vdata24_pp_w[3][`VDATA_O_BL_SLICE],vdata24_pp_w[3][`VDATA_O_GR_SLICE],vdata24_pp_w[3][`VDATA_O_RE_SLICE]} : vdata24_pp_w[3][`VDATA_O_CO_SLICE];
-
-      if (!cfg_nvideblur_1 && !cfg_testpat)
-        VD_o <= vdata_shifted[^cfg_linemult][`VDATA_O_CO_SLICE];
-      else
-        VD_o <= cfg_exchange_rb_o ? {vdata24_pp_w[3][`VDATA_O_BL_SLICE],vdata24_pp_w[3][`VDATA_O_GR_SLICE],vdata24_pp_w[3][`VDATA_O_RE_SLICE]} : vdata24_pp_w[3][`VDATA_O_CO_SLICE];
+      VD_o <= cfg_exchange_rb_o ? {vdata24_pp_w[3][`VDATA_O_BL_SLICE],vdata24_pp_w[3][`VDATA_O_GR_SLICE],vdata24_pp_w[3][`VDATA_O_RE_SLICE]} : vdata24_pp_w[3][`VDATA_O_CO_SLICE];
     end;
   end
 
