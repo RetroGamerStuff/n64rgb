@@ -123,7 +123,7 @@ reg use_igr = 1'b0;
 
 reg [1:0] rd_state = 2'b0;  // state machine for controller sniffing
 
-reg [5:0] wait_cnt = 6'h0;  // counter for wait state (needs appr. 16us at CLK_4M clock to fill up from 0 to 63)
+reg [5:0] wait_cnt = 6'h0;  // counter for wait state (needs appr. 16us at CLK_4M clock to fill up from 0 to 63, i.e. data impulses of width 24us are allowed for 1/3 duty cycle)
 reg [2:0] ctrl_hist = 3'h7;
 
 reg [5:0] ctrl_low_cnt = 6'h0;
@@ -240,7 +240,7 @@ assign ctrl_bit = ctrl_low_cnt < wait_cnt;
 always @(posedge CLK_4M or negedge nSRST_4M)
   if (!nSRST_4M) begin
     rd_state       <= ST_WAIT4N64;
-    wait_cnt       <=  5'h0;
+    wait_cnt       <=  6'h0;
     ctrl_hist      <=  3'h7;
     ctrl_low_cnt   <=  6'h0;
     serial_data[1] <= 32'h0;
@@ -292,7 +292,7 @@ always @(posedge CLK_4M or negedge nSRST_4M)
     endcase
 
     if (ctrl_negedge | ctrl_posedge) begin // counter reset
-      wait_cnt <= 5'h0;
+      wait_cnt <= 6'h0;
     end else begin
       if (~&wait_cnt) // saturate counter if needed
         wait_cnt <= wait_cnt + 1'b1;
