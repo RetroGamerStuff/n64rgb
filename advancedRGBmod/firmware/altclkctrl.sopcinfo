@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <EnsembleReport name="altclkctrl" kind="altclkctrl" version="1.0" fabric="QSYS">
- <!-- Format version 20.1 711 (Future versions may contain additional information.) -->
- <!-- 2021.01.06.10:18:09 -->
+ <!-- Format version 20.1 720 (Future versions may contain additional information.) -->
+ <!-- 2021.01.26.09:49:10 -->
  <!-- A collection of modules and connections -->
  <parameter name="AUTO_GENERATION_ID">
   <type>java.lang.Integer</type>
-  <value>1609924689</value>
+  <value>1611650950</value>
   <derived>false</derived>
   <enabled>true</enabled>
   <visible>false</visible>
@@ -23,7 +23,7 @@
  </parameter>
  <parameter name="AUTO_DEVICE_FAMILY">
   <type>java.lang.String</type>
-  <value>CYCLONE10LP</value>
+  <value>CYCLONEIVE</value>
   <derived>false</derived>
   <enabled>true</enabled>
   <visible>false</visible>
@@ -32,7 +32,7 @@
  </parameter>
  <parameter name="AUTO_DEVICE">
   <type>java.lang.String</type>
-  <value>10CL010YE144C8G</value>
+  <value>EP4CE10E22C8</value>
   <derived>false</derived>
   <enabled>true</enabled>
   <visible>false</visible>
@@ -50,7 +50,7 @@
  </parameter>
  <parameter name="deviceFamily">
   <type>java.lang.String</type>
-  <value>Cyclone 10 LP</value>
+  <value>Cyclone IV E</value>
   <derived>false</derived>
   <enabled>true</enabled>
   <visible>false</visible>
@@ -74,7 +74,7 @@
 the requested settings for a module instance. -->
   <parameter name="DEVICE_FAMILY">
    <type>java.lang.String</type>
-   <value>CYCLONE10LP</value>
+   <value>CYCLONEIVE</value>
    <derived>false</derived>
    <enabled>true</enabled>
    <visible>false</visible>
@@ -264,6 +264,6 @@ parameters are a RESULT of the module parameters. -->
   <displayName>Conduit</displayName>
   <version>20.1</version>
  </plugin>
- <reportVersion>20.1 711</reportVersion>
+ <reportVersion>20.1 720</reportVersion>
  <uniqueIdentifier></uniqueIdentifier>
 </EnsembleReport>

@@ -83,10 +83,10 @@ input nVRST;
 // misc stuff
 wire CLK_16M = CLKs[2];
 wire CLK_16k = CLKs[1];
-wire CLK_25M = CLKs[0];
+wire CLK_50M = CLKs[0];
 
 wire nSRST_16M = nSRST[2];
-wire nSRST_25M = nSRST[0];
+wire nSRST_50M = nSRST[0];
 
 
 // parameters
@@ -170,7 +170,7 @@ register_sync #(
   .reg_width(15),
   .reg_preset(15'd0)
 ) sync4cpu_u(
-  .clk(CLK_25M),
+  .clk(CLK_50M),
   .clk_en(1'b1),
   .nrst(1'b1),
   .reg_i({PPUState,FallbackMode,FallbackMode_valid,OSD_VSync}),
@@ -180,8 +180,8 @@ register_sync #(
 
 
 system_n64adv1 system_u(
-  .clk_clk(CLK_25M),
-  .rst_reset_n(nSRST_25M),
+  .clk_clk(CLK_50M),
+  .rst_reset_n(nSRST_50M),
   .sync_in_export({new_ctrl_data[1],OSD_VSync_resynced}),
   .vd_wraddr_export(vd_wraddr),
   .vd_wrctrl_export(vd_wrctrl),

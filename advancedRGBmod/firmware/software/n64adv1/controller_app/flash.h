@@ -37,7 +37,7 @@
  ********************************************************************************/
 
 #include "alt_types.h"
-#include "altera_epcq_controller.h"
+#include "altera_epcq_controller2.h"
 
 
 #ifndef FLASH_H_
