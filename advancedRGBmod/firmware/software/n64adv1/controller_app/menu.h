@@ -84,8 +84,8 @@ typedef struct {
   alt_u8       hpos;
 } arrow_t;
 
-typedef int (*sys_call_0)(configuration_t*);
-typedef int (*sys_call_1)(configuration_t*,alt_u8);
+typedef int (*sys_call_0)();
+typedef int (*sys_call_1)(alt_u8);
 
 typedef struct {
   alt_u8        id;
@@ -124,7 +124,7 @@ void gamma2txt_func(alt_u8 v);
 void print_current_timing_mode(void);
 void print_ctrl_data(void);
 
-updateaction_t modify_menu(cmd_t command, menu_t** current_menu, configuration_t* sysconfig);
+updateaction_t modify_menu(cmd_t command, menu_t** current_menu);
 void print_overlay(menu_t* current_menu);
 void print_selection_arrow(menu_t* current_menu);
 int update_vinfo_screen(menu_t* current_menu);

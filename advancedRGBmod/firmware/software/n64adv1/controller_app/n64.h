@@ -177,7 +177,7 @@ cfg_offon_t update_vpll_lock_state(void);
 void enable_vpll_test(void);
 void disable_vpll_test(void);
 cmd_t ctrl_data_to_cmd(cfg_offon_t no_fast_skip);
-int run_vpll_test(configuration_t* sysconfig);
+int run_vpll_test(void);
 cfg_offon_t get_osdvsync(void);
 cfg_offon_t new_ctrl_available(void);
 cfg_offon_t get_fallback_mode(void);

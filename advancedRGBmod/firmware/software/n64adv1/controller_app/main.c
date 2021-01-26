@@ -32,8 +32,6 @@
 #include "alt_types.h"
 #include "system.h"
 
-#include "cfg_io_p.h"
-#include "cfg_int_p.h"
 #include "n64.h"
 #include "config.h"
 #include "menu.h"
@@ -70,14 +68,6 @@ int main()
   updateaction_t todo;
   menu_t *menu = &home_menu;
 
-  configuration_t sysconfig = {
-      .cfg_word_def[MISC]  = &cfg_data_misc,
-      .cfg_word_def[VIDEO] = &cfg_data_video,
-      .cfg_word_def[LINEX] = &cfg_data_linex,
-  };
-
-  cfg_clear_words(&sysconfig);
-
   alt_u8 ctrl_update = 1;
   alt_u8 ctrl_ignore = 0;
   cfg_offon_t vpll_lock_first_boot;
@@ -85,12 +75,14 @@ int main()
 
   int message_cnt = 0;
 
-  check_filteraddon();
-
   alt_u8 powercycle_show_menu = 0;
   int load_from_jumperset = check_flash();
+
+  check_filteraddon();
+  cfg_clear_words();
+
   if (use_flash) {
-    load_from_jumperset = cfg_load_from_flash(&sysconfig,0);
+    load_from_jumperset = cfg_load_from_flash(0);
     if (boot_welcome == 1 || load_from_jumperset != 0) {
       powercycle_show_menu = 1;
       menu = &welcome_screen;
@@ -98,18 +90,18 @@ int main()
   }
 
   if (load_from_jumperset != 0) {
-    cfg_clear_words(&sysconfig);  // just in case anything went wrong while loading from flash
-    cfg_load_jumperset(&sysconfig,0);
+    cfg_clear_words();  // just in case anything went wrong while loading from flash
+    cfg_load_jumperset(0);
     powercycle_show_menu = 1;
-//    cfg_save_to_flash(&sysconfig,0);
+//    cfg_save_to_flash(0);
   }
 
   cfg_offon_t use_fallback = get_fallback_mode();
   while (is_fallback_mode_valid() == 0) use_fallback = get_fallback_mode();
 
   if (use_fallback) {
-    cfg_clear_words(&sysconfig);  // just in case anything went wrong while loading from flash
-    cfg_load_defaults(&sysconfig,0);
+    cfg_clear_words();  // just in case anything went wrong while loading from flash
+    cfg_load_defaults(0);
     powercycle_show_menu = 1;
   }
 
@@ -122,11 +114,11 @@ int main()
   cfg_clear_flag(&show_testpat);
   cfg_clear_flag(&test_vpll);
 
-  cfg_load_linex_word(&sysconfig,NTSC);
-  cfg_load_timing_word(&sysconfig,NTSC_LX2_PR);
+  cfg_load_linex_word(NTSC);
+  cfg_load_timing_word(NTSC_LX2_PR);
   cfg_set_value(&deblur_mode_current,cfg_get_value(&deblur_mode,0));
   cfg_set_value(&mode16bit_current,cfg_get_value(&mode16bit,0));
-  cfg_apply_to_logic(&sysconfig);
+  cfg_apply_to_logic();
 
   vpll_lock_first_boot = 1;
   vpll_state_frame_delay = 0;
@@ -167,8 +159,8 @@ int main()
 
     if(cfg_get_value(&show_osd,0)) {
 
-      cfg_load_linex_word(&sysconfig,vmode_menu);
-      cfg_load_timing_word(&sysconfig,timing_menu);
+      cfg_load_linex_word(vmode_menu);
+      cfg_load_timing_word(timing_menu);
 
       if (message_cnt > 0) {
         if (command != CMD_NON) {
@@ -179,7 +171,7 @@ int main()
         message_cnt--;
       }
 
-      todo = modify_menu(command,&menu,&sysconfig);
+      todo = modify_menu(command,&menu);
 
       switch (todo) {
         case MENU_CLOSE:
@@ -218,8 +210,8 @@ int main()
       if (menu->type == VINFO) update_vinfo_screen(menu);
       if (menu->type == CONFIG) {
         update_cfg_screen(menu);
-        cfg_store_linex_word(&sysconfig,vmode_menu);
-        cfg_store_timing_word(&sysconfig,timing_menu);
+        cfg_store_linex_word(vmode_menu);
+        cfg_store_timing_word(timing_menu);
       }
 
     } else { /* END OF if(cfg_get_value(&show_osd)) */
@@ -277,9 +269,9 @@ int main()
       }
     }
 
-    cfg_load_linex_word(&sysconfig,vmode_n64adv);
-    cfg_load_timing_word(&sysconfig,timing_n64adv);
-    cfg_apply_to_logic(&sysconfig);
+    cfg_load_linex_word(vmode_n64adv);
+    cfg_load_timing_word(timing_n64adv);
+    cfg_apply_to_logic();
 
     while(!get_osdvsync()){};  /* wait for OSD_VSYNC goes high (OSD vert. active area) */
     while( get_osdvsync()){};  /* wait for OSD_VSYNC goes low  */
