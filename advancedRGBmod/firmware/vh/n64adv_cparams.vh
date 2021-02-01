@@ -79,32 +79,32 @@
   `define OSD_FONT_HEIGHT 11
 
   // define text window size (every value - 1)
-  `define MAX_CHARS_PER_ROW 51
   `define MAX_TEXT_ROWS     11
+  `define MAX_CHARS_PER_ROW 51
 
   // positioning of OSD window (not linedoubled)
-  `define OSD_WINDOW_H_START  191
-  `define OSD_WINDOW_H_STOP   (`OSD_WINDOW_H_START + 14 + (`MAX_CHARS_PER_ROW + 1)*(`OSD_FONT_WIDTH + 1))
-  `define OSD_WINDOW_V_START  51
-  `define OSD_WINDOW_V_STOP   (`OSD_WINDOW_V_START + 12 + (`MAX_TEXT_ROWS + 1)*(`OSD_FONT_HEIGHT + 1))
+  `define OSD_WINDOW_VSTART  51
+  `define OSD_WINDOW_VSTOP   (`OSD_WINDOW_VSTART + 12 + (`MAX_TEXT_ROWS + 1)*(`OSD_FONT_HEIGHT + 1))
+  `define OSD_WINDOW_HSTART  191
+  `define OSD_WINDOW_HSTOP   (`OSD_WINDOW_HSTART + 15 + (`MAX_CHARS_PER_ROW + 1)*(`OSD_FONT_WIDTH + 1))
 
 
   // define some areas in the OSD windows
-  `define OSD_TXT_H_START (`OSD_WINDOW_H_START + 7)
-  `define OSD_TXT_H_STOP  (`OSD_TXT_H_START + (`MAX_CHARS_PER_ROW + 1)*(`OSD_FONT_WIDTH + 1))
-  `define OSD_TXT_V_START (`OSD_WINDOW_V_START + 8)
-  `define OSD_TXT_V_STOP  (`OSD_TXT_V_START + (`MAX_TEXT_ROWS + 1)*(`OSD_FONT_HEIGHT + 1))
+  `define OSD_TXT_VSTART (`OSD_WINDOW_VSTART + 8)
+  `define OSD_TXT_VSTOP  (`OSD_TXT_VSTART + (`MAX_TEXT_ROWS + 1)*(`OSD_FONT_HEIGHT + 1))
+  `define OSD_TXT_HSTART (`OSD_WINDOW_HSTART + 7)
+  `define OSD_TXT_HSTOP  (`OSD_TXT_HSTART + (`MAX_CHARS_PER_ROW + 1)*(`OSD_FONT_WIDTH + 1))
 
-  `define OSD_LOGO_H_START   `OSD_TXT_H_START
-  `define OSD_LOGO_H_STOP    (`OSD_TXT_H_START + 127)
-  `define OSD_LOGO_V_START   (`OSD_TXT_V_START - 4)
-  `define OSD_LOGO_V_STOP    (`OSD_TXT_V_START + 12)
+  `define OSD_LOGO_VSTART   (`OSD_WINDOW_VSTART + 4)
+  `define OSD_LOGO_VSTOP    (`OSD_LOGO_VSTART + 2*8)
+  `define OSD_LOGO_HSTART   (`OSD_WINDOW_HSTART + 7)
+  `define OSD_LOGO_HSTOP    (`OSD_LOGO_HSTART + 2*128)
 
   // define OSD background window color (three bits each color)
-  `define OSD_BACKGROUND_WHITE        2'b11
-  `define OSD_BACKGROUND_GREY         2'b10
-  `define OSD_BACKGROUND_BLACK        2'b01
-  `define OSD_BACKGROUND_DARKBLUE     2'b00
+  `define OSD_BACKGROUND_WHITE    3
+  `define OSD_BACKGROUND_GREY     2
+  `define OSD_BACKGROUND_BLACK    1
+  `define OSD_BACKGROUND_DARKBLUE 0
 
   `define OSD_WINDOW_BGCOLOR_WHITE    9'b111111111
   `define OSD_WINDOW_BGCOLOR_GREY     9'b010010010
@@ -112,22 +112,22 @@
   `define OSD_WINDOW_BGCOLOR_DARKBLUE 9'b000000011
 
   // define text color
-  `define FONTCOLOR_NON              4'h0
-  `define FONTCOLOR_BLACK            4'h1
-  `define FONTCOLOR_GREY             4'h2
-  `define FONTCOLOR_LIGHTGREY        4'h3
-  `define FONTCOLOR_WHITE            4'h4
-  `define FONTCOLOR_RED              4'h5
-  `define FONTCOLOR_GREEN            4'h6
-  `define FONTCOLOR_BLUE             4'h7
-  `define FONTCOLOR_YELLOW           4'h8
-  `define FONTCOLOR_CYAN             4'h9
-  `define FONTCOLOR_MAGENTA          4'hA
-  `define FONTCOLOR_DARKORANGE       4'hB
-  `define FONTCOLOR_TOMATO           4'hC
-  `define FONTCOLOR_DARKMAGENTA      4'hD
-  `define FONTCOLOR_NAVAJOWHITE      4'hE
-  `define FONTCOLOR_DARKGOLD         4'hF
+  `define FONTCOLOR_NON          0
+  `define FONTCOLOR_BLACK        1
+  `define FONTCOLOR_GREY         2
+  `define FONTCOLOR_LIGHTGREY    3
+  `define FONTCOLOR_WHITE        4
+  `define FONTCOLOR_RED          5
+  `define FONTCOLOR_GREEN        6
+  `define FONTCOLOR_BLUE         7
+  `define FONTCOLOR_YELLOW       8
+  `define FONTCOLOR_CYAN         9
+  `define FONTCOLOR_MAGENTA     10
+  `define FONTCOLOR_DARKORANGE  11
+  `define FONTCOLOR_TOMATO      12
+  `define FONTCOLOR_DARKMAGENTA 13
+  `define FONTCOLOR_NAVAJOWHITE 14
+  `define FONTCOLOR_DARKGOLD    15
 
   `define OSD_TXT_COLOR_BLACK       21'h000000
   `define OSD_TXT_COLOR_GREY        21'h07CF9F
