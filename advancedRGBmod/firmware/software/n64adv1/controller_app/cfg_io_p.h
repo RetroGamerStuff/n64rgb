@@ -241,23 +241,23 @@ config_t gamma_lut = {
 config_t deblur_mode = {
     .cfg_word        = &cfg_data_video,
     .cfg_word_offset = CFG_DEBLUR_MODE_OFFSET,
-    .cfg_type        = FLAG,
+    .cfg_type        = FLAGTXT,
     .flag_masks      = {
         .setflag_mask = CFG_DEBLUR_MODE_SETMASK,
         .clrflag_mask = CFG_DEBLUR_MODE_CLRMASK
     },
-    .value_string = &OffOn
+    .val2char_func = &flag2set_func
 };
 
 config_t mode16bit = {
     .cfg_word        = &cfg_data_video,
     .cfg_word_offset = CFG_16BITMODE_OFFSET,
-    .cfg_type        = FLAG,
+    .cfg_type        = FLAGTXT,
     .flag_masks      = {
         .setflag_mask = CFG_16BITMODE_SETMASK,
         .clrflag_mask = CFG_16BITMODE_CLRMASK
     },
-    .value_string = &OffOn
+    .val2char_func = &flag2set_func
 };
 
 

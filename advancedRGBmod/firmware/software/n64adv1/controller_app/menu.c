@@ -182,16 +182,18 @@ menu_t vicfg2_screen = {
     .leaves = {
         {.id = VICFG2_COLOR_SPACE_V_OFFSET   , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &vformat},
         {.id = VICFG2_EXCH_RB_OUT_V_OFFSET   , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &exchange_rb_out},
-        {.id = VICFG2_DEBLURMODE_V_OFFSET    , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &deblur_mode_current},
-        {.id = VICFG2_DEBLURMODE_DEF_V_OFFSET, .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &deblur_mode},
-        {.id = VICFG2_16BIT_V_OFFSET         , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &mode16bit_current},
-        {.id = VICFG2_16BIT_DEF_V_OFFSET     , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &mode16bit},
+        {.id = VICFG2_DEBLURMODE_V_OFFSET    , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &deblur_mode},
+        {.id = VICFG2_DEBLURMODE_DEF_V_OFFSET, .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &deblur_mode_powercycle},
+        {.id = VICFG2_16BIT_V_OFFSET         , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &mode16bit},
+        {.id = VICFG2_16BIT_DEF_V_OFFSET     , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &mode16bit_powercycle},
         {.id = VICFG2_PAGE1_V_OFFSET         , .arrow_desc = &vicfg_sel_arrow, .leavetype = ISUBMENU, .submenu      = &vicfg1_screen}
     }
 };
 
-#define DEBLUR_CURRENT_SELECTION  2
-#define M16BIT_CURRENT_SELECTION  4
+#define DEBLUR_CURRENT_SELECTION    2
+#define DEBLUR_POWERCYCLE_SELECTION 3
+#define M16BIT_CURRENT_SELECTION    4
+#define M16BIT_POWERCYCLE_SELECTION 5
 
 
 menu_t vicfg_240p_opt_subscreen = {
@@ -908,10 +910,23 @@ int update_cfg_screen(menu_t* current_menu)
         val_select = cfg_get_value(current_menu->leaves[v_run].config_value,0);
         ref_val_select = cfg_get_value(current_menu->leaves[v_run].config_value,use_flash);
         use_240p_linked_values = (cfg_offon_t) (is_vicfg_480i_sl_are_linked(current_menu) && (v_run > SL_LINKED_SELECTION)); // use scanline values for 240p in 480i screen if linked
+
+        // find special cases and modifications
         if (use_240p_linked_values) {
           val_select     = cfg_get_value(vicfg_240p_opt_subscreen.leaves[v_run].config_value,0);
           ref_val_select = cfg_get_value(vicfg_240p_opt_subscreen.leaves[v_run].config_value,use_flash);
         }
+        if (is_vicfg1_screen(current_menu) && (pal_awareness_val == OFF) && v_run == NSTC_PAL_SUB_SELECTION) {  // show text global if pal awareness is off
+          font_color = FONTCOLOR_GREY;
+          vd_clear_area(h_l_offset,h_l_offset + OPT_WINDOW_WIDTH,v_offset,v_offset);
+          vd_print_string(h_l_offset,v_offset,background_color,font_color,Global);
+          break;
+        }
+        if (is_vicfg2_screen(current_menu)){
+          if (v_run == DEBLUR_CURRENT_SELECTION    || v_run == M16BIT_CURRENT_SELECTION   ) ref_val_select = val_select;
+          if (v_run == DEBLUR_POWERCYCLE_SELECTION || v_run == M16BIT_POWERCYCLE_SELECTION) ref_val_select = cfg_get_value(current_menu->leaves[v_run-1].config_value,use_flash);
+        }
+
 //        if (current_menu->current_selection == v_run) {
 //          background_color = OPT_WINDOWCOLOR_BG;
 //          font_color = OPT_WINDOWCOLOR_FONT;
@@ -920,16 +935,7 @@ int update_cfg_screen(menu_t* current_menu)
 //          font_color = (val_select == ref_val_select) ? FONTCOLOR_WHITE : FONTCOLOR_YELLOW;
 //        }
 
-        // find special cases and modifications
-        if (is_vicfg1_screen(current_menu) && (pal_awareness_val == OFF) && v_run == NSTC_PAL_SUB_SELECTION) {  // show text global if pal awareness is off
-          font_color = FONTCOLOR_GREY;
-          vd_clear_area(h_l_offset,h_l_offset + OPT_WINDOW_WIDTH,v_offset,v_offset);
-          vd_print_string(h_l_offset,v_offset,background_color,font_color,Global);
-          break;
-        }
-
-        if (is_vicfg2_screen(current_menu) && (v_run == DEBLUR_CURRENT_SELECTION || v_run == M16BIT_CURRENT_SELECTION)) val_is_ref = 1; // current options for deblur and 16bit mode do not have reference values
-        else val_is_ref = (val_select == ref_val_select);
+        val_is_ref = (val_select == ref_val_select);
         font_color = val_is_ref ? FONTCOLOR_WHITE : FONTCOLOR_YELLOW;
 
         // check 240p and 480i screen
