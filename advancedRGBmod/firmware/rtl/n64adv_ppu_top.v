@@ -124,9 +124,9 @@ wire AutoFilter_w;
 
 
 reg [ 3:0] cfg_gamma;
-reg cfg_testpat, cfg_nvideblur_0, cfg_n16bit_mode;
+reg cfg_testpat, cfg_nvideblur, cfg_n16bit_mode;
 
-reg cfg_exchange_rb_o, cfg_nEN_YPbPr, cfg_nEN_RGsB, cfg_nvideblur_1;
+reg cfg_exchange_rb_o, cfg_nEN_YPbPr, cfg_nEN_RGsB;
 reg cfg_ifix, cfg_SL_method, cfg_SL_id, cfg_SL_en;
 reg [ 2:0] cfg_filter;
 reg [ 1:0] cfg_linemult;
@@ -157,7 +157,7 @@ assign vdata21_pp_w[0] = cfg_testpat ? vdata_tp_w : vdata_w[2];
 assign Sync_pp_o = vdata24_pp_w[3][`VDATA_O_SY_SLICE];
 assign AutoFilter_w = cfg_filter == 3'b000;
 
-assign PPUState = {palmode,n64_480i,1'b0,cfg_linemult,~cfg_nEN_YPbPr,~cfg_nEN_RGsB,~cfg_nvideblur_1,~cfg_n16bit_mode,Filter,AutoFilter_w};
+assign PPUState = {palmode,n64_480i,1'b0,cfg_linemult,~cfg_nEN_YPbPr,~cfg_nEN_RGsB,~cfg_nvideblur,~cfg_n16bit_mode,Filter,AutoFilter_w};
 
 
 // write configuration register
@@ -168,9 +168,9 @@ always @(posedge VCLK) begin
   cfg_gamma       <=  ConfigSet[`gamma_slice];
   cfg_n16bit_mode <= ~ConfigSet[`n16bit_mode_bit];
   if (!n64_480i) begin
-    cfg_nvideblur_0 <= ~ConfigSet[`videblur_bit];
+    cfg_nvideblur <= ~ConfigSet[`videblur_bit];
   end else begin
-    cfg_nvideblur_0 <= 1'b1;
+    cfg_nvideblur <= 1'b1;
   end
 end
 
@@ -194,7 +194,6 @@ always @(posedge VCLK_Tx) begin
   cfg_linex_hshift     <= ConfigSet_resynced[`linex_hshift_slice];
   cfg_linex_vshift     <= ConfigSet_resynced[`linex_vshift_slice];
   if (!n64_480i) begin
-    cfg_nvideblur_1      <= ~ConfigSet_resynced[`videblur_bit];
     cfg_ifix             <= 1'b0;
     if (palmode | !USE_VPLL)
       cfg_linemult         <= {1'b0,^ConfigSet_resynced[`v240p_linemult_slice]}; // do not allow LineX3 in PAL mode or if PLL of VCLK (for LineX3) is not locked (or not used)
@@ -206,7 +205,6 @@ always @(posedge VCLK_Tx) begin
     cfg_SL_id            <= ConfigSet_resynced[`v240p_SL_ID_bit];
     cfg_SL_en            <= ConfigSet_resynced[`v240p_SL_En_bit];
   end else begin
-    cfg_nvideblur_1      <= 1'b1;
     cfg_ifix             <= ConfigSet_resynced[`v480i_field_fix_bit];
     cfg_linemult         <= {1'b0,ConfigSet_resynced[`v480i_linex2_bit]};
     if (ConfigSet_resynced[`v480i_SL_linked_bit]) begin // check if SL mode is linked to 240p
@@ -247,7 +245,7 @@ n64a_vdemux video_demux_u(
   .nVDSYNC(nVDSYNC),
   .nRST(nVRST),
   .VD_i(VD_i),
-  .demuxparams_i({palmode,cfg_nvideblur_0,cfg_n16bit_mode}),
+  .demuxparams_i({palmode,cfg_nvideblur,cfg_n16bit_mode}),
   .vdata_valid_0(vdata_valid_w[0]),
   .vdata_r_sy_0(vdata_w_sy_0),
   .vdata_valid_1(vdata_valid_w[1]),
