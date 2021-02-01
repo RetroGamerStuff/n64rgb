@@ -382,7 +382,7 @@ typedef struct {
 extern configuration_t sysconfig;
 extern alt_u8 use_filteraddon;
 
-extern config_t deblur_mode_current, mode16bit_current,
+extern config_t deblur_mode_powercycle, mode16bit_powercycle,
                 ntsc_pal_selection, timing_selection;
 extern config_t use_vpll, test_vpll, show_testpat, show_logo, show_osd, mute_osd_tmp,
                 igr_reset, igr_deblur, igr_16bitmode, pal_awareness, exchange_rb_out,

@@ -94,6 +94,9 @@ int main()
     cfg_load_jumperset(0);
     powercycle_show_menu = 1;
 //    cfg_save_to_flash(0);
+  } else {
+    cfg_set_value(&deblur_mode,cfg_get_value(&deblur_mode_powercycle,0));
+    cfg_set_value(&mode16bit,cfg_get_value(&mode16bit_powercycle,0));
   }
 
   cfg_offon_t use_fallback = get_fallback_mode();
@@ -116,8 +119,6 @@ int main()
 
   cfg_load_linex_word(NTSC);
   cfg_load_timing_word(NTSC_LX2_PR);
-  cfg_set_value(&deblur_mode_current,cfg_get_value(&deblur_mode,0));
-  cfg_set_value(&mode16bit_current,cfg_get_value(&mode16bit,0));
   cfg_apply_to_logic();
 
   vpll_lock_first_boot = 1;
@@ -225,12 +226,12 @@ int main()
         switch (command) {
           case CMD_DEBLUR_QUICK_ON:
             if (scanmode == PROGRESSIVE) {
-              cfg_set_flag(&deblur_mode_current);
+              cfg_set_flag(&deblur_mode);
             };
             break;
           case CMD_DEBLUR_QUICK_OFF:
             if (scanmode == PROGRESSIVE) {
-              cfg_clear_flag(&deblur_mode_current);
+              cfg_clear_flag(&deblur_mode);
             };
             break;
           default:
@@ -240,10 +241,10 @@ int main()
       if (cfg_get_value(&igr_16bitmode,0))
           switch (command) {
             case CMD_16BIT_QUICK_ON:
-              cfg_set_flag(&mode16bit_current);
+              cfg_set_flag(&mode16bit);
               break;
             case CMD_16BIT_QUICK_OFF:
-              cfg_clear_flag(&mode16bit_current);
+              cfg_clear_flag(&mode16bit);
               break;
             default:
               break;

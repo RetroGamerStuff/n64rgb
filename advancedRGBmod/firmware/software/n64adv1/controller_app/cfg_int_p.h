@@ -37,26 +37,26 @@
 #ifndef CFG_INT_P_H_
 #define CFG_INT_P_H_
 
-extern const char  *NTSCPAL_SEL[], *VTimingSel[];
+extern const char  *OffOn[], *NTSCPAL_SEL[], *VTimingSel[];
 
-config_t deblur_mode_current = {
+config_t deblur_mode_powercycle = {
     // .cfg_b32word_t* must be NULL to show that this is a local value
-    .cfg_type     = FLAGTXT,
+    .cfg_type     = FLAG,
     .cfg_value    = OFF,
     .value_details = {
       .max_value = ON,
     },
-    .val2char_func = &flag2set_func
+    .value_string = &OffOn
 };
 
-config_t mode16bit_current = {
+config_t mode16bit_powercycle = {
     // .cfg_b32word_t* must be NULL to show that this is a local value
-    .cfg_type     = FLAGTXT,
+    .cfg_type     = FLAG,
     .cfg_value    = OFF,
     .value_details = {
       .max_value = ON,
     },
-    .val2char_func = &flag2set_func
+    .value_string = &OffOn
 };
 
 config_t ntsc_pal_selection = {

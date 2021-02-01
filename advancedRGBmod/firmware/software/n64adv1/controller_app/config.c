@@ -76,8 +76,6 @@ config_tray_t timing_words[NUM_TIMING_MODES] = {
 static const char *confirm_message = "< Really? >";
 extern const char *btn_overlay_1, *btn_overlay_2;
 
-extern config_t deblur_mode, deblur_mode_current, mode16bit, mode16bit_current;
-
 extern config_t timing_selection;
 extern config_tray_t linex_words[], timing_words[];
 
@@ -87,7 +85,7 @@ alt_u8 use_filteraddon;
 
 void cfg_toggle_flag(config_t* cfg_data) {
   if (cfg_data->cfg_type == FLAG || cfg_data->cfg_type == FLAGTXT) {
-    if (is_local_cfg(cfg_data)) cfg_data->cfg_value = ~cfg_data->cfg_value;
+    if (is_local_cfg(cfg_data)) cfg_data->cfg_value ^= 1;
     else                        cfg_data->cfg_word->cfg_word_val ^= cfg_data->flag_masks.setflag_mask;
   }
 }
@@ -237,6 +235,13 @@ int cfg_save_to_flash(alt_u8 need_confirm)
     if (abort) return -CFG_FLASH_SAVE_ABORT;
   }
 
+  // backup logic values for deblur and 16bit mode
+  // store powercycle values for deblur and 16bit mode in flash
+  cfg_offon_t deblur_bak = (cfg_offon_t) cfg_get_value(&deblur_mode,0);
+  cfg_set_value(&deblur_mode,cfg_get_value(&deblur_mode_powercycle,0));
+  cfg_offon_t mode16bit_bak = (cfg_offon_t) cfg_get_value(&mode16bit,0);
+  cfg_set_value(&mode16bit,cfg_get_value(&mode16bit_powercycle,0));
+
   alt_u8 databuf[PAGESIZE];
   int idx, jdx;
 
@@ -260,7 +265,11 @@ int cfg_save_to_flash(alt_u8 need_confirm)
   int retval = write_flash_page((alt_u8*) databuf, sizeof(cfg4flash_t), USERDATA_OFFSET/PAGESIZE);
 
   if (retval == 0)
-    cfg_update_reference();
+    cfg_update_reference(); // leave power cycle values for deblur and 16bit mode in reference
+
+  // set logic values for deblur and 16bit mode from backup
+  cfg_set_value(&deblur_mode,(alt_u8) deblur_bak);
+  cfg_set_value(&mode16bit,(alt_u8) mode16bit_bak);
 
   return retval;
 }
@@ -280,6 +289,11 @@ int cfg_load_from_flash(alt_u8 need_confirm)
   retval = read_flash(USERDATA_OFFSET, PAGESIZE, databuf);
 
   if (retval != 0) return retval;
+
+  // backup logic values for deblur and 16bit mode
+  // they will be overwritten by powercycle values
+  cfg_offon_t deblur_bak = (cfg_offon_t) cfg_get_value(&deblur_mode,0);
+  cfg_offon_t mode16bit_bak = (cfg_offon_t) cfg_get_value(&mode16bit,0);
 
   if ((((cfg4flash_t*) databuf)->vers_cfg_main != CFG_FW_MAIN) ||
       (((cfg4flash_t*) databuf)->vers_cfg_sub  != CFG_FW_SUB)   ) return -CFG_VERSION_INVALID;
@@ -305,7 +319,14 @@ int cfg_load_from_flash(alt_u8 need_confirm)
       timing_words[idx].config_val |= (((cfg4flash_t*) databuf)->cfg_timing_trays[CFG2FLASH_WORD_FACTOR*idx+jdx]  << (8*jdx));
   }
 
-  cfg_update_reference();
+  cfg_update_reference(); // leave power cycle values for deblur and 16bit mode in reference
+
+  // store powercycle values for deblur and 16bit mode
+  // reset logic values
+  cfg_set_value(&deblur_mode_powercycle,cfg_get_value(&deblur_mode,0));
+  cfg_set_value(&deblur_mode,(alt_u8) deblur_bak);
+  cfg_set_value(&mode16bit_powercycle,cfg_get_value(&mode16bit,0));
+  cfg_set_value(&mode16bit,(alt_u8) mode16bit_bak);
 
   return retval;
 }
@@ -424,18 +445,9 @@ void cfg_load_timing_word(cfg_timing_model_sel_type_t timing_word_select) {
 
 void cfg_apply_to_logic()
 {
-  cfg_offon_t deblur_bak = (cfg_offon_t) cfg_get_value(&deblur_mode,0);
-  cfg_offon_t mode16bit_bak = (cfg_offon_t) cfg_get_value(&mode16bit,0);
-
-  cfg_set_value(&deblur_mode,cfg_get_value(&deblur_mode_current,0));
-  cfg_set_value(&mode16bit,cfg_get_value(&mode16bit_current,0));
-
   IOWR_ALTERA_AVALON_PIO_DATA(CFG_MISC_OUT_BASE,sysconfig.cfg_word_def[MISC]->cfg_word_val);
   IOWR_ALTERA_AVALON_PIO_DATA(CFG_VIDEO_OUT_BASE,sysconfig.cfg_word_def[VIDEO]->cfg_word_val);
   IOWR_ALTERA_AVALON_PIO_DATA(CFG_LINEX_OUT_BASE,sysconfig.cfg_word_def[LINEX]->cfg_word_val);
-
-  cfg_set_value(&deblur_mode,(alt_u8) deblur_bak);
-  cfg_set_value(&mode16bit,(alt_u8) mode16bit_bak);
 }
 
 void cfg_read_from_logic()
