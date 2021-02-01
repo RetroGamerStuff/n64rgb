@@ -219,7 +219,7 @@ set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files/n64adv1/10cl01
 ## ====================================
 set_global_assignment -name SMART_RECOMPILE ON
 set_global_assignment -name OPTIMIZATION_MODE BALANCED
-set_global_assignment -name CYCLONEII_OPTIMIZATION_TECHNIQUE SPEED
+set_global_assignment -name AUTO_RAM_TO_LCELL_CONVERSION ON
 
 
 ## Additions by Quartus Prime
