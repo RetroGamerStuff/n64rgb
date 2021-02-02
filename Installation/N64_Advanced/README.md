@@ -43,9 +43,10 @@ J1.1 Closed (required with Advanced flex)
 The line doubling is controllable via the OSD menu, this is just for defaults to get you started. Some displays do not support higher resolution over scart, so 2x and 3x modes will not work.
 
 Solder Jumpers on Advanced Flex:  
-SJ3.2 Closed
-SJ1.1 Closed for Sync on Pin 7 (Composite Video)
-SJ1.2 Closed for Sync on Pin 3 (CSYNC)
+* SJ3.2 Closed  
+* SJ1.1 Closed for Sync on Pin 7 (Composite Video)  
+* SJ1.2 Closed for Sync on Pin 3 (CSYNC)  
+
 
 TO DO - NEED PICTURES - mounting pcb to heatsink, etc
 
@@ -108,8 +109,8 @@ With the full flex cables, you simply have to solder flex cables to the modding 
 With the configuration solder by Retro Gamer Stuff Limited, the N64 will be setup to use an "NTSC" SNES RGB cable.
 
 This means:
-No resistors on the R, G, B or Sync lines (typically, Sync on Luma cables come like this. Sync on CSYNC have a resistor in line that needs removing/bypassing)
-Capacitors on the R,G and B lines is acceptable
+* No resistors on the R, G, B or Sync lines (typically, Sync on Luma cables come like this. Sync on CSYNC have a resistor in line that needs removing/bypassing)  
+* Capacitors on the R,G and B lines is acceptable
 
 ## Menu
 
