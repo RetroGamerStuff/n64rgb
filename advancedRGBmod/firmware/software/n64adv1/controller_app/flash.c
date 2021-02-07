@@ -43,17 +43,14 @@
 #include "altera_epcq_controller2_regs.h"
 #include "flash.h"
 
-//ALTERA_EPCQ_CONTROLLER2_AVL_MEM_AVL_CSR_INSTANCE ( EPCQ_CONTROLLER2_0, EPCQ_CONTROLLER2_0_AVL_MEM, EPCQ_CONTROLLER2_0_AVL_CSR, epcq_controller2_0);
-//alt_epcq_controller2_dev *epcq_controller2_dev;
 alt_flash_dev *epcq_controller2_dev;
 
 alt_u8 use_flash = 0;
 
 int check_flash()
 {
-//  epcq_controller2_dev = &epcq_controller2_0;
-  epcq_controller2_dev = alt_flash_open_dev(EPCQ_CONTROLLER2_0_AVL_MEM_NAME);
-//  if ((epcq_controller2_dev == NULL) || !(epcq_controller2_dev->is_epcs && (epcq_controller2_dev->page_size == PAGESIZE)))
+  extern alt_llist alt_flash_dev_list;
+  epcq_controller2_dev = (alt_flash_dev*)alt_flash_dev_list.next;
   if (epcq_controller2_dev == NULL)
     return -FLASH_DETECT_ERROR;
 
