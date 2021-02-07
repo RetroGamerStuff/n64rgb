@@ -317,14 +317,12 @@ static const char *license_overlay =
 static const char *welcome_header =
     "Welcome";
 static const char *welcome_overlay =
-    " Changes coming with latest firmware update:\n"
-    " * horizontal shift for pal/ntsc passthrough\n"
-    " * 16bit mode instead of 15bit mode\n"
-    "     (5 bit red, 6 bit green and 5 bit blue)\n"
-    " * Change config pages with R and L/Z\n"
-    " * Testpattern now uses actual LineX mode\n"
-    " * bug fixes (too many magic numbers and too many\n"
-    "              special case were causing those bugs)\n"
+    " Changes coming with latest firmware update:\n\n"
+    " * faster clock for housekeeping\n"
+    "   (50MHz instead of 25MHz)\n"
+    " * support of Retro Fighters Brawler64 Wireless\n"
+    "   controller\n"
+    " * tiny bug fixes of edge cases\n\n"
     " Save config once to not show this screen again.\n"
     " Press B to enter main screen! Have fun! Peter :)";
   /* 1234567890123456789012345678901234567890123456789012 */
