@@ -79,10 +79,10 @@ create_generated_clock -name {VCLK_3x_out} -source $vclk_mux_out -master_clock {
 
 # System PLL Clocks
 set sys_pll_in [get_pins {clk_n_rst_hk_u|sys_pll_u|altpll_component|auto_generated|pll1|inclk[0]}]
-set sys_pll_16M_out [get_pins {clk_n_rst_hk_u|sys_pll_u|altpll_component|auto_generated|pll1|clk[0]}]
+set sys_pll_4M_out [get_pins {clk_n_rst_hk_u|sys_pll_u|altpll_component|auto_generated|pll1|clk[0]}]
 set sys_pll_16k_out [get_pins {clk_n_rst_hk_u|sys_pll_u|altpll_component|auto_generated|pll1|clk[1]}]
 set sys_pll_50M_out [get_pins {clk_n_rst_hk_u|sys_pll_u|altpll_component|auto_generated|pll1|clk[2]}]
-create_generated_clock -name {CLK_16M} -source $sys_pll_in -divide_by 25 -multiply_by 8 $sys_pll_16M_out
+create_generated_clock -name {CLK_4M} -source $sys_pll_in -divide_by 25 -multiply_by 2 $sys_pll_4M_out
 create_generated_clock -name {CLK_16k} -source $sys_pll_in -divide_by 3125 -multiply_by 1 $sys_pll_16k_out
 create_generated_clock -name {CLK_50M} -source $sys_pll_in -divide_by 1 -multiply_by 1 $sys_pll_50M_out
 
@@ -157,7 +157,7 @@ set_clock_groups -logically_exclusive \
                     -group {VCLK_2x_out_pre VCLK_2x_out} \
                     -group {VCLK_3x_base VCLK_3x_out_pre VCLK_3x_out} \
                     -group {SYS_CLK CLK_50M} \
-                    -group {CLK_16M} \
+                    -group {CLK_4M} \
                     -group {CLK_16k}
 
 
