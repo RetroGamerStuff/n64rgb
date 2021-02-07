@@ -159,20 +159,20 @@ assign VCLK_Tx  = VCLK_Tx_o;
 
 // system
 
-wire CLK_4M, CLK_16k, CLK_25M, SYS_PLL_LOCKED_w;
+wire CLK_4M, CLK_16k, CLK_50M, SYS_PLL_LOCKED_w;
 sys_pll sys_pll_u(
   .inclk0(SYS_CLK),
   .c0(CLK_4M),
   .c1(CLK_16k),
-  .c2(CLK_25M),
+  .c2(CLK_50M),
   .locked(SYS_PLL_LOCKED_w)
 );
 
-assign CLKs_controller = {CLK_4M,CLK_16k,CLK_25M};
+assign CLKs_controller = {CLK_4M,CLK_16k,CLK_50M};
 
 
-reset_generator reset_sys_25M_u(
-  .clk(CLK_25M),
+reset_generator reset_sys_50M_u(
+  .clk(CLK_50M),
   .clk_en(SYS_PLL_LOCKED_w),
   .async_nrst_i(1'b1),      // special situation here; this reset is only used for soft-CPU (NIOS II), which only resets on power cycle
   .rst_o(nSRST[0])

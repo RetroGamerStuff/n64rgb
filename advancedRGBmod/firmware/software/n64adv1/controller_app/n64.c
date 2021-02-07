@@ -185,7 +185,7 @@ cmd_t ctrl_data_to_cmd(cfg_offon_t no_fast_skip)
   return CMD_NON;
 }
 
-int run_vpll_test(configuration_t* sysconfig)
+int run_vpll_test()
 {
   int retval = 0;
 

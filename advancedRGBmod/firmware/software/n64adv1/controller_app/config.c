@@ -37,8 +37,11 @@
 #include "vd_driver.h"
 #include "fw.h"
 
+#include "cfg_int_p.h"
+#include "cfg_io_p.h"
 
 #define CFG2FLASH_WORD_FACTOR   4
+
 typedef struct {
   alt_u8  vers_cfg_main;
   alt_u8  vers_cfg_sub;
@@ -48,10 +51,30 @@ typedef struct {
   alt_u8  cfg_timing_trays[CFG2FLASH_WORD_FACTOR*NUM_TIMING_MODES];
 } cfg4flash_t;
 
+
+configuration_t sysconfig = {
+  .cfg_word_def[MISC]  = &cfg_data_misc,
+  .cfg_word_def[VIDEO] = &cfg_data_video,
+  .cfg_word_def[LINEX] = &cfg_data_linex,
+};
+
+config_tray_t linex_words[2] = {
+  { .config_val = 0x00000000, .config_ref_val = 0x00000000},
+  { .config_val = 0x00000000, .config_ref_val = 0x00000000}
+};
+
+config_tray_t timing_words[NUM_TIMING_MODES] = {
+  { .config_val = CFG_TIMING_PASSTH_DEFAULTS, .config_ref_val = CFG_TIMING_PASSTH_DEFAULTS},
+  { .config_val = CFG_TIMING_PASSTH_DEFAULTS, .config_ref_val = CFG_TIMING_PASSTH_DEFAULTS},
+  { .config_val = CFG_TIMING_LINEX_DEFAULTS,  .config_ref_val = CFG_TIMING_LINEX_DEFAULTS},
+  { .config_val = CFG_TIMING_LINEX_DEFAULTS,  .config_ref_val = CFG_TIMING_LINEX_DEFAULTS},
+  { .config_val = CFG_TIMING_LINEX_DEFAULTS,  .config_ref_val = CFG_TIMING_LINEX_DEFAULTS},
+  { .config_val = CFG_TIMING_LINEX_DEFAULTS,  .config_ref_val = CFG_TIMING_LINEX_DEFAULTS},
+  { .config_val = CFG_TIMING_LINEX_DEFAULTS,  .config_ref_val = CFG_TIMING_LINEX_DEFAULTS}
+};
+
 static const char *confirm_message = "< Really? >";
 extern const char *btn_overlay_1, *btn_overlay_2;
-
-extern config_t deblur_mode, deblur_mode_current, mode16bit, mode16bit_current;
 
 extern config_t timing_selection;
 extern config_tray_t linex_words[], timing_words[];
@@ -62,7 +85,7 @@ alt_u8 use_filteraddon;
 
 void cfg_toggle_flag(config_t* cfg_data) {
   if (cfg_data->cfg_type == FLAG || cfg_data->cfg_type == FLAGTXT) {
-    if (is_local_cfg(cfg_data)) cfg_data->cfg_value = ~cfg_data->cfg_value;
+    if (is_local_cfg(cfg_data)) cfg_data->cfg_value ^= 1;
     else                        cfg_data->cfg_word->cfg_word_val ^= cfg_data->flag_masks.setflag_mask;
   }
 }
@@ -150,12 +173,12 @@ void cfg_set_value(config_t* cfg_data, alt_u8 value)
 }
 
 
-int cfg_show_testpattern(configuration_t* sysconfig)
+int cfg_show_testpattern()
 {
   extern config_t show_testpat;
 
   cfg_set_flag(&show_testpat);
-  cfg_apply_to_logic(sysconfig);
+  cfg_apply_to_logic();
 
   cmd_t command;
   update_ctrl_data();
@@ -170,7 +193,7 @@ int cfg_show_testpattern(configuration_t* sysconfig)
   }
 
   cfg_clear_flag(&show_testpat);
-  cfg_apply_to_logic(sysconfig);
+  cfg_apply_to_logic();
 
   return 0;
 }
@@ -203,7 +226,7 @@ alt_u8 confirmation_routine(alt_u8 with_btn_overlay)
   return abort;
 }
 
-int cfg_save_to_flash(configuration_t* sysconfig, alt_u8 need_confirm)
+int cfg_save_to_flash(alt_u8 need_confirm)
 {
   if (!use_flash) return -CFG_FLASH_NOT_USED;
 
@@ -211,6 +234,13 @@ int cfg_save_to_flash(configuration_t* sysconfig, alt_u8 need_confirm)
     alt_u8 abort = confirmation_routine(1);
     if (abort) return -CFG_FLASH_SAVE_ABORT;
   }
+
+  // backup logic values for deblur and 16bit mode
+  // store powercycle values for deblur and 16bit mode in flash
+  cfg_offon_t deblur_bak = (cfg_offon_t) cfg_get_value(&deblur_mode,0);
+  cfg_set_value(&deblur_mode,cfg_get_value(&deblur_mode_powercycle,0));
+  cfg_offon_t mode16bit_bak = (cfg_offon_t) cfg_get_value(&mode16bit,0);
+  cfg_set_value(&mode16bit,cfg_get_value(&mode16bit_powercycle,0));
 
   alt_u8 databuf[PAGESIZE];
   int idx, jdx;
@@ -221,7 +251,7 @@ int cfg_save_to_flash(configuration_t* sysconfig, alt_u8 need_confirm)
 
   for (idx = 0; idx < NUM_CFG_B32WORDS; idx++)
     for (jdx = 0; jdx < CFG2FLASH_WORD_FACTOR; jdx++)
-      ((cfg4flash_t*) databuf)->cfg_words[CFG2FLASH_WORD_FACTOR*idx+jdx] = (alt_u8) ((sysconfig->cfg_word_def[idx]->cfg_word_val >> (8*jdx)) & 0xFF);
+      ((cfg4flash_t*) databuf)->cfg_words[CFG2FLASH_WORD_FACTOR*idx+jdx] = (alt_u8) ((sysconfig.cfg_word_def[idx]->cfg_word_val >> (8*jdx)) & 0xFF);
 
   for (jdx = 0; jdx < CFG2FLASH_WORD_FACTOR; jdx++) {
     ((cfg4flash_t*) databuf)->cfg_linex_trays[                      jdx] = (alt_u8) ((linex_words[NTSC].config_val >> (8*jdx)) & 0xFF); // global/ntsc
@@ -235,12 +265,16 @@ int cfg_save_to_flash(configuration_t* sysconfig, alt_u8 need_confirm)
   int retval = write_flash_page((alt_u8*) databuf, sizeof(cfg4flash_t), USERDATA_OFFSET/PAGESIZE);
 
   if (retval == 0)
-    cfg_update_reference(sysconfig);
+    cfg_update_reference(); // leave power cycle values for deblur and 16bit mode in reference
+
+  // set logic values for deblur and 16bit mode from backup
+  cfg_set_value(&deblur_mode,(alt_u8) deblur_bak);
+  cfg_set_value(&mode16bit,(alt_u8) mode16bit_bak);
 
   return retval;
 }
 
-int cfg_load_from_flash(configuration_t* sysconfig, alt_u8 need_confirm)
+int cfg_load_from_flash(alt_u8 need_confirm)
 {
   if (!use_flash) return -CFG_FLASH_NOT_USED;
 
@@ -256,15 +290,20 @@ int cfg_load_from_flash(configuration_t* sysconfig, alt_u8 need_confirm)
 
   if (retval != 0) return retval;
 
+  // backup logic values for deblur and 16bit mode
+  // they will be overwritten by powercycle values
+  cfg_offon_t deblur_bak = (cfg_offon_t) cfg_get_value(&deblur_mode,0);
+  cfg_offon_t mode16bit_bak = (cfg_offon_t) cfg_get_value(&mode16bit,0);
+
   if ((((cfg4flash_t*) databuf)->vers_cfg_main != CFG_FW_MAIN) ||
       (((cfg4flash_t*) databuf)->vers_cfg_sub  != CFG_FW_SUB)   ) return -CFG_VERSION_INVALID;
 
   boot_welcome = ((cfg4flash_t*) databuf)->show_welcome_screen != SW_FW_SUB;
 
   for (idx = 0; idx < NUM_CFG_B32WORDS; idx++) {
-	  sysconfig->cfg_word_def[idx]->cfg_word_val = 0;
+	  sysconfig.cfg_word_def[idx]->cfg_word_val = 0;
     for (jdx = 0; jdx < CFG2FLASH_WORD_FACTOR; jdx++)
-      sysconfig->cfg_word_def[idx]->cfg_word_val |= (((cfg4flash_t*) databuf)->cfg_words[CFG2FLASH_WORD_FACTOR*idx + jdx] << (8*jdx));
+      sysconfig.cfg_word_def[idx]->cfg_word_val |= (((cfg4flash_t*) databuf)->cfg_words[CFG2FLASH_WORD_FACTOR*idx + jdx] << (8*jdx));
   }
 
   linex_words[NTSC].config_val = 0;
@@ -280,12 +319,19 @@ int cfg_load_from_flash(configuration_t* sysconfig, alt_u8 need_confirm)
       timing_words[idx].config_val |= (((cfg4flash_t*) databuf)->cfg_timing_trays[CFG2FLASH_WORD_FACTOR*idx+jdx]  << (8*jdx));
   }
 
-  cfg_update_reference(sysconfig);
+  cfg_update_reference(); // leave power cycle values for deblur and 16bit mode in reference
+
+  // store powercycle values for deblur and 16bit mode
+  // reset logic values
+  cfg_set_value(&deblur_mode_powercycle,cfg_get_value(&deblur_mode,0));
+  cfg_set_value(&deblur_mode,(alt_u8) deblur_bak);
+  cfg_set_value(&mode16bit_powercycle,cfg_get_value(&mode16bit,0));
+  cfg_set_value(&mode16bit,(alt_u8) mode16bit_bak);
 
   return retval;
 }
 
-int cfg_reset_timing(configuration_t* sysconfig)
+int cfg_reset_timing()
 {
   alt_u8 abort = confirmation_routine(0);
   if (abort) return -CFG_DEF_LOAD_ABORT;
@@ -294,128 +340,121 @@ int cfg_reset_timing(configuration_t* sysconfig)
   if (timing_word_select == PPU_CURRENT || timing_word_select > NUM_TIMING_MODES) return -1;
   if (timing_word_select < NTSC_LX2_PR) timing_words[timing_word_select-1].config_val = CFG_TIMING_PASSTH_DEFAULTS;
   else timing_words[timing_word_select-1].config_val = CFG_TIMING_LINEX_DEFAULTS;
-  cfg_load_timing_word(sysconfig, timing_word_select);
+
+  cfg_load_timing_word(timing_word_select);
+
   return 0;
 }
 
-int cfg_load_defaults(configuration_t* sysconfig, alt_u8 need_confirm)
+int cfg_load_defaults(alt_u8 need_confirm)
 {
   if (need_confirm) {
     alt_u8 abort = confirmation_routine(1);
     if (abort) return -CFG_DEF_LOAD_ABORT;
   }
 
-  sysconfig->cfg_word_def[MISC]->cfg_word_val &= CFG_MISC_GET_NODEFAULTS;
-  sysconfig->cfg_word_def[VIDEO]->cfg_word_val &= CFG_VIDEO_GET_NODEFAULTS;
-  sysconfig->cfg_word_def[LINEX]->cfg_word_val &= CFG_LINEX_GET_NODEFAULTS;
+  sysconfig.cfg_word_def[MISC]->cfg_word_val &= CFG_MISC_GET_NODEFAULTS;
+  sysconfig.cfg_word_def[VIDEO]->cfg_word_val &= CFG_VIDEO_GET_NODEFAULTS;
+  sysconfig.cfg_word_def[LINEX]->cfg_word_val &= CFG_LINEX_GET_NODEFAULTS;
 
-  sysconfig->cfg_word_def[MISC]->cfg_word_val |= CFG_MISC_DEFAULT;
-  sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= CFG_VIDEO_DEFAULT;
-  sysconfig->cfg_word_def[LINEX]->cfg_word_val |= CFG_LINEX_DEFAULT;
+  sysconfig.cfg_word_def[MISC]->cfg_word_val |= CFG_MISC_DEFAULT;
+  sysconfig.cfg_word_def[VIDEO]->cfg_word_val |= CFG_VIDEO_DEFAULT;
+  sysconfig.cfg_word_def[LINEX]->cfg_word_val |= CFG_LINEX_DEFAULT;
 
-  cfg_store_linex_word(sysconfig,NTSC);
-  cfg_store_linex_word(sysconfig,PAL);
+  cfg_store_linex_word(NTSC);
+  cfg_store_linex_word(PAL);
 
   return 0;
 }
 
-int cfg_load_jumperset(configuration_t* sysconfig, alt_u8 need_confirm)
+int cfg_load_jumperset(alt_u8 need_confirm)
 {
   if (need_confirm) {
     alt_u8 abort = confirmation_routine(1);
     if (abort) return -CFG_JUMPER_LOAD_ABORT;
   }
 
-  cfg_load_defaults(sysconfig,0); // get N64 defaults (incl. video format)
+  cfg_load_defaults(0); // get N64 defaults (incl. video format)
 
   alt_u8 jumper_word = cfg_get_jumper();
 
-  if (jumper_word & JUMPER_BYPASS_FILTER_GETMASK) sysconfig->cfg_word_def[MISC]->cfg_word_val |= CFG_FILTER_OFF_SETMASK;
-  else sysconfig->cfg_word_def[MISC]->cfg_word_val |= CFG_FILTER_AUTO_SETMASK;
+  if (jumper_word & JUMPER_BYPASS_FILTER_GETMASK) sysconfig.cfg_word_def[MISC]->cfg_word_val |= CFG_FILTER_OFF_SETMASK;
+  else sysconfig.cfg_word_def[MISC]->cfg_word_val |= CFG_FILTER_AUTO_SETMASK;
 
   if (jumper_word & JUMPER_LINEX2_GETMASK) {
-    sysconfig->cfg_word_def[LINEX]->cfg_word_val |= (1 << CFG_240P_LINEX_OFFSET);
+    sysconfig.cfg_word_def[LINEX]->cfg_word_val |= (1 << CFG_240P_LINEX_OFFSET);
     if (jumper_word & JUMPER_480I_BOB_DEINTER_GETMASK)
-      sysconfig->cfg_word_def[LINEX]->cfg_word_val |= (CFG_480I_FIELDFIX_SETMASK | CFG_480I_BOB_DEINTER_SETMASK);
+      sysconfig.cfg_word_def[LINEX]->cfg_word_val |= (CFG_480I_FIELDFIX_SETMASK | CFG_480I_BOB_DEINTER_SETMASK);
   }
 
-  sysconfig->cfg_word_def[LINEX]->cfg_word_val |= (CFG_240P_SL_ID_SETMASK | CFG_240P_SL_EN_SETMASK |
+  sysconfig.cfg_word_def[LINEX]->cfg_word_val |= (CFG_240P_SL_ID_SETMASK | CFG_240P_SL_EN_SETMASK |
                                                    CFG_480I_SL_ID_SETMASK | CFG_480I_SL_EN_SETMASK);
   switch ((jumper_word & JUMPER_SLSTR_GETMASK) >> JUMPER_SLSTR_OFFSET) {
     case 1:
-      sysconfig->cfg_word_def[LINEX]->cfg_word_val |= ((0x3<<CFG_240P_SLSTR_OFFSET) |
+      sysconfig.cfg_word_def[LINEX]->cfg_word_val |= ((0x3<<CFG_240P_SLSTR_OFFSET) |
                                                        (0x3<<CFG_480I_SLSTR_OFFSET)); // 25%
       break;
     case 2:
-      sysconfig->cfg_word_def[LINEX]->cfg_word_val |= ((0x7<<CFG_240P_SLSTR_OFFSET) |
+      sysconfig.cfg_word_def[LINEX]->cfg_word_val |= ((0x7<<CFG_240P_SLSTR_OFFSET) |
                                                        (0x7<<CFG_480I_SLSTR_OFFSET)); // 50%
       break;
     case 3:
-      sysconfig->cfg_word_def[LINEX]->cfg_word_val |= ((0xF<<CFG_240P_SLSTR_OFFSET) |
+      sysconfig.cfg_word_def[LINEX]->cfg_word_val |= ((0xF<<CFG_240P_SLSTR_OFFSET) |
                                                        (0xF<<CFG_480I_SLSTR_OFFSET)); // 100%
       break;
     default:
-      sysconfig->cfg_word_def[LINEX]->cfg_word_val &= (CFG_240P_SL_EN_CLRMASK &
+      sysconfig.cfg_word_def[LINEX]->cfg_word_val &= (CFG_240P_SL_EN_CLRMASK &
                                                        CFG_480I_SL_EN_CLRMASK);       // 0%
       break;
   }
 
-  sysconfig->cfg_word_def[VIDEO]->cfg_word_val &= CFG_VFORMAT_CLRMASK;
-  sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= (((jumper_word & JUMPER_SOG_GETMASK) >> JUMPER_VFORMAT_OFFSET) << CFG_VFORMAT_OFFSET);
+  sysconfig.cfg_word_def[VIDEO]->cfg_word_val &= CFG_VFORMAT_CLRMASK;
+  sysconfig.cfg_word_def[VIDEO]->cfg_word_val |= (((jumper_word & JUMPER_SOG_GETMASK) >> JUMPER_VFORMAT_OFFSET) << CFG_VFORMAT_OFFSET);
 
-  cfg_store_linex_word(sysconfig,NTSC);
-  cfg_store_linex_word(sysconfig,PAL);
+  cfg_store_linex_word(NTSC);
+  cfg_store_linex_word(PAL);
 
   return 0;
 }
 
-void cfg_store_linex_word(configuration_t* sysconfig, vmode_t palmode) {
-  linex_words[palmode].config_val = sysconfig->cfg_word_def[LINEX]->cfg_word_val;
-  linex_words[palmode].config_ref_val = sysconfig->cfg_word_def[LINEX]->cfg_ref_word_val;
+void cfg_store_linex_word(vmode_t palmode) {
+  linex_words[palmode].config_val = sysconfig.cfg_word_def[LINEX]->cfg_word_val;
+  linex_words[palmode].config_ref_val = sysconfig.cfg_word_def[LINEX]->cfg_ref_word_val;
 }
 
-void cfg_load_linex_word(configuration_t* sysconfig, vmode_t palmode) {
-  sysconfig->cfg_word_def[LINEX]->cfg_word_val = linex_words[palmode].config_val;
-  sysconfig->cfg_word_def[LINEX]->cfg_ref_word_val = linex_words[palmode].config_ref_val;
+void cfg_load_linex_word(vmode_t palmode) {
+  sysconfig.cfg_word_def[LINEX]->cfg_word_val = linex_words[palmode].config_val;
+  sysconfig.cfg_word_def[LINEX]->cfg_ref_word_val = linex_words[palmode].config_ref_val;
 }
 
-void cfg_store_timing_word(configuration_t* sysconfig, cfg_timing_model_sel_type_t timing_word_select) {
+void cfg_store_timing_word(cfg_timing_model_sel_type_t timing_word_select) {
   if (timing_word_select == PPU_CURRENT || timing_word_select > NUM_TIMING_MODES) return;
   timing_word_select--;
-  timing_words[timing_word_select].config_val = sysconfig->cfg_word_def[VIDEO]->cfg_word_val & CFG_VIDEO_GETTIMINGS_LX_MASK;
-  timing_words[timing_word_select].config_ref_val = sysconfig->cfg_word_def[VIDEO]->cfg_ref_word_val & CFG_VIDEO_GETTIMINGS_LX_MASK;
+  timing_words[timing_word_select].config_val = sysconfig.cfg_word_def[VIDEO]->cfg_word_val & CFG_VIDEO_GETTIMINGS_LX_MASK;
+  timing_words[timing_word_select].config_ref_val = sysconfig.cfg_word_def[VIDEO]->cfg_ref_word_val & CFG_VIDEO_GETTIMINGS_LX_MASK;
 }
 
-void cfg_load_timing_word(configuration_t* sysconfig, cfg_timing_model_sel_type_t timing_word_select) {
+void cfg_load_timing_word(cfg_timing_model_sel_type_t timing_word_select) {
   if (timing_word_select == PPU_CURRENT || timing_word_select > NUM_TIMING_MODES) return;
   timing_word_select--;
-  sysconfig->cfg_word_def[VIDEO]->cfg_word_val &= CFG_VIDEO_GETNONTIMINGS_MASK;
-  sysconfig->cfg_word_def[VIDEO]->cfg_word_val |= (timing_words[timing_word_select].config_val & CFG_VIDEO_GETTIMINGS_LX_MASK);
-  sysconfig->cfg_word_def[VIDEO]->cfg_ref_word_val &= CFG_VIDEO_GETNONTIMINGS_MASK;
-  sysconfig->cfg_word_def[VIDEO]->cfg_ref_word_val |= (timing_words[timing_word_select].config_ref_val & CFG_VIDEO_GETTIMINGS_LX_MASK);
+  sysconfig.cfg_word_def[VIDEO]->cfg_word_val &= CFG_VIDEO_GETNONTIMINGS_MASK;
+  sysconfig.cfg_word_def[VIDEO]->cfg_word_val |= (timing_words[timing_word_select].config_val & CFG_VIDEO_GETTIMINGS_LX_MASK);
+  sysconfig.cfg_word_def[VIDEO]->cfg_ref_word_val &= CFG_VIDEO_GETNONTIMINGS_MASK;
+  sysconfig.cfg_word_def[VIDEO]->cfg_ref_word_val |= (timing_words[timing_word_select].config_ref_val & CFG_VIDEO_GETTIMINGS_LX_MASK);
 }
 
-void cfg_apply_to_logic(configuration_t* sysconfig)
+void cfg_apply_to_logic()
 {
-  cfg_offon_t deblur_bak = (cfg_offon_t) cfg_get_value(&deblur_mode,0);
-  cfg_offon_t mode16bit_bak = (cfg_offon_t) cfg_get_value(&mode16bit,0);
-
-  cfg_set_value(&deblur_mode,cfg_get_value(&deblur_mode_current,0));
-  cfg_set_value(&mode16bit,cfg_get_value(&mode16bit_current,0));
-
-  IOWR_ALTERA_AVALON_PIO_DATA(CFG_MISC_OUT_BASE,sysconfig->cfg_word_def[MISC]->cfg_word_val);
-  IOWR_ALTERA_AVALON_PIO_DATA(CFG_VIDEO_OUT_BASE,sysconfig->cfg_word_def[VIDEO]->cfg_word_val);
-  IOWR_ALTERA_AVALON_PIO_DATA(CFG_LINEX_OUT_BASE,sysconfig->cfg_word_def[LINEX]->cfg_word_val);
-
-  cfg_set_value(&deblur_mode,(alt_u8) deblur_bak);
-  cfg_set_value(&mode16bit,(alt_u8) mode16bit_bak);
+  IOWR_ALTERA_AVALON_PIO_DATA(CFG_MISC_OUT_BASE,sysconfig.cfg_word_def[MISC]->cfg_word_val);
+  IOWR_ALTERA_AVALON_PIO_DATA(CFG_VIDEO_OUT_BASE,sysconfig.cfg_word_def[VIDEO]->cfg_word_val);
+  IOWR_ALTERA_AVALON_PIO_DATA(CFG_LINEX_OUT_BASE,sysconfig.cfg_word_def[LINEX]->cfg_word_val);
 }
 
-void cfg_read_from_logic(configuration_t* sysconfig)
+void cfg_read_from_logic()
 {
-  sysconfig->cfg_word_def[MISC]->cfg_word_val  = (IORD_ALTERA_AVALON_PIO_DATA(CFG_MISC_OUT_BASE)  & sysconfig->cfg_word_def[MISC]->cfg_word_mask);
-  sysconfig->cfg_word_def[VIDEO]->cfg_word_val = (IORD_ALTERA_AVALON_PIO_DATA(CFG_VIDEO_OUT_BASE) & sysconfig->cfg_word_def[VIDEO]->cfg_word_mask);
-  sysconfig->cfg_word_def[LINEX]->cfg_word_val = (IORD_ALTERA_AVALON_PIO_DATA(CFG_LINEX_OUT_BASE) & sysconfig->cfg_word_def[LINEX]->cfg_word_mask);
+  sysconfig.cfg_word_def[MISC]->cfg_word_val  = (IORD_ALTERA_AVALON_PIO_DATA(CFG_MISC_OUT_BASE)  & sysconfig.cfg_word_def[MISC]->cfg_word_mask);
+  sysconfig.cfg_word_def[VIDEO]->cfg_word_val = (IORD_ALTERA_AVALON_PIO_DATA(CFG_VIDEO_OUT_BASE) & sysconfig.cfg_word_def[VIDEO]->cfg_word_mask);
+  sysconfig.cfg_word_def[LINEX]->cfg_word_val = (IORD_ALTERA_AVALON_PIO_DATA(CFG_LINEX_OUT_BASE) & sysconfig.cfg_word_def[LINEX]->cfg_word_mask);
 }
 
 alt_u8 cfg_get_jumper()
@@ -423,18 +462,18 @@ alt_u8 cfg_get_jumper()
   return (IORD_ALTERA_AVALON_PIO_DATA(JUMPER_CFG_SET_IN_BASE) & JUMPER_GETALL_MASK);
 }
 
-void cfg_clear_words(configuration_t* sysconfig)
+void cfg_clear_words()
 {
   int idx;
   for (idx = 0; idx < NUM_CFG_B32WORDS; idx++)
-    sysconfig->cfg_word_def[idx]->cfg_word_val = 0;
+    sysconfig.cfg_word_def[idx]->cfg_word_val = 0;
 }
 
-void cfg_update_reference(configuration_t* sysconfig)
+void cfg_update_reference()
 {
   int idx;
   for (idx = 0; idx < NUM_CFG_B32WORDS; idx++)
-    sysconfig->cfg_word_def[idx]->cfg_ref_word_val = sysconfig->cfg_word_def[idx]->cfg_word_val;
+    sysconfig.cfg_word_def[idx]->cfg_ref_word_val = sysconfig.cfg_word_def[idx]->cfg_word_val;
 
   linex_words[NTSC].config_ref_val = linex_words[NTSC].config_val;
   linex_words[PAL].config_ref_val  = linex_words[PAL].config_val;

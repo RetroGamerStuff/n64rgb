@@ -43,7 +43,7 @@
 
 char szText[VD_WIDTH];
 extern alt_u8 use_flash;
-extern vmode_t vmode_menu, vmode_n64adv;
+extern vmode_t vmode_menu;
 extern cfg_timing_model_sel_type_t timing_menu, timing_n64adv;
 
 
@@ -120,15 +120,6 @@ static const arrow_t misc_sel_arrow = {
 menu_t home_menu, vinfo_screen, vicfg1_screen, vicfg2_screen, vicfg_240p_opt_subscreen, vicfg_480i_opt_subscreen,
        vicfg_vpll_subscreen, vicfg_timing_subscreen, misc_screen, rwdata_screen, about_screen, thanks_screen, license_screen;
 
-extern config_t deblur_mode_current, mode16bit_current, ntsc_pal_selection;
-extern config_t vformat, deblur_mode, gamma_lut, mode16bit, pal_awareness;
-extern config_t linex_240p, sl_en, sl_method, sl_id, sl_str, slhyb_str;
-extern config_t bob_deinter_480i, field_shift_fix_480i, sl_en_480i, sl_link_480i, sl_id_480i, sl_str_480i, slhyb_str_480i;
-extern config_t use_vpll;
-extern config_t timing_selection, vert_shift, hor_shift, pal_dejitter;
-extern config_t igr_reset, igr_deblur, igr_16bitmode, filteraddon_cutoff, exchange_rb_out;
-
-
 menu_t home_menu = {
     .type = HOME,
     .header  = &home_header,
@@ -191,16 +182,18 @@ menu_t vicfg2_screen = {
     .leaves = {
         {.id = VICFG2_COLOR_SPACE_V_OFFSET   , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &vformat},
         {.id = VICFG2_EXCH_RB_OUT_V_OFFSET   , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &exchange_rb_out},
-        {.id = VICFG2_DEBLURMODE_V_OFFSET    , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &deblur_mode_current},
-        {.id = VICFG2_DEBLURMODE_DEF_V_OFFSET, .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &deblur_mode},
-        {.id = VICFG2_16BIT_V_OFFSET         , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &mode16bit_current},
-        {.id = VICFG2_16BIT_DEF_V_OFFSET     , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &mode16bit},
+        {.id = VICFG2_DEBLURMODE_V_OFFSET    , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &deblur_mode},
+        {.id = VICFG2_DEBLURMODE_DEF_V_OFFSET, .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &deblur_mode_powercycle},
+        {.id = VICFG2_16BIT_V_OFFSET         , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &mode16bit},
+        {.id = VICFG2_16BIT_DEF_V_OFFSET     , .arrow_desc = &vicfg_opt_arrow, .leavetype = ICONFIG , .config_value = &mode16bit_powercycle},
         {.id = VICFG2_PAGE1_V_OFFSET         , .arrow_desc = &vicfg_sel_arrow, .leavetype = ISUBMENU, .submenu      = &vicfg1_screen}
     }
 };
 
-#define DEBLUR_CURRENT_SELECTION  2
-#define M16BIT_CURRENT_SELECTION  4
+#define DEBLUR_CURRENT_SELECTION    2
+#define DEBLUR_POWERCYCLE_SELECTION 3
+#define M16BIT_CURRENT_SELECTION    4
+#define M16BIT_POWERCYCLE_SELECTION 5
 
 
 menu_t vicfg_240p_opt_subscreen = {
@@ -426,7 +419,7 @@ void print_ctrl_data() {
 }
 
 
-updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t* sysconfig)
+updateaction_t modify_menu(cmd_t command, menu_t* *current_menu)
 {
 
   updateaction_t todo = NON;
@@ -482,7 +475,7 @@ updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t
         if (pal_awareness_val == ON) {
           cfg_inc_value(&ntsc_pal_selection);
           vmode_menu = (vmode_t) cfg_get_value(&ntsc_pal_selection,0);
-          cfg_load_linex_word(sysconfig,vmode_menu);
+          cfg_load_linex_word(vmode_menu);
         }
         todo = NEW_OVERLAY;
         break;
@@ -491,7 +484,7 @@ updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t
         cfg_inc_value(&timing_selection);
         timing_menu = cfg_get_value(&timing_selection,0);
         if (timing_menu == PPU_CURRENT) timing_menu = timing_n64adv;
-        cfg_load_timing_word(sysconfig,timing_menu);
+        cfg_load_timing_word(timing_menu);
         todo = NEW_OVERLAY;
         break;
       }
@@ -518,7 +511,7 @@ updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t
         if (pal_awareness_val == ON) {
           cfg_inc_value(&ntsc_pal_selection);
           vmode_menu = (vmode_t) cfg_get_value(&ntsc_pal_selection,0);
-          cfg_load_linex_word(sysconfig,vmode_menu);
+          cfg_load_linex_word(vmode_menu);
         }
         todo = NEW_OVERLAY;
         break;
@@ -532,7 +525,7 @@ updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t
         cfg_dec_value(&timing_selection);
         timing_menu = cfg_get_value(&timing_selection,0);
         if (timing_menu == PPU_CURRENT) timing_menu = timing_n64adv;
-        cfg_load_timing_word(sysconfig,timing_menu);
+        cfg_load_timing_word(timing_menu);
         todo = NEW_OVERLAY;
         break;
       }
@@ -708,14 +701,14 @@ updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t
       int retval;
 
       if (is_misc_screen((*current_menu))) {
-//        retval = (*current_menu)->leaves[TESTPATTERN_FUNC_SELECTION].sys_fun_0(sysconfig);
-        retval = cfg_show_testpattern(sysconfig);
+//        retval = (*current_menu)->leaves[TESTPATTERN_FUNC_SELECTION].sys_fun_0();
+        retval = cfg_show_testpattern();
         return NON;
       }
 
       if (is_vicfg_vpll_screen((*current_menu))) {
-//        retval = (*current_menu)->leaves[VPLL_TEST_SELECTION].sys_fun_0(sysconfig);
-        retval = run_vpll_test(sysconfig);
+//        retval = (*current_menu)->leaves[VPLL_TEST_SELECTION].sys_fun_0();
+        retval = run_vpll_test();
         if (retval == 0) {
           (*current_menu)->current_selection = VPLL_USE_SELECTION;
           print_selection_arrow((*current_menu));
@@ -728,9 +721,9 @@ updateaction_t modify_menu(cmd_t command, menu_t* *current_menu, configuration_t
         return RW_FAILED;
       }
 
-//      if (is_vicfg_timing_screen((*current_menu))) retval = (*current_menu)->leaves[current_sel].sys_fun_0(sysconfig);
-      if (is_vicfg_timing_screen((*current_menu))) retval = cfg_reset_timing(sysconfig);
-      else                                         retval = (*current_menu)->leaves[current_sel].sys_fun_1(sysconfig,1); // rw screen
+//      if (is_vicfg_timing_screen((*current_menu))) retval = (*current_menu)->leaves[current_sel].sys_fun_0();
+      if (is_vicfg_timing_screen((*current_menu))) retval = cfg_reset_timing();
+      else                                         retval = (*current_menu)->leaves[current_sel].sys_fun_1(1); // rw screen
       return (retval == 0                     ? RW_DONE  :
               retval == -CFG_FLASH_SAVE_ABORT ? RW_ABORT :
                                                 RW_FAILED);
@@ -918,6 +911,22 @@ int update_cfg_screen(menu_t* current_menu)
         ref_val_select = cfg_get_value(current_menu->leaves[v_run].config_value,use_flash);
         use_240p_linked_values = (cfg_offon_t) (is_vicfg_480i_sl_are_linked(current_menu) && (v_run > SL_LINKED_SELECTION)); // use scanline values for 240p in 480i screen if linked
 
+        // find special cases and modifications
+        if (use_240p_linked_values) {
+          val_select     = cfg_get_value(vicfg_240p_opt_subscreen.leaves[v_run].config_value,0);
+          ref_val_select = cfg_get_value(vicfg_240p_opt_subscreen.leaves[v_run].config_value,use_flash);
+        }
+        if (is_vicfg1_screen(current_menu) && (pal_awareness_val == OFF) && v_run == NSTC_PAL_SUB_SELECTION) {  // show text global if pal awareness is off
+          font_color = FONTCOLOR_GREY;
+          vd_clear_area(h_l_offset,h_l_offset + OPT_WINDOW_WIDTH,v_offset,v_offset);
+          vd_print_string(h_l_offset,v_offset,background_color,font_color,Global);
+          break;
+        }
+        if (is_vicfg2_screen(current_menu)){
+          if (v_run == DEBLUR_CURRENT_SELECTION    || v_run == M16BIT_CURRENT_SELECTION   ) ref_val_select = val_select;
+          if (v_run == DEBLUR_POWERCYCLE_SELECTION || v_run == M16BIT_POWERCYCLE_SELECTION) ref_val_select = cfg_get_value(current_menu->leaves[v_run-1].config_value,use_flash);
+        }
+
 //        if (current_menu->current_selection == v_run) {
 //          background_color = OPT_WINDOWCOLOR_BG;
 //          font_color = OPT_WINDOWCOLOR_FONT;
@@ -926,16 +935,7 @@ int update_cfg_screen(menu_t* current_menu)
 //          font_color = (val_select == ref_val_select) ? FONTCOLOR_WHITE : FONTCOLOR_YELLOW;
 //        }
 
-        // find special cases and modifications
-        if (is_vicfg1_screen(current_menu) && (pal_awareness_val == OFF) && v_run == NSTC_PAL_SUB_SELECTION) {  // show text global if pal awareness is off
-          font_color = FONTCOLOR_GREY;
-          vd_clear_area(h_l_offset,h_l_offset + OPT_WINDOW_WIDTH,v_offset,v_offset);
-          vd_print_string(h_l_offset,v_offset,background_color,font_color,Global);
-          break;
-        }
-
-        if (is_vicfg2_screen(current_menu) && (v_run == DEBLUR_CURRENT_SELECTION || v_run == M16BIT_CURRENT_SELECTION)) val_is_ref = 1; // current options for deblur and 16bit mode do not have reference values
-        else val_is_ref = (val_select == ref_val_select);
+        val_is_ref = (val_select == ref_val_select);
         font_color = val_is_ref ? FONTCOLOR_WHITE : FONTCOLOR_YELLOW;
 
         // check 240p and 480i screen
@@ -950,9 +950,6 @@ int update_cfg_screen(menu_t* current_menu)
 
         // check 480i screen
         if (use_240p_linked_values) {
-          val_select     = cfg_get_value(vicfg_240p_opt_subscreen.leaves[v_run].config_value,0);
-          ref_val_select = cfg_get_value(vicfg_240p_opt_subscreen.leaves[v_run].config_value,use_flash);
-          font_color = (val_select == ref_val_select) ? FONTCOLOR_WHITE : FONTCOLOR_YELLOW;
           if (vicfg_240p_opt_subscreen.leaves[v_run].config_value->cfg_type == NUMVALUE) {
             vicfg_240p_opt_subscreen.leaves[v_run].config_value->val2char_func(val_select);
             vd_print_string(h_l_offset,v_offset,background_color,font_color,&szText[0]);

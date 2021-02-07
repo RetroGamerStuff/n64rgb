@@ -379,8 +379,20 @@ typedef struct {
 #define RWM_LENGTH   10
 #define RWM_SHOW_CNT 256
 
-
+extern configuration_t sysconfig;
 extern alt_u8 use_filteraddon;
+
+extern config_t deblur_mode_powercycle, mode16bit_powercycle,
+                ntsc_pal_selection, timing_selection;
+extern config_t use_vpll, test_vpll, show_testpat, show_logo, show_osd, mute_osd_tmp,
+                igr_reset, igr_deblur, igr_16bitmode, pal_awareness, exchange_rb_out,
+                filteraddon_cutoff;
+extern config_t pal_dejitter, vert_shift, hor_shift,
+                vformat, gamma_lut, deblur_mode, mode16bit;
+extern config_t linex_240p, slhyb_str, sl_str, sl_method, sl_id, sl_en;
+extern config_t bob_deinter_480i, field_shift_fix_480i, slhyb_str_480i, sl_str_480i,
+                sl_link_480i, sl_id_480i, sl_en_480i;
+
 
 static inline alt_u8 is_local_cfg(config_t* cfg_data)
   { return cfg_data->cfg_word == NULL;  }
@@ -392,21 +404,21 @@ void cfg_inc_value(config_t* cfg_data);
 void cfg_dec_value(config_t* cfg_data);
 alt_u8 cfg_get_value(config_t* cfg_data,alt_u8 get_reference);
 void cfg_set_value(config_t* cfg_data, alt_u8 value);
-int cfg_show_testpattern(configuration_t* sysconfig);
-int cfg_save_to_flash(configuration_t* sysconfig, alt_u8 need_confirm);
-int cfg_load_from_flash(configuration_t* sysconfig, alt_u8 need_confirm);
-int cfg_reset_timing(configuration_t* sysconfig);
-int cfg_load_defaults(configuration_t* sysconfig,alt_u8 need_confirm);
-int cfg_load_jumperset(configuration_t* sysconfig,alt_u8 need_confirm);
-void cfg_store_linex_word(configuration_t* sysconfig,vmode_t palmode);
-void cfg_load_linex_word(configuration_t* sysconfig,vmode_t palmode);
-void cfg_store_timing_word(configuration_t* sysconfig,cfg_timing_model_sel_type_t timing_selection);
-void cfg_load_timing_word(configuration_t* sysconfig,cfg_timing_model_sel_type_t timing_selection);
-void cfg_apply_to_logic(configuration_t* sysconfig);
-void cfg_read_from_logic(configuration_t* sysconfig);
+int cfg_show_testpattern();
+int cfg_save_to_flash(alt_u8 need_confirm);
+int cfg_load_from_flash(alt_u8 need_confirm);
+int cfg_reset_timing(void);
+int cfg_load_defaults(alt_u8 need_confirm);
+int cfg_load_jumperset(alt_u8 need_confirm);
+void cfg_store_linex_word(vmode_t palmode);
+void cfg_load_linex_word(vmode_t palmode);
+void cfg_store_timing_word(cfg_timing_model_sel_type_t timing_selection);
+void cfg_load_timing_word(cfg_timing_model_sel_type_t timing_selection);
+void cfg_apply_to_logic();
+void cfg_read_from_logic();
 alt_u8 cfg_get_jumper();
-void cfg_clear_words(configuration_t* sysconfig);
-void cfg_update_reference(configuration_t* sysconfig);
+void cfg_clear_words();
+void cfg_update_reference();
 void check_filteraddon();
 
 #endif /* CONFIG_H_ */

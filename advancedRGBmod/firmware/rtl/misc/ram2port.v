@@ -105,9 +105,8 @@ always @(posedge rdCLK) begin
 
   rdmem_r <= rdpageoffset[`MEM_WIDTH-1:0] + rdaddr;
 
-  if (rden_r) begin
-      rddata <= data_buf[rdmem_r];
-  end
+  if (rden_r)
+    rddata <= data_buf[rdmem_r];
 end
 
 endmodule

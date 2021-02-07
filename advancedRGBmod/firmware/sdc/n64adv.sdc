@@ -81,13 +81,13 @@ create_generated_clock -name {VCLK_3x_out} -source $vclk_mux_out -master_clock {
 set sys_pll_in [get_pins {clk_n_rst_hk_u|sys_pll_u|altpll_component|auto_generated|pll1|inclk[0]}]
 set sys_pll_4M_out [get_pins {clk_n_rst_hk_u|sys_pll_u|altpll_component|auto_generated|pll1|clk[0]}]
 set sys_pll_16k_out [get_pins {clk_n_rst_hk_u|sys_pll_u|altpll_component|auto_generated|pll1|clk[1]}]
-set sys_pll_25M_out [get_pins {clk_n_rst_hk_u|sys_pll_u|altpll_component|auto_generated|pll1|clk[2]}]
+set sys_pll_50M_out [get_pins {clk_n_rst_hk_u|sys_pll_u|altpll_component|auto_generated|pll1|clk[2]}]
 create_generated_clock -name {CLK_4M} -source $sys_pll_in -divide_by 25 -multiply_by 2 $sys_pll_4M_out
 create_generated_clock -name {CLK_16k} -source $sys_pll_in -divide_by 3125 -multiply_by 1 $sys_pll_16k_out
-create_generated_clock -name {CLK_25M} -source $sys_pll_in -divide_by 2 -multiply_by 1 $sys_pll_25M_out
+create_generated_clock -name {CLK_50M} -source $sys_pll_in -divide_by 1 -multiply_by 1 $sys_pll_50M_out
 
 # DCLK for Flash
-create_generated_clock -name {ALTERA_DCLK} -source $sys_pll_25M_out [get_ports {*ALTERA_DCLK}]
+create_generated_clock -name {ALTERA_DCLK} -source $sys_pll_50M_out [get_ports {*ALTERA_DCLK}]
 
 
 #**************************************************************
@@ -117,7 +117,7 @@ set_input_delay -clock {VCLK_N64_VIRT} -min $n64_in_dly_min [get_ports {nVDSYNC 
 set_input_delay -clock {VCLK_N64_VIRT} -max $n64_in_dly_max [get_ports {nVDSYNC VD_i[*]}]
 
 
-set_input_delay -clock { CLK_25M } 0 [get_ports *ALTERA_DATA0]
+set_input_delay -clock { CLK_50M } 0 [get_ports *ALTERA_DATA0]
 
 set_input_delay -clock altera_reserved_tck 20 [get_ports altera_reserved_tdi]
 set_input_delay -clock altera_reserved_tck 20 [get_ports altera_reserved_tms]
@@ -156,7 +156,7 @@ set_clock_groups -logically_exclusive \
                     -group {VCLK_N64_VIRT VCLK_1x_base VCLK_1x_out_pre VCLK_1x_out} \
                     -group {VCLK_2x_out_pre VCLK_2x_out} \
                     -group {VCLK_3x_base VCLK_3x_out_pre VCLK_3x_out} \
-                    -group {SYS_CLK CLK_25M} \
+                    -group {SYS_CLK CLK_50M} \
                     -group {CLK_4M} \
                     -group {CLK_16k}
 

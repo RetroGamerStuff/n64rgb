@@ -65,23 +65,6 @@ output reg vdata_valid_o = 1'b0;
 output reg [`VDATA_I_FU_SLICE] vdata_o = {vdata_width_i{1'b0}};
 
 
-// start of rtl
-
-wire [ 1:0] vd_wrctrl = OSDWrVector[24:23];
-wire [ 9:0] vd_wraddr = OSDWrVector[22:13];
-wire [12:0] vd_wrdata = OSDWrVector[12: 0];
-
-wire show_osd_logo = OSDInfo[1];
-wire show_osd      = OSDInfo[0];
-
-
-wire nHSYNC_cur = vdata_i[3*color_width_i+1];
-wire nVSYNC_cur = vdata_i[3*color_width_i+3];
-
-wire negedge_nHSYNC =  nHSYNC_pre & !nHSYNC_cur;
-wire negedge_nVSYNC =  nVSYNC_pre & !nVSYNC_cur;
-
-
 // Display OSD Menu
 // ================
 
@@ -91,235 +74,334 @@ wire negedge_nVSYNC =  nVSYNC_pre & !nVSYNC_cur;
 // - content is mapped into memory and written by NIOSII processor
 // - Font is looked up in an extra ROM
 
+
+// mist stuff (incl. unpacking inputs)
+integer int_idx;
+localparam vcnt_width = $clog2(`TOTAL_LINES_PAL_LX1);
+localparam hcnt_width  = $clog2(`PIXEL_PER_LINE_MAX);
+
+localparam [1023:0] n64adv_logo = 1024'h1FF7FCFF9C1B033FE7FD8180300FF3833FF7FEFFDE1B037FEFFD8180301FFBC330300600DF1B03606C0D8180FFD81BE33037FE00DB9BFF606C0DFF80FFDFFB733037FE00D9DBFF606C0DFF8030CFFB3B30300600D8FB03606C0D818030C01B1F3FF7FEFFD87BFF606FFDFF8030CFFB0F1FF7FCFF9839FE6067FCFF0030CFF307;
+localparam logo_vcnt_width = 4;
+localparam logo_hcnt_width = 8;
+
+localparam osd_letter_vcnt_width = $clog2(`MAX_TEXT_ROWS);
+localparam font_vcnt_width = $clog2(`OSD_FONT_HEIGHT);
+localparam txt_vcnt_width = osd_letter_vcnt_width + font_vcnt_width;
+
+localparam osd_letter_hcnt_width = $clog2(`MAX_CHARS_PER_ROW);
+localparam font_hcnt_width = $clog2(`OSD_FONT_WIDTH);
+localparam txt_hcnt_width = osd_letter_hcnt_width + font_hcnt_width;
+
+localparam bg_color_sel_width = 2;
+localparam bg_color_width = 9; // three bits per channel (do not change this)
+localparam [bg_color_width-1:0] window_bg_color_default = `OSD_WINDOW_BGCOLOR_DARKBLUE;
+
+localparam font_color_sel_width = 4;
+localparam [`VDATA_I_CO_SLICE] font_color_default = `OSD_TXT_COLOR_WHITE;
+
+localparam color_mem_width = bg_color_sel_width + font_color_sel_width;
+localparam txt_mem_width = 7;
+
+
+wire [                      1:0] vd_wrctrl       = OSDWrVector[24:23];
+wire [osd_letter_hcnt_width-1:0] vd_wrpage       = OSDWrVector[22:17];
+wire [osd_letter_vcnt_width-1:0] vd_wraddr       = OSDWrVector[16:13];
+wire [      color_mem_width-1:0] vd_color_wrdata = OSDWrVector[12: 7];
+wire [        txt_mem_width-1:0] vd_txt_wrdata   = OSDWrVector[ 6: 0];
+
+wire show_osd_logo = OSDInfo[1];
+wire show_osd      = OSDInfo[0];
+
+wire nHSYNC_cur = vdata_i[3*color_width_i+1];
+wire nVSYNC_cur = vdata_i[3*color_width_i+3];
+
+
+// wires
+wire negedge_nVSYNC, negedge_nHSYNC;
+
+wire [osd_letter_hcnt_width-1:0] txt_xrdaddr;
+wire [osd_letter_vcnt_width-1:0] txt_yrdaddr;
+wire [bg_color_sel_width-1:0] bg_color_sel_tmp;
+wire [font_color_sel_width-1:0] font_color_sel_tmp;
+wire [txt_mem_width-1:0] font_char_select;
+
+wire [`OSD_FONT_WIDTH:0] font_lineword_tmp;
+
+wire [bg_color_width-1:0] window_bg_color_tmp;
+wire [`VDATA_I_CO_SLICE] txt_color_tmp; 
+
+
+// regs
 reg nHSYNC_pre = 1'b0;
 reg nVSYNC_pre = 1'b0;
 
-reg [9:0] h_cnt = 10'h0;
-reg [7:0] v_cnt =  8'h0;
+reg [vcnt_width-1:0] vcnt = {vcnt_width{1'b0}};
+reg [hcnt_width-1:0] hcnt = {hcnt_width{1'b0}};
 
-reg [7:0] logo_h_cnt = 8'h0;
-reg [3:0] logo_v_cnt = 4'h0;
+reg [logo_vcnt_width-1:0] logo_vcnt = {logo_vcnt_width{1'b0}};
+reg [logo_hcnt_width-1:0] logo_hcnt = {logo_hcnt_width{1'b0}};
 
-reg [8:0] txt_h_cnt;  // 2:0 - font width reservation (allows for max 8p wide font); used for pixel selection
+reg [txt_vcnt_width-1:0] txt_vcnt = {txt_vcnt_width{1'b0}}; // MSB indexing actual letter (vertical count)
+                                                            // LSB indexing actual (vertical) position in letter
+reg [txt_hcnt_width-1:0] txt_hcnt; // MSB indexing actual letter (horizontal count)
+                                   // LSB indexing actual (horizontal) position in letter
 initial begin
-  txt_h_cnt[8:3] = {6{1'b1}};
-  txt_h_cnt[2:0] = `OSD_FONT_WIDTH;
+  txt_hcnt[txt_hcnt_width-1:font_hcnt_width] = {osd_letter_hcnt_width{1'b1}};
+  txt_hcnt[font_hcnt_width-1:0] = `OSD_FONT_WIDTH;
 end
-                                                    // 8:3 - indexing the char in each row
-reg [7:0] txt_v_cnt = 8'h0; // 3:0 - font hight reservation (allows for max 16p hight font); used for addr. font pixel row
-                            // 7:4 - selects the row of chars
 
-reg [5:0] draw_osd_window = 6'h0;   // font and char memory
-reg [5:0]       draw_logo = 6'h0;   // show logo
-reg [5:0]        en_txtrd = 6'h0;   // introduce five delay taps
-reg [3:1]       en_fontrd = 3'b000; // read font
+reg [7:0]   vdata_valid_L = 8'h0;
+reg [`VDATA_I_FU_SLICE] vdata_L [0:7] /* synthesis ramstyle = "logic" */;
+initial 
+  for (int_idx = 0; int_idx < 8; int_idx = int_idx+1)
+    vdata_L[int_idx] = {vdata_width_i{1'b0}};
+
+reg [7:1] draw_osd_window = 7'h0; // draw window
+reg [7:1]       draw_logo = 7'h0; // show logo
+reg [7:1]     act_logo_px = 7'h0; // indicates an active pixel in logo
+reg [7:1]        en_txtrd = 7'h0; // introduce six delay taps
+reg [7:2]       en_fontrd = 6'h0; // read font
+
+
+reg [bg_color_sel_width-1:0] bg_color_sel = {bg_color_sel_width{1'b0}};
+reg [font_color_sel_width-1:0] font_color_sel = {font_color_sel_width{1'b0}};
+
+reg [font_vcnt_width+1:0] font_pixel_select_4x = {font_vcnt_width+2{1'b0}};
+reg [`OSD_FONT_WIDTH:0] font_lineword = {(`OSD_FONT_WIDTH+1){1'b0}};
+reg act_char_px = 1'b0;
+
+reg [bg_color_width-1:0] window_bg_color = window_bg_color_default;
+reg [`VDATA_I_CO_SLICE] txt_color = font_color_default;
+
+
+// start of rtl
+assign negedge_nHSYNC =  nHSYNC_pre & !nHSYNC_cur;
+assign negedge_nVSYNC =  nVSYNC_pre & !nVSYNC_cur;
 
 
 always @(posedge VCLK or negedge nVRST)
   if (!nVRST) begin
+    OSD_VSync <= 1'b0;
+    
     nHSYNC_pre <= 1'b0;
     nVSYNC_pre <= 1'b0;
+    
+    vcnt <= {vcnt_width{1'b0}};
+    hcnt <= {hcnt_width{1'b0}};
 
-    h_cnt <= 10'h0;
-    v_cnt <=  8'h0;
+    logo_vcnt <= {logo_vcnt_width{1'b0}};
+    logo_hcnt <= {logo_hcnt_width{1'b0}};
+    
+    txt_vcnt  <= {txt_vcnt_width{1'b0}};
+    txt_hcnt[txt_hcnt_width-1:font_hcnt_width] <= {osd_letter_hcnt_width{1'b1}};
+    txt_hcnt[font_hcnt_width-1:0] <= `OSD_FONT_WIDTH;
 
-    logo_h_cnt <= 8'h0;
-    logo_v_cnt <= 4'h0;
-    txt_h_cnt[8:3] <= {6{1'b1}};
-    txt_h_cnt[2:0] <= `OSD_FONT_WIDTH;
-    txt_v_cnt  <= 8'h0;
-
-    OSD_VSync       <= 1'b0;
-    draw_osd_window <= 6'h0;
-    draw_logo       <= 6'h0;
-    en_txtrd        <= 6'h0;
-    en_fontrd       <= 3'b000;
+    vdata_valid_L   <= 8'h0;
+    for (int_idx = 0; int_idx < 8; int_idx = int_idx+1)
+      vdata_L[int_idx] <= {vdata_width_i{1'b0}};
+    
+    draw_osd_window <= 7'h0;
+    draw_logo       <= 7'h0;
+    act_logo_px     <= 7'h0;
+    en_txtrd        <= 7'h0;
+    en_fontrd       <= 6'h0;
   end else begin
     if (vdata_valid_i) begin
-      h_cnt <= ~&h_cnt ? h_cnt + 1'b1 : h_cnt;
-
       if (negedge_nHSYNC) begin
-        h_cnt <= 10'h0;
-        v_cnt <= ~&v_cnt ? v_cnt + 1'b1 : v_cnt;
+//        vcnt <= ~&vcnt ? vcnt + 1'b1 : vcnt;  // saturate if needed
+        vcnt <= vcnt + 1'b1;
+        hcnt <= {hcnt_width{1'b0}};
 
-        if (v_cnt < `OSD_LOGO_V_START | v_cnt >= `OSD_LOGO_V_STOP)
-          logo_v_cnt <= 3'h0;
-        else if (~&logo_v_cnt)
-          logo_v_cnt <= logo_v_cnt + 1'b1;
+        if (vcnt < `OSD_LOGO_VSTART | vcnt >= `OSD_LOGO_VSTOP)
+          logo_vcnt <= {logo_vcnt_width{1'b0}};
+//        else if (~&logo_vcnt)
+//          logo_vcnt <= logo_vcnt + 1'b1;
+        else
+          logo_vcnt <= logo_vcnt + 1'b1;
 
-        logo_h_cnt <= 8'h0;
 
-        if (v_cnt < `OSD_TXT_V_START | v_cnt >= `OSD_TXT_V_STOP) begin
-          txt_v_cnt <= 7'h0;
-        end else if (~&txt_v_cnt[7:4]) begin
-          if (txt_v_cnt[3:0] == `OSD_FONT_HEIGHT) begin
-            txt_v_cnt[3:0] <= 4'h0;
-            txt_v_cnt[7:4] <= txt_v_cnt[7:4] + 1'b1;
-          end else
-            txt_v_cnt <= txt_v_cnt + 1'b1;
+        if (hcnt < `OSD_LOGO_HSTART | hcnt >= `OSD_LOGO_HSTOP)
+          logo_hcnt <= {logo_hcnt_width{1'b0}};
+        else
+          logo_hcnt <= logo_hcnt + 1'b1;
+
+
+        if (vcnt < `OSD_TXT_VSTART | vcnt >= `OSD_TXT_VSTOP) begin
+          txt_vcnt <= {txt_vcnt_width{1'b0}};
+        end else begin
+          if (txt_vcnt[font_vcnt_width-1:0] < `OSD_FONT_HEIGHT) begin
+            txt_vcnt <= txt_vcnt + 1'b1;
+          end else begin
+            txt_vcnt[txt_vcnt_width-1:font_vcnt_width] <= txt_vcnt[txt_vcnt_width-1:font_vcnt_width] + 1'b1;
+            txt_vcnt[font_vcnt_width-1:0] <= 4'h0;
+          end
         end
+      end else begin
+//        hcnt <= ~&hcnt ? hcnt + 1'b1 : hcnt;
+        hcnt <= hcnt + 1'b1;
+        
+        if (draw_logo[4]) // vdata_valid_i is high every fourth clock cycle, so take draw_logo[4] (and not draw_logo[1])
+//          if (~&logo_hcnt)
+            logo_hcnt <= logo_hcnt + 1'b1;
+        else
+          logo_hcnt <= {logo_hcnt_width{1'b0}};
       end
       if (negedge_nVSYNC)
-        v_cnt <= 8'h0;
-
-      if (draw_logo[1]) begin
-        if (~&logo_h_cnt)
-          logo_h_cnt <= logo_h_cnt + 1'b1;
-      end
-
-      if (en_txtrd[0]) begin
-        if (txt_h_cnt[2:0] == `OSD_FONT_WIDTH) begin
-          txt_h_cnt[2:0] <= 3'h0;
-          txt_h_cnt[8:3] <= txt_h_cnt[8:3] + 1'b1;
-        end else
-          txt_h_cnt <= txt_h_cnt + 1'b1;
-      end else begin
-        txt_h_cnt[8:3] <= {6{1'b1}};
-        txt_h_cnt[2:0] <= `OSD_FONT_WIDTH;
-      end
+        vcnt <= {vcnt_width{1'b0}};
 
       nHSYNC_pre <= nHSYNC_cur;
       nVSYNC_pre <= nVSYNC_cur;
     end
+    
+    if (vdata_valid_L[1]) begin
+      if (en_txtrd[1]) begin
+        if (txt_hcnt[font_hcnt_width-1:0] < `OSD_FONT_WIDTH) begin
+          txt_hcnt <= txt_hcnt + 1'b1;
+        end else begin
+          txt_hcnt[txt_hcnt_width-1:font_hcnt_width] <= txt_hcnt[txt_hcnt_width-1:font_hcnt_width] + 1'b1;
+          txt_hcnt[font_hcnt_width-1:0] <= {font_hcnt_width{1'b0}};
+        end
+      end else begin
+        txt_hcnt[txt_hcnt_width-1:font_hcnt_width] <= {osd_letter_hcnt_width{1'b1}};
+        txt_hcnt[font_hcnt_width-1:0] <= `OSD_FONT_WIDTH;
+      end
+    end
 
-    // for simplicity - let them run
-    OSD_VSync <= (v_cnt >= `OSD_WINDOW_V_START) && (v_cnt < `OSD_WINDOW_V_STOP);
-    draw_logo[5:1] <= draw_logo[4:0];
-    draw_logo[0] <= show_osd_logo &&
-                    (h_cnt >= `OSD_LOGO_H_START) && (~&logo_h_cnt) &&
-                    (v_cnt >= `OSD_LOGO_V_START) && (v_cnt < `OSD_LOGO_V_STOP);
-    draw_osd_window[5:1] <= draw_osd_window[4:0];
-    draw_osd_window[0] <= (h_cnt >= `OSD_WINDOW_H_START) && (h_cnt < `OSD_WINDOW_H_STOP) &&
-                          (v_cnt >= `OSD_WINDOW_V_START) && (v_cnt < `OSD_WINDOW_V_STOP);
-    en_fontrd[3:2] <= en_fontrd[2:1];
-    en_fontrd[1] <= en_txtrd[0] && (txt_h_cnt[2:0] == `OSD_FONT_WIDTH);
-    en_txtrd[5:1] <= en_txtrd[4:0];
-    en_txtrd[0]  <= (h_cnt >= `OSD_TXT_H_START) && (h_cnt < `OSD_TXT_H_STOP) &&
-                    (v_cnt >= `OSD_TXT_V_START) && (v_cnt < `OSD_TXT_V_STOP);
+    vdata_valid_L[7:1] <= vdata_valid_L[6:0];
+    vdata_valid_L[0] <= vdata_valid_i;
+    for (int_idx = 1; int_idx < 8; int_idx = int_idx+1)
+      vdata_L[int_idx] <= vdata_L[int_idx-1];
+    vdata_L[0] <= vdata_i;
+
+    OSD_VSync <= (vcnt >= `OSD_WINDOW_VSTART) && (vcnt < `OSD_WINDOW_VSTOP);
+    
+    draw_osd_window[7:2] <= draw_osd_window[6:1];
+    draw_osd_window[1] <= (vcnt >= `OSD_WINDOW_VSTART) && (vcnt < `OSD_WINDOW_VSTOP) &&
+                          (hcnt >= `OSD_WINDOW_HSTART) && (hcnt < `OSD_WINDOW_HSTOP);
+                          
+    draw_logo[7:2] <= draw_logo[6:1];
+    draw_logo[1] <= show_osd_logo &&
+                    (vcnt >= `OSD_LOGO_VSTART) && (vcnt < `OSD_LOGO_VSTOP) &&
+                    (hcnt >= `OSD_LOGO_HSTART) && (hcnt < `OSD_LOGO_HSTOP);
+
+    act_logo_px[7:2] <= act_logo_px[6:1];
+    act_logo_px[  1] <= n64adv_logo[{logo_vcnt[logo_vcnt_width-1:1],logo_hcnt[logo_hcnt_width-1:1]}];
+
+    en_txtrd[7:2] <= en_txtrd[6:1];
+    en_txtrd[1]  <= (vcnt >= `OSD_TXT_VSTART) && (vcnt < `OSD_TXT_VSTOP) &&
+                    (hcnt >= `OSD_TXT_HSTART) && (hcnt < `OSD_TXT_HSTOP);
+                    
+    en_fontrd[7:3] <= en_fontrd[6:2];
+    en_fontrd[2] <= en_txtrd[1] && (txt_hcnt[font_hcnt_width-1:0] == `OSD_FONT_WIDTH) && vdata_valid_L[1];
   end
 
-localparam [1023:0] logo = 1024'h1FF7FCFF9C1B033FE7FD8180300FF3833FF7FEFFDE1B037FEFFD8180301FFBC330300600DF1B03606C0D8180FFD81BE33037FE00DB9BFF606C0DFF80FFDFFB733037FE00D9DBFF606C0DFF8030CFFB3B30300600D8FB03606C0D818030C01B1F3FF7FEFFD87BFF606FFDFF8030CFFB0F1FF7FCFF9839FE6067FCFF0030CFF307;
-
-reg [4:0] act_logo_px = 5'b00000;
-
-always @(posedge VCLK or negedge nVRST)
-  if (!nVRST)
-    act_logo_px <= 5'b00000;
-  else begin
-    act_logo_px[4:1] <= act_logo_px[3:0];
-    act_logo_px[  0] <= logo[{logo_v_cnt[3:1],logo_h_cnt[7:1]}];
-  end
 
 
-wire [5:0] txt_xrdaddr = txt_h_cnt[8:3];  // allows for max 64 chars each row
-wire [3:0] txt_yrdaddr = txt_v_cnt[7:4];  // allows for max 16 rows
-                                          // (initialized memories allow for
-                                          //  maximum sizes as 1M9K is used anyway)
-wire [1:0] background_tmp;
-wire [3:0] font_color_tmp;
-wire [6:0] font_addr_lsb;
+assign txt_xrdaddr = txt_hcnt[txt_hcnt_width-1:font_hcnt_width];
+assign txt_yrdaddr = txt_vcnt[txt_vcnt_width-1:font_vcnt_width];
+
 
 ram2port #(
   .num_of_pages(`MAX_CHARS_PER_ROW+1),
   .pagesize(`MAX_TEXT_ROWS+1),
-  .data_width(7)
+  .data_width(color_mem_width)
+)vd_color_u(
+  .wrCLK(OSDCLK),
+  .wren(vd_wrctrl[1]),
+  .wrpage(vd_wrpage),
+  .wraddr(vd_wraddr),
+  .wrdata(vd_color_wrdata),
+  .rdCLK(VCLK),
+  .rden(en_fontrd[2]),
+  .rdpage(txt_xrdaddr),
+  .rdaddr(txt_yrdaddr),
+  .rddata({bg_color_sel_tmp,font_color_sel_tmp})
+);
+
+ram2port #(
+  .num_of_pages(`MAX_CHARS_PER_ROW+1),
+  .pagesize(`MAX_TEXT_ROWS+1),
+  .data_width(txt_mem_width)
 )
 vd_text_u(
   .wrCLK(OSDCLK),
   .wren(vd_wrctrl[0]),
-  .wrpage(vd_wraddr[9:4]),
-  .wraddr(vd_wraddr[3:0]),
-  .wrdata(vd_wrdata[6:0]),
+  .wrpage(vd_wrpage),
+  .wraddr(vd_wraddr),
+  .wrdata(vd_txt_wrdata),
   .rdCLK(VCLK),
-  .rden(en_fontrd[1]),
+  .rden(en_fontrd[2]),
   .rdpage(txt_xrdaddr),
   .rdaddr(txt_yrdaddr),
-  .rddata(font_addr_lsb)
+  .rddata(font_char_select)
 );
-
-ram2port #(
-  .num_of_pages(`MAX_CHARS_PER_ROW+1),
-  .pagesize(`MAX_TEXT_ROWS+1),
-  .data_width(6)
-)vd_color_u(
-  .wrCLK(OSDCLK),
-  .wren(vd_wrctrl[1]),
-  .wrpage(vd_wraddr[9:4]),
-  .wraddr(vd_wraddr[3:0]),
-  .wrdata(vd_wrdata[12:7]),
-  .rdCLK(VCLK),
-  .rden(en_fontrd[1]),
-  .rdpage(txt_xrdaddr),
-  .rdaddr(txt_yrdaddr),
-  .rddata({background_tmp,font_color_tmp})
-);
-
-
-reg [3:0] background_color_del = 4'h0;
-reg [7:0] font_addr_msb        = 8'h0;
-reg [7:0] font_color_del       = 8'h0;
 
 always @(posedge VCLK or negedge nVRST) // delay font selection according to memory delay of chars and color
+                                        // use the fact that pixel stays constant for´four clock cycles
   if (!nVRST) begin
-    background_color_del <= 4'h0;
-    font_addr_msb        <= 8'h0;
-    font_color_del       <= 8'h0;
-  end else begin
-    background_color_del <= {background_color_del[1:0],background_tmp};
-    font_addr_msb  <= {font_addr_msb [3:0],txt_v_cnt[3:0]};
-    font_color_del <= {font_color_del[3:0],font_color_tmp};
+    bg_color_sel <= {bg_color_sel_width{1'b0}};
+    font_color_sel <= {font_color_sel_width{1'b0}};
+  end else if (en_fontrd[4]) begin
+    bg_color_sel   <= bg_color_sel_tmp;
+    font_color_sel <= font_color_sel_tmp;
   end
 
-wire [1:0] background_color = background_color_del[3:2];
-wire [3:0] font_color       = font_color_del[7:4];
-wire [7:0] font_word;
 
 font_rom font_rom_u(
   .CLK(VCLK),
   .nRST(nVRST),
-  .char_addr(font_addr_lsb),
-  .char_line(font_addr_msb[7:4]),
-  .rden(en_fontrd[3]),
-  .rddata(font_word)
+  .char_addr(font_char_select),
+  .char_line(txt_vcnt[font_vcnt_width-1:0]),
+  .rden(en_fontrd[4]),
+  .rddata(font_lineword_tmp)
 );
 
 
-reg [11:0] font_pixel_select = 12'h0;
+assign window_bg_color_tmp = (bg_color_sel == `OSD_BACKGROUND_WHITE) ? `OSD_WINDOW_BGCOLOR_WHITE   :
+                             (bg_color_sel == `OSD_BACKGROUND_GREY)  ? `OSD_WINDOW_BGCOLOR_GREY    :
+                             (bg_color_sel == `OSD_BACKGROUND_BLACK) ? `OSD_WINDOW_BGCOLOR_BLACK   :
+                                                                       `OSD_WINDOW_BGCOLOR_DARKBLUE;
+assign txt_color_tmp = (font_color_sel == `FONTCOLOR_BLACK)       ? `OSD_TXT_COLOR_BLACK       :
+                       (font_color_sel == `FONTCOLOR_GREY)        ? `OSD_TXT_COLOR_GREY        :
+                       (font_color_sel == `FONTCOLOR_LIGHTGREY)   ? `OSD_TXT_COLOR_LIGHTGREY   :
+                       (font_color_sel == `FONTCOLOR_WHITE)       ? `OSD_TXT_COLOR_WHITE       :
+                       (font_color_sel == `FONTCOLOR_RED)         ? `OSD_TXT_COLOR_RED         :
+                       (font_color_sel == `FONTCOLOR_GREEN)       ? `OSD_TXT_COLOR_GREEN       :
+                       (font_color_sel == `FONTCOLOR_BLUE)        ? `OSD_TXT_COLOR_BLUE        :
+                       (font_color_sel == `FONTCOLOR_YELLOW)      ? `OSD_TXT_COLOR_YELLOW      :
+                       (font_color_sel == `FONTCOLOR_CYAN)        ? `OSD_TXT_COLOR_CYAN        :
+                       (font_color_sel == `FONTCOLOR_MAGENTA)     ? `OSD_TXT_COLOR_MAGENTA     :
+                       (font_color_sel == `FONTCOLOR_DARKORANGE)  ? `OSD_TXT_COLOR_DARKORANGE  :
+                       (font_color_sel == `FONTCOLOR_TOMATO)      ? `OSD_TXT_COLOR_TOMATO      :
+                       (font_color_sel == `FONTCOLOR_DARKMAGENTA) ? `OSD_TXT_COLOR_DARKMAGENTA :
+                       (font_color_sel == `FONTCOLOR_NAVAJOWHITE) ? `OSD_TXT_COLOR_NAVAJOWHITE :
+                       (font_color_sel == `FONTCOLOR_DARKGOLD)    ? `OSD_TXT_COLOR_DARKGOLD    :
+                                                                    font_color_default         ;
 
 always @(posedge VCLK or negedge nVRST)
-  if (!nVRST)
-    font_pixel_select <= 12'h0;
-  else
-    font_pixel_select <= {font_pixel_select [8:0],txt_h_cnt[2:0]};
-
-
-wire act_char_px = (font_color == `FONTCOLOR_NON) ? 1'b0 : font_word[font_pixel_select[11:9]];
-
-wire [8:0] window_bg_color = (background_color == `OSD_BACKGROUND_WHITE) ? `OSD_WINDOW_BGCOLOR_WHITE   :
-                             (background_color == `OSD_BACKGROUND_GREY)  ? `OSD_WINDOW_BGCOLOR_GREY    :
-                             (background_color == `OSD_BACKGROUND_BLACK) ? `OSD_WINDOW_BGCOLOR_BLACK   :
-                                                                           `OSD_WINDOW_BGCOLOR_DARKBLUE;
-
-wire [8:0] window_bg_color_default = `OSD_WINDOW_BGCOLOR_DARKBLUE;
-
-wire [8:0] window_bg_color_cur = (en_txtrd[5] & !draw_logo[5]) ? window_bg_color : window_bg_color_default;
-
-wire [`VDATA_I_CO_SLICE] txt_color = (font_color == `FONTCOLOR_WHITE)       ? `OSD_TXT_COLOR_WHITE       :
-                                     (font_color == `FONTCOLOR_BLACK)       ? `OSD_TXT_COLOR_BLACK       :
-                                     (font_color == `FONTCOLOR_GREY)        ? `OSD_TXT_COLOR_GREY        :
-                                     (font_color == `FONTCOLOR_LIGHTGREY)   ? `OSD_TXT_COLOR_LIGHTGREY   :
-                                     (font_color == `FONTCOLOR_WHITE)       ? `OSD_TXT_COLOR_WHITE       :
-                                     (font_color == `FONTCOLOR_RED)         ? `OSD_TXT_COLOR_RED         :
-                                     (font_color == `FONTCOLOR_GREEN)       ? `OSD_TXT_COLOR_GREEN       :
-                                     (font_color == `FONTCOLOR_BLUE)        ? `OSD_TXT_COLOR_BLUE        :
-                                     (font_color == `FONTCOLOR_YELLOW)      ? `OSD_TXT_COLOR_YELLOW      :
-                                     (font_color == `FONTCOLOR_CYAN)        ? `OSD_TXT_COLOR_CYAN        :
-                                     (font_color == `FONTCOLOR_MAGENTA)     ? `OSD_TXT_COLOR_MAGENTA     :
-                                     (font_color == `FONTCOLOR_DARKORANGE)  ? `OSD_TXT_COLOR_DARKORANGE  :
-                                     (font_color == `FONTCOLOR_TOMATO)      ? `OSD_TXT_COLOR_TOMATO      :
-                                     (font_color == `FONTCOLOR_DARKMAGENTA) ? `OSD_TXT_COLOR_DARKMAGENTA :
-                                     (font_color == `FONTCOLOR_NAVAJOWHITE) ? `OSD_TXT_COLOR_NAVAJOWHITE :
-                                                                              `OSD_TXT_COLOR_DARKGOLD    ;
+  if (!nVRST) begin
+    font_pixel_select_4x <= {font_vcnt_width+2{1'b0}};
+    font_lineword <= {(`OSD_FONT_WIDTH+1){1'b0}};
+    act_char_px <= 1'b0;
+    window_bg_color <= window_bg_color_default;
+    txt_color = font_color_default;
+  end else begin
+    if (|font_pixel_select_4x)
+      font_pixel_select_4x <= font_pixel_select_4x + 1'b1;
+    if (font_pixel_select_4x[font_vcnt_width+1:2] == `OSD_FONT_WIDTH && font_pixel_select_4x[1:0] == 2'b11)
+      font_pixel_select_4x <= {font_vcnt_width+2{1'b0}};
+    
+    if (en_fontrd[6]) begin
+      font_pixel_select_4x <= {{(font_vcnt_width+1){1'b0}},1'b1};
+      font_lineword <= font_lineword_tmp;
+      act_char_px <= (font_color_sel == `FONTCOLOR_NON) ? 1'b0 : font_lineword_tmp[0];
+    end else if (en_txtrd[6]) begin
+      if (vdata_valid_L[6])
+        act_char_px <= (font_color_sel == `FONTCOLOR_NON) ? 1'b0 : font_lineword[font_pixel_select_4x[font_vcnt_width+1:2]];
+      window_bg_color <= !draw_logo[6] ? window_bg_color_tmp : window_bg_color_default;
+      txt_color <= txt_color_tmp;
+    end
+  end
 
 always @(posedge VCLK or negedge nVRST)
   if (!nVRST) begin
@@ -327,28 +409,28 @@ always @(posedge VCLK or negedge nVRST)
     vdata_o <= {vdata_width_i{1'b0}};
   end else begin
     // pass through vdata valid and sync (don't care about modification delay (wich is simply a shift to the right for the menu)
-    vdata_valid_o <= vdata_valid_i;
-    vdata_o[`VDATA_I_SY_SLICE] <= vdata_i[`VDATA_I_SY_SLICE];
+    vdata_valid_o <= vdata_valid_L[7];
+    vdata_o[`VDATA_I_SY_SLICE] <= vdata_L[7][`VDATA_I_SY_SLICE];
 
     // draw menu window if needed
-    if (show_osd & draw_osd_window[5]) begin
-      if (draw_logo[5] & act_logo_px[4])
+    if (show_osd & draw_osd_window[7]) begin
+      if (draw_logo[7] & act_logo_px[7])
         vdata_o[`VDATA_I_CO_SLICE] <= `OSD_LOGO_COLOR;
-      else if (&{en_txtrd[5],!draw_logo[5],|font_color,act_char_px})
+      else if (&{en_txtrd[7],!draw_logo[7],act_char_px})
           vdata_o[`VDATA_I_CO_SLICE] <= txt_color;
       else begin
       // modify red
-        vdata_o[3*color_width_i-1:3*color_width_i-3] <= window_bg_color_cur[8:6];
-        vdata_o[3*color_width_i-4:2*color_width_i  ] <= vdata_i[3*color_width_i-1:2*color_width_i+3];
+        vdata_o[3*color_width_i-1:3*color_width_i-3] <= window_bg_color[bg_color_width-1:bg_color_width-3];
+        vdata_o[3*color_width_i-4:2*color_width_i  ] <= vdata_L[7][3*color_width_i-1:2*color_width_i+3];
       // modify green
-        vdata_o[2*color_width_i-1:2*color_width_i-3] <= window_bg_color_cur[5:3];
-        vdata_o[2*color_width_i-4:  color_width_i  ] <= vdata_i[2*color_width_i-1:color_width_i+3];
+        vdata_o[2*color_width_i-1:2*color_width_i-3] <= window_bg_color[bg_color_width-4:bg_color_width-6];
+        vdata_o[2*color_width_i-4:  color_width_i  ] <= vdata_L[7][2*color_width_i-1:color_width_i+3];
       // modify blue
-        vdata_o[color_width_i-1:color_width_i-3] <= window_bg_color_cur[2:0];
-        vdata_o[color_width_i-4:              0] <= vdata_i[color_width_i-1:3];
+        vdata_o[color_width_i-1:color_width_i-3] <= window_bg_color[bg_color_width-7:bg_color_width-9];
+        vdata_o[color_width_i-4:              0] <= vdata_L[7][color_width_i-1:3];
       end
     end else begin
-      vdata_o[`VDATA_I_CO_SLICE] <= vdata_i[`VDATA_I_CO_SLICE];
+      vdata_o[`VDATA_I_CO_SLICE] <= vdata_L[7][`VDATA_I_CO_SLICE];
     end
   end
 

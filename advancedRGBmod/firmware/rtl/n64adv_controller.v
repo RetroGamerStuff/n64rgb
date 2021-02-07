@@ -83,10 +83,10 @@ input nVRST;
 // misc stuff
 wire CLK_4M = CLKs[2];
 wire CLK_16k = CLKs[1];
-wire CLK_25M = CLKs[0];
+wire CLK_50M = CLKs[0];
 
 wire nSRST_4M = nSRST[2];
-wire nSRST_25M = nSRST[0];
+wire nSRST_50M = nSRST[0];
 
 
 // parameters
@@ -123,10 +123,10 @@ reg use_igr = 1'b0;
 
 reg [1:0] rd_state = 2'b0;  // state machine for controller sniffing
 
-reg [5:0] wait_cnt = 6'h0;  // counter for wait state (needs appr. 16us at CLK_4M clock to fill up from 0 to 63)
+reg [7:0] wait_cnt = 8'h0;  // counter for wait state (needs appr. 64us at CLK_4M clock to fill up from 0 to 255 -> hopefully enough for slow reacting controller like the wireless brawler)
 reg [2:0] ctrl_hist = 3'h7;
 
-reg [5:0] ctrl_low_cnt = 6'h0;
+reg [7:0] ctrl_low_cnt = 8'h0;
 reg [31:0] serial_data[0:1];
 initial begin
   serial_data[1] <= 32'h0;
@@ -170,7 +170,7 @@ register_sync #(
   .reg_width(15),
   .reg_preset(15'd0)
 ) sync4cpu_u(
-  .clk(CLK_25M),
+  .clk(CLK_50M),
   .clk_en(1'b1),
   .nrst(1'b1),
   .reg_i({PPUState,FallbackMode,FallbackMode_valid,OSD_VSync}),
@@ -180,8 +180,8 @@ register_sync #(
 
 
 system_n64adv1 system_u(
-  .clk_clk(CLK_25M),
-  .rst_reset_n(nSRST_25M),
+  .clk_clk(CLK_50M),
+  .rst_reset_n(nSRST_50M),
   .sync_in_export({new_ctrl_data[1],OSD_VSync_resynced}),
   .vd_wraddr_export(vd_wraddr),
   .vd_wrctrl_export(vd_wrctrl),
@@ -240,9 +240,9 @@ assign ctrl_bit = ctrl_low_cnt < wait_cnt;
 always @(posedge CLK_4M or negedge nSRST_4M)
   if (!nSRST_4M) begin
     rd_state       <= ST_WAIT4N64;
-    wait_cnt       <=  5'h0;
+    wait_cnt       <=  8'h0;
     ctrl_hist      <=  3'h7;
-    ctrl_low_cnt   <=  6'h0;
+    ctrl_low_cnt   <=  8'h0;
     serial_data[1] <= 32'h0;
     serial_data[0] <= 32'h0;
     ctrl_data_cnt  <=  5'h0;
@@ -292,7 +292,7 @@ always @(posedge CLK_4M or negedge nSRST_4M)
     endcase
 
     if (ctrl_negedge | ctrl_posedge) begin // counter reset
-      wait_cnt <= 5'h0;
+      wait_cnt <= 8'h0;
     end else begin
       if (~&wait_cnt) // saturate counter if needed
         wait_cnt <= wait_cnt + 1'b1;
