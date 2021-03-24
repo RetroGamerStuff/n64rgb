@@ -1,7 +1,17 @@
 Changelog
 
-Last update: Jan. 7th, 2021
+Last update: Mar. 24th, 2021
 (Hardwareversion / Softwareversion)
+
+v1.65 / v1.65
+=============
+- add support for Retro Fighters Brawler64 Wireless controller
+- increase software speed by factor 2 (now at 50MHz)
+- bugfixes:
+  - HV sync was not working for VGA output
+  - controller sniffing module (reset counter vals)
+  - sub-pixel shift in OSD fixed
+
 
 v1.64 / v1.64
 =============
