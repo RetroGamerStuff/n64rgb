@@ -5,6 +5,15 @@ Last update: Mar. 24th, 2021
 
 v1.65 / v1.65
 =============
+- add PPU feedback value to info screen
+- PAL pattern detection for De-Jitter improved
+- bugfixes:
+  - VSYNC detection fixed for 4MHz clock domain
+  - valid data window slightly shifted
+
+
+v1.65 / v1.65
+=============
 - add support for Retro Fighters Brawler64 Wireless controller
 - increase software speed by factor 2 (now at 50MHz)
 - bugfixes:

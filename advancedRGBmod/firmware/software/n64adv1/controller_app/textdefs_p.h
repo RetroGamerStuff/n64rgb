@@ -318,14 +318,15 @@ static const char *welcome_header =
     "Welcome";
 static const char *welcome_overlay =
     " Changes coming with latest firmware update:\n\n"
-    " * faster clock for housekeeping\n"
-    "   (50MHz instead of 25MHz)\n"
-    " * support of Retro Fighters Brawler64 Wireless\n"
-    "   controller\n"
-    " * tiny bug fixes of edge cases\n\n"
+    " * add PPU feedback value to info screen\n"
+    " * PAL pattern detection for DeJitter improved\n"
+    " * tiny bug fixes:\n"
+    "   - VSYNC detection fixed for 4MHz clock domain\n"
+    "   - valid data window slightly shifted\n\n"
     " Save config once to not show this screen again.\n"
     " Press B to enter main screen! Have fun! Peter :)";
   /* 1234567890123456789012345678901234567890123456789012 */
+
 
 static const char *home_header =
     "Main Menu";
