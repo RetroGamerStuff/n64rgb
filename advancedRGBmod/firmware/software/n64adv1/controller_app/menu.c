@@ -811,15 +811,15 @@ int update_vinfo_screen(menu_t* current_menu)
   if (current_menu->type != VINFO) return -1;
 
   alt_u8 str_select;
+  // PPU Feedback Value
+  vd_clear_lineend(INFO_VALS_H_OFFSET,INFO_PPU_STATE_V_OFFSET);
+  sprintf(szText,"0x%04x",(uint) ppu_state);
+  vd_print_string(INFO_VALS_H_OFFSET,INFO_PPU_STATE_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,&szText[0]);
 
   // Video Input
   str_select = (palmode << 1) | scanmode;;
   vd_clear_lineend(INFO_VALS_H_OFFSET,INFO_VIN_V_OFFSET);
   vd_print_string(INFO_VALS_H_OFFSET,INFO_VIN_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,VideoMode[str_select]);
-
-  // Video PLL
-  vd_clear_lineend(INFO_VALS_H_OFFSET,INFO_VPLL_V_OFFSET);
-  vd_print_string(INFO_VALS_H_OFFSET,INFO_VPLL_V_OFFSET,BACKGROUNDCOLOR_STANDARD,FONTCOLOR_WHITE,VideoPLL[vpll_lock]);
 
   // Video Output
   vd_clear_lineend(INFO_VALS_H_OFFSET,INFO_VOUT_V_OFFSET);
