@@ -199,6 +199,7 @@ set_false_path -from [get_registers {n64adv_ppu_u|get_vinfo_u|FrameID \
 
 # tell the timer to not analyse these paths of the linemult unit in direct mode
 set list_direct_false_from [list [get_registers {n64adv_ppu_u|linemult_u|nHSYNC_buf_4x}] \
+                                 [get_registers {n64adv_ppu_u|linemult_u|hcnt_4x*}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|palpattern_select_r}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|clk_div2}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|nHSYNC_buf_2x}] \
@@ -208,7 +209,6 @@ set list_direct_false_from [list [get_registers {n64adv_ppu_u|linemult_u|nHSYNC_
                                  [get_registers {n64adv_ppu_u|linemult_u|wren}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|wrpage*}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|wrhcnt*}] \
-                                 [get_registers {n64adv_ppu_u|linemult_u|hcnt_full*}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|linewidth_2x_orig*}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|valid_line_r}] \
                                  [get_registers {n64adv_ppu_u|linemult_u|newFrame*}] \
