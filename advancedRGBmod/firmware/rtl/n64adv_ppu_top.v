@@ -75,7 +75,7 @@ input nVRST;
 input nVDSYNC;
 input [color_width_i-1:0] VD_i;
 
-output [11:0] PPUState;
+output [12:0] PPUState;
 input  [68:0] ConfigSet;
 
 input        OSDCLK;
@@ -157,7 +157,7 @@ assign vdata21_pp_w[0] = cfg_testpat ? vdata_tp_w : vdata_w[2];
 assign Sync_pp_o = vdata24_pp_w[3][`VDATA_O_SY_SLICE];
 assign AutoFilter_w = cfg_filter == 3'b000;
 
-assign PPUState = {palmode,n64_480i,1'b0,cfg_linemult,~cfg_nEN_YPbPr,~cfg_nEN_RGsB,~cfg_nvideblur,~cfg_n16bit_mode,Filter,AutoFilter_w};
+assign PPUState[11:0] = {palmode,n64_480i,1'b0,cfg_linemult,~cfg_nEN_YPbPr,~cfg_nEN_RGsB,~cfg_nvideblur,~cfg_n16bit_mode,Filter,AutoFilter_w};
 
 
 // write configuration register
@@ -310,6 +310,7 @@ linemult linemult_u(
   .vdata_i(vdata21_pp_w[1]),
   .vinfo_mult(vinfo_mult),
   .linex_timing(linex_timing),
+  .pal_pattern_fb_o(PPUState[12]),
   .VCLK_o(VCLK_Tx),
   .nVRST_o(nVRST_Tx),
   .vdata_valid_o(vdata_valid_pp_w[2]),

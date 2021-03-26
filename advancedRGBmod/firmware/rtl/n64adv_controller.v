@@ -64,7 +64,7 @@ input [2:0] nSRST;
 
 input CTRL;
 
-input      [11:0] PPUState;
+input      [12:0] PPUState;
 input      [ 7:0] JumperCfgSet;
 output reg [ 1:0] MANAGE_VPLL;
 output reg [68:0] PPUConfigSet;
@@ -102,7 +102,8 @@ wire [ 1:0] vd_wrctrl;
 wire [12:0] vd_wrdata;
 
 wire FallbackMode_resynced, FallbackMode_valid_resynced;
-wire [11:0] PPUState_resynced;
+wire [12:0] PPUState_resynced;
+
 
 wire [31:0] SysConfigSet2, SysConfigSet1 ,SysConfigSet0;  // general structure of ConfigSet -> see vh/n64adv_ppuconfig.vh
 wire [31:0] SysConfigSet2_resynced, SysConfigSet1_resynced, SysConfigSet0_resynced;
@@ -167,8 +168,8 @@ always @(posedge VCLK)
 
 
 register_sync #(
-  .reg_width(15),
-  .reg_preset(15'd0)
+  .reg_width(16), // 13 + 1 + 1 + 1
+  .reg_preset(16'd0)
 ) sync4cpu_u(
   .clk(CLK_50M),
   .clk_en(1'b1),

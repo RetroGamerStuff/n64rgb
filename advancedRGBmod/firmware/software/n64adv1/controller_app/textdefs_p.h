@@ -135,13 +135,13 @@
 #define INFO_VALS_H_OFFSET    (19 + INFO_OVERLAY_H_OFFSET)
 #define INFO_VALS_V_OFFSET    INFO_OVERLAY_V_OFFSET
 
-#define INFO_VIN_V_OFFSET     (1 + INFO_VALS_V_OFFSET)
-#define INFO_VPLL_V_OFFSET    (2 + INFO_VALS_V_OFFSET)
-#define INFO_VOUT_V_OFFSET    (3 + INFO_VALS_V_OFFSET)
-#define INFO_COL_V_OFFSET     (4 + INFO_VALS_V_OFFSET)
-#define INFO_FORMAT_V_OFFSET  (5 + INFO_VALS_V_OFFSET)
-#define INFO_DEBLUR_V_OFFSET  (6 + INFO_VALS_V_OFFSET)
-#define INFO_FAO_V_OFFSET     (7 + INFO_VALS_V_OFFSET)
+#define INFO_PPU_STATE_V_OFFSET (0 + INFO_VALS_V_OFFSET)
+#define INFO_VIN_V_OFFSET       (2 + INFO_VALS_V_OFFSET)
+#define INFO_VOUT_V_OFFSET      (3 + INFO_VALS_V_OFFSET)
+#define INFO_COL_V_OFFSET       (4 + INFO_VALS_V_OFFSET)
+#define INFO_FORMAT_V_OFFSET    (5 + INFO_VALS_V_OFFSET)
+#define INFO_DEBLUR_V_OFFSET    (6 + INFO_VALS_V_OFFSET)
+#define INFO_FAO_V_OFFSET       (7 + INFO_VALS_V_OFFSET)
 
 
 #define MAIN_OVERLAY_H_OFFSET 2
@@ -174,9 +174,9 @@ const char *btn_overlay_2 =
 static const char *vinfo_header =
     "Video-Info";
 static const char *vinfo_overlay =
-    "* Video\n"
+    "* PPU Feedback:\n"
+    "* Video:\n"
     "  - Input:\n"
-    "  - Video PLL:\n"
     "  - Output:\n"
     "  - Color Depth:\n"
     "  - Format:\n"

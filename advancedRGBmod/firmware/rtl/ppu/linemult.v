@@ -39,6 +39,7 @@ module linemult(
 
   vinfo_mult,
   linex_timing,
+  pal_pattern_fb_o,
 
   VCLK_o,
   nVRST_o,
@@ -55,6 +56,7 @@ input  [`VDATA_I_FU_SLICE] vdata_i;
 
 input [20:0] vinfo_mult;    // [nLineMult (2bits),lx_ifix (1bit),SLhyb_str (5bits),SL_str (8bits),SL_method,SL_id,SL_en,palmode,n64_480i]
 input [13:0] linex_timing;
+output pal_pattern_fb_o;
 
 input  VCLK_o;
 input  nVRST_o;
@@ -386,6 +388,7 @@ always @(posedge VCLK_i or negedge nVRST_i)
     end
   end
 
+assign pal_pattern_fb_o = palpattern_select_r;
 
 register_sync #(
   .reg_width(1+pcnt_width+5),
