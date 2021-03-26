@@ -64,14 +64,36 @@ parameter vdata_width_o = 4 + 3*color_width_o;
   `define PIXEL_PER_LINE_NTSC_2x        1546
   `define PIXEL_PER_LINE_NTSC_4x        3093
 
-  `define PIXEL_PER_LINE_PAL_2x_short   1586
-  `define PIXEL_PER_LINE_PAL_2x_normal  1588 // slighty modified and thus different pattern
-  `define PIXEL_PER_LINE_PAL_2x_long    1589 // slighty modified and thus different pattern
-  `define PIXEL_PER_LINE_PAL_4x_short   3173 // original
-  `define PIXEL_PER_LINE_PAL_4x_normal  3177 // original
-  `define PIXEL_PER_LINE_PAL_4x_long0   3181 // original
-  `define PIXEL_PER_LINE_PAL_4x_long1   3186 // original
-  `define PIXEL_PER_LINE_PAL_4x_long2   3187 // original
+  `define PIXEL_PER_LINE_PAL_2x_short     1586
+  `define PIXEL_PER_LINE_PAL_2x_normal    1588 // slighty modified and thus different pattern
+  `define PIXEL_PER_LINE_PAL_2x_long      1589 // slighty modified and thus different pattern
+  `define PIXEL_PER_LINE_PAL_4x_short_v1  3173 // original: 1100 0110 0101
+  `define PIXEL_PER_LINE_PAL_4x_short_v2  3175 // original: 1100 0110 0101
+  `define PIXEL_PER_LINE_PAL_4x_normal    3177 // original: 1100 0110 1001
+  `define PIXEL_PER_LINE_PAL_4x_long0     3181 // original: 1100 0110 1101
+  `define PIXEL_PER_LINE_PAL_4x_long1_v2  3184 // original: 1100 0111 0000
+  `define PIXEL_PER_LINE_PAL_4x_long2_v2  3185 // original: 1100 0111 0001
+  `define PIXEL_PER_LINE_PAL_4x_long1_v1  3186 // original: 1100 0111 0010
+  `define PIXEL_PER_LINE_PAL_4x_long2_v1  3187 // original: 1100 0111 0011
+  
+  // PAL Patterns found so far:
+  // --------------------------
+  // - H count pattern I    : 3177, 3181, 3177, 3177, …
+  // - H count pattern II.a : 3177, 3187, 3173, 3177, 3177, …
+  // - H count pattern II.b : 3177, 3185, 3175, 3177, 3177, …
+  // - H count pattern III.a: 3177, 3186, 3173, 3177, …
+  // - H count pattern III.b: 3177, 3184, 3175, 3177, …
+  //
+  // Pattern 0: (e.g. Wave Race)
+  //   - Five-Frame pattern v1: 4x I, II.a, …
+  //   - Five-Frame pattern v2: 4x I, II.b, …
+  //
+  // Pattern 1 (v1): (e.g. Super Mario 64)
+  //   - Five-Frame pattern v1: 2xIII.a, II.a, III.a, II.a, …
+  //   - Five-Frame pattern v2: 2xIII.b, II.a, III.b, II.a, …
+  //
+  // Detection:
+  //   check for I (unique for pattern 0) or II.x (unique for pattern 2)
 
   `define PIXEL_PER_LINE_MAX            800
   `define PIXEL_PER_LINE_MAX_2x         1600
