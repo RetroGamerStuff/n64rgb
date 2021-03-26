@@ -95,6 +95,8 @@ localparam ST_N64_RD   = 2'b01; // N64 request sniffing
 localparam ST_CTRL_RD  = 2'b10; // controller response
 
 // wires
+wire negedge_nVSYNC;
+
 wire OSD_VSync_resynced;
 
 wire [ 9:0] vd_wraddr;
@@ -113,8 +115,7 @@ wire ctrl_bit;
 
 
 // registers
-reg negedge_nVSYNC = 1'b0;
-reg nVSYNC_cur = 1'b0;
+reg [1:0] nVSYNC_buf = 1'b0;
 
 reg [9:0] time_out = 10'd1023;
 reg FallbackMode  = 1'b0;
@@ -136,6 +137,8 @@ end
 reg [ 4:0] ctrl_data_cnt = 5'h0;
 reg [ 1:0] new_ctrl_data = 2'b00;
 
+reg [2:0] nVSYNC_resynced = 3'b000;
+
 reg initiate_nrst = 1'b0;
 reg drv_rst = 1'b0;
 reg [9:0] rst_cnt = 10'b0; // ~64ms are needed to count from max downto 0 with CLK_16k.
@@ -145,14 +148,15 @@ reg [9:0] rst_cnt = 10'b0; // ~64ms are needed to count from max downto 0 with C
 
 always @(posedge VCLK or negedge nVRST)
   if (!nVRST) begin
-    negedge_nVSYNC <= 1'b0;
-    nVSYNC_cur <= 1'b0;
+    nVSYNC_buf <= 2'b00;
   end else begin
+    nVSYNC_buf[1] <= nVSYNC_buf[0];
     if (!nVDSYNC) begin
-      negedge_nVSYNC <= nVSYNC_cur & !VD_VSi;
-      nVSYNC_cur <= VD_VSi;
+      nVSYNC_buf[0] <= VD_VSi;
     end
   end
+
+assign negedge_nVSYNC = nVSYNC_buf[1] & !nVSYNC_buf[0];
 
 // Part 1: Instantiate NIOS II
 // ===========================
@@ -210,7 +214,7 @@ register_sync #(
 );
 
 always @(posedge VCLK)
-  if ((!nVDSYNC & negedge_nVSYNC) | !nVRST) begin
+  if (negedge_nVSYNC | !nVRST) begin
     MANAGE_VPLL      <= {SysConfigSet2_resynced[`use_vpll_bit],SysConfigSet2_resynced[`test_vpll_bit]};
     OSDInfo[1]       <= &{SysConfigSet2_resynced[`show_osd_logo_bit],SysConfigSet2_resynced[`show_osd_bit],!SysConfigSet2_resynced[`mute_osd_bit]};  // show logo only in OSD
     OSDInfo[0]       <= SysConfigSet2_resynced[`show_osd_bit] & !SysConfigSet2_resynced[`mute_osd_bit];
@@ -241,14 +245,15 @@ assign ctrl_bit = ctrl_low_cnt < wait_cnt;
 always @(posedge CLK_4M or negedge nSRST_4M)
   if (!nSRST_4M) begin
     rd_state       <= ST_WAIT4N64;
-    wait_cnt       <=  8'h0;
-    ctrl_hist      <=  3'h7;
-    ctrl_low_cnt   <=  8'h0;
-    serial_data[1] <= 32'h0;
-    serial_data[0] <= 32'h0;
-    ctrl_data_cnt  <=  5'h0;
-    new_ctrl_data  <=  2'b0;
-    initiate_nrst  <=  1'b0;
+    wait_cnt        <=  8'h0;
+    ctrl_hist       <=  3'h7;
+    ctrl_low_cnt    <=  8'h0;
+    serial_data[1]  <= 32'h0;
+    serial_data[0]  <= 32'h0;
+    ctrl_data_cnt   <=  5'h0;
+    new_ctrl_data   <=  2'b0;
+    initiate_nrst   <=  1'b0;
+    nVSYNC_resynced <=  3'b0;
   end else begin
     case (rd_state)
       ST_WAIT4N64:
@@ -309,7 +314,8 @@ always @(posedge CLK_4M or negedge nSRST_4M)
         initiate_nrst <= 1'b1;
     end
 
-    if (negedge_nVSYNC)
+    nVSYNC_resynced[2:0] <= {nVSYNC_resynced[1:0],nVSYNC_buf[0]};
+    if (nVSYNC_resynced[2] & !nVSYNC_resynced[1])
       new_ctrl_data[1] <= 1'b0;
   end
 
