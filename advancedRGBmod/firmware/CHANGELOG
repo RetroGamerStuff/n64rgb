@@ -3,7 +3,7 @@ Changelog
 Last update: Mar. 24th, 2021
 (Hardwareversion / Softwareversion)
 
-v1.65 / v1.65
+v1.66 / v1.66
 =============
 - add PPU feedback value to info screen
 - PAL pattern detection for De-Jitter improved
