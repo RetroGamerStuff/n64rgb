@@ -4,6 +4,15 @@ This is currently a work in progress and seeks to simplify the documentation by 
 
 If you have any improvements, please fork, modify and submit a pull request
 
-Current documents (rest WIP):
+Current documents:
 
-[N64 Advanced with Flex cables](N64_Advanced/README.md)
+[USB Blaster Driver Installation](USB-Blaster-Drivers/README.md)  
+
+WIP documents:
+[Updating Firmware with Quartus](Firmware-Updating-Quartus/README.md)  
+
+[N64 Advanced (RGB) with Both Flex cables](N64-Advanced-RGB-FullFlex/README.md)  
+[N64 Advanced (RGB) with RCP2N64RGB](N64-Advanced-RGB-RCP2N64RGB/README.md)  
+[N64 Advanced (RGB) with RCP2Pads](N64-Advanced-RGB-RCP2Pads/README.md) 
+
+[N64 Advanced (VGA) with RCP2Pads](N64-Advanced-VGA-RCP2Pads/README.md)
