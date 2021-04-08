@@ -39,6 +39,7 @@ module linemult(
 
   vinfo_mult,
   linex_timing,
+  pal_pattern_fb_o,
 
   VCLK_o,
   nVRST_o,
@@ -55,6 +56,7 @@ input  [`VDATA_I_FU_SLICE] vdata_i;
 
 input [20:0] vinfo_mult;    // [nLineMult (2bits),lx_ifix (1bit),SLhyb_str (5bits),SL_str (8bits),SL_method,SL_id,SL_en,palmode,n64_480i]
 input [13:0] linex_timing;
+output pal_pattern_fb_o;
 
 input  VCLK_o;
 input  nVRST_o;
@@ -108,7 +110,7 @@ wire linex_vshift_direction = linex_timing[ 5];
 wire [ 4:0] linex_vshift    = linex_timing[ 5] ? linex_timing[ 4: 0] : ~linex_timing[ 4: 0] + 1'b1;
 
 // wires
-wire negedge_nHSYNC_div2;
+wire negedge_nHSYNC_4x, negedge_nHSYNC_2x;
 
 wire negedge_nHSYNC, negedge_nVSYNC;
 
@@ -154,15 +156,16 @@ reg    [pcnt_width-1:0] wrpage = {pcnt_width{1'b0}};
 reg [hcnt_width_1x-1:0] wrhcnt = {hcnt_width_1x{1'b0}};
 reg [hcnt_width_1x-1:0] wraddr = {hcnt_width_1x{1'b0}};
 
-reg [hcnt_width_4x:0] hcnt_full = {hcnt_width_4x{1'b0}};
+reg nHSYNC_buf_4x;
+reg [4:0] hcnt_4x = 5'b0;
 reg palpattern_select_r = 1'b0;
 
 reg valid_line_r    = 1'b0;
 
 reg clk_div2 = 1'b0;
-reg nHSYNC_buf_div2 = 1'b0;
-reg [pcnt_width-1:0] wrpage_div2 = {hcnt_width_2x{1'b0}};
-reg [hcnt_width_2x-1:0] hcnt_div2 = {hcnt_width_2x{1'b0}};
+reg nHSYNC_buf_2x = 1'b0;
+reg [pcnt_width-1:0] wrpage_2x = {hcnt_width_2x{1'b0}};
+reg [hcnt_width_2x-1:0] hcnt_2x = {hcnt_width_2x{1'b0}};
 reg [hcnt_width_2x-1:0] linewidth_2x_orig[0:`BUF_NUM_OF_PAGES-1];
 initial
   for (int_idx = 0; int_idx < `BUF_NUM_OF_PAGES; int_idx = int_idx+1)
@@ -271,7 +274,8 @@ end
 
 
 // start of rtl
-assign negedge_nHSYNC_div2 = nHSYNC_buf_div2 & !vdata_i[3*color_width_i+1];
+assign negedge_nHSYNC_4x = nHSYNC_buf_4x & !vdata_i[3*color_width_i+1];
+assign negedge_nHSYNC_2x = nHSYNC_buf_2x & !vdata_i[3*color_width_i+1];
 
 assign negedge_nVSYNC =  vdata_i_L[3*color_width_i+3] & !vdata_i[3*color_width_i+3];
 assign negedge_nHSYNC =  vdata_i_L[3*color_width_i+1] & !vdata_i[3*color_width_i+1];
@@ -281,10 +285,14 @@ assign valid_line    = wrhcnt > hstop_i & !line_overflow; // for evaluation
 
 always @(posedge VCLK_i or negedge nVRST_i)
   if (!nVRST_i) begin
+    nHSYNC_buf_4x <= 1'b0;
+    hcnt_4x <= 5'b0;
+    palpattern_select_r <= 1'b0;
+    
     clk_div2 <= 1'b0;
-    nHSYNC_buf_div2 <= 1'b0;
-    wrpage_div2 <= {pcnt_width{1'b0}};
-    hcnt_div2 <= {hcnt_width_2x{1'b0}};
+    nHSYNC_buf_2x <= 1'b0;
+    wrpage_2x <= {pcnt_width{1'b0}};
+    hcnt_2x <= {hcnt_width_2x{1'b0}};
     for (int_idx = 0; int_idx < `BUF_NUM_OF_PAGES; int_idx = int_idx+1)
       linewidth_2x_orig[int_idx] = {hcnt_width_2x{1'b0}};
   
@@ -292,10 +300,6 @@ always @(posedge VCLK_i or negedge nVRST_i)
     vdata_i_L <= {vdata_width_i{1'b0}};
     FrameID <= 1'b0;
 
-    
-    hcnt_full <= {hcnt_width_4x{1'b0}};
-    palpattern_select_r <= 1'b0;
-    
     wren   <= 1'b0;
     wrpage <= {pcnt_width{1'b0}};
     wrhcnt <= {hcnt_width_1x{1'b0}};
@@ -309,31 +313,32 @@ always @(posedge VCLK_i or negedge nVRST_i)
     newFrame[0] <= 1'b0;
     start_rdproc <= 1'b0;
   end else begin
+    nHSYNC_buf_4x <= vdata_i[3*color_width_i+1];
+    if (negedge_nHSYNC_4x) begin
+      hcnt_4x <= 5'b0;
+      if (hcnt_4x == 5'b01101)  // five LSBs of `PIXEL_PER_LINE_PAL_4x_long0
+        palpattern_select_r <= 1'b0;
+      if (!hcnt_4x[0])          // only `PIXEL_PER_LINE_PAL_4x_long1 has a zero here
+        palpattern_select_r <= 1'b1;
+    end else begin
+      hcnt_4x <= hcnt_4x + 1'b1;
+    end
+    
     clk_div2 <= ~clk_div2;
     if (clk_div2) begin
-      nHSYNC_buf_div2 <= vdata_i[3*color_width_i+1];
-      if (negedge_nHSYNC_div2) begin
-        linewidth_2x_orig[wrpage_div2] <= hcnt_div2;
-        hcnt_div2 <= {hcnt_width_2x{1'b0}};
-        if (wrpage_div2 == `BUF_NUM_OF_PAGES-1)
-          wrpage_div2 <= {pcnt_width{1'b0}};
+      nHSYNC_buf_2x <= vdata_i[3*color_width_i+1];
+      if (negedge_nHSYNC_2x) begin
+        linewidth_2x_orig[wrpage_2x] <= hcnt_2x;
+        hcnt_2x <= {hcnt_width_2x{1'b0}};
+        if (wrpage_2x == `BUF_NUM_OF_PAGES-1)
+          wrpage_2x <= {pcnt_width{1'b0}};
         else
-          wrpage_div2 <= wrpage_div2 + 1'b1;
+          wrpage_2x <= wrpage_2x + 1'b1;
       end else begin
-        hcnt_div2 <= hcnt_div2 + 1'b1;
+        hcnt_2x <= hcnt_2x + 1'b1;
       end
     end
-    if (negedge_nHSYNC) begin
-      hcnt_full <= {hcnt_width_4x{1'b0}};
-        if (palmode) begin
-          if (hcnt_full == `PIXEL_PER_LINE_PAL_4x_long0)
-            palpattern_select_r <= 1'b0;
-          if (hcnt_full == `PIXEL_PER_LINE_PAL_4x_long1)
-            palpattern_select_r <= 1'b1;
-        end
-    end else begin
-      hcnt_full <= hcnt_full + 1'b1;
-    end
+    
     if (vdata_valid_i) begin
       vdata_i_LL <= vdata_i_L;
       vdata_i_L <= vdata_i;
@@ -380,12 +385,13 @@ always @(posedge VCLK_i or negedge nVRST_i)
       end
       
       if (!valid_line_r) begin
-        wrpage_div2 <= {pcnt_width{1'b0}};
+        wrpage_2x <= {pcnt_width{1'b0}};
         wrpage <= {pcnt_width{1'b0}};
       end
     end
   end
 
+assign pal_pattern_fb_o = palpattern_select_r;
 
 register_sync #(
   .reg_width(1+pcnt_width+5),

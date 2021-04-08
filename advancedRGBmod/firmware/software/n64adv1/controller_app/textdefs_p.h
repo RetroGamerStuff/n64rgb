@@ -135,13 +135,13 @@
 #define INFO_VALS_H_OFFSET    (19 + INFO_OVERLAY_H_OFFSET)
 #define INFO_VALS_V_OFFSET    INFO_OVERLAY_V_OFFSET
 
-#define INFO_VIN_V_OFFSET     (1 + INFO_VALS_V_OFFSET)
-#define INFO_VPLL_V_OFFSET    (2 + INFO_VALS_V_OFFSET)
-#define INFO_VOUT_V_OFFSET    (3 + INFO_VALS_V_OFFSET)
-#define INFO_COL_V_OFFSET     (4 + INFO_VALS_V_OFFSET)
-#define INFO_FORMAT_V_OFFSET  (5 + INFO_VALS_V_OFFSET)
-#define INFO_DEBLUR_V_OFFSET  (6 + INFO_VALS_V_OFFSET)
-#define INFO_FAO_V_OFFSET     (7 + INFO_VALS_V_OFFSET)
+#define INFO_PPU_STATE_V_OFFSET (0 + INFO_VALS_V_OFFSET)
+#define INFO_VIN_V_OFFSET       (2 + INFO_VALS_V_OFFSET)
+#define INFO_VOUT_V_OFFSET      (3 + INFO_VALS_V_OFFSET)
+#define INFO_COL_V_OFFSET       (4 + INFO_VALS_V_OFFSET)
+#define INFO_FORMAT_V_OFFSET    (5 + INFO_VALS_V_OFFSET)
+#define INFO_DEBLUR_V_OFFSET    (6 + INFO_VALS_V_OFFSET)
+#define INFO_FAO_V_OFFSET       (7 + INFO_VALS_V_OFFSET)
 
 
 #define MAIN_OVERLAY_H_OFFSET 2
@@ -174,9 +174,9 @@ const char *btn_overlay_2 =
 static const char *vinfo_header =
     "Video-Info";
 static const char *vinfo_overlay =
-    "* Video\n"
+    "* PPU Feedback:\n"
+    "* Video:\n"
     "  - Input:\n"
-    "  - Video PLL:\n"
     "  - Output:\n"
     "  - Color Depth:\n"
     "  - Format:\n"
@@ -318,14 +318,15 @@ static const char *welcome_header =
     "Welcome";
 static const char *welcome_overlay =
     " Changes coming with latest firmware update:\n\n"
-    " * faster clock for housekeeping\n"
-    "   (50MHz instead of 25MHz)\n"
-    " * support of Retro Fighters Brawler64 Wireless\n"
-    "   controller\n"
-    " * tiny bug fixes of edge cases\n\n"
+    " * add PPU feedback value to info screen\n"
+    " * PAL pattern detection for DeJitter improved\n"
+    " * tiny bug fixes:\n"
+    "   - VSYNC detection fixed for 4MHz clock domain\n"
+    "   - valid data window slightly shifted\n\n"
     " Save config once to not show this screen again.\n"
     " Press B to enter main screen! Have fun! Peter :)";
   /* 1234567890123456789012345678901234567890123456789012 */
+
 
 static const char *home_header =
     "Main Menu";
